@@ -25,16 +25,6 @@ const routes = [
     component: () => import('./components/Felix.vue')
   },
   {
-    path: '/debt',
-    name: 'Debt',
-    component: () => import('./components/Debt.vue'),
-    meta: {
-      title: 'Управление долгами - Fox Taffy',
-      requiresAuth: true, // Требует аутентификации
-      private: true // Приватная страница
-    }
-  },
-  {
     path: '/admin',
     name: 'Admin',
     component: () => import('./components/AdminPanel.vue'),
