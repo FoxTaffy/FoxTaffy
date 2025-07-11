@@ -203,10 +203,10 @@ export default {
           attendees: "140+",
           status: "Буду участвовать",
           badge: false,
-          detailsUrl: "/events/SFB",
+          detailsUrl: "/events/SkyFurrBurg",
           badgeClass: "volunteer",
           badgeText: "Волонтёр",
-          detailsReady: false,
+          detailsReady: true,
           officialUrl: "http://skyfurrburg.ru"
         },
         {

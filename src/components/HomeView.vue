@@ -9,8 +9,6 @@
       <BioSection />
       <FursuitSection />
       <PartnerSection />
-      <!-- Добавляем компонент погашения долгов -->
-      <DebtRepaymentSection />
       <EventsSection />
       <CommunitiesSection />
       
@@ -28,7 +26,6 @@ import ReferenceSection from './Base/Reference.vue'
 import BioSection from './Base/Bio.vue'
 import FursuitSection from './Base/Fursuit.vue'
 import PartnerSection from './Base/Felix.vue'
-import DebtRepaymentSection from './Base/DebtRepayment.vue'  // Добавляем новый компонент
 import EventsSection from './Base/Events.vue'
 import CommunitiesSection from './Base/Communities.vue'
 
@@ -40,7 +37,6 @@ export default {
     BioSection,
     FursuitSection,
     PartnerSection,
-    DebtRepaymentSection,  // Регистрируем новый компонент
     EventsSection,
     CommunitiesSection
   }
