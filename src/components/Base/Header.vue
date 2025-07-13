@@ -8,7 +8,7 @@
         </div>
       </div>
       <div class="name-container">
-        <h1 class="first-name">Fox Taffy 🔜 Тупикон</h1>
+        <h1 class="first-name">Fox Taffy</h1>
         <div class="name-underline"></div>
       </div>
       <div class="personal-tags">
