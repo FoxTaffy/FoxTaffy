@@ -37,7 +37,7 @@ app.config.globalProperties.$galleryConfig = {
   // Секретный код для активации админ-панели
   adminCode: 'FoxTaffy621'
 }
-
+import { SpeedInsights } from "@vercel/speed-insights/vue"
 // Добавление FontAwesome для иконок (если используется в галерее)
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
