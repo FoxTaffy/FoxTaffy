@@ -28,16 +28,9 @@ app.config.globalProperties.$galleryConfig = {
     'Черный': '#1A1A1A',
     'Темно-зеленый': '#2E7D32'
   },
-  // Конфигурация хранилища
-  storage: {
-    baseUrl: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/',
-    region: 'ru-7',
-    bucket: '621.s3.ru-7.storage.selcloud.ru'
-  },
   // Секретный код для активации админ-панели
   adminCode: 'FoxTaffy621'
 }
-import { SpeedInsights } from "@vercel/speed-insights/vue"
 // Добавление FontAwesome для иконок (если используется в галерее)
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
