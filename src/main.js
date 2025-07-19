@@ -1,24 +1,27 @@
 import { createApp } from 'vue'
+import { SpeedInsights } from "@vercel/speed-insights/vue"
 import App from './App.vue'
 import router from './router'
 import './style.css'
 import './Base.css'
 
+// Инициализация приложения
 const app = createApp(App)
 
-// Добавляем директиву для анимации при скролле
+// Добавление Vercel Speed Insights
+app.component('SpeedInsights', SpeedInsights)
+
+// Глобальная директива для анимации при скролле
 app.directive('scroll-animation', {
   mounted: function (el) {
     el.style.opacity = '1'
     el.style.transform = 'translateY(0)'
-    // Убираем transition, чтобы не было эффекта анимации вообще
     el.style.transition = 'none'
   }
 })
 
-// Глобальные свойства для компонентов галереи
+// Глобальные настройки галереи
 app.config.globalProperties.$galleryConfig = {
-  // Настройки для галереи Fox Taffy
   characterColors: {
     'Основной оранжевый': '#FF7B25',
     'Основной зеленый': '#4CAF50',
@@ -28,12 +31,14 @@ app.config.globalProperties.$galleryConfig = {
     'Черный': '#1A1A1A',
     'Темно-зеленый': '#2E7D32'
   },
-  // Секретный код для активации админ-панели
   adminCode: 'FoxTaffy621'
 }
-// Добавление FontAwesome для иконок (если используется в галерее)
+
+// Настройка FontAwesome
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+// Solid icons
 import { 
   faSearch, faImage, faHeart, faEye, faTimes, faTrashAlt, faDownload, 
   faShareAlt, faPencilAlt, faChevronLeft, faChevronRight, faPlus,
@@ -43,12 +48,14 @@ import {
   faTag, faStar, faChevronUp, faChevronDown, faExclamationTriangle,
   faSliders, faList, faTh, faSearchPlus, faArrowRight, faSyncAlt
 } from '@fortawesome/free-solid-svg-icons'
+
+// Brand icons
 import { 
   faInstagram, faTelegram, faVk, faDiscord, faGithub, faTwitch,
   faTiktok, faSteam 
 } from '@fortawesome/free-brands-svg-icons'
 
-// Добавляем используемые иконки в библиотеку
+// Добавление иконок в библиотеку
 library.add(
   faSearch, faImage, faHeart, faEye, faTimes, faTrashAlt, faDownload, 
   faShareAlt, faPencilAlt, faChevronLeft, faChevronRight, faPlus,
@@ -61,18 +68,21 @@ library.add(
   faTiktok, faSteam
 )
 
-// Регистрируем FontAwesome компонент глобально
+// Глобальная регистрация компонента иконок
 app.component('font-awesome-icon', FontAwesomeIcon)
 
-// Инициализация функционала лайков и просмотров
-if (!localStorage.getItem('foxTaffy_liked_artworks')) {
-  localStorage.setItem('foxTaffy_liked_artworks', JSON.stringify([]));
+// Инициализация локального хранилища
+const initializeLocalStorage = () => {
+  if (!localStorage.getItem('foxTaffy_liked_artworks')) {
+    localStorage.setItem('foxTaffy_liked_artworks', JSON.stringify([]))
+  }
+  if (!localStorage.getItem('foxTaffy_gallery_view')) {
+    localStorage.setItem('foxTaffy_gallery_view', 'grid')
+  }
 }
 
-// Инициализируем предпочтения отображения
-if (!localStorage.getItem('foxTaffy_gallery_view')) {
-  localStorage.setItem('foxTaffy_gallery_view', 'grid');
-}
+initializeLocalStorage()
 
+// Подключение роутера и монтирование приложения
 app.use(router)
 app.mount('#app')

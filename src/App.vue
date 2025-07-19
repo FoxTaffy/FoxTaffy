@@ -1,11 +1,17 @@
 <template>
-  <SpeedInsights />
-  <router-view />
+  <div>
+    <router-view />
+    <SpeedInsights />
+  </div>
 </template>
 
 <script>
-import { SpeedInsights } from '@vercel/speed-insights/vue';
+import { SpeedInsights } from "@vercel/speed-insights/vue"
+
 export default {
-  name: 'App'
+  name: 'App',
+  components: {
+    SpeedInsights
+  }
 }
 </script>

@@ -21,7 +21,7 @@
         </div>
       </a>
       
-      <a href="https://t.me/FloridaUwU" class="community-card" target="_blank" rel="noopener">
+      <a href="https://t.me/FloridaOwO" class="community-card" target="_blank" rel="noopener">
         <div class="card-shine"></div>
         <div class="community-header">
           <div class="community-icon telegram">
