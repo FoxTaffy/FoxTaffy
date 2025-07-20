@@ -392,18 +392,32 @@
 </template>
 
 <script>
+/**
+ * FW2000 - Компонент страницы мероприятия Foxwood: Back to 2000s
+ * 
+ * Реализует полноценную страницу мероприятия в стиле Windows XP/2000
+ * с интерактивными элементами, галереей фотографий, информацией о покупках
+ * и впечатлениях от мероприятия.
+ * 
+ * Особенности:
+ * - Полная стилизация под Windows XP/Internet Explorer
+ * - Адаптивный дизайн для всех устройств
+ * - Система вкладок для навигации по контенту
+ * - Интерактивная галерея с лайтбоксом
+ * - SEO-оптимизация с динамическими метатегами
+ * - Реалистичная имитация классического интерфейса
+ */
 
 export default {
   name: 'FW2000',
   data() {
     return {
-      // Текущее время для панели задач
+      // Управление временем и UI состоянием
       currentTime: '',
-      // Флаг для лайтбокса
       lightboxOpen: false,
       currentPhoto: 0,
       
-      // Пути к иконкам (абсолютные пути к файлам в папке public)
+      // Пути к ресурсам Windows XP иконок
       iconWinXP3: '/w98_msie1.ico',
       iconWxpB: '/wxpb.ico',
       iconWxp18: '/wxp_18.ico',
@@ -432,11 +446,11 @@ export default {
       iconW98Users: '/w98_users.ico',
       iconW98WorldStar: '/w98_world_star.ico',
       
-      // Изображения
+      // Графические ресурсы
       startButtonImage: '/pusk.png',
       iconVK: '/vk.png',
       
-      // Вкладки
+      // Система навигации по вкладкам
       activeTab: 'overview',
       tabs: [
         { id: 'overview', name: 'Обзор', icon: 'info' },
@@ -445,7 +459,7 @@ export default {
         { id: 'impressions', name: 'Впечатления', icon: 'notepad' }
       ],
       
-      // Основные данные мероприятия
+      // Основная информация о мероприятии
       eventName: 'Foxwood: Back to 2000s',
       eventSubtitle: 'Эпоха ярких красок, зажигательных хитов и незабываемой атмосферы 2000-х!',
       eventDescription: 'FoxWood — это ежегодный фурри-конвент с душой. Место, где собираются друзья, сообщество и вдохновение. Здесь царит уютная, теплая атмосфера, в которой каждый чувствует себя своим — будь ты в фурсьюте, с блокнотом художника или просто с открытым сердцем. В 2025 году мы перенеслись в яркие и свободные 2000-е — эпоху, когда музыка звучала с кассетников, пиксели грели душу, а дружба рождалась в оффлайне. Мы воссоздали стиль того времени через конкурсы, фотозоны, танцы, фандомные активности и море живого общения.',
@@ -454,15 +468,15 @@ export default {
       eventLocation: 'Подмосковье',
       eventAttendees: '140+',
       
-      // Баннер мероприятия
+      // Визуальное оформление
       eventBannerImage: 'https://sun9-50.userapi.com/impg/5iy95OwlAzXlcroe6l_mgUSz_WXaeM1j4A0GYg/T_MKUtoyPuk.jpg?size=2560x1928&quality=95&sign=808035378f0d8274376cd313473d6023&type=album',
       
-      // Бейджик (VIP или Волонтёр)
+      // Статус участника
       eventBadge: true,
       eventBadgeClass: 'fw-volunteer',
       eventBadgeText: 'Волонтёр',
       
-      // Официальные ссылки
+      // Официальные ресурсы мероприятия
       officialLinks: [
         {
           url: 'https://vk.com/foxwood',
@@ -471,7 +485,7 @@ export default {
         }
       ],
       
-      // Особенности мероприятия
+      // Ключевые особенности мероприятия
       featuresTitle: 'Что было на мероприятии:',
       features: [
         {
@@ -496,7 +510,7 @@ export default {
         }
       ],
       
-      // Встреченные знакомые
+      // Новые знакомства и встречи
       friendsTitle: 'Знакомства на коне:',
       friends: [
         {
@@ -561,275 +575,77 @@ export default {
         }
       ],
       
-      // Фотографии
+      // Коллекция фотографий с мероприятия (обширная галерея)
       galleryImages: [
-        { 
-          src: 'https://sun9-80.userapi.com/impg/xhMjBPHdLKVOh8DceqjNDeeO7zgZv4WodMgrvg/_7KU9tlUuaY.jpg?size=960x1280&quality=95&sign=bfcb30d4e5405f5ff5a6fc0bfe0e205b&type=album', 
-          alt: 'Мордаха' 
-        },
-        { 
-          src: 'https://sun9-74.userapi.com/impg/Dl_1n4Iptr07KPzX-9CUVrMU9pUVVZrLuIi3Sw/ks9C5NVTvAY.jpg?size=1442x2160&quality=95&sign=0defc459cfa429f1005e0c366a503146&type=album', 
-          alt: 'Спа с ремом' 
-        },
-        { 
-          src: 'https://sun9-15.userapi.com/impg/cb2n7mflm45O-tUK3wwVAIOmqLxnAp3-ytxl3w/Wqan3aDLmT4.jpg?size=2560x1706&quality=95&sign=7bac7e9497e2e59eb9eade0e985d4941&type=album', 
-          alt: 'Спа' 
-        },
-        { 
-          src: 'https://sun9-24.userapi.com/impg/UERlKnrUq-5hrLRJRo84mX0N5qrB4mxXYiaq4Q/qyHHoJmqB9c.jpg?size=1442x2160&quality=95&sign=abcd77b0ce8e927aa8b9f0f787d6dce3&type=album', 
-          alt: 'Спа' 
-        },
-        { 
-          src: 'https://sun9-59.userapi.com/impg/_MZuCYi1V_o2cJ20rIUA5iEkJL9TzI9Lr8loiQ/7s_A65vxEDY.jpg?size=1620x2160&quality=95&sign=8b8668fbeac7a8a98180b9d09fd69daf&type=album', 
-          alt: 'Спа' 
-        },
-        { 
-          src: 'https://sun9-16.userapi.com/impg/eiL2C2p-ABLHiA6HULWgetAGIK8Ou9JWhdvy-w/vxd9ARc0Q1k.jpg?size=1442x2160&quality=95&sign=0a0f11daa07f7ea76be8fee82a8d6efc&type=album', 
-          alt: 'Спа' 
-        },
-        { 
-          src: 'https://sun9-44.userapi.com/impg/wxYllln3dd_aCGFqXKURjbM-w_5ybhJgPGgnrA/koAEakkfUCw.jpg?size=2560x1709&quality=95&sign=29f327b7710bb1b7bde037a8fc32f9ca&type=album', 
-          alt: 'Селфи с янгом' 
-        },
-        { 
-          src: 'https://sun9-50.userapi.com/impg/gR4K78Jz15RQmLnu3JGkedJnscWpVOmSwdZNPA/mO7D0dRCpsw.jpg?size=1442x2160&quality=95&sign=4fe470dd5b925750bda5e9bf451c0c1c&type=album', 
-          alt: 'Селфи с рысью' 
-        },
-        { 
-          src: 'https://sun9-61.userapi.com/impg/k3OmVmFL9Ga0n4OGE4_9w0_1zQYE4B8X2UvwrQ/hjCeIqMhN2k.jpg?size=2560x2438&quality=95&sign=b954acd50a1ee567d440b2b8f106c308&type=album', 
-          alt: 'Смешарик' 
-        },
-        { 
-          src: 'https://sun9-72.userapi.com/impg/UGENBp5GNl7tt7EocaQYD2t2DfYTsH3VQfXW9A/jtQJNraGRtY.jpg?size=2560x2438&quality=95&sign=f876242995ba2f72d6dc1a05704b2053&type=album', 
-          alt: 'Смешарик и рем' 
-        },
-        { 
-          src: 'https://sun9-70.userapi.com/impg/GiIC4p1bhFRaXoZK0nyaKvxe9FjBnI64tWJ_xg/Mv0DlR3mMRY.jpg?size=2560x2438&quality=95&sign=b9cbf954eaa9dde70e742c0447f2e0a6&type=album', 
-          alt: 'Видишь мой глаз?' 
-        },
-        { 
-          src: 'https://sun9-8.userapi.com/impg/Td3u8iuYjPlvWvk_cQMjOBSINu2tC_Az7MHI-w/VL5tFCeoxqI.jpg?size=2560x2438&quality=95&sign=a33a6920914c1dc132e8ae2eb042a2c2&type=album', 
-          alt: 'Пузо' 
-        },
-        { 
-          src: 'https://sun9-16.userapi.com/impg/JoCK7oNQ2eHoN3kXpjzN0mdB2e6qq0nn7fXkrg/NxREaUNz4qI.jpg?size=2560x2438&quality=95&sign=655c9a7b40705c2adc850af3bb56f203&type=album', 
-          alt: 'пов рост 160' 
-        },
-        { 
-          src: 'https://sun9-36.userapi.com/impg/Nb11QeWonD2JM1FTSEnIMT2dK-TaXk-oXx8M1Q/gFB0_ukxr0Q.jpg?size=1280x960&quality=95&sign=f59380a8831093364f70b881b54e1979&type=album', 
-          alt: 'Сеофи с Вольти' 
-        },
-        { 
-          src: 'https://sun9-49.userapi.com/impg/qULCkl9u3lNjwywszxM9m06mK6HPCeWFdT6X5w/aDG0Pfy2XaY.jpg?size=960x1280&quality=95&sign=cf6ed0e0da4c8105ec6e341a9ee6d41e&type=album', 
-          alt: 'Зажигаем на танц поле' 
-        },
-        { 
-          src: 'https://sun9-68.userapi.com/impg/Tw6bdhluyl0pDs2wp_3Ej8yZ6Qc4pPA8Sa8hlQ/t3AvSJ7yYvg.jpg?size=960x1280&quality=95&sign=b0a1642c61fa3e3632a08eaf03785137&type=album', 
-          alt: 'Обнимашки' 
-        },
-        { 
-          src: 'https://sun9-79.userapi.com/impg/Ry3YDUYDiF77OPATkZPE0yELfOsxbveILAL9UQ/FPBpOXXKLcM.jpg?size=2560x1920&quality=95&sign=720da30277ad931b580716400cecfb5c&type=album', 
-          alt: 'Фоточка' 
-        },
-        { 
-          src: 'https://sun9-77.userapi.com/impg/D0Dg5-kUMjIgw8ek9KQfJWfimQCZl2-PLrh04A/N_E1riES5_E.jpg?size=1620x2160&quality=95&sign=ab7b003d8d923f546b0ef80336e09be1&type=album', 
-          alt: 'Наш номер' 
-        },
-        { 
-          src: 'https://sun9-62.userapi.com/impg/pXWB1ePlehqWasoe4VLxd0UrcfrufI8Bc1ERsw/vsYtsaMGZmE.jpg?size=998x2160&quality=95&sign=844d5eb4c6c629587436dfbfb88ec6c5&type=album', 
-          alt: 'Заезд' 
-        },
-        { 
-          src: 'https://sun9-22.userapi.com/impg/ZUozd9sh_uRny1XuSScieECer7A49ky0R8KGHw/c3cWeaz_cHg.jpg?size=2560x1920&quality=95&sign=559708a9f1655af127402203180a5344&type=album', 
-          alt: 'Кавоши' 
-        },
-        { 
-          src: 'https://sun9-39.userapi.com/impg/QcJrrKIzWJyDbS9IILU6xuz95zPr_wesUmy8tQ/eFlcbnC2lYA.jpg?size=2560x1920&quality=95&sign=977f24ecf08fafdea475b89d144db7fb&type=album', 
-          alt: '2 Кавоши' 
-        },
-        { 
-          src: 'https://sun9-42.userapi.com/impg/43wifGod1HMK88tfQqszEJXMxZfVaIRbpAfM2A/CVxMJjP5S8Q.jpg?size=1620x2160&quality=95&sign=7554cc75bc3a1a8f6bb0a8b428ec79cd&type=album', 
-          alt: 'Ручной Кавоши' 
-        },
-        { 
-          src: 'https://sun9-78.userapi.com/impg/HNdeuyR6lt2buIONSQBIEVJJiLx8Hql3wRB8dw/OYlPtxqT1rQ.jpg?size=1620x2160&quality=95&sign=620894c538190228576f8e6ad334e092&type=album', 
-          alt: 'Режим спектора' 
-        },
-        { 
-          src: 'https://sun9-1.userapi.com/impg/m9xv2SSqxOg8McTfkVb6DSBq8d5NFccO1_0qSA/rSgc78uygrE.jpg?size=2560x1718&quality=95&sign=ef390edfcb9c43dca9e09a19a92b61e2&type=album', 
-          alt: 'Кладбище домашних животных' 
-        },
-        { 
-          src: 'https://sun9-23.userapi.com/impg/UKxHf1c-XMxymep75w8AJ_Cu4dQvFtgoDWqJdw/O8SA_6XZfxo.jpg?size=2560x1920&quality=95&sign=91116e933384334f57bf981293be4969&type=album', 
-          alt: 'Кладбище домашних животных' 
-        },
-        { 
-          src: 'https://sun9-58.userapi.com/impg/Gzq5bekkKWkAC4k48GUG5nIjDnqDdyUsYPdcHw/ZA7lLikhvh0.jpg?size=2560x1183&quality=95&sign=993221eba31815ba57ecc6523c22a3c7&type=album', 
-          alt: 'Зажали оленя' 
-        },
-        { 
-          src: 'https://sun9-17.userapi.com/impg/lk71Qh61_-hTkz08KO-Gqcr3330JcqnkxaZu8A/Ihm9hvxwsZY.jpg?size=2560x1183&quality=95&sign=9fc717c745b10b7150c7865ce9587ac9&type=album', 
-          alt: 'Селфи с Лайкедам' 
-        },
-        { 
-          src: 'https://sun9-62.userapi.com/impg/qAidlyD1epvmlPLlDTfbxZzR8sEnWehEP1wNsw/ZFYDVDqIdpw.jpg?size=1620x2160&quality=95&sign=1374a6332a1bb9266e4912678623da80&type=album', 
-          alt: 'Феликс' 
-        },
-        { 
-          src: 'https://sun9-75.userapi.com/impg/W5DpFsPp_G_02XrkI1Q1WXtc6jWhgXxmJUFltA/N-xX-8qbKLM.jpg?size=1620x2160&quality=95&sign=12233bf5940fbf571dd9de99314c8c0f&type=album', 
-          alt: 'Прогулка пушистиков' 
-        },
-        { 
-          src: 'https://sun9-63.userapi.com/impg/Juln3IxQrIlaN4EH5KSpwvlTgNoX4rvZrpsYNg/VfPh6iNcm_Y.jpg?size=1620x2160&quality=95&sign=ffda202492159b604ed8b6b2e65bacd4&type=album', 
-          alt: 'Прогулка пушистиков' 
-        },
-        { 
-          src: 'https://sun9-70.userapi.com/impg/oxFDm2iaS9JdiozsBy_nwC_jiTV4IvbXKZHFkQ/qCZUqT5_5rI.jpg?size=1620x2160&quality=95&sign=449278a055f83b14a7ca379a1f7e736d&type=album', 
-          alt: 'Прогулка пушистиков' 
-        },
-        { 
-          src: 'https://sun9-6.userapi.com/impg/YwltKD86OYWdawfu552e48RrVhwJd2GkUfH3ww/FXcwpsh1bkw.jpg?size=1620x2160&quality=95&sign=ae4ad31d6786fa46ef0edfd004afda0f&type=album', 
-          alt: 'Прогулка пушистиков' 
-        },
-        { 
-          src: 'https://sun9-26.userapi.com/impg/CsbnXA6pTlC-K2j27HjPd1_iq18yGEwbSi0tqw/vM_FzQjTvCQ.jpg?size=1620x2160&quality=95&sign=8264f2fac86c867315ce576e03069c31&type=album', 
-          alt: 'Прогулка пушистиков' 
-        },
-        { 
-          src: 'https://sun9-37.userapi.com/impg/gWN5pEtGYzXXWNbe82ucEcORj8NOSAASQY4Uvw/XX_K4NGxZz4.jpg?size=1620x2160&quality=95&sign=f51983864abf683851b2e9e7fe5ab79c&type=album', 
-          alt: 'Прогулка пушистиков' 
-        },
-        { 
-          src: 'https://sun9-14.userapi.com/impg/ljKlrSAEr7L6lAaZBD7Te3RtwJCExuI-4IWRAA/SbFElPpaOrg.jpg?size=1620x2160&quality=95&sign=37ce9ed6fd5f39c29e603ebe8530de70&type=album', 
-          alt: 'Прогулка пушистиков' 
-        },
-        { 
-          src: 'https://sun9-75.userapi.com/impg/pjjT6zo2f2gk3eb2TWL9AkT1PPZheWVH_E4MUQ/Gbp-qyL8oe0.jpg?size=1620x2160&quality=95&sign=b2b0bd0c20bedba6a2a38d6e5ae60251&type=album', 
-          alt: 'Прогулка пушистиков' 
-        },
-        { 
-          src: 'https://sun9-30.userapi.com/impg/P1iLCaQzuSUB-K2hnA1C49kB7aExDY2PMZqFEw/acsnq4WTdCk.jpg?size=1620x2160&quality=95&sign=82c7ed0d476fb72d91ac1a54ee83dc14&type=album', 
-          alt: 'Прогулка пушистиков с зурей' 
-        },
-        { 
-          src: 'https://sun9-48.userapi.com/impg/31f3KHEqYkT9J7GVdJGG2ifus8yOcacI838g-A/86nRl924KL0.jpg?size=1620x2160&quality=95&sign=c9be895e16dcbb1d8d63cbc67f538a0c&type=album', 
-          alt: 'Прогулка пушистиков с зурей' 
-        },
-        { 
-          src: 'https://sun9-47.userapi.com/impg/tNNaEWp1J75Z2vh78eD8myhDW7pSE7HVXZ74Dg/dGujkimQv1M.jpg?size=1620x2160&quality=95&sign=43cf9e42911d4eef57225f6a49101b90&type=album', 
-          alt: 'Прогулка пушистиков' 
-        },
-        { 
-          src: 'https://sun9-24.userapi.com/impg/sK_rgFhzTJ_anlrSm94auNYvxaxsuo_Er4mXdA/3gXo6QIceB4.jpg?size=1620x2160&quality=95&sign=b5db79ff67fb426382b8ec9a5609b352&type=album', 
-          alt: 'Прогулка пушистиков с гудвином' 
-        },
-        { 
-          src: 'https://sun9-49.userapi.com/impg/PPvCHnqUZnT5VqKmeBQXVUwSAMjymUP6xJMLnQ/_IPIlFKDKfg.jpg?size=1620x2160&quality=95&sign=3693dd89995a1f35fd3cf118c7ea2ba1&type=album', 
-          alt: 'Прогулка пушистиков с гудвином' 
-        },
-        { 
-          src: 'https://sun9-2.userapi.com/impg/vByi_t8wvEAd5q0qn83X7kXo-W7dLM5v9S0qpQ/ChbKDoRhReM.jpg?size=1620x2160&quality=95&sign=3e6bf2317720ee24f0b062a0d3b3e07b&type=album', 
-          alt: 'Прогулка пушистиков' 
-        },
-        { 
-          src: 'https://sun9-22.userapi.com/impg/9ctM0Z-UvLVU1DgwyDEHovHSMz3UMoqQgmzLLQ/RGqLtNST99Y.jpg?size=1620x2160&quality=95&sign=f28408b9791b8a860e46bec7fd0ebe54&type=album', 
-          alt: 'Прогулка пушистиков НА месте' 
-        },
-        { 
-          src: 'https://sun9-14.userapi.com/impg/48ozjF-nq3l0u0Qu7TlZS8voKYEjUs9sUJ4iCA/u_7w3E7aDes.jpg?size=2560x1920&quality=95&sign=4b613cd44cadde838dd84709e5106229&type=album', 
-          alt: 'Прогулка пушистиков' 
-        },
-        { 
-          src: 'https://sun9-19.userapi.com/impg/B1GPIbmAeI0Rvo6SnflxGxea5CWg1hj6350HoA/CpYxZMPQHOQ.jpg?size=1620x2160&quality=95&sign=52b45ca6be4379ed0f466d081034a5f9&type=album', 
-          alt: 'Прогулка пушистиков с яном' 
-        },
-        { 
-          src: 'https://sun9-74.userapi.com/impg/6sOrvwWWb4cJWqJSHSyqkRJ_ID13GNe-CfHsfA/-LuMkQA4vkM.jpg?size=1620x2160&quality=95&sign=ffc99cf41edb6cf26b1fd421af00453e&type=album', 
-          alt: 'Прогулка пушистиков' 
-        },
-        { 
-          src: 'https://sun9-48.userapi.com/impg/0dd7X5G-q-QXCoat0X8p7KBY_Y7J2S8ewm0ScA/i76az4_eOEQ.jpg?size=1620x2160&quality=95&sign=01901c38651cd870ead4ebef4fadf8c2&type=album', 
-          alt: 'Прогулка пушистиков с братом' 
-        },
-        { 
-          src: 'https://sun9-79.userapi.com/impg/BOLwnfOhtmDKe6gnxaFFnK67hshe_DomoiiglQ/lA6ephEh_PY.jpg?size=2560x1920&quality=95&sign=48f6434fcb69a7061c8bc325a1d9c70d&type=album', 
-          alt: 'Прогулка пушистиков' 
-        },
-        { 
-          src: 'https://sun9-36.userapi.com/impg/gJBuriFZFLBHVRXmwzl5X-UVklZRUt_GwKLOkA/zbN9K2QsJjk.jpg?size=960x1280&quality=95&sign=330863ee2936c8491cb03b01b4de7cb7&type=album', 
-          alt: 'Семки есть?' 
-        },
-        { 
-          src: 'https://sun9-2.userapi.com/impg/e6iP3N8deRB53v_1EZLF0Lk4eyS-Qc2qySZvgA/7jkoefY3jgQ.jpg?size=1401x2160&quality=95&sign=26ecc0b182fecd6b7b9ce148911179da&type=album', 
-          alt: 'Семки есть?' 
-        },
-        { 
-          src: 'https://sun9-15.userapi.com/impg/MRHEWr9aY1iHomgSn4DRSFwcv60EdnbADRp8Cw/Qm35uEzZ8wk.jpg?size=960x1280&quality=95&sign=a088ca85154bad7a0a27e1380fca238e&type=album', 
-          alt: 'Бугага' 
-        },
-        { 
-          src: 'https://sun9-53.userapi.com/impg/4GDJeBIikLbrNnrTNlgpz7gJ2AURMMcDGvu5SQ/y1hAWSzB8mI.jpg?size=960x1280&quality=95&sign=d189c62947587541fe76d1c7af8291d5&type=album', 
-          alt: 'селфи с феликсом' 
-        },
-        { 
-          src: 'https://sun9-50.userapi.com/impg/5iy95OwlAzXlcroe6l_mgUSz_WXaeM1j4A0GYg/T_MKUtoyPuk.jpg?size=2560x1928&quality=95&sign=808035378f0d8274376cd313473d6023&type=album', 
-          alt: 'Фотография всех' 
-        },
-        { 
-          src: 'https://sun9-4.userapi.com/impg/06GuIz91p0RfWHNKp8UvxH0WawTDdZVkRx1hMA/jZp8p5HWAA0.jpg?size=2560x1928&quality=95&sign=cf5979c592cea438889d4224094953fd&type=album', 
-          alt: 'Фотография всех' 
-        },
-        { 
-          src: 'https://sun9-50.userapi.com/impg/5iy95OwlAzXlcroe6l_mgUSz_WXaeM1j4A0GYg/jzuWfk1R6gE.jpg?size=2560x1928&quality=95&sign=65752ca7d4fe72d197c781ab9f5dfe58&type=album', 
-          alt: 'Фотография всех' 
-        },
-        { 
-          src: 'https://sun9-13.userapi.com/impg/O1oaedZo5tzzOgp0Dy_nUXS5cFh0sMOGLK4zig/E2kcFFSPZzQ.jpg?size=1620x2160&quality=95&sign=0fe9ba0f62bfba0f74c5eac4ac3a347f&type=album', 
-          alt: 'Тэффи' 
-        },
-        { 
-          src: 'https://sun9-1.userapi.com/impg/Qd1076sPYuiNTNEcqWlkPY_kEuV1Yw0dYO1Hkw/Set8XRvQw5c.jpg?size=1620x2160&quality=95&sign=5038a95da6bc91340896d638a37048b8&type=album', 
-          alt: 'Взгляд в будущее' 
-        },
-        { 
-          src: 'https://sun9-6.userapi.com/impg/ZKwT6rxrzg6lIRoiCuOsXqas5M9P5TYEE_GUFg/Y73F0UuRWdc.jpg?size=1620x2160&quality=95&sign=f06f02e1e3b48e29f66a4c538b89029c&type=album', 
-          alt: 'Селфи' 
-        },
-        { 
-          src: 'https://sun9-42.userapi.com/impg/6EdYXRx0tK5AkeqJcJSt7BdQe9qbq-hxR-f0jQ/Av8ml4XkR6M.jpg?size=1620x2160&quality=95&sign=2fb0e995f8b132e8273490667fb40689&type=album', 
-          alt: 'Селфи' 
-        },
-        { 
-          src: 'https://sun9-63.userapi.com/impg/HgHB3yVMlbPwXcZP_6KfklEm3CPaZmJD7SRgqQ/H0FiUdnA0XE.jpg?size=1620x2160&quality=95&sign=9f4fb1a5554f984cc2d8ff7272669f82&type=album', 
-          alt: 'Селфи' 
-        },
-        { 
-          src: 'https://sun9-35.userapi.com/impg/25LZfxMUU8GrWaixHCzolQj7GeIEbKbpjlOvKA/uLVT21CQZvY.jpg?size=1620x2160&quality=95&sign=01be28976e747877ace84c7802002b9c&type=album', 
-          alt: 'Селфи' 
-        },
-        { 
-          src: 'https://sun9-21.userapi.com/impg/PrYxEaxB-YkL_HdKwyjirMmBITYymdWIn6khGw/oKlXxGj9Pws.jpg?size=1620x2160&quality=95&sign=c9acc091a5bb30e61ee598847f269de9&type=album', 
-          alt: 'Селфи' 
-        },
-        { 
-          src: 'https://sun9-23.userapi.com/impg/swGZX4Xr1MMGg4TLYdCz8wrWpN_wSSOiFG2kwA/6Q_6d-6uu8A.jpg?size=1390x2160&quality=95&sign=050eda0d92d831a863dab6c0e23f64c4&type=album', 
-          alt: 'Селфи' 
-        },
-        { 
-          src: 'https://sun9-62.userapi.com/impg/Af0kB6Yr4NuV9f13tX_l4QKeaMav-5qy7JoIjg/LPfgjgaKh2M.jpg?size=1543x2160&quality=95&sign=a90313e5764e87bdac9788778ef5759d&type=album', 
-          alt: 'Селфи' 
-        },
-        { 
-          src: 'https://sun9-63.userapi.com/impg/rqxFNCp0D-fhmdZe9drXu7X0zc_puVbm9YM4Kw/97degHF83v0.jpg?size=1367x2160&quality=95&sign=91881e608a2ce8b1778ba466260f3dbf&type=album', 
-          alt: 'Селфи' 
-        },
-        { 
-          src: 'https://sun9-42.userapi.com/impg/yiHIUGuDZzLPDf2CGN5z9KS260rHg4V4BmweUA/vIw4CB_3RXA.jpg?size=1620x2160&quality=95&sign=16ebf189cb72b2ac4b51d41897edf8b9&type=album', 
-          alt: 'Больница' 
-        }
+        { src: 'https://sun9-80.userapi.com/impg/xhMjBPHdLKVOh8DceqjNDeeO7zgZv4WodMgrvg/_7KU9tlUuaY.jpg?size=960x1280&quality=95&sign=bfcb30d4e5405f5ff5a6fc0bfe0e205b&type=album', alt: 'Мордаха' },
+        { src: 'https://sun9-74.userapi.com/impg/Dl_1n4Iptr07KPzX-9CUVrMU9pUVVZrLuIi3Sw/ks9C5NVTvAY.jpg?size=1442x2160&quality=95&sign=0defc459cfa429f1005e0c366a503146&type=album', alt: 'Спа с ремом' },
+        { src: 'https://sun9-15.userapi.com/impg/cb2n7mflm45O-tUK3wwVAIOmqLxnAp3-ytxl3w/Wqan3aDLmT4.jpg?size=2560x1706&quality=95&sign=7bac7e9497e2e59eb9eade0e985d4941&type=album', alt: 'Спа' },
+        { src: 'https://sun9-24.userapi.com/impg/UERlKnrUq-5hrLRJRo84mX0N5qrB4mxXYiaq4Q/qyHHoJmqB9c.jpg?size=1442x2160&quality=95&sign=abcd77b0ce8e927aa8b9f0f787d6dce3&type=album', alt: 'Спа' },
+        { src: 'https://sun9-59.userapi.com/impg/_MZuCYi1V_o2cJ20rIUA5iEkJL9TzI9Lr8loiQ/7s_A65vxEDY.jpg?size=1620x2160&quality=95&sign=8b8668fbeac7a8a98180b9d09fd69daf&type=album', alt: 'Спа' },
+        { src: 'https://sun9-16.userapi.com/impg/eiL2C2p-ABLHiA6HULWgetAGIK8Ou9JWhdvy-w/vxd9ARc0Q1k.jpg?size=1442x2160&quality=95&sign=0a0f11daa07f7ea76be8fee82a8d6efc&type=album', alt: 'Спа' },
+        { src: 'https://sun9-44.userapi.com/impg/wxYllln3dd_aCGFqXKURjbM-w_5ybhJgPGgnrA/koAEakkfUCw.jpg?size=2560x1709&quality=95&sign=29f327b7710bb1b7bde037a8fc32f9ca&type=album', alt: 'Селфи с янгом' },
+        { src: 'https://sun9-50.userapi.com/impg/gR4K78Jz15RQmLnu3JGkedJnscWpVOmSwdZNPA/mO7D0dRCpsw.jpg?size=1442x2160&quality=95&sign=4fe470dd5b925750bda5e9bf451c0c1c&type=album', alt: 'Селфи с рысью' },
+        { src: 'https://sun9-61.userapi.com/impg/k3OmVmFL9Ga0n4OGE4_9w0_1zQYE4B8X2UvwrQ/hjCeIqMhN2k.jpg?size=2560x2438&quality=95&sign=b954acd50a1ee567d440b2b8f106c308&type=album', alt: 'Смешарик' },
+        { src: 'https://sun9-72.userapi.com/impg/UGENBp5GNl7tt7EocaQYD2t2DfYTsH3VQfXW9A/jtQJNraGRtY.jpg?size=2560x2438&quality=95&sign=f876242995ba2f72d6dc1a05704b2053&type=album', alt: 'Смешарик и рем' },
+        { src: 'https://sun9-70.userapi.com/impg/GiIC4p1bhFRaXoZK0nyaKvxe9FjBnI64tWJ_xg/Mv0DlR3mMRY.jpg?size=2560x2438&quality=95&sign=b9cbf954eaa9dde70e742c0447f2e0a6&type=album', alt: 'Видишь мой глаз?' },
+        { src: 'https://sun9-8.userapi.com/impg/Td3u8iuYjPlvWvk_cQMjOBSINu2tC_Az7MHI-w/VL5tFCeoxqI.jpg?size=2560x2438&quality=95&sign=a33a6920914c1dc132e8ae2eb042a2c2&type=album', alt: 'Пузо' },
+        { src: 'https://sun9-16.userapi.com/impg/JoCK7oNQ2eHoN3kXpjzN0mdB2e6qq0nn7fXkrg/NxREaUNz4qI.jpg?size=2560x2438&quality=95&sign=655c9a7b40705c2adc850af3bb56f203&type=album', alt: 'пов рост 160' },
+        { src: 'https://sun9-36.userapi.com/impg/Nb11QeWonD2JM1FTSEnIMT2dK-TaXk-oXx8M1Q/gFB0_ukxr0Q.jpg?size=1280x960&quality=95&sign=f59380a8831093364f70b881b54e1979&type=album', alt: 'Сеофи с Вольти' },
+        { src: 'https://sun9-49.userapi.com/impg/qULCkl9u3lNjwywszxM9m06mK6HPCeWFdT6X5w/aDG0Pfy2XaY.jpg?size=960x1280&quality=95&sign=cf6ed0e0da4c8105ec6e341a9ee6d41e&type=album', alt: 'Зажигаем на танц поле' },
+        { src: 'https://sun9-68.userapi.com/impg/Tw6bdhluyl0pDs2wp_3Ej8yZ6Qc4pPA8Sa8hlQ/t3AvSJ7yYvg.jpg?size=960x1280&quality=95&sign=b0a1642c61fa3e3632a08eaf03785137&type=album', alt: 'Обнимашки' },
+        { src: 'https://sun9-79.userapi.com/impg/Ry3YDUYDiF77OPATkZPE0yELfOsxbveILAL9UQ/FPBpOXXKLcM.jpg?size=2560x1920&quality=95&sign=720da30277ad931b580716400cecfb5c&type=album', alt: 'Фоточка' },
+        { src: 'https://sun9-77.userapi.com/impg/D0Dg5-kUMjIgw8ek9KQfJWfimQCZl2-PLrh04A/N_E1riES5_E.jpg?size=1620x2160&quality=95&sign=ab7b003d8d923f546b0ef80336e09be1&type=album', alt: 'Наш номер' },
+        { src: 'https://sun9-62.userapi.com/impg/pXWB1ePlehqWasoe4VLxd0UrcfrufI8Bc1ERsw/vsYtsaMGZmE.jpg?size=998x2160&quality=95&sign=844d5eb4c6c629587436dfbfb88ec6c5&type=album', alt: 'Заезд' },
+        { src: 'https://sun9-22.userapi.com/impg/ZUozd9sh_uRny1XuSScieECer7A49ky0R8KGHw/c3cWeaz_cHg.jpg?size=2560x1920&quality=95&sign=559708a9f1655af127402203180a5344&type=album', alt: 'Кавоши' },
+        { src: 'https://sun9-39.userapi.com/impg/QcJrrKIzWJyDbS9IILU6xuz95zPr_wesUmy8tQ/eFlcbnC2lYA.jpg?size=2560x1920&quality=95&sign=977f24ecf08fafdea475b89d144db7fb&type=album', alt: '2 Кавоши' },
+        { src: 'https://sun9-42.userapi.com/impg/43wifGod1HMK88tfQqszEJXMxZfVaIRbpAfM2A/CVxMJjP5S8Q.jpg?size=1620x2160&quality=95&sign=7554cc75bc3a1a8f6bb0a8b428ec79cd&type=album', alt: 'Ручной Кавоши' },
+        { src: 'https://sun9-78.userapi.com/impg/HNdeuyR6lt2buIONSQBIEVJJiLx8Hql3wRB8dw/OYlPtxqT1rQ.jpg?size=1620x2160&quality=95&sign=620894c538190228576f8e6ad334e092&type=album', alt: 'Режим спектора' },
+        { src: 'https://sun9-1.userapi.com/impg/m9xv2SSqxOg8McTfkVb6DSBq8d5NFccO1_0qSA/rSgc78uygrE.jpg?size=2560x1718&quality=95&sign=ef390edfcb9c43dca9e09a19a92b61e2&type=album', alt: 'Кладбище домашних животных' },
+        { src: 'https://sun9-23.userapi.com/impg/UKxHf1c-XMxymep75w8AJ_Cu4dQvFtgoDWqJdw/O8SA_6XZfxo.jpg?size=2560x1920&quality=95&sign=91116e933384334f57bf981293be4969&type=album', alt: 'Кладбище домашних животных' },
+        { src: 'https://sun9-58.userapi.com/impg/Gzq5bekkKWkAC4k48GUG5nIjDnqDdyUsYPdcHw/ZA7lLikhvh0.jpg?size=2560x1183&quality=95&sign=993221eba31815ba57ecc6523c22a3c7&type=album', alt: 'Зажали оленя' },
+        { src: 'https://sun9-17.userapi.com/impg/lk71Qh61_-hTkz08KO-Gqcr3330JcqnkxaZu8A/Ihm9hvxwsZY.jpg?size=2560x1183&quality=95&sign=9fc717c745b10b7150c7865ce9587ac9&type=album', alt: 'Селфи с Лайкедам' },
+        { src: 'https://sun9-62.userapi.com/impg/qAidlyD1epvmlPLlDTfbxZzR8sEnWehEP1wNsw/ZFYDVDqIdpw.jpg?size=1620x2160&quality=95&sign=1374a6332a1bb9266e4912678623da80&type=album', alt: 'Феликс' },
+        { src: 'https://sun9-75.userapi.com/impg/W5DpFsPp_G_02XrkI1Q1WXtc6jWhgXxmJUFltA/N-xX-8qbKLM.jpg?size=1620x2160&quality=95&sign=12233bf5940fbf571dd9de99314c8c0f&type=album', alt: 'Прогулка пушистиков' },
+        { src: 'https://sun9-63.userapi.com/impg/Juln3IxQrIlaN4EH5KSpwvlTgNoX4rvZrpsYNg/VfPh6iNcm_Y.jpg?size=1620x2160&quality=95&sign=ffda202492159b604ed8b6b2e65bacd4&type=album', alt: 'Прогулка пушистиков' },
+        { src: 'https://sun9-70.userapi.com/impg/oxFDm2iaS9JdiozsBy_nwC_jiTV4IvbXKZHFkQ/qCZUqT5_5rI.jpg?size=1620x2160&quality=95&sign=449278a055f83b14a7ca379a1f7e736d&type=album', alt: 'Прогулка пушистиков' },
+        { src: 'https://sun9-6.userapi.com/impg/YwltKD86OYWdawfu552e48RrVhwJd2GkUfH3ww/FXcwpsh1bkw.jpg?size=1620x2160&quality=95&sign=ae4ad31d6786fa46ef0edfd004afda0f&type=album', alt: 'Прогулка пушистиков' },
+        { src: 'https://sun9-26.userapi.com/impg/CsbnXA6pTlC-K2j27HjPd1_iq18yGEwbSi0tqw/vM_FzQjTvCQ.jpg?size=1620x2160&quality=95&sign=8264f2fac86c867315ce576e03069c31&type=album', alt: 'Прогулка пушистиков' },
+        { src: 'https://sun9-37.userapi.com/impg/gWN5pEtGYzXXWNbe82ucEcORj8NOSAASQY4Uvw/XX_K4NGxZz4.jpg?size=1620x2160&quality=95&sign=f51983864abf683851b2e9e7fe5ab79c&type=album', alt: 'Прогулка пушистиков' },
+        { src: 'https://sun9-14.userapi.com/impg/ljKlrSAEr7L6lAaZBD7Te3RtwJCExuI-4IWRAA/SbFElPpaOrg.jpg?size=1620x2160&quality=95&sign=37ce9ed6fd5f39c29e603ebe8530de70&type=album', alt: 'Прогулка пушистиков' },
+        { src: 'https://sun9-75.userapi.com/impg/pjjT6zo2f2gk3eb2TWL9AkT1PPZheWVH_E4MUQ/Gbp-qyL8oe0.jpg?size=1620x2160&quality=95&sign=b2b0bd0c20bedba6a2a38d6e5ae60251&type=album', alt: 'Прогулка пушистиков' },
+        { src: 'https://sun9-30.userapi.com/impg/P1iLCaQzuSUB-K2hnA1C49kB7aExDY2PMZqFEw/acsnq4WTdCk.jpg?size=1620x2160&quality=95&sign=82c7ed0d476fb72d91ac1a54ee83dc14&type=album', alt: 'Прогулка пушистиков с зурей' },
+        { src: 'https://sun9-48.userapi.com/impg/31f3KHEqYkT9J7GVdJGG2ifus8yOcacI838g-A/86nRl924KL0.jpg?size=1620x2160&quality=95&sign=c9be895e16dcbb1d8d63cbc67f538a0c&type=album', alt: 'Прогулка пушистиков с зурей' },
+        { src: 'https://sun9-47.userapi.com/impg/tNNaEWp1J75Z2vh78eD8myhDW7pSE7HVXZ74Dg/dGujkimQv1M.jpg?size=1620x2160&quality=95&sign=43cf9e42911d4eef57225f6a49101b90&type=album', alt: 'Прогулка пушистиков' },
+        { src: 'https://sun9-24.userapi.com/impg/sK_rgFhzTJ_anlrSm94auNYvxaxsuo_Er4mXdA/3gXo6QIceB4.jpg?size=1620x2160&quality=95&sign=b5db79ff67fb426382b8ec9a5609b352&type=album', alt: 'Прогулка пушистиков с гудвином' },
+        { src: 'https://sun9-49.userapi.com/impg/PPvCHnqUZnT5VqKmeBQXVUwSAMjymUP6xJMLnQ/_IPIlFKDKfg.jpg?size=1620x2160&quality=95&sign=3693dd89995a1f35fd3cf118c7ea2ba1&type=album', alt: 'Прогулка пушистиков с гудвином' },
+        { src: 'https://sun9-2.userapi.com/impg/vByi_t8wvEAd5q0qn83X7kXo-W7dLM5v9S0qpQ/ChbKDoRhReM.jpg?size=1620x2160&quality=95&sign=3e6bf2317720ee24f0b062a0d3b3e07b&type=album', alt: 'Прогулка пушистиков' },
+        { src: 'https://sun9-22.userapi.com/impg/9ctM0Z-UvLVU1DgwyDEHovHSMz3UMoqQgmzLLQ/RGqLtNST99Y.jpg?size=1620x2160&quality=95&sign=f28408b9791b8a860e46bec7fd0ebe54&type=album', alt: 'Прогулка пушистиков НА месте' },
+        { src: 'https://sun9-14.userapi.com/impg/48ozjF-nq3l0u0Qu7TlZS8voKYEjUs9sUJ4iCA/u_7w3E7aDes.jpg?size=2560x1920&quality=95&sign=4b613cd44cadde838dd84709e5106229&type=album', alt: 'Прогулка пушистиков' },
+        { src: 'https://sun9-19.userapi.com/impg/B1GPIbmAeI0Rvo6SnflxGxea5CWg1hj6350HoA/CpYxZMPQHOQ.jpg?size=1620x2160&quality=95&sign=52b45ca6be4379ed0f466d081034a5f9&type=album', alt: 'Прогулка пушистиков с яном' },
+        { src: 'https://sun9-74.userapi.com/impg/6sOrvwWWb4cJWqJSHSyqkRJ_ID13GNe-CfHsfA/-LuMkQA4vkM.jpg?size=1620x2160&quality=95&sign=ffc99cf41edb6cf26b1fd421af00453e&type=album', alt: 'Прогулка пушистиков' },
+        { src: 'https://sun9-48.userapi.com/impg/0dd7X5G-q-QXCoat0X8p7KBY_Y7J2S8ewm0ScA/i76az4_eOEQ.jpg?size=1620x2160&quality=95&sign=01901c38651cd870ead4ebef4fadf8c2&type=album', alt: 'Прогулка пушистиков с братом' },
+        { src: 'https://sun9-79.userapi.com/impg/BOLwnfOhtmDKe6gnxaFFnK67hshe_DomoiiglQ/lA6ephEh_PY.jpg?size=2560x1920&quality=95&sign=48f6434fcb69a7061c8bc325a1d9c70d&type=album', alt: 'Прогулка пушистиков' },
+        { src: 'https://sun9-36.userapi.com/impg/gJBuriFZFLBHVRXmwzl5X-UVklZRUt_GwKLOkA/zbN9K2QsJjk.jpg?size=960x1280&quality=95&sign=330863ee2936c8491cb03b01b4de7cb7&type=album', alt: 'Семки есть?' },
+        { src: 'https://sun9-2.userapi.com/impg/e6iP3N8deRB53v_1EZLF0Lk4eyS-Qc2qySZvgA/7jkoefY3jgQ.jpg?size=1401x2160&quality=95&sign=26ecc0b182fecd6b7b9ce148911179da&type=album', alt: 'Семки есть?' },
+        { src: 'https://sun9-15.userapi.com/impg/MRHEWr9aY1iHomgSn4DRSFwcv60EdnbADRp8Cw/Qm35uEzZ8wk.jpg?size=960x1280&quality=95&sign=a088ca85154bad7a0a27e1380fca238e&type=album', alt: 'Бугага' },
+        { src: 'https://sun9-53.userapi.com/impg/4GDJeBIikLbrNnrTNlgpz7gJ2AURMMcDGvu5SQ/y1hAWSzB8mI.jpg?size=960x1280&quality=95&sign=d189c62947587541fe76d1c7af8291d5&type=album', alt: 'селфи с феликсом' },
+        { src: 'https://sun9-50.userapi.com/impg/5iy95OwlAzXlcroe6l_mgUSz_WXaeM1j4A0GYg/T_MKUtoyPuk.jpg?size=2560x1928&quality=95&sign=808035378f0d8274376cd313473d6023&type=album', alt: 'Фотография всех' },
+        { src: 'https://sun9-4.userapi.com/impg/06GuIz91p0RfWHNKp8UvxH0WawTDdZVkRx1hMA/jZp8p5HWAA0.jpg?size=2560x1928&quality=95&sign=cf5979c592cea438889d4224094953fd&type=album', alt: 'Фотография всех' },
+        { src: 'https://sun9-50.userapi.com/impg/5iy95OwlAzXlcroe6l_mgUSz_WXaeM1j4A0GYg/jzuWfk1R6gE.jpg?size=2560x1928&quality=95&sign=65752ca7d4fe72d197c781ab9f5dfe58&type=album', alt: 'Фотография всех' },
+        { src: 'https://sun9-13.userapi.com/impg/O1oaedZo5tzzOgp0Dy_nUXS5cFh0sMOGLK4zig/E2kcFFSPZzQ.jpg?size=1620x2160&quality=95&sign=0fe9ba0f62bfba0f74c5eac4ac3a347f&type=album', alt: 'Тэффи' },
+        { src: 'https://sun9-1.userapi.com/impg/Qd1076sPYuiNTNEcqWlkPY_kEuV1Yw0dYO1Hkw/Set8XRvQw5c.jpg?size=1620x2160&quality=95&sign=5038a95da6bc91340896d638a37048b8&type=album', alt: 'Взгляд в будущее' },
+        { src: 'https://sun9-6.userapi.com/impg/ZKwT6rxrzg6lIRoiCuOsXqas5M9P5TYEE_GUFg/Y73F0UuRWdc.jpg?size=1620x2160&quality=95&sign=f06f02e1e3b48e29f66a4c538b89029c&type=album', alt: 'Селфи' },
+        { src: 'https://sun9-42.userapi.com/impg/6EdYXRx0tK5AkeqJcJSt7BdQe9qbq-hxR-f0jQ/Av8ml4XkR6M.jpg?size=1620x2160&quality=95&sign=2fb0e995f8b132e8273490667fb40689&type=album', alt: 'Селфи' },
+        { src: 'https://sun9-63.userapi.com/impg/HgHB3yVMlbPwXcZP_6KfklEm3CPaZmJD7SRgqQ/H0FiUdnA0XE.jpg?size=1620x2160&quality=95&sign=9f4fb1a5554f984cc2d8ff7272669f82&type=album', alt: 'Селфи' },
+        { src: 'https://sun9-35.userapi.com/impg/25LZfxMUU8GrWaixHCzolQj7GeIEbKbpjlOvKA/uLVT21CQZvY.jpg?size=1620x2160&quality=95&sign=01be28976e747877ace84c7802002b9c&type=album', alt: 'Селфи' },
+        { src: 'https://sun9-21.userapi.com/impg/PrYxEaxB-YkL_HdKwyjirMmBITYymdWIn6khGw/oKlXxGj9Pws.jpg?size=1620x2160&quality=95&sign=c9acc091a5bb30e61ee598847f269de9&type=album', alt: 'Селфи' },
+        { src: 'https://sun9-23.userapi.com/impg/swGZX4Xr1MMGg4TLYdCz8wrWpN_wSSOiFG2kwA/6Q_6d-6uu8A.jpg?size=1390x2160&quality=95&sign=050eda0d92d831a863dab6c0e23f64c4&type=album', alt: 'Селфи' },
+        { src: 'https://sun9-62.userapi.com/impg/Af0kB6Yr4NuV9f13tX_l4QKeaMav-5qy7JoIjg/LPfgjgaKh2M.jpg?size=1543x2160&quality=95&sign=a90313e5764e87bdac9788778ef5759d&type=album', alt: 'Селфи' },
+        { src: 'https://sun9-63.userapi.com/impg/rqxFNCp0D-fhmdZe9drXu7X0zc_puVbm9YM4Kw/97degHF83v0.jpg?size=1367x2160&quality=95&sign=91881e608a2ce8b1778ba466260f3dbf&type=album', alt: 'Селфи' },
+        { src: 'https://sun9-42.userapi.com/impg/yiHIUGuDZzLPDf2CGN5z9KS260rHg4V4BmweUA/vIw4CB_3RXA.jpg?size=1620x2160&quality=95&sign=16ebf189cb72b2ac4b51d41897edf8b9&type=album', alt: 'Больница' }
       ],
       
-      // Покупки
+      // Информация о покупках на мероприятии
       purchasesIntro: 'В первый день, выступая как волонтёр, я помогал с расстановкой столов и проведением ивентов. Потом у меня было время заглянуть на ярмарку и приобрести несколько замечательных вещей у талантливых художников и мастеров.',
       purchases: [
         {
@@ -904,10 +720,10 @@ export default {
         }
       ],
       
-      // Впечатления
+      // Личные впечатления и эмоциональный опыт
       impressionsIntro: 'Это был один из лучших моментов моей жизни. Я хочу пережить это снова. Смех, музыка, танцы до утра. Эти моменты останутся в сердце навсегда. Уютные вечера в фурлаунже, где каждый мог почувствовать себя как дома. Наблюдать за тем, как друзья радуются подаркам, было бесценно. Каждое "привет!", каждый взгляд, каждое объятие — как глоток чистого воздуха. Это было волшебно. Это было по-настоящему. Я вернусь. Обязательно вернусь. И привезу новых друзей.',
       
-      // Оценки по категориям
+      // Детализированная система оценок
       ratingCategories: [
         { name: 'Организация', rating: 5 },
         { name: 'Программа', rating: 5 },
@@ -916,7 +732,7 @@ export default {
         { name: 'Участники', rating: 5 }
       ],
       
-      // Плюсы и минусы
+      // Критический анализ мероприятия
       likes: [
         'Организаторы вложили максимум усилий, чтобы всё прошло идеально',
         'Насыщенная программа с множеством игр и конкурсов',
@@ -929,12 +745,15 @@ export default {
         'Организаторы предусмотрели всё до мелочей'
       ],
       
-      // Заключение
+      // Итоговые размышления
       conclusion: 'Организаторы сделали всё на топовом уровне, они вкладывались по максимуму, чтобы всё прошло идеально для всех участников. Они постоянно работали, бегали туда-сюда, и в результате всё действительно прошло безупречно. Никаких проблем не возникло, всё было организовано настолько хорошо, что моя личная оценка — 1000 из 10!'
     }
   },
   computed: {
-    // Вычисление средней оценки
+    /**
+     * Автоматически вычисляет среднюю оценку мероприятия
+     * на основе всех категорий рейтинга
+     */
     overallRating() {
       if (this.ratingCategories.length === 0) return 0;
       const sum = this.ratingCategories.reduce((total, category) => total + category.rating, 0);
@@ -942,12 +761,33 @@ export default {
     }
   },
   mounted() {
-    // Инициализация времени
+    // Инициализация системы времени для панели задач
     this.updateClock();
     setInterval(this.updateClock, 60000);
+    
+    // SEO-оптимизация: обновляем метатеги для социальных сетей
+    this.updatePageMeta();
   },
   methods: {
-    // Обновление времени
+    /**
+     * SEO-оптимизация: динамическое обновление метатегов
+     * для корректного отображения в социальных сетях
+     */
+    updatePageMeta() {
+      // Проверяем доступность глобальной функции обновления метатегов
+      if (this.$updateMetaTags) {
+        this.$updateMetaTags({
+          title: `${this.eventName} - Мой опыт посещения | Fox Taffy`,
+          description: this.eventDescription.substring(0, 160) + '...',
+          image: this.eventBannerImage,
+          url: `https://foxtaffy.fun${this.$route.path}`
+        });
+      }
+    },
+    
+    /**
+     * Обновление времени для панели задач в стиле Windows XP
+     */
     updateClock() {
       const now = new Date();
       let hours = now.getHours();
@@ -957,7 +797,9 @@ export default {
       this.currentTime = `${hours}:${minutes}`;
     },
     
-    // Получение иконок для вкладок
+    /**
+     * Маппинг иконок для вкладок навигации
+     */
     getTabIcon(iconName) {
       const iconMap = {
         'info': '/wxp_263.ico',
@@ -968,7 +810,9 @@ export default {
       return iconMap[iconName] || '/wxp_3.ico';
     },
     
-    // Получение иконок для соцсетей
+    /**
+     * Маппинг иконок социальных сетей
+     */
     getSocialIcon(iconName) {
       const iconMap = {
         'vk': '/vk.png',
@@ -976,7 +820,9 @@ export default {
       return iconMap[iconName] || '/wxp_18.ico';
     },
     
-    // Получение иконок для особенностей
+    /**
+     * Маппинг иконок для особенностей мероприятия
+     */
     getFeatureIcon(iconName) {
       const iconMap = {
         'users': '/w98_users.ico',
@@ -987,17 +833,20 @@ export default {
       return iconMap[iconName] || '/wxp_3.ico';
     },
     
-    // Навигация на домашнюю страницу
+    /**
+     * Навигационные методы в стиле Windows XP браузера
+     */
     goHome() {
       this.$router.push('/');
     },
     
-    // Навигация назад
     navigateBack() {
       this.$router.push('/');
     },
     
-    // Навигация по вкладкам
+    /**
+     * Система навигации по вкладкам с клавиатурной поддержкой
+     */
     navigateTab(direction) {
       const tabOrder = ['overview', 'gallery', 'purchases', 'impressions'];
       const currentIndex = tabOrder.indexOf(this.activeTab);
@@ -1008,19 +857,22 @@ export default {
       } else if (direction === 'prev' && currentIndex > 0) {
         nextIndex = currentIndex - 1;
       } else {
-        // Достигнут конец или начало списка вкладок
         return;
       }
       
       this.activeTab = tabOrder[nextIndex];
     },
     
-    // Установка активной вкладки
+    /**
+     * Переключение активной вкладки
+     */
     setActiveTab(tabId) {
       this.activeTab = tabId;
     },
     
-    // Работа с фотографиями
+    /**
+     * Система управления лайтбоксом для просмотра фотографий
+     */
     openPhoto(index) {
       this.currentPhoto = index;
       this.lightboxOpen = true;

@@ -1,280 +1,279 @@
 <template>
-    <div class="event-details-page">
-      <!-- Героическая секция с баннером -->
-      <div class="event-hero">
-        <div class="hero-overlay"></div>
-        <div class="hero-image" :style="{ backgroundImage: `url('${eventBannerImage}')` }"></div>
-        <div class="hero-content">
-          <router-link to="/" class="back-button">
-            <i class="fas fa-arrow-left"></i>
-            <span>Назад на главную</span>
-          </router-link>
-          <div class="event-badges">
-            <span class="event-status visited">Посетил</span>
-            <span v-if="eventBadge" class="event-badge" :class="eventBadgeClass">{{ eventBadgeText }}</span>
+  <div class="event-details-page">
+    <!-- Героическая секция с баннером -->
+    <div class="event-hero">
+      <div class="hero-overlay"></div>
+      <div class="hero-image" :style="{ backgroundImage: `url('${eventBannerImage}')` }"></div>
+      <div class="hero-content">
+        <router-link to="/" class="back-button">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад на главную</span>
+        </router-link>
+        <div class="event-badges">
+          <span class="event-status visited">Посетил</span>
+          <span v-if="eventBadge" class="event-badge" :class="eventBadgeClass">{{ eventBadgeText }}</span>
+        </div>
+        <h1 class="event-title">{{ eventName }}</h1>
+        <div class="event-subtitle">{{ eventSubtitle }}</div>
+      </div>
+    </div>
+    
+    <div class="container">
+      <!-- Краткая информация о мероприятии -->
+      <div class="event-info-grid">
+        <div class="event-info-card">
+          <div class="info-icon"><i class="fas fa-calendar-alt"></i></div>
+          <div class="info-content">
+            <div class="info-label">Дата проведения</div>
+            <div class="info-value">{{ eventDate }}</div>
           </div>
-          <h1 class="event-title">{{ eventName }}</h1>
-          <div class="event-subtitle">{{ eventSubtitle }}</div>
+        </div>
+        
+        <div class="event-info-card">
+          <div class="info-icon"><i class="fas fa-clock"></i></div>
+          <div class="info-content">
+            <div class="info-label">Время</div>
+            <div class="info-value">{{ eventTime }}</div>
+          </div>
+        </div>
+        
+        <div class="event-info-card">
+          <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="info-content">
+            <div class="info-label">Место проведения</div>
+            <div class="info-value">{{ eventLocation }}</div>
+          </div>
+        </div>
+        
+        <div class="event-info-card">
+          <div class="info-icon"><i class="fas fa-users"></i></div>
+          <div class="info-content">
+            <div class="info-label">Участников</div>
+            <div class="info-value">{{ eventAttendees }}</div>
+          </div>
         </div>
       </div>
       
-      <div class="container">
-        <!-- Краткая информация о мероприятии -->
-        <div class="event-info-grid">
-          <div class="event-info-card">
-            <div class="info-icon"><i class="fas fa-calendar-alt"></i></div>
-            <div class="info-content">
-              <div class="info-label">Дата проведения</div>
-              <div class="info-value">{{ eventDate }}</div>
-            </div>
-          </div>
+      <!-- Вкладки для навигации по секциям мероприятия -->
+      <div class="event-navigation">
+        <div class="nav-tabs">
+          <a href="#overview" class="nav-tab" :class="{ 'active': activeTab === 'overview' }" @click.prevent="activeTab = 'overview'">
+            <i class="fas fa-info-circle"></i>
+            <span>Обзор</span>
+          </a>
           
-          <div class="event-info-card">
-            <div class="info-icon"><i class="fas fa-clock"></i></div>
-            <div class="info-content">
-              <div class="info-label">Время</div>
-              <div class="info-value">{{ eventTime }}</div>
-            </div>
-          </div>
+          <a href="#gallery" class="nav-tab" :class="{ 'active': activeTab === 'gallery' }" @click.prevent="activeTab = 'gallery'">
+            <i class="fas fa-images"></i>
+            <span>Фотографии</span>
+          </a>
           
-          <div class="event-info-card">
-            <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
-            <div class="info-content">
-              <div class="info-label">Место проведения</div>
-              <div class="info-value">{{ eventLocation }}</div>
-            </div>
-          </div>
+          <a v-if="hasPurchases" href="#purchases" class="nav-tab" :class="{ 'active': activeTab === 'purchases' }" @click.prevent="activeTab = 'purchases'">
+            <i class="fas fa-shopping-bag"></i>
+            <span>Покупки</span>
+          </a>
           
-          <div class="event-info-card">
-            <div class="info-icon"><i class="fas fa-users"></i></div>
-            <div class="info-content">
-              <div class="info-label">Участников</div>
-              <div class="info-value">{{ eventAttendees }}</div>
+          <a href="#impressions" class="nav-tab" :class="{ 'active': activeTab === 'impressions' }" @click.prevent="activeTab = 'impressions'">
+            <i class="fas fa-heart"></i>
+            <span>Впечатления</span>
+          </a>
+        </div>
+      </div>
+      
+      <!-- Контент для вкладок -->
+      <div class="event-content-container">
+        <!-- Обзор -->
+        <div class="event-section" id="overview" v-show="activeTab === 'overview'">
+          <h2 class="section-title">О мероприятии</h2>
+          <div class="section-content">
+            <p class="event-description">{{ eventDescription }}</p>
+            
+            <!-- Официальные ресурсы -->
+            <div v-if="officialLinks.length > 0" class="event-links">
+              <h3 class="links-title">Официальные ресурсы:</h3>
+              <div class="links-container">
+                <a v-for="(link, index) in officialLinks" :key="index" :href="link.url" target="_blank" class="event-link">
+                  <i :class="link.icon"></i>
+                  <span>{{ link.text }}</span>
+                </a>
+              </div>
+            </div>
+            
+            <!-- Особенности мероприятия -->
+            <div class="features-container">
+              <h3 class="features-title">{{ featuresTitle }}</h3>
+              <div class="features-grid">
+                <div v-for="(feature, index) in features" :key="index" class="feature-card">
+                  <div class="feature-icon">
+                    <i :class="feature.icon"></i>
+                  </div>
+                  <div class="feature-content">
+                    <h4>{{ feature.title }}</h4>
+                    <p>{{ feature.description }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Знакомые на мероприятии -->
+            <div v-if="friends.length > 0" class="friends-container">
+              <h3 class="friends-title">{{ friendsTitle }}</h3>
+              <div class="friends-grid">
+                <div v-for="(friend, index) in friends" :key="index" class="friend-card">
+                  <div class="friend-image">
+                    <div v-if="friend.image" class="friend-img">
+                      <img :src="friend.image" :alt="friend.name">
+                    </div>
+                    <div v-else class="friend-placeholder">
+                      <i :class="friend.icon || 'fas fa-paw'"></i>
+                    </div>
+                  </div>
+                  <div class="friend-info">
+                    <h4>{{ friend.name }}</h4>
+                    <p>{{ friend.description }}</p>
+                    <div v-if="friend.socialLinks" class="friend-social">
+                      <a v-for="(social, idx) in friend.socialLinks" :key="idx" :href="social.url" class="social-link" target="_blank">
+                        <i :class="social.icon"></i>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
         
-        <!-- Вкладки для навигации по секциям мероприятия -->
-        <div class="event-navigation">
-          <div class="nav-tabs">
-            <a href="#overview" class="nav-tab" :class="{ 'active': activeTab === 'overview' }" @click.prevent="activeTab = 'overview'">
-              <i class="fas fa-info-circle"></i>
-              <span>Обзор</span>
-            </a>
-            
-            <a href="#gallery" class="nav-tab" :class="{ 'active': activeTab === 'gallery' }" @click.prevent="activeTab = 'gallery'">
-              <i class="fas fa-images"></i>
-              <span>Фотографии</span>
-            </a>
-            
-            <a v-if="hasPurchases" href="#purchases" class="nav-tab" :class="{ 'active': activeTab === 'purchases' }" @click.prevent="activeTab = 'purchases'">
-              <i class="fas fa-shopping-bag"></i>
-              <span>Покупки</span>
-            </a>
-            
-            <a href="#impressions" class="nav-tab" :class="{ 'active': activeTab === 'impressions' }" @click.prevent="activeTab = 'impressions'">
-              <i class="fas fa-heart"></i>
-              <span>Впечатления</span>
-            </a>
+        <!-- Галерея -->
+        <div class="event-section" id="gallery" v-show="activeTab === 'gallery'">
+          <h2 class="section-title">Фотографии</h2>
+          <div class="gallery-grid">
+            <div v-for="(photo, index) in galleryImages" :key="index" class="gallery-item">
+              <img :src="photo.src" :alt="photo.alt || `Фото ${index + 1}`">
+            </div>
           </div>
         </div>
         
-        <!-- Контент для вкладок -->
-        <div class="event-content-container">
-          <!-- Обзор -->
-          <div class="event-section" id="overview" v-show="activeTab === 'overview'">
-            <h2 class="section-title">О мероприятии</h2>
-            <div class="section-content">
-              <p class="event-description">{{ eventDescription }}</p>
-              
-              <!-- Официальные ресурсы -->
-              <div v-if="officialLinks.length > 0" class="event-links">
-                <h3 class="links-title">Официальные ресурсы:</h3>
-                <div class="links-container">
-                  <a v-for="(link, index) in officialLinks" :key="index" :href="link.url" target="_blank" class="event-link">
-                    <i :class="link.icon"></i>
-                    <span>{{ link.text }}</span>
-                  </a>
+        <!-- Покупки (если были) -->
+        <div v-if="hasPurchases" class="event-section" id="purchases" v-show="activeTab === 'purchases'">
+          <h2 class="section-title">Мои покупки</h2>
+          <div class="purchases-content">
+            <p class="purchases-intro">{{ purchasesIntro }}</p>
+            
+            <div class="purchases-grid">
+              <div v-for="(purchase, index) in purchases" :key="index" class="purchase-card">
+                <div class="purchase-image">
+                  <img :src="purchase.image" :alt="purchase.title">
+                </div>
+                <div class="purchase-info">
+                  <h3 class="purchase-title">{{ purchase.title }}</h3>
+                  <div class="purchase-author">
+                    <i :class="purchase.authorIcon || 'fas fa-user'"></i>
+                    <span>{{ purchase.author }}</span>
+                  </div>
+                  <p class="purchase-desc">{{ purchase.description }}</p>
+                  <div class="purchase-price">{{ purchase.price }}</div>
                 </div>
               </div>
-              
-              <!-- Особенности мероприятия -->
-              <div class="features-container">
-                <h3 class="features-title">{{ featuresTitle }}</h3>
-                <div class="features-grid">
-                  <div v-for="(feature, index) in features" :key="index" class="feature-card">
-                    <div class="feature-icon">
-                      <i :class="feature.icon"></i>
-                    </div>
-                    <div class="feature-content">
-                      <h4>{{ feature.title }}</h4>
-                      <p>{{ feature.description }}</p>
-                    </div>
+            </div>
+            
+            <div v-if="purchasesSummary" class="purchases-summary">
+              <div class="summary-content">
+                <h3>Итого потрачено: <span class="total-spent">{{ totalSpent }}</span></h3>
+                <p>{{ purchasesSummary }}</p>
+              </div>
+              <div v-if="nextEvent" class="next-market">
+                <div class="next-event-info">
+                  <i class="fas fa-calendar-alt"></i>
+                  <div class="next-event-details">
+                    <h4>{{ nextEvent.title }}</h4>
+                    <p>{{ nextEvent.timeplace }}</p>
                   </div>
                 </div>
-              </div>
-              
-              <!-- Знакомые на мероприятии -->
-              <div v-if="friends.length > 0" class="friends-container">
-                <h3 class="friends-title">{{ friendsTitle }}</h3>
-                <div class="friends-grid">
-                  <div v-for="(friend, index) in friends" :key="index" class="friend-card">
-                    <div class="friend-image">
-                      <div v-if="friend.image" class="friend-img">
-                        <img :src="friend.image" :alt="friend.name">
-                      </div>
-                      <div v-else class="friend-placeholder">
-                        <i :class="friend.icon || 'fas fa-paw'"></i>
-                      </div>
-                    </div>
-                    <div class="friend-info">
-                      <h4>{{ friend.name }}</h4>
-                      <p>{{ friend.description }}</p>
-                      <div v-if="friend.socialLinks" class="friend-social">
-                        <a v-for="(social, idx) in friend.socialLinks" :key="idx" :href="social.url" class="social-link" target="_blank">
-                          <i :class="social.icon"></i>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
+                <div class="next-event-reminder">
+                  <button class="reminder-btn" @click="setReminder">
+                    <i class="fas fa-bell"></i>
+                    <span>Напомнить</span>
+                  </button>
                 </div>
               </div>
             </div>
           </div>
-          
-          <!-- Галерея -->
-          <div class="event-section" id="gallery" v-show="activeTab === 'gallery'">
-            <h2 class="section-title">Фотографии</h2>
-            <div class="gallery-grid">
-              <div v-for="(photo, index) in galleryImages" :key="index" class="gallery-item">
-                <img :src="photo.src" :alt="photo.alt || `Фото ${index + 1}`">
+        </div>
+        
+        <!-- Впечатления -->
+        <div class="event-section" id="impressions" v-show="activeTab === 'impressions'">
+          <h2 class="section-title">Впечатления</h2>
+          <div class="impressions-content">
+            <p class="impression-intro">{{ impressionsIntro }}</p>
+            
+            <!-- Моя оценка -->
+            <div class="rating-section">
+              <h3 class="rating-title">Моя оценка</h3>
+              <div class="rating-grid">
+                <div v-for="(category, index) in ratingCategories" :key="index" class="rating-item">
+                  <div class="rating-category">{{ category.name }}</div>
+                  <div class="rating-stars">
+                    <i v-for="star in 5" :key="star" class="fas fa-star" :class="{ 'active': star <= category.rating }"></i>
+                  </div>
+                  <div class="rating-value">{{ category.rating }}/5</div>
+                </div>
+              </div>
+              <div class="rating-overall">
+                <span class="overall-label">Общая оценка:</span>
+                <span class="overall-value">{{ overallRating }}/5</span>
               </div>
             </div>
-          </div>
-          
-          <!-- Покупки (если были) -->
-          <div v-if="hasPurchases" class="event-section" id="purchases" v-show="activeTab === 'purchases'">
-            <h2 class="section-title">Мои покупки</h2>
-            <div class="purchases-content">
-              <p class="purchases-intro">{{ purchasesIntro }}</p>
-              
-              <div class="purchases-grid">
-                <div v-for="(purchase, index) in purchases" :key="index" class="purchase-card">
-                  <div class="purchase-image">
-                    <img :src="purchase.image" :alt="purchase.title">
-                  </div>
-                  <div class="purchase-info">
-                    <h3 class="purchase-title">{{ purchase.title }}</h3>
-                    <div class="purchase-author">
-                      <i :class="purchase.authorIcon || 'fas fa-user'"></i>
-                      <span>{{ purchase.author }}</span>
-                    </div>
-                    <p class="purchase-desc">{{ purchase.description }}</p>
-                    <div class="purchase-price">{{ purchase.price }}</div>
-                  </div>
+            
+            <!-- Критика -->
+            <div class="critique-section">
+              <h3 class="critique-title">Мое мнение</h3>
+              <div class="likes-dislikes">
+                <div class="likes">
+                  <h4><i class="fas fa-thumbs-up"></i> Плюсы</h4>
+                  <ul class="likes-list">
+                    <li v-for="(like, index) in likes" :key="index">{{ like }}</li>
+                  </ul>
                 </div>
-              </div>
-              
-              <div v-if="purchasesSummary" class="purchases-summary">
-                <div class="summary-content">
-                  <h3>Итого потрачено: <span class="total-spent">{{ totalSpent }}</span></h3>
-                  <p>{{ purchasesSummary }}</p>
-                </div>
-                <div v-if="nextEvent" class="next-market">
-                  <div class="next-event-info">
-                    <i class="fas fa-calendar-alt"></i>
-                    <div class="next-event-details">
-                      <h4>{{ nextEvent.title }}</h4>
-                      <p>{{ nextEvent.timeplace }}</p>
-                    </div>
-                  </div>
-                  <div class="next-event-reminder">
-                    <button class="reminder-btn" @click="setReminder">
-                      <i class="fas fa-bell"></i>
-                      <span>Напомнить</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Впечатления -->
-          <div class="event-section" id="impressions" v-show="activeTab === 'impressions'">
-            <h2 class="section-title">Впечатления</h2>
-            <div class="impressions-content">
-              <p class="impression-intro">{{ impressionsIntro }}</p>
-              
-              <!-- Моя оценка -->
-              <div class="rating-section">
-                <h3 class="rating-title">Моя оценка</h3>
-                <div class="rating-grid">
-                  <div v-for="(category, index) in ratingCategories" :key="index" class="rating-item">
-                    <div class="rating-category">{{ category.name }}</div>
-                    <div class="rating-stars">
-                      <i v-for="star in 5" :key="star" class="fas fa-star" :class="{ 'active': star <= category.rating }"></i>
-                    </div>
-                    <div class="rating-value">{{ category.rating }}/5</div>
-                  </div>
-                </div>
-                <div class="rating-overall">
-                  <span class="overall-label">Общая оценка:</span>
-                  <span class="overall-value">{{ overallRating }}/5</span>
-                </div>
-              </div>
-              
-              <!-- Критика -->
-              <div class="critique-section">
-                <h3 class="critique-title">Мое мнение</h3>
-                <div class="likes-dislikes">
-                  <div class="likes">
-                    <h4><i class="fas fa-thumbs-up"></i> Плюсы</h4>
-                    <ul class="likes-list">
-                      <li v-for="(like, index) in likes" :key="index">{{ like }}</li>
-                    </ul>
-                  </div>
-                  
-                  <div class="dislikes">
-                    <h4><i class="fas fa-thumbs-down"></i> Минусы</h4>
-                    <ul class="dislikes-list">
-                      <li v-for="(dislike, index) in dislikes" :key="index">{{ dislike }}</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Яркие моменты -->
-              <div class="highlight-moments">
-                <h3 class="moments-title">Запоминающиеся моменты</h3>
-                <div class="moments-grid">
-                  <div v-for="(moment, index) in highlightMoments" :key="index" class="moment-card">
-                    <div class="moment-icon"><i :class="moment.icon"></i></div>
-                    <div class="moment-text">
-                      <h4>{{ moment.title }}</h4>
-                      <p>{{ moment.description }}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Заключение -->
-              <div class="event-conclusion">
-                <h3>{{ conclusionTitle }}</h3>
-                <p v-html="conclusion"></p>
                 
-                <div v-if="nextEvents.length > 0" class="next-events">
-                  <h4>{{ nextEventsTitle }}</h4>
-                  <div class="next-events-list">
-                    <router-link 
-                      v-for="(nextEvent, index) in nextEvents" 
-                      :key="index" 
-                      :to="nextEvent.path" 
-                      class="next-event-link"
-                    >
-                      <i class="fas fa-calendar-alt"></i>
-                      <span>{{ nextEvent.title }}</span>
-                    </router-link>
+                <div class="dislikes">
+                  <h4><i class="fas fa-thumbs-down"></i> Минусы</h4>
+                  <ul class="dislikes-list">
+                    <li v-for="(dislike, index) in dislikes" :key="index">{{ dislike }}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Яркие моменты -->
+            <div class="highlight-moments">
+              <h3 class="moments-title">Запоминающиеся моменты</h3>
+              <div class="moments-grid">
+                <div v-for="(moment, index) in highlightMoments" :key="index" class="moment-card">
+                  <div class="moment-icon"><i :class="moment.icon"></i></div>
+                  <div class="moment-text">
+                    <h4>{{ moment.title }}</h4>
+                    <p>{{ moment.description }}</p>
                   </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Заключение -->
+            <div class="event-conclusion">
+              <h3>{{ conclusionTitle }}</h3>
+              <p v-html="conclusion"></p>
+              
+              <div v-if="nextEvents.length > 0" class="next-events">
+                <h4>{{ nextEventsTitle }}</h4>
+                <div class="next-events-list">
+                  <router-link 
+                    v-for="(nextEvent, index) in nextEvents" 
+                    :key="index" 
+                    :to="nextEvent.path" 
+                    class="next-event-link"
+                  >
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>{{ nextEvent.title }}</span>
+                  </router-link>
                 </div>
               </div>
             </div>
@@ -282,271 +281,297 @@
         </div>
       </div>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    name: 'PastEventTemplate',
-    data() {
-      return {
-        // ===============================================================
-        // НАСТРОЙКА ДАННЫХ МЕРОПРИЯТИЯ - ЗДЕСЬ ВНОСИТЕ ИЗМЕНЕНИЯ
-        // ===============================================================
-        
-        // Основные данные мероприятия
-        eventName: 'Название мероприятия',
-        eventSubtitle: 'Подзаголовок мероприятия',
-        eventDescription: 'Основное описание мероприятия...',
-        eventDate: '1 января 2025',
-        eventTime: '10:00–18:00',
-        eventLocation: 'Место проведения, Город',
-        eventAttendees: '300+',
-        
-        // Баннер мероприятия (главное изображение)
-        eventBannerImage: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/fursuit1.jpg',
-        
-        // Бейджик (VIP или Волонтёр)
-        eventBadge: true,
-        eventBadgeClass: 'vip',  // 'vip' или 'volunteer'
-        eventBadgeText: 'VIP',
-        
-        // Показывать ли вкладку "Покупки"
-        hasPurchases: true,
-        
-        // Официальные ссылки на соцсети мероприятия
-        officialLinks: [
-          {
-            url: 'https://vk.com/example',
-            icon: 'fab fa-vk',
-            text: 'Группа ВКонтакте'
-          },
-          {
-            url: 'https://t.me/example',
-            icon: 'fab fa-telegram',
-            text: 'Telegram-канал'
-          }
-          // Добавить другие ссылки при необходимости
-        ],
-        
-        // Особенности мероприятия
-        featuresTitle: 'Что было на мероприятии:',
-        features: [
-          {
-            title: 'Активности',
-            description: 'Многочисленные интерактивные стенды и игры для гостей',
-            icon: 'fas fa-gamepad'
-          },
-          {
-            title: 'Фотозоны',
-            description: 'Несколько тематических фотозон для памятных снимков',
-            icon: 'fas fa-camera'
-          },
-          {
-            title: 'Мастер-классы',
-            description: 'Обучающие сессии от опытных художников и мастеров',
-            icon: 'fas fa-paint-brush'
-          }
-          // Добавить другие особенности при необходимости
-        ],
-        
-        // Встреченные знакомые/новые друзья
-        friendsTitle: 'Мои знакомые на мероприятии:',
-        friends: [
-          {
-            name: 'Имя друга',
-            description: 'Встретились впервые! Очень дружелюбный и талантливый художник.',
-            icon: 'fas fa-cat',
-            image: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/Felix.jpg',
-            socialLinks: [
-              { url: 'https://instagram.com/friend', icon: 'fab fa-instagram' },
-              { url: 'https://t.me/friend', icon: 'fab fa-telegram' }
-            ]
-          },
-          {
-            name: 'Имя знакомого',
-            description: 'Давний знакомый, отличный собеседник и крафтер.',
-            icon: 'fas fa-fox',
-            image: null,  // Если нет фото, будет использована иконка
-            socialLinks: [
-              { url: 'https://vk.com/friend', icon: 'fab fa-vk' }
-            ]
-          }
-          // Добавить других знакомых при необходимости
-        ],
-        
-        // ===============================================================
-        // ФОТОГРАФИИ - УДОБНОЕ ДОБАВЛЕНИЕ
-        // ===============================================================
-        // Массив с фотографиями мероприятия
-        galleryImages: [
-          // Раздел 1: Фото с открытия и основной программы
-          { 
-            src: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/fursuit1.jpg', 
-            alt: 'Открытие мероприятия' 
-          },
-          { 
-            src: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/fursuit2.jpg', 
-            alt: 'Главная сцена' 
-          },
-          { 
-            src: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/fursuit3.jpg', 
-            alt: 'Выступление ведущих' 
-          },
-          
-          // Раздел 2: Фото с друзьями
-          { 
-            src: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/Felix.jpg', 
-            alt: 'С друзьями у входа' 
-          },
-          { 
-            src: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/Illustration4_6.jpg', 
-            alt: 'Групповое фото на фоне баннера' 
-          },
-          
-          // Раздел 3: Арт-зона и маркет
-          { 
-            src: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/reference.png', 
-            alt: 'Арт-зона с художниками' 
-          }
-          
-          // Можно добавить еще фотографии, просто следуя этому формату
-        ],
-        
-        // ===============================================================
-        // ПОКУПКИ (если были)
-        // ===============================================================
-        purchasesIntro: 'На этом мероприятии я приобрел несколько отличных товаров от талантливых художников и крафтеров.',
-        purchases: [
-          {
-            title: 'Значок с моей фурсоной',
-            author: 'PinMaker',
-            authorIcon: 'fas fa-paint-brush',
-            description: 'Красивый металлический значок с изображением моей фурсоны. Отличное качество и детализация!',
-            image: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/reference.png',
-            price: '800₽'
-          },
-          {
-            title: 'Фурсьют пропуск',
-            author: 'BadgeMaker',
-            authorIcon: 'fas fa-id-card',
-            description: 'Ламинированный пропуск с красивым дизайном и удобным креплением.',
-            image: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/Illustration4_6.jpg',
-            price: '500₽'
-          }
-          // Добавить другие покупки при необходимости
-        ],
-        totalSpent: '1300₽',
-        purchasesSummary: 'Я остался очень доволен своими покупками. Качество всех приобретений на высоте, а цены были достаточно разумными для авторских работ.',
-        nextEvent: {
-          title: 'FurMarket Mini',
-          timeplace: '22 июля 2025 | Москва',
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'PastEventTemplate',
+  data() {
+    return {
+      // ===============================================================
+      // НАСТРОЙКА ДАННЫХ МЕРОПРИЯТИЯ - ЗДЕСЬ ВНОСИТЕ ИЗМЕНЕНИЯ
+      // ===============================================================
+      
+      // Основные данные мероприятия
+      eventName: 'Название мероприятия',
+      eventSubtitle: 'Подзаголовок мероприятия',
+      eventDescription: 'Основное описание мероприятия...',
+      eventDate: '1 января 2025',
+      eventTime: '10:00–18:00',
+      eventLocation: 'Место проведения, Город',
+      eventAttendees: '300+',
+      
+      // Баннер мероприятия (главное изображение)
+      eventBannerImage: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/fursuit1.jpg',
+      
+      // Бейджик (VIP или Волонтёр)
+      eventBadge: true,
+      eventBadgeClass: 'vip',  // 'vip' или 'volunteer'
+      eventBadgeText: 'VIP',
+      
+      // Показывать ли вкладку "Покупки"
+      hasPurchases: true,
+      
+      // ===============================================================
+      // МЕТАТЕГИ ДЛЯ СОЦСЕТЕЙ - НАСТРОЙТЕ ДЛЯ КАЖДОГО МЕРОПРИЯТИЯ
+      // ===============================================================
+      metaTitle: 'Название мероприятия - Мой опыт посещения | Fox Taffy',
+      metaDescription: 'Мои впечатления от посещения [Название мероприятия] - фотографии, покупки, знакомства и яркие моменты с этого замечательного мероприятия.',
+      metaImage: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/event-preview.jpg', // Уникальное изображение для превью
+      metaUrl: 'https://foxtaffy.fun/events/event-name', // URL страницы
+      
+      // Официальные ссылки на соцсети мероприятия
+      officialLinks: [
+        {
+          url: 'https://vk.com/example',
+          icon: 'fab fa-vk',
+          text: 'Группа ВКонтакте'
+        },
+        {
+          url: 'https://t.me/example',
+          icon: 'fab fa-telegram',
+          text: 'Telegram-канал'
+        }
+        // Добавить другие ссылки при необходимости
+      ],
+      
+      // Особенности мероприятия
+      featuresTitle: 'Что было на мероприятии:',
+      features: [
+        {
+          title: 'Активности',
+          description: 'Многочисленные интерактивные стенды и игры для гостей',
+          icon: 'fas fa-gamepad'
+        },
+        {
+          title: 'Фотозоны',
+          description: 'Несколько тематических фотозон для памятных снимков',
+          icon: 'fas fa-camera'
+        },
+        {
+          title: 'Мастер-классы',
+          description: 'Обучающие сессии от опытных художников и мастеров',
+          icon: 'fas fa-paint-brush'
+        }
+        // Добавить другие особенности при необходимости
+      ],
+      
+      // Встреченные знакомые/новые друзья
+      friendsTitle: 'Мои знакомые на мероприятии:',
+      friends: [
+        {
+          name: 'Имя друга',
+          description: 'Встретились впервые! Очень дружелюбный и талантливый художник.',
+          icon: 'fas fa-cat',
+          image: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/Felix.jpg',
+          socialLinks: [
+            { url: 'https://instagram.com/friend', icon: 'fab fa-instagram' },
+            { url: 'https://t.me/friend', icon: 'fab fa-telegram' }
+          ]
+        },
+        {
+          name: 'Имя знакомого',
+          description: 'Давний знакомый, отличный собеседник и крафтер.',
+          icon: 'fas fa-fox',
+          image: null,  // Если нет фото, будет использована иконка
+          socialLinks: [
+            { url: 'https://vk.com/friend', icon: 'fab fa-vk' }
+          ]
+        }
+        // Добавить других знакомых при необходимости
+      ],
+      
+      // ===============================================================
+      // ФОТОГРАФИИ - УДОБНОЕ ДОБАВЛЕНИЕ
+      // ===============================================================
+      // Массив с фотографиями мероприятия
+      galleryImages: [
+        // Раздел 1: Фото с открытия и основной программы
+        { 
+          src: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/fursuit1.jpg', 
+          alt: 'Открытие мероприятия' 
+        },
+        { 
+          src: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/fursuit2.jpg', 
+          alt: 'Главная сцена' 
+        },
+        { 
+          src: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/fursuit3.jpg', 
+          alt: 'Выступление ведущих' 
         },
         
-        // ===============================================================
-        // ВПЕЧАТЛЕНИЯ И КРИТИКА
-        // ===============================================================
-        impressionsIntro: 'Это мероприятие оставило у меня яркие впечатления! Несмотря на некоторые организационные моменты, всё прошло интересно и весело. Вот моя детальная оценка:',
+        // Раздел 2: Фото с друзьями
+        { 
+          src: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/Felix.jpg', 
+          alt: 'С друзьями у входа' 
+        },
+        { 
+          src: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/Illustration4_6.jpg', 
+          alt: 'Групповое фото на фоне баннера' 
+        },
         
-        // Оценки по категориям
-        ratingCategories: [
-          { name: 'Организация', rating: 4 },
-          { name: 'Программа', rating: 5 },
-          { name: 'Атмосфера', rating: 5 },
-          { name: 'Локация', rating: 3 },
-          { name: 'Участники', rating: 5 }
-        ],
-        
-        // Плюсы и минусы
-        likes: [
-          'Разнообразная и насыщенная программа',
-          'Дружелюбная атмосфера и отзывчивые организаторы',
-          'Интересные мастер-классы и активности',
-          'Качественный маркет с разнообразными товарами',
-          'Отличное озвучивание и музыкальное сопровождение'
-        ],
-        
-        dislikes: [
-          'Тесное помещение с недостаточной вентиляцией',
-          'Мало сидячих мест для отдыха',
-          'Высокие цены на еду и напитки',
-          'Не очень удобное расположение относительно транспорта',
-          'Некоторые задержки в расписании'
-        ],
-        
-        // Запоминающиеся моменты
-        highlightMoments: [
-          {
-            title: 'Фурсьют-парад',
-            description: 'Впечатляющий парад фурсьютеров с музыкальным сопровождением. Особенно запомнился милый протоген со светодиодной маской!',
-            icon: 'fas fa-star'
-          },
-          {
-            title: 'Мастер-класс по крафтингу',
-            description: 'Научился делать простые ушки и хвост своими руками под руководством опытного мастера.',
-            icon: 'fas fa-hands'
-          },
-          {
-            title: 'Дэнс-батл',
-            description: 'Зажигательный танцевальный баттл между фурсьютерами. Получил массу впечатлений и сделал много отличных фото!',
-            icon: 'fas fa-music'
-          }
-          // Добавить другие моменты при необходимости
-        ],
-        
-        // Заключение
-        conclusionTitle: 'Общее впечатление',
-        conclusion: 'В целом мероприятие оставило очень приятное впечатление. Несмотря на некоторые организационные недостатки, атмосфера и контент полностью компенсировали их. Обязательно посещу это мероприятие снова в следующем году и буду рекомендовать его друзьям.',
-        nextEventsTitle: 'Следующие мероприятия, которые я планирую посетить:',
-        nextEvents: [
-          { path: '/events/foxwood-2025', title: 'Foxwood: Back to 2000s (15 мая 2025)' },
-          { path: '/events/furmarket-mini', title: 'FurMarket Mini (22 июля 2025)' }
-          // Добавить другие будущие мероприятия при необходимости
-        ],
-        
-        // ===============================================================
-        // СИСТЕМНЫЕ НАСТРОЙКИ (не менять)
-        // ===============================================================
-        activeTab: 'overview'
-      }
-    },
-    computed: {
-      // Вычисление средней оценки
-      overallRating() {
-        if (this.ratingCategories.length === 0) return 0;
-        
-        const sum = this.ratingCategories.reduce((total, category) => total + category.rating, 0);
-        const average = sum / this.ratingCategories.length;
-        
-        // Округление до 1 десятичного знака
-        return Math.round(average * 10) / 10;
-      }
-    },
-    mounted() {
-      // Проверяем, есть ли хеш в URL и если есть, активируем соответствующую вкладку
-      const hash = window.location.hash;
-      if (hash) {
-        const tab = hash.replace('#', '');
-        const availableTabs = ['overview', 'gallery', 'purchases', 'impressions'];
-        if (availableTabs.includes(tab)) {
-          this.activeTab = tab;
+        // Раздел 3: Арт-зона и маркет
+        { 
+          src: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/reference.png', 
+          alt: 'Арт-зона с художниками' 
         }
-      }
-    },
-    methods: {
-      // Открытие изображения в галерее
-      openGalleryImage(index) {
-        alert(`Открытие изображения ${index + 1} в галерее`);
-        // Здесь можно реализовать открытие лайтбокса или модального окна с изображением
+        
+        // Можно добавить еще фотографии, просто следуя этому формату
+      ],
+      
+      // ===============================================================
+      // ПОКУПКИ (если были)
+      // ===============================================================
+      purchasesIntro: 'На этом мероприятии я приобрел несколько отличных товаров от талантливых художников и крафтеров.',
+      purchases: [
+        {
+          title: 'Значок с моей фурсоной',
+          author: 'PinMaker',
+          authorIcon: 'fas fa-paint-brush',
+          description: 'Красивый металлический значок с изображением моей фурсоны. Отличное качество и детализация!',
+          image: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/reference.png',
+          price: '800₽'
+        },
+        {
+          title: 'Фурсьют пропуск',
+          author: 'BadgeMaker',
+          authorIcon: 'fas fa-id-card',
+          description: 'Ламинированный пропуск с красивым дизайном и удобным креплением.',
+          image: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/Illustration4_6.jpg',
+          price: '500₽'
+        }
+        // Добавить другие покупки при необходимости
+      ],
+      totalSpent: '1300₽',
+      purchasesSummary: 'Я остался очень доволен своими покупками. Качество всех приобретений на высоте, а цены были достаточно разумными для авторских работ.',
+      nextEvent: {
+        title: 'FurMarket Mini',
+        timeplace: '22 июля 2025 | Москва',
       },
       
-      // Метод для установки напоминания
-      setReminder() {
-        alert(`Напоминание о мероприятии "${this.nextEvent.title}" установлено!`);
-        // Здесь можно реализовать логику для настройки напоминания
+      // ===============================================================
+      // ВПЕЧАТЛЕНИЯ И КРИТИКА
+      // ===============================================================
+      impressionsIntro: 'Это мероприятие оставило у меня яркие впечатления! Несмотря на некоторые организационные моменты, всё прошло интересно и весело. Вот моя детальная оценка:',
+      
+      // Оценки по категориям
+      ratingCategories: [
+        { name: 'Организация', rating: 4 },
+        { name: 'Программа', rating: 5 },
+        { name: 'Атмосфера', rating: 5 },
+        { name: 'Локация', rating: 3 },
+        { name: 'Участники', rating: 5 }
+      ],
+      
+      // Плюсы и минусы
+      likes: [
+        'Разнообразная и насыщенная программа',
+        'Дружелюбная атмосфера и отзывчивые организаторы',
+        'Интересные мастер-классы и активности',
+        'Качественный маркет с разнообразными товарами',
+        'Отличное озвучивание и музыкальное сопровождение'
+      ],
+      
+      dislikes: [
+        'Тесное помещение с недостаточной вентиляцией',
+        'Мало сидячих мест для отдыха',
+        'Высокие цены на еду и напитки',
+        'Не очень удобное расположение относительно транспорта',
+        'Некоторые задержки в расписании'
+      ],
+      
+      // Запоминающиеся моменты
+      highlightMoments: [
+        {
+          title: 'Фурсьют-парад',
+          description: 'Впечатляющий парад фурсьютеров с музыкальным сопровождением. Особенно запомнился милый протоген со светодиодной маской!',
+          icon: 'fas fa-star'
+        },
+        {
+          title: 'Мастер-класс по крафтингу',
+          description: 'Научился делать простые ушки и хвост своими руками под руководством опытного мастера.',
+          icon: 'fas fa-hands'
+        },
+        {
+          title: 'Дэнс-батл',
+          description: 'Зажигательный танцевальный баттл между фурсьютерами. Получил массу впечатлений и сделал много отличных фото!',
+          icon: 'fas fa-music'
+        }
+        // Добавить другие моменты при необходимости
+      ],
+      
+      // Заключение
+      conclusionTitle: 'Общее впечатление',
+      conclusion: 'В целом мероприятие оставило очень приятное впечатление. Несмотря на некоторые организационные недостатки, атмосфера и контент полностью компенсировали их. Обязательно посещу это мероприятие снова в следующем году и буду рекомендовать его друзьям.',
+      nextEventsTitle: 'Следующие мероприятия, которые я планирую посетить:',
+      nextEvents: [
+        { path: '/events/foxwood-2025', title: 'Foxwood: Back to 2000s (15 мая 2025)' },
+        { path: '/events/furmarket-mini', title: 'FurMarket Mini (22 июля 2025)' }
+        // Добавить другие будущие мероприятия при необходимости
+      ],
+      
+      // ===============================================================
+      // СИСТЕМНЫЕ НАСТРОЙКИ (не менять)
+      // ===============================================================
+      activeTab: 'overview'
+    }
+  },
+  computed: {
+    // Вычисление средней оценки
+    overallRating() {
+      if (this.ratingCategories.length === 0) return 0;
+      
+      const sum = this.ratingCategories.reduce((total, category) => total + category.rating, 0);
+      const average = sum / this.ratingCategories.length;
+      
+      // Округление до 1 десятичного знака
+      return Math.round(average * 10) / 10;
+    }
+  },
+  mounted() {
+    // Обновляем метатеги для соцсетей
+    this.updatePageMeta();
+    
+    // Проверяем, есть ли хеш в URL и если есть, активируем соответствующую вкладку
+    const hash = window.location.hash;
+    if (hash) {
+      const tab = hash.replace('#', '');
+      const availableTabs = ['overview', 'gallery', 'purchases', 'impressions'];
+      if (availableTabs.includes(tab)) {
+        this.activeTab = tab;
       }
     }
+  },
+  methods: {
+    // ===============================================================
+    // ОБНОВЛЕНИЕ МЕТАТЕГОВ ДЛЯ СОЦСЕТЕЙ
+    // ===============================================================
+    updatePageMeta() {
+      if (this.$updateMetaTags) {
+        this.$updateMetaTags({
+          title: this.metaTitle,
+          description: this.metaDescription,
+          image: this.metaImage,
+          url: this.metaUrl
+        });
+      }
+    },
+    
+    // Открытие изображения в галерее
+    openGalleryImage(index) {
+      alert(`Открытие изображения ${index + 1} в галерее`);
+      // Здесь можно реализовать открытие лайтбокса или модального окна с изображением
+    },
+    
+    // Метод для установки напоминания
+    setReminder() {
+      alert(`Напоминание о мероприятии "${this.nextEvent.title}" установлено!`);
+      // Здесь можно реализовать логику для настройки напоминания
+    }
   }
-  </script>
+}
+</script>
   
   <style scoped>
   .event-details-page {
