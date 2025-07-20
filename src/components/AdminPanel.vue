@@ -133,23 +133,56 @@
             <!-- Dashboard -->
             <div v-if="activeTab === 'dashboard'" class="dashboard">
               <div class="dashboard-grid">
-                <div class="dashboard-card">
+                <!-- НОВЫЙ КОД - ВСТАВИТЬ -->
+                <div class="dashboard-card quick-actions-card">
                   <h3><i class="fas fa-bolt"></i> Быстрые действия</h3>
-                  <div class="action-buttons">
-                    <button @click="activeTab = 'add-art'" class="action-btn primary">
-                      <i class="fas fa-cloud-upload-alt"></i>
-                      <span>Загрузить арт</span>
+                  <div class="quick-actions-grid">
+                    <button @click="setActiveTab('add-art')" class="quick-action-btn primary">
+                      <div class="btn-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                      </div>
+                      <div class="btn-content">
+                        <span class="btn-title">Загрузить арт</span>
+                        <span class="btn-subtitle">Добавить новый арт в галерею</span>
+                      </div>
+                      <i class="fas fa-arrow-right btn-arrow"></i>
                     </button>
-                    <button @click="openModal('artist')" class="action-btn">
-                      <i class="fas fa-user-plus"></i>
-                      <span>Новый художник</span>
+                    
+                    <button @click="openModal('artist')" class="quick-action-btn secondary">
+                      <div class="btn-icon">
+                        <i class="fas fa-user-plus"></i>
+                      </div>
+                      <div class="btn-content">
+                        <span class="btn-title">Новый художник</span>
+                        <span class="btn-subtitle">Добавить художника в базу</span>
+                      </div>
+                      <i class="fas fa-arrow-right btn-arrow"></i>
                     </button>
-                    <button @click="openModal('tag')" class="action-btn">
-                      <i class="fas fa-tag"></i>
-                      <span>Новый тег</span>
+                    
+                    <button @click="openModal('tag')" class="quick-action-btn tertiary">
+                      <div class="btn-icon">
+                        <i class="fas fa-tag"></i>
+                      </div>
+                      <div class="btn-content">
+                        <span class="btn-title">Новый тег</span>
+                        <span class="btn-subtitle">Создать тег для категоризации</span>
+                      </div>
+                      <i class="fas fa-arrow-right btn-arrow"></i>
+                    </button>
+                    
+                    <button @click="openModal('character')" class="quick-action-btn quaternary">
+                      <div class="btn-icon">
+                        <i class="fas fa-paw"></i>
+                      </div>
+                      <div class="btn-content">
+                        <span class="btn-title">Новый персонаж</span>
+                        <span class="btn-subtitle">Добавить персонажа в коллекцию</span>
+                      </div>
+                      <i class="fas fa-arrow-right btn-arrow"></i>
                     </button>
                   </div>
                 </div>
+
 
                 <div class="dashboard-card">
                   <h3><i class="fas fa-chart-bar"></i> Статистика</h3>
@@ -1396,7 +1429,9 @@ const logout = () => {
   localStorage.removeItem('fox_admin_auth')
   activeTab.value = 'dashboard'
 }
-
+const setActiveTab = (tabName) => {
+  activeTab.value = tabName
+}
 // Загрузка данных
 const loadInitialData = async () => {
   refreshing.value = true
@@ -2415,38 +2450,255 @@ watch(activeTab, () => {
 .dashboard-card h3 i {
   color: #ff6b35;
 }
-
-.action-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.quick-actions-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
 }
 
-.action-btn {
+.quick-actions-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 2rem 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: white;
+}
+
+.quick-actions-card h3 i {
+  color: #ff6b35;
+  font-size: 1.1rem;
+}
+
+.quick-actions-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+.quick-action-btn {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1rem 1.5rem;
+  padding: 1.25rem 1.5rem;
   border: none;
-  border-radius: 12px;
+  border-radius: 16px;
   cursor: pointer;
   font-family: inherit;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #888;
+  text-align: left;
+  width: 100%;
+  min-height: 70px;
 }
 
+.quick-action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.quick-action-btn:hover::before {
+  opacity: 1;
+}
+
+.quick-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.quick-action-btn:active {
+  transform: translateY(0);
+}
+
+/* Варианты кнопок */
+.quick-action-btn.primary {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  border: 1px solid rgba(255, 107, 53, 0.3);
+  color: white;
+}
+
+.quick-action-btn.primary:hover {
+  box-shadow: 0 12px 40px rgba(255, 107, 53, 0.4);
+  background: linear-gradient(135deg, #ff7b45 0%, #f8a32e 100%);
+}
+
+.quick-action-btn.secondary {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(22, 163, 74, 0.2) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+}
+
+.quick-action-btn.secondary:hover {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(22, 163, 74, 0.3) 100%);
+  box-shadow: 0 12px 40px rgba(34, 197, 94, 0.3);
+}
+
+.quick-action-btn.tertiary {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #3b82f6;
+}
+
+.quick-action-btn.tertiary:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(37, 99, 235, 0.3) 100%);
+  box-shadow: 0 12px 40px rgba(59, 130, 246, 0.3);
+}
+
+.quick-action-btn.quaternary {
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.2) 0%, rgba(126, 34, 206, 0.2) 100%);
+  border: 1px solid rgba(147, 51, 234, 0.3);
+  color: #9333ea;
+}
+
+.quick-action-btn.quaternary:hover {
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.3) 0%, rgba(126, 34, 206, 0.3) 100%);
+  box-shadow: 0 12px 40px rgba(147, 51, 234, 0.3);
+}
+
+/* Элементы кнопки */
+.btn-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.quick-action-btn.primary .btn-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.quick-action-btn.secondary .btn-icon {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.quick-action-btn.tertiary .btn-icon {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.quick-action-btn.quaternary .btn-icon {
+  background: rgba(147, 51, 234, 0.2);
+  color: #9333ea;
+}
+
+.btn-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.btn-title {
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.2;
+  color: inherit;
+}
+
+.btn-subtitle {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  line-height: 1.3;
+  color: inherit;
+}
+
+.quick-action-btn.primary .btn-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.btn-arrow {
+  flex-shrink: 0;
+  font-size: 1rem;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+
+.quick-action-btn:hover .btn-arrow {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+.quick-action-btn:hover .btn-icon {
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.quick-action-btn.secondary:hover .btn-icon {
+  background: rgba(34, 197, 94, 0.3);
+}
+
+.quick-action-btn.tertiary:hover .btn-icon {
+  background: rgba(59, 130, 246, 0.3);
+}
+
+.quick-action-btn.quaternary:hover .btn-icon {
+  background: rgba(147, 51, 234, 0.3);
+}
+
+/* Адаптивность */
+@media (min-width: 768px) {
+  .quick-actions-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .quick-actions-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .quick-action-btn {
+    min-height: 80px;
+    padding: 1.5rem 2rem;
+  }
+  
+  .btn-icon {
+    width: 52px;
+    height: 52px;
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .quick-action-btn {
+    padding: 1rem;
+    min-height: 60px;
+  }
+  
+  .btn-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+}
 .action-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   color: white;
-}
-
-.action-btn.primary {
-  background: linear-gradient(135deg, #ff6b35, #f7931e);
-  color: white;
-  border: none;
 }
 
 .action-btn.primary:hover {
