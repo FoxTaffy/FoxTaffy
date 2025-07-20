@@ -1,4 +1,4 @@
-// ✅ ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ API FOX TAFFY - С ПРАВИЛЬНЫМИ СЧЕТЧИКАМИ
+// ✅ ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ API FOX TAFFY - ПОД РЕАЛЬНУЮ СХЕМУ БД
 import { createClient } from '@supabase/supabase-js'
 
 // ✅ Получаем переменные из окружения (НЕ хардкод!)
@@ -32,7 +32,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   }
 })
 
-// ✅ ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ API С ПРАВИЛЬНЫМИ СЧЕТЧИКАМИ
+// ✅ ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ API ПОД РЕАЛЬНУЮ СХЕМУ БД
 export const furryApi = {
   
   // ============================================
@@ -112,6 +112,7 @@ export const furryApi = {
     try {
       console.log('🔍 getFurryArts: Запрашиваем арты с опциями:', options)
       
+      // Попробуем использовать gallery_view, если недоступно - прямой запрос
       let query = supabase
         .from('gallery_view')
         .select('*')
@@ -163,8 +164,8 @@ export const furryApi = {
       if (error) {
         console.error('❌ Ошибка запроса к gallery_view:', error)
         if (error.message.includes('does not exist') || error.code === '42P01') {
-          console.warn('⚠️ Представление gallery_view не существует, возвращаем пустой массив')
-          return []
+          console.warn('⚠️ Представление gallery_view не существует, используем прямой запрос')
+          return await this.getFurryArtsDirectQuery(options)
         }
         throw error
       }
@@ -216,6 +217,109 @@ export const furryApi = {
     }
   },
 
+  // ✅ РЕЗЕРВНЫЙ МЕТОД: Прямой запрос к таблицам если gallery_view недоступно
+  async getFurryArtsDirectQuery(options = {}) {
+    const { 
+      search = '', 
+      showNsfw = false,
+      sort = 'newest',
+      limit = 24,
+      offset = 0
+    } = options
+
+    try {
+      console.log('🔍 getFurryArtsDirectQuery: Прямой запрос к таблицам...')
+      
+      let query = supabase
+        .from('arts')
+        .select(`
+          id,
+          title,
+          image_url,
+          thumbnail_url,
+          is_nsfw,
+          upload_date,
+          art_collaborators!inner(
+            role,
+            persons!inner(
+              nickname,
+              avatar_url,
+              is_friend
+            )
+          )
+        `)
+        .eq('is_deleted', false)
+        .eq('art_collaborators.role', 'main_artist')
+
+      // Поиск по названию
+      if (search.trim()) {
+        query = query.ilike('title', `%${search}%`)
+      }
+
+      // NSFW фильтр
+      if (!showNsfw) {
+        query = query.eq('is_nsfw', false)
+      }
+
+      // Сортировка
+      switch (sort) {
+        case 'newest':
+          query = query.order('upload_date', { ascending: false })
+          break
+        case 'oldest':
+          query = query.order('upload_date', { ascending: true })
+          break
+        case 'alphabetical':
+          query = query.order('title', { ascending: true })
+          break
+      }
+
+      // Пагинация
+      if (offset > 0) {
+        query = query.range(offset, offset + limit - 1)
+      } else {
+        query = query.limit(limit)
+      }
+
+      const { data, error } = await query
+
+      if (error) throw error
+
+      console.log(`✅ getFurryArtsDirectQuery: Получено артов: ${data?.length || 0}`)
+
+      // Обрабатываем данные
+      const processedArts = (data || []).map(art => {
+        const mainArtist = art.art_collaborators?.[0]?.persons
+        
+        return {
+          id: art.id,
+          title: art.title,
+          image_url: art.image_url,
+          thumbnail_url: art.thumbnail_url || art.image_url,
+          is_nsfw: art.is_nsfw || false,
+          created_date: art.upload_date,
+          upload_date: art.upload_date,
+          
+          // Художник
+          artist_name: mainArtist?.nickname || 'Неизвестно',
+          artist_avatar: mainArtist?.avatar_url,
+          artist_is_friend: mainArtist?.is_friend || false,
+          
+          // Пустые массивы для совместимости
+          characters: [],
+          tags: [],
+          tagNames: []
+        }
+      })
+
+      return processedArts
+      
+    } catch (error) {
+      console.error('❌ getFurryArtsDirectQuery: Ошибка прямого запроса:', error)
+      return []
+    }
+  },
+
   // ============================================
   // ✅ ИСПРАВЛЕННОЕ ПОЛУЧЕНИЕ ХУДОЖНИКОВ С ПОДСЧЕТОМ
   // ============================================
@@ -232,30 +336,24 @@ export const furryApi = {
 
       if (artistsError) throw artistsError
       
-      // Получаем все арты для подсчета
-      const { data: arts, error: artsError } = await supabase
-        .from('gallery_view')
-        .select('artist_name')
+      // Получаем подсчет артов для каждого художника
+      const { data: artCounts, error: countsError } = await supabase
+        .from('art_collaborators')
+        .select(`
+          person_id,
+          arts!inner(id)
+        `)
+        .eq('role', 'main_artist')
+        .eq('arts.is_deleted', false)
 
-      if (artsError) {
-        console.warn('⚠️ Не удалось загрузить арты для подсчета:', artsError)
-        // Возвращаем художников без подсчетов
-        return (artists || []).map(artist => ({
-          id: artist.id,
-          name: artist.nickname,
-          nickname: artist.nickname,
-          avatar_url: artist.avatar_url,
-          is_friend: artist.is_friend,
-          created_at: artist.created_at,
-          count: 0,
-          artCount: 0
-        }))
+      if (countsError) {
+        console.warn('⚠️ Не удалось загрузить подсчеты артов:', countsError)
       }
       
       // Подсчитываем арты для каждого художника
       const artistsWithCounts = (artists || []).map(artist => {
-        const artCount = (arts || []).filter(art => 
-          art.artist_name === artist.nickname
+        const artCount = countsError ? 0 : (artCounts || []).filter(count => 
+          count.person_id === artist.id
         ).length
         
         console.log(`👨‍🎨 ${artist.nickname}: ${artCount} артов`)
@@ -374,64 +472,45 @@ export const furryApi = {
   },
 
   // ============================================
-  // ✅ ИСПРАВЛЕННОЕ ПОЛУЧЕНИЕ ТЕГОВ С ПОДСЧЕТОМ
+  // ✅ ИСПРАВЛЕННОЕ ПОЛУЧЕНИЕ ТЕГОВ С ПОДСЧЕТОМ (БЕЗ color_hex!)
   // ============================================
   
   async getFurryTags() {
     try {
       console.log('🏷️ getFurryTags: Загружаем теги с подсчетом использований...')
       
-      // Получаем все теги
+      // Получаем все теги (ТОЛЬКО те поля, что есть в БД)
       const { data: tags, error: tagsError } = await supabase
         .from('tags')
-        .select('*')
+        .select('id, name, created_at')  // ✅ ТОЛЬКО существующие поля!
         .order('name', { ascending: true })
 
       if (tagsError) throw tagsError
       
-      // Получаем все арты с тегами для подсчета
-      const { data: arts, error: artsError } = await supabase
-        .from('gallery_view')
-        .select('tags')
+      // Получаем подсчет использований тегов
+      const { data: tagCounts, error: countsError } = await supabase
+        .from('art_tags')
+        .select(`
+          tag_id,
+          arts!inner(id)
+        `)
+        .eq('arts.is_deleted', false)
 
-      if (artsError) {
-        console.warn('⚠️ Не удалось загрузить арты для подсчета тегов:', artsError)
-        // Возвращаем теги без подсчетов
-        return (tags || []).map(tag => ({
-          id: tag.id,
-          name: tag.name,
-          color_hex: tag.color_hex,
-          created_at: tag.created_at,
-          count: 0,
-          useCount: 0
-        }))
+      if (countsError) {
+        console.warn('⚠️ Не удалось загрузить подсчеты тегов:', countsError)
       }
       
       // Подсчитываем использование каждого тега
       const tagsWithCounts = (tags || []).map(tag => {
-        let useCount = 0
-        
-        // Проходим по всем артам и считаем использования тега
-        ;(arts || []).forEach(art => {
-          try {
-            const artTags = Array.isArray(art.tags) ? art.tags : []
-            const hasTag = artTags.some(artTag => 
-              artTag && (artTag.name === tag.name || artTag === tag.name)
-            )
-            if (hasTag) {
-              useCount++
-            }
-          } catch (e) {
-            // Игнорируем ошибки парсинга отдельных артов
-          }
-        })
+        const useCount = countsError ? 0 : (tagCounts || []).filter(count => 
+          count.tag_id === tag.id
+        ).length
         
         console.log(`🏷️ ${tag.name}: ${useCount} использований`)
         
         return {
           id: tag.id,
           name: tag.name,
-          color_hex: tag.color_hex,
           created_at: tag.created_at,
           count: useCount,     // Для совместимости
           useCount: useCount   // Основное поле
@@ -461,11 +540,12 @@ export const furryApi = {
         throw new Error('Тег с таким названием уже существует')
       }
 
+      // ✅ ИСПРАВЛЕНО: ТОЛЬКО поля, которые есть в БД
       const { data, error } = await supabase
         .from('tags')
         .insert([{
-          name: tagData.name.trim(),
-          color_hex: tagData.color_hex || '#FF7B25'
+          name: tagData.name.trim()
+          // НЕТ color_hex - этого поля нет в схеме!
         }])
         .select()
 
@@ -482,11 +562,12 @@ export const furryApi = {
     try {
       console.log('🔄 updateTag:', tagId, tagData)
       
+      // ✅ ИСПРАВЛЕНО: ТОЛЬКО поля, которые есть в БД
       const { data, error } = await supabase
         .from('tags')
         .update({
-          name: tagData.name.trim(),
-          color_hex: tagData.color_hex || '#FF7B25'
+          name: tagData.name.trim()
+          // НЕТ color_hex - этого поля нет в схеме!
         })
         .eq('id', tagId)
         .select()
@@ -554,42 +635,24 @@ export const furryApi = {
 
       if (charactersError) throw charactersError
       
-      // Получаем все арты с персонажами для подсчета
-      const { data: arts, error: artsError } = await supabase
-        .from('gallery_view')
-        .select('characters')
+      // Получаем подсчет появлений персонажей
+      const { data: characterCounts, error: countsError } = await supabase
+        .from('art_fursonas')
+        .select(`
+          fursona_id,
+          arts!inner(id)
+        `)
+        .eq('arts.is_deleted', false)
 
-      if (artsError) {
-        console.warn('⚠️ Не удалось загрузить арты для подсчета персонажей:', artsError)
-        // Возвращаем персонажей без подсчетов
-        return (characters || []).map(character => ({
-          id: character.id,
-          name: character.name,
-          avatar_url: character.avatar_url,
-          created_at: character.created_at,
-          count: 0,
-          useCount: 0
-        }))
+      if (countsError) {
+        console.warn('⚠️ Не удалось загрузить подсчеты персонажей:', countsError)
       }
       
       // Подсчитываем появления каждого персонажа
       const charactersWithCounts = (characters || []).map(character => {
-        let useCount = 0
-        
-        // Проходим по всем артам и считаем появления персонажа
-        ;(arts || []).forEach(art => {
-          try {
-            const artCharacters = Array.isArray(art.characters) ? art.characters : []
-            const hasCharacter = artCharacters.some(artChar => 
-              artChar && (artChar.name === character.name || artChar === character.name)
-            )
-            if (hasCharacter) {
-              useCount++
-            }
-          } catch (e) {
-            // Игнорируем ошибки парсинга отдельных артов
-          }
-        })
+        const useCount = countsError ? 0 : (characterCounts || []).filter(count => 
+          count.fursona_id === character.id
+        ).length
         
         console.log(`🦊 ${character.name}: ${useCount} появлений`)
         
@@ -705,24 +768,73 @@ export const furryApi = {
   },
 
   // ============================================
-  // ✅ ДОБАВЛЕНИЕ И УДАЛЕНИЕ АРТОВ
+  // ✅ ДОБАВЛЕНИЕ И УДАЛЕНИЕ АРТОВ (ИСПРАВЛЕНО!)
   // ============================================
   
   async addFurryArt(artData) {
     try {
       console.log('➕ addFurryArt:', artData)
       
-      // Используем функцию add_simple_art для добавления
-      const { data, error } = await supabase.rpc('add_simple_art', {
-        p_title: artData.title,
-        p_artist_nickname: artData.artist_nickname,
-        p_image_url: artData.image_url,
-        p_thumbnail_url: artData.thumbnail_url || artData.image_url
-      })
+      // ✅ ИСПРАВЛЕНО: Прямая вставка вместо проблемной RPC функции
+      
+      // Сначала находим или создаем художника
+      let artistId = null
+      const { data: existingArtist, error: artistError } = await supabase
+        .from('persons')
+        .select('id')
+        .eq('nickname', artData.artist_nickname)
+        .maybeSingle()
+      
+      if (artistError) throw artistError
+      
+      if (existingArtist) {
+        artistId = existingArtist.id
+      } else {
+        // Создаем нового художника
+        const { data: newArtist, error: createError } = await supabase
+          .from('persons')
+          .insert([{
+            nickname: artData.artist_nickname,
+            avatar_url: null,
+            is_friend: false
+          }])
+          .select('id')
+          .single()
+        
+        if (createError) throw createError
+        artistId = newArtist.id
+      }
+      
+      // Создаем арт (используем ТОЧНЫЕ поля из схемы БД)
+      const { data: artResult, error: artError } = await supabase
+        .from('arts')
+        .insert([{
+          title: artData.title,
+          image_url: artData.image_url,
+          thumbnail_url: artData.thumbnail_url || artData.image_url,
+          is_nsfw: artData.is_nsfw || false,  // ✅ Поле есть в схеме
+          upload_date: new Date().toISOString(),
+          is_deleted: false
+        }])
+        .select('id')
+        .single()
+      
+      if (artError) throw artError
+      
+      // Добавляем связь художник-арт как главный художник
+      const { error: collaboratorError } = await supabase
+        .from('art_collaborators')
+        .insert([{
+          art_id: artResult.id,
+          person_id: artistId,
+          role: 'main_artist'
+        }])
+      
+      if (collaboratorError) throw collaboratorError
 
-      if (error) throw error
-      console.log('✅ addFurryArt: Арт добавлен с ID:', data)
-      return { id: data, ...artData }
+      console.log('✅ addFurryArt: Арт добавлен с ID:', artResult.id)
+      return { id: artResult.id, ...artData }
+      
     } catch (error) {
       console.error('❌ addFurryArt: Ошибка добавления арта:', error)
       throw error
@@ -740,7 +852,7 @@ export const furryApi = {
         supabase.from('art_collaborators').delete().eq('art_id', artId)
       ])
 
-      // Удаляем сам арт (используем soft delete)
+      // Помечаем арт как удаленный (soft delete)
       const { error } = await supabase
         .from('arts')
         .update({ is_deleted: true })
@@ -942,4 +1054,5 @@ export default furryApi
 console.log('✅ ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ API FOX TAFFY ЗАГРУЖЕН!')
 console.log('🔒 Все переменные берутся из окружения, хардкода нет!')
 console.log('📊 Счетчики художников, тегов и персонажей исправлены!')
+console.log('🗃️ API полностью соответствует реальной схеме БД!')
 console.log('🎯 Все методы API готовы к работе!')
