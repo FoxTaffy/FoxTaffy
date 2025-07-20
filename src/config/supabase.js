@@ -1,10 +1,22 @@
-// ✅ ИСПРАВЛЕННЫЙ API FOX TAFFY - ВСЕ ПРОБЛЕМЫ УСТРАНЕНЫ
+// ✅ БЕЗОПАСНЫЙ API FOX TAFFY - Используем переменные окружения
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://plugjsubjcfblzkabjia.supabase.co'
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsdWdqc3ViamNmYmx6a2FiamlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAzNDM4NTUsImV4cCI6MjA2NTkxOTg1NX0._SjaevspsFdM_0-dOc7zPTIfwDCspl39wkkHDMjtlKo'
+// ✅ Получаем переменные из окружения
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+// ✅ Проверяем, что переменные определены
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Отсутствуют переменные окружения Supabase! Проверьте .env файл.')
+}
+
+// ✅ Создаём клиент Supabase с переменными окружения
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true
+  }
+})
 
 // ✅ ИСПРАВЛЕННЫЙ API С УНИФИЦИРОВАННЫМИ ПОЛЯМИ + loadAllData
 export const furryApi = {
@@ -700,13 +712,11 @@ export const api = furryApi
 // ✅ ДЕФОЛТНЫЙ ЭКСПОРТ
 export default furryApi
 
-console.log('✅ ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ API FOX TAFFY ЗАГРУЖЕН!')
-console.log('🎯 Все методы присутствуют:')
-console.log('- ✅ loadAllData - ГЛАВНЫЙ МЕТОД!')
-console.log('- ✅ getFurryArts - получение артов')
-console.log('- ✅ getFurryArtists - получение художников') 
-console.log('- ✅ getFurryTags - получение тегов')
-console.log('- ✅ getSpecies - получение персонажей')
-console.log('- ✅ CRUD операции для всех сущностей')
-console.log('- ✅ NSFW фильтрация работает')
-console.log('- ✅ Статистика и совместимость')
+// ✅ Логируем успешную инициализацию с безопасными переменными
+console.log('✅ БЕЗОПАСНЫЙ API FOX TAFFY ЗАГРУЖЕН!')
+console.log('🔒 Используем переменные окружения:', {
+  url: supabaseUrl,
+  hasKey: !!supabaseKey,
+  keyLength: supabaseKey?.length
+})
+console.log('🎯 Все методы API готовы к работе!')
