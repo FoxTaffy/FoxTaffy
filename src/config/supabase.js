@@ -1,20 +1,34 @@
 // ✅ БЕЗОПАСНЫЙ API FOX TAFFY - Используем переменные окружения
 import { createClient } from '@supabase/supabase-js'
 
-// ✅ Получаем переменные из окружения
+// ✅ Получаем переменные из окружения (НЕ хардкод!)
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 // ✅ Проверяем, что переменные определены
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Отсутствуют переменные окружения Supabase! Проверьте .env файл.')
+  throw new Error('❌ Отсутствуют переменные окружения Supabase! Проверьте .env файл.')
 }
+
+// ✅ Логируем безопасную информацию для отладки
+console.log('🔧 Инициализация Supabase:', {
+  url: supabaseUrl,
+  hasKey: !!supabaseKey,
+  keyLength: supabaseKey?.length,
+  environment: import.meta.env.MODE
+})
 
 // ✅ Создаём клиент Supabase с переменными окружения
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
-    autoRefreshToken: true
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  },
+  global: {
+    headers: {
+      'User-Agent': 'FoxTaffy.fun/2.0'
+    }
   }
 })
 
@@ -81,7 +95,7 @@ export const furryApi = {
       tags = [], 
       artists = [], 
       showYiff = false,
-      showNsfw = false, // Добавляем поддержку showNsfw
+      showNsfw = false,
       sort = 'newest',
       limit = 24,
       offset = 0
@@ -712,11 +726,7 @@ export const api = furryApi
 // ✅ ДЕФОЛТНЫЙ ЭКСПОРТ
 export default furryApi
 
-// ✅ Логируем успешную инициализацию с безопасными переменными
+// ✅ Логируем успешную инициализацию
 console.log('✅ БЕЗОПАСНЫЙ API FOX TAFFY ЗАГРУЖЕН!')
-console.log('🔒 Используем переменные окружения:', {
-  url: supabaseUrl,
-  hasKey: !!supabaseKey,
-  keyLength: supabaseKey?.length
-})
+console.log('🔒 Все переменные берутся из окружения, хардкода нет!')
 console.log('🎯 Все методы API готовы к работе!')
