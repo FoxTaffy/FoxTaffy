@@ -183,6 +183,8 @@ import furmarketImage from '@/assets/events/furmarket.jpg';
 import affImage from '@/assets/events/aff5.jpg';
 import fffImage from '@/assets/events/fff.jpg';
 import SFBImage from '@/assets/events/SFB.jpg';
+import TourFurrImage from '@/assets/events/TourFurr.jpg';
+import TrashConImage from '@/assets/events/TrashCon.jpg';
 
 export default {
   name: 'EventsSection',
@@ -193,6 +195,54 @@ export default {
       visibleUpcomingCount: 3,
       visiblePastCount: 3,
       events: [
+      {
+          name: "TrashCon",
+          date: "2025-11-14",
+          announcedDate: "2025-01-14",
+          description: "Эпический конвент, посвященный вселенной Игры Престолов",
+          imageUrl: TrashConImage,
+          location: "Ленинградская область",
+          attendees: "140+",
+          status: "Буду участвовать",
+          badge: false,
+          detailsUrl: "/events/TrashCon",
+          badgeClass: "volunteer",
+          badgeText: "Волонтёр",
+          detailsReady: false,
+          officialUrl: "http://skyfurrburg.ru"
+        },
+      {
+          name: "FurrMarket 4",
+          date: "2025-08-2",
+          announcedDate: "2025-01-2",
+          description: "Это ежегодный кемпинг-кон для любителей фурри-культуры, где каждый год новая тематика.",
+          imageUrl: furmarketImage,
+          location: "Москва",
+          attendees: "100+",
+          status: "Посетил",
+          badge: false,
+          detailsUrl: "/events/FurrMarket4",
+          badgeClass: "volunteer",
+          badgeText: "Волонтёр",
+          detailsReady: false,
+          officialUrl: "https://vk.com/furrmarket"
+        },
+        {
+          name: "TourFurr",
+          date: "2025-08-7",
+          announcedDate: "2025-01-7",
+          description: "Это ежегодный кемпинг-кон для любителей фурри-культуры, где каждый год новая тематика.",
+          imageUrl: TourFurrImage,
+          location: "Московская область",
+          attendees: "140+",
+          status: "Буду участвовать",
+          badge: false,
+          detailsUrl: "/events/TourFurr",
+          badgeClass: "volunteer",
+          badgeText: "Волонтёр",
+          detailsReady: false,
+          officialUrl: "http://skyfurrburg.ru"
+        },
         {
           name: "SkyFurrBurg",
           date: "2025-07-5",
@@ -200,8 +250,8 @@ export default {
           description: "Конвент, который погрузит вас в пышные сады Эллады. Новый Скайфурр будет проведён в античном сеттинге.",
           imageUrl: SFBImage,
           location: "Московская область",
-          attendees: "140+",
-          status: "Буду участвовать",
+          attendees: "70",
+          status: "Посетил",
           badge: false,
           detailsUrl: "/events/SkyFurrBurg",
           badgeClass: "volunteer",
@@ -253,7 +303,7 @@ export default {
           officialUrl: "https://sillycon.ru"
         },
         {
-          name: "FurMarket",
+          name: "FurrMarket 3",
           date: "2025-03-22",
           description: "Маркет на фурри-тематику",
           imageUrl: furmarketImage,
