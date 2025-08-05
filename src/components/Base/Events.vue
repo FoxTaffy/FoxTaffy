@@ -209,7 +209,7 @@ export default {
           badgeClass: "volunteer",
           badgeText: "Волонтёр",
           detailsReady: false,
-          officialUrl: "http://skyfurrburg.ru"
+          officialUrl: "https://t.me/trashcon_fb"
         },
       {
           name: "FurrMarket 4",
@@ -241,7 +241,7 @@ export default {
           badgeClass: "volunteer",
           badgeText: "Волонтёр",
           detailsReady: false,
-          officialUrl: "http://skyfurrburg.ru"
+          officialUrl: "https://t.me/trashcon_fb"
         },
         {
           name: "SkyFurrBurg",
