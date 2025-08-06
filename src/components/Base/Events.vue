@@ -215,7 +215,7 @@ export default {
           name: "FurrMarket 4",
           date: "2025-08-2",
           announcedDate: "2025-01-2",
-          description: "Это ежегодный кемпинг-кон для любителей фурри-культуры, где каждый год новая тематика.",
+          description: "Маркет на фурри-тематику.",
           imageUrl: furmarketImage,
           location: "Москва",
           attendees: "100+",

@@ -44,6 +44,11 @@ const routes = [
     component: () => import('./components/events/sfb.vue')
   },
   {
+    path: '/events/FurrMarket',
+    name: 'FurrMarket',
+    component: () => import('./components/events/FurrMarket4.vue')
+  },
+  {
     path: '/events/aff5',
     name: 'Any Furry Fest V',
     component: () => import('./components/events/AFF5.vue')

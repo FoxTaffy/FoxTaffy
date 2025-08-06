@@ -300,7 +300,7 @@ export default {
       eventDate: '22 марта 2025',
       eventTime: '13:00–18:00',
       eventLocation: 'Никулинская, 2к1, Москва',
-      eventAttendees: '300+',
+      eventAttendees: '100+',
       
       // Баннер мероприятия (главное изображение)
       eventBannerImage: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/FurMarket5%2FFurMarket%20(47).jpg',
