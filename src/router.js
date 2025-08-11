@@ -44,9 +44,14 @@ const routes = [
     component: () => import('./components/events/sfb.vue')
   },
   {
-    path: '/events/FurrMarket',
-    name: 'FurrMarket',
+    path: '/events/FurrMarket4',
+    name: 'FurrMarket 4',
     component: () => import('./components/events/FurrMarket4.vue')
+  },
+  {
+    path: '/events/TourFurr',
+    name: 'TourFurr',
+    component: () => import('./components/events/TourFurr.vue')
   },
   {
     path: '/events/aff5',

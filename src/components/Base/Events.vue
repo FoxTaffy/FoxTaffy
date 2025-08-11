@@ -224,23 +224,23 @@ export default {
           detailsUrl: "/events/FurrMarket4",
           badgeClass: "volunteer",
           badgeText: "Волонтёр",
-          detailsReady: false,
+          detailsReady: true,
           officialUrl: "https://vk.com/furrmarket"
         },
         {
           name: "TourFurr",
           date: "2025-08-7",
           announcedDate: "2025-01-7",
-          description: "Это ежегодный кемпинг-кон для любителей фурри-культуры, где каждый год новая тематика.",
+          description: "Еежегодный кемпинг-кон для любителей фурри-культуры, где каждый год новая тематика.",
           imageUrl: TourFurrImage,
           location: "Московская область",
           attendees: "140+",
-          status: "Буду участвовать",
+          status: "Посетил",
           badge: false,
           detailsUrl: "/events/TourFurr",
           badgeClass: "volunteer",
           badgeText: "Волонтёр",
-          detailsReady: false,
+          detailsReady: true,
           officialUrl: "https://t.me/trashcon_fb"
         },
         {

@@ -303,7 +303,7 @@ export default {
       eventAttendees: '100+',
       
       // Баннер мероприятия (главное изображение)
-      eventBannerImage: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/FurMarket5%2FFurMarket%20(47).jpg',
+      eventBannerImage: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/FurrMarket4/2025-08-05%2008-07-23.JPG',
       
       // Бейджик (VIP или Волонтёр)
       eventBadge: true,
@@ -618,8 +618,8 @@ export default {
       dislikes: [
         'Тесное помещение с большим количеством людей',
         'Мало сидячих мест для отдыха',
-        '',
-        '',
+        'Сьютерная - пустое со столом по центру помещение',
+        'Перенос регистрации',
         'Некоторые задержки в расписании'
       ],
       
@@ -648,8 +648,8 @@ export default {
       conclusion: 'В целом мероприятие оставило очень приятное впечатление. Несмотря на некоторые организационные недостатки, атмосфера и контент полностью компенсировали их. Обязательно посещу это мероприятие снова в следующем году и буду рекомендовать его друзьям.',
       nextEventsTitle: 'Следующие мероприятия, которые я планирую посетить:',
       nextEvents: [
-        { path: '/events/foxwood-2025', title: 'Foxwood: Back to 2000s (15 мая 2025)' },
-        { path: '/events/furmarket-mini', title: 'FurMarket Mini (22 июля 2025)' }
+        { path: '/events/aff5', title: 'AnyFurry Fest V (19 октября 2024)' },
+        { path: '/events/furmarket', title: 'FurMarket 3 (22 марта 2025)' }
         // Добавить другие будущие мероприятия при необходимости
       ],
       activeTab: 'overview'
