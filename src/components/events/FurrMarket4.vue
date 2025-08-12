@@ -333,11 +333,11 @@ export default {
       features: [
       {
         title: 'Ярмарка товаров',
-        description: 'Покупка и продажа фурсютов, артов, аксессуаров и мерча от более чем 80 продавцов',
+        description: 'Покупка и продажа фурсютов, артов, аксессуаров и мерча от более чем 91 продавцов',
         icon: 'fas fa-store'
       },
       {
-        title: 'Комиссии на заказ',
+        title: 'Традишки на заказ',
         description: 'Художники принимают индивидуальные заказы на арты и дизайн персонажей прямо на площадке',
         icon: 'fas fa-paint-brush'
       },
@@ -444,15 +444,15 @@ export default {
       purchases: [
         {
           title: 'Ошейник для феликса',
-          author: 'PinMaker',
+          author: 'Кошка и мышка',
           authorIcon: 'fas fa-paint-brush',
           description: 'Красивый металлический значок с изображением моей фурсоны. Отличное качество и детализация!',
           image: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/FurrMarket4/2025-08-02%2015-48-22.JPG',
-          price: '800₽'
+          price: '1000₽'
         },
         {
           title: 'Чай',
-          author: 'BadgeMaker',
+          author: 'Бренд Орс',
           authorIcon: 'fas fa-id-card',
           description: 'Ламинированный пропуск с красивым дизайном и удобным креплением.',
           image: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/FurrMarket4/CHI.JPG',
@@ -460,11 +460,11 @@ export default {
         },
         {
           title: 'Кружка',
-          author: 'BadgeMaker',
+          author: 'Anora',
           authorIcon: 'fas fa-id-card',
-          description: 'Ламинированный пропуск с красивым дизайном и удобным креплением.',
+          description: 'Подарок на мой день рождения :3',
           image: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/FurrMarket4/CUP.JPG',
-          price: '500₽'
+          price: '0₽'
         },
         {
           title: 'Стикер-пак',
@@ -602,7 +602,7 @@ export default {
         { name: 'Организация', rating: 4 },
         { name: 'Программа', rating: 4 },
         { name: 'Атмосфера', rating: 4 },
-        { name: 'Локация', rating: 1 },
+        { name: 'Локация', rating: 2 },
         { name: 'Участники', rating: 4 }
       ],
       

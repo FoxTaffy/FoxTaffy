@@ -354,7 +354,7 @@ export default {
             image: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/TourFurr/furkinov.jpg'
           },
           {
-            name: 'Луми',
+            name: 'Lumi Fox',
             description: 'Подливатель Егеря в пасть — так даже вкуснее',
             icon: 'fas fa-wine-glass',
             image: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/TourFurr/2025-08-09%2022-48-40%20(1).jpg'
