@@ -378,6 +378,12 @@ export default {
             image: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/TourFurr/photo_2025-08-11_05-27-16.jpg'
           },
           {
+            name: 'Кейзи',
+            description: 'Уруру фотограф UwU',
+            icon: 'fas fa-cat',
+            image: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/TourFurr/keyzi.jpg'
+          },
+          {
             name: 'Алекс',
             description: 'Добрый и милый волчик с запасом печенек',
             icon: 'fas fa-cookie',
@@ -391,6 +397,50 @@ export default {
         // Массив с фотографиями мероприятия
         galleryImages: [
           // Раздел 1: Фото с открытия и основной программы
+          { 
+            src: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/TourFurr/_DSC2902.jpg', 
+            alt: 'Фурсьют-парад' 
+          },
+          { 
+            src: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/TourFurr/_DSC2907.jpg', 
+            alt: 'Фурсьют-парад' 
+          },
+          { 
+            src: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/TourFurr/_DSC2908.jpg', 
+            alt: 'Фурсьют-парад' 
+          },
+          { 
+            src: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/TourFurr/_DSC2944.jpg', 
+            alt: 'Фурсьют-парад' 
+          },
+          { 
+            src: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/TourFurr/_DSC2953.jpg', 
+            alt: 'Фурсьют-парад' 
+          },
+          { 
+            src: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/TourFurr/_DSC3078.jpg', 
+            alt: 'Фурсьют-парад' 
+          },
+          { 
+            src: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/TourFurr/_DSC3084.jpg', 
+            alt: 'Фурсьют-парад' 
+          },
+          { 
+            src: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/TourFurr/_DSC3087.jpg', 
+            alt: 'Фурсьют-парад' 
+          },
+          { 
+            src: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/TourFurr/_DSC3092.jpg', 
+            alt: 'Фурсьют-парад' 
+          },
+          { 
+            src: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/TourFurr/_DSC3110.jpg', 
+            alt: 'Фурсьют-парад' 
+          },
+          { 
+            src: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/TourFurr/_DSC3137.jpg', 
+            alt: 'Фурсьют-парад' 
+          },
           { 
             src: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/TourFurr/photo_2025-08-11_05-26-15.jpg', 
             alt: 'Фурсьют-парад' 
