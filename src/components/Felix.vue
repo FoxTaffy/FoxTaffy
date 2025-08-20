@@ -464,7 +464,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
-
+import { useHead } from '@vueuse/head'
+import FelixImage from '@/assets/Felix/Felix.jpg'
 // ✅ Используем правильный API из supabase.js
 import { furryApi } from '../config/supabase.js'
 
@@ -533,6 +534,62 @@ const parallaxImageRef = ref<HTMLImageElement>()
 
 // Данные заголовка
 const titleWords = ref<string[]>(['История', 'нашей', 'любви'])
+
+useHead({
+  title: "Felix & Fox Taffy — История нашей любви",
+  meta: [
+    {
+      name: "description",
+      content: "История любви Felix и Fox Taffy с 2020 года до бесконечности: первые встречи, путешествия, Фелли, воспоминания и письмо от сердца."
+    },
+    {
+      name: "keywords",
+      content: "Felix, Fox Taffy, любовь, история, фурри, отношения, Фелли, путешествия, галерея, факты"
+    },
+    {
+      property: "og:title",
+      content: "Felix & Fox Taffy — История нашей любви"
+    },
+    {
+      property: "og:description",
+      content: "Путь двух сердец: от Discord и CS:GO до путешествий, сына Фелли и жизни вместе."
+    },
+    {
+      property: "og:image",
+      content: FelixImage
+    },
+    {
+      property: "og:type",
+      content: "article"
+    },
+    {
+      property: "og:site_name",
+      content: "FoxTaffy.fun"
+    },
+    {
+      name: "twitter:card",
+      content: "summary_large_image"
+    },
+    {
+      name: "twitter:title",
+      content: "Felix & Fox Taffy — История нашей любви"
+    },
+    {
+      name: "twitter:description",
+      content: "Наша история: встречи, путешествия, Фелли, факты и письмо от сердца ❤️"
+    },
+    {
+      name: "twitter:image",
+      content: FelixImage
+    }
+  ],
+  link: [
+    {
+      rel: "canonical",
+      href: "https://foxtaffy.fun/felix"
+    }
+  ]
+})
 
 // Навигационные элементы
 const navigationItems = ref<NavigationItem[]>([
