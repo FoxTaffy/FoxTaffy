@@ -154,7 +154,7 @@ export default {
             icon: 'fab fa-github',
             link: 'https://github.com/FoxTaffy',
             stats: [
-              { icon: 'fas fa-code-branch', value: 'Репозитории: 1' },
+              { icon: 'fas fa-code-branch', value: 'Репозитории: 5' },
               { icon: 'fas fa-star', value: 'Звёзды: 0' },
               { icon: 'fas fa-users', value: 'Подписчики: 0' }
             ],

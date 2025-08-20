@@ -185,6 +185,7 @@ import fffImage from '@/assets/events/fff.jpg';
 import SFBImage from '@/assets/events/SFB.jpg';
 import TourFurrImage from '@/assets/events/TourFurr.jpg';
 import TrashConImage from '@/assets/events/TrashCon.jpg';
+import iLUVitImage from '@/assets/events/iLUVit.jpg';
 
 export default {
   name: 'EventsSection',
@@ -195,7 +196,23 @@ export default {
       visibleUpcomingCount: 3,
       visiblePastCount: 3,
       events: [
-      {
+        {
+          name: "♡ i LUV it ♡ маркет",
+          date: "2025-09-27",
+          announcedDate: "2025-01-27",
+          description: "Маркет на фурри-тематику.",
+          imageUrl: iLUVitImage,
+          location: "Москва",
+          attendees: "200+",
+          status: "Буду участвовать",
+          badge: false,
+          detailsUrl: "/events/",
+          badgeClass: "volunteer",
+          badgeText: "Волонтёр",
+          detailsReady: true,
+          officialUrl: "https://vk.com/i_luv_it_market_vk"
+        },
+        {
           name: "TrashCon",
           date: "2025-11-14",
           announcedDate: "2025-01-14",
@@ -211,7 +228,7 @@ export default {
           detailsReady: false,
           officialUrl: "https://t.me/trashcon_fb"
         },
-      {
+        {
           name: "FurrMarket 4",
           date: "2025-08-2",
           announcedDate: "2025-01-2",
