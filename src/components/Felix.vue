@@ -224,7 +224,7 @@
                 </div>
                 <div class="felli-info">
                   <h3 class="felli-name">ФЕЛЛИ</h3>
-                  <span class="felli-type">🦊 Лис-енотовидный 🦌</span>
+                  <span class="felli-type">🦊 Лис-енотовидный 🦝</span>
                   <p class="felli-intro">Воплощение нашей любви и творческой энергии. Каждая деталь продумана с заботой.</p>
                 </div>
               </div>
@@ -705,7 +705,7 @@ const heritageData = ref<Heritage[]>([
   {
     id: 'felix-heritage',
     title: 'От Felix',
-    emoji: '🦌',
+    emoji: '🦝',
     className: 'felix-heritage',
     abilities: [
       { name: 'Игривость', icon: 'fas fa-sun' },
