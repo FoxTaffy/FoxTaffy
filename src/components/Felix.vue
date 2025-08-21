@@ -1,11 +1,35 @@
 <template>
-  <!-- Интерактивная история любви Felix & Taffy с оптимизированным дизайном -->
+  <!-- Интерактивная история любви Felix & Taffy с максимальной оптимизацией -->
+  
+  <!-- ПРОСТЕЙШАЯ ЗАКРЕПЛЕННАЯ НАВИГАЦИЯ -->
+  <div style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 99999; background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.2);">
+    <div style="display: flex; gap: 10px;">
+      <button
+        v-for="navItem in navigationItems"
+        :key="navItem.id"
+        :style="{ 
+          background: activeSection === navItem.id ? 'rgba(102, 126, 234, 0.3)' : 'transparent',
+          border: activeSection === navItem.id ? '1px solid #667eea' : '1px solid transparent',
+          color: 'white',
+          padding: '8px 15px',
+          borderRadius: '20px',
+          cursor: 'pointer',
+          fontSize: '14px'
+        }"
+        @click="navigateToSection(navItem.id)"
+      >
+        <i :class="navItem.icon" style="margin-right: 5px;"></i>
+        <span>{{ navItem.label }}</span>
+      </button>
+    </div>
+  </div>
+
   <div class="felix-universe">
-    <!-- Упрощенный космический фон с меньшим количеством элементов -->
+    <!-- Упрощенный космический фон -->
     <div class="cosmic-background">
       <div class="stars-layer">
         <div 
-          v-for="n in 15" 
+          v-for="n in 12" 
           :key="`star-${n}`" 
           class="star" 
           :style="generateStarStyle()"
@@ -17,7 +41,7 @@
       </div>
     </div>
 
-    <!-- Героический раздел с оптимизированным параллакс эффектом -->
+    <!-- Героический раздел -->
     <section class="hero-universe">
       <div class="hero-background">
         <img 
@@ -25,7 +49,6 @@
           alt="Felix & Fox Taffy" 
           class="hero-bg-image"
           loading="lazy"
-          ref="parallaxImageRef"
         >
         <div class="hero-overlay"></div>
       </div>
@@ -57,24 +80,7 @@
       </div>
     </section>
 
-    <!-- Закрепленная навигация с улучшенным дизайном -->
-    <nav class="story-navigation fixed-nav">
-      <div class="nav-glass">
-        <div class="nav-items">
-          <button
-            v-for="navItem in navigationItems"
-            :key="navItem.id"
-            :class="['nav-link', { active: activeSection === navItem.id }]"
-            @click="navigateToSection(navItem.id)"
-          >
-            <i :class="navItem.icon"></i>
-            <span>{{ navItem.label }}</span>
-          </button>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Основной контент с улучшенной структурой -->
+    <!-- Основной контент -->
     <main class="story-cosmos">
       
       <!-- 1. Начало истории -->
@@ -109,7 +115,7 @@
         </div>
       </section>
 
-      <!-- 2. Наши путешествия - оптимизированные -->
+      <!-- 2. Наши путешествия -->
       <section id="travels" class="story-chapter">
         <div class="chapter-container">
           <div class="chapter-header">
@@ -119,7 +125,6 @@
           </div>
           
           <div class="travels-showcase">
-            <!-- Упрощенные элементы управления -->
             <div class="travels-controls">
               <button 
                 class="control-btn prev" 
@@ -153,7 +158,6 @@
               </button>
             </div>
             
-            <!-- Оптимизированная карточка путешествия -->
             <div class="journey-display">
               <div class="journey-card glass-panel">
                 <div class="journey-image">
@@ -180,7 +184,7 @@
         </div>
       </section>
 
-      <!-- 3. Фелли с происхождением имени и наследием -->
+      <!-- 3. Фелли БЕЗ HOVER ЭФФЕКТОВ -->
       <section id="felli" class="story-chapter felli-chapter">
         <div class="chapter-container">
           <div class="chapter-header">
@@ -190,8 +194,8 @@
           </div>
           
           <div class="felli-showcase-new">
-            <!-- Происхождение имени с анимированной формулой -->
-            <div class="felli-origin glass-panel">
+            <!-- Происхождение имени -->
+            <div class="felli-origin glass-panel-static">
               <div class="origin-content">
                 <div class="origin-icon">💡</div>
                 <h3>Происхождение имени</h3>
@@ -207,7 +211,7 @@
             </div>
             
             <!-- Портрет и варианты Фелли -->
-            <div class="felli-hero glass-panel">
+            <div class="felli-hero glass-panel-static">
               <div class="felli-portrait">
                 <div class="portrait-container">
                   <img 
@@ -225,15 +229,15 @@
                 </div>
               </div>
               
-              <!-- Варианты персонажа -->
+              <!-- Варианты персонажа БЕЗ АКТИВНОГО ХОВЕРА -->
               <div class="felli-variants">
                 <h4>Варианты персонажа</h4>
                 <div class="variants-grid">
                   <div 
                     v-for="(artwork, index) in fellyArtworks" 
                     :key="`artwork-${index}`"
-                    class="variant-item" 
-                    :class="{ active: currentFellyIndex === index }"
+                    class="variant-item-static" 
+                    :class="{ 'variant-selected': currentFellyIndex === index }"
                     @click="currentFellyIndex = index"
                   >
                     <img 
@@ -247,12 +251,12 @@
               </div>
             </div>
             
-            <!-- Наследие от родителей с иконками -->
+            <!-- Наследие от родителей С ВЫБОРОЧНОЙ АНИМАЦИЕЙ -->
             <div class="felli-heritage">
               <div 
                 v-for="heritage in heritageData" 
                 :key="heritage.id"
-                class="heritage-card glass-panel"
+                class="heritage-card-static glass-panel-static"
                 :class="heritage.className"
               >
                 <div class="heritage-header">
@@ -263,7 +267,7 @@
                   <div 
                     v-for="ability in heritage.abilities" 
                     :key="ability.name"
-                    class="ability"
+                    class="ability-animated"
                   >
                     <i :class="ability.icon"></i>
                     <span>{{ ability.name }}</span>
@@ -273,7 +277,7 @@
             </div>
             
             <!-- Цитата о Фелли -->
-            <div class="felli-quote glass-panel">
+            <div class="felli-quote glass-panel-static">
               <div class="quote-icon">💫</div>
               <blockquote>
                 "В его глазах живёт наша история, а в улыбке — надежда на будущие приключения вместе"
@@ -284,7 +288,7 @@
         </div>
       </section>
 
-      <!-- 4. Галерея с оптимизированной загрузкой -->
+      <!-- 4. Галерея -->
       <section id="gallery" class="story-chapter gallery-chapter fullwidth">
         <div class="chapter-header">
           <div class="chapter-number">04</div>
@@ -293,7 +297,6 @@
         </div>
         
         <div class="gallery-showcase">
-          <!-- Состояние загрузки -->
           <div v-if="isGalleryLoading" class="gallery-loading">
             <div class="loading-spinner">
               <div class="spinner"></div>
@@ -301,14 +304,12 @@
             <p class="loading-text">Загружаем воспоминания...</p>
           </div>
           
-          <!-- Состояние ошибки -->
           <div v-else-if="galleryError" class="gallery-error">
             <div class="error-icon">⚠️</div>
             <p class="error-text">{{ galleryError }}</p>
             <p class="error-subtext">Используем резервные изображения</p>
           </div>
           
-          <!-- Упрощенная галерея изображений без лайтбокса -->
           <div v-else class="gallery-grid">
             <div 
               v-for="(photo, index) in galleryPhotos" 
@@ -348,7 +349,7 @@
         </div>
       </section>
 
-      <!-- 5. Факты с временной линией -->
+      <!-- 5. Факты -->
       <section id="facts" class="story-chapter facts-section">
         <div class="chapter-container">
           <div class="chapter-header">
@@ -442,7 +443,7 @@
       </section>
     </main>
 
-    <!-- Обновленный футер -->
+    <!-- Футер -->
     <footer class="cosmos-footer">
       <div class="footer-content glass-panel">
         <div class="footer-copyright">
@@ -451,7 +452,7 @@
             <span class="separator">|</span>
             <a href="https://foxtaffy.fun" target="_blank" rel="noopener noreferrer">FoxTaffy.fun</a>
             <span class="separator">|</span>
-            <span class="version">v.2.0</span>
+            <span class="version">v.2.2</span>
           </div>
           <div class="footer-subtitle">
             Сделано с любовью для лучшего человека в моей жизни 💕
@@ -466,10 +467,9 @@
 import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
 import { useHead } from '@vueuse/head'
 import FelixImage from '@/assets/Felix/Felix.jpg'
-// ✅ Используем правильный API из supabase.js
 import { furryApi } from '../config/supabase.js'
 
-// Типизация для структур данных
+// Интерфейсы
 interface NavigationItem {
   id: string
   label: string
@@ -519,20 +519,18 @@ interface GalleryPhoto {
   title?: string
 }
 
-// Реактивное состояние компонента
+// Состояние навигации
 const activeSection = ref<string>('beginning')
+const showNavigation = ref<boolean>(true) // НАВИГАЦИЯ ВИДНА ВСЕГДА
 const currentJourneyIndex = ref<number>(0)
 const currentFellyIndex = ref<number>(0)
 const selectedFactIndex = ref<number | null>(null)
 
-// Состояние загрузки галереи
+// Состояние галереи
 const isGalleryLoading = ref<boolean>(true)
 const galleryError = ref<string | null>(null)
 
-// Ссылки на DOM элементы
-const parallaxImageRef = ref<HTMLImageElement>()
-
-// Данные заголовка
+// Данные
 const titleWords = ref<string[]>(['История', 'нашей', 'любви'])
 
 useHead({
@@ -591,7 +589,6 @@ useHead({
   ]
 })
 
-// Навигационные элементы
 const navigationItems = ref<NavigationItem[]>([
   { id: 'beginning', label: 'Начало', icon: 'fas fa-play' },
   { id: 'travels', label: 'Путешествия', icon: 'fas fa-map-marked-alt' },
@@ -601,7 +598,6 @@ const navigationItems = ref<NavigationItem[]>([
   { id: 'letter', label: 'Послание', icon: 'fas fa-heart' }
 ])
 
-// Моменты истории
 const storyMoments = ref<StoryMoment[]>([
   {
     title: 'Первая встреча',
@@ -619,7 +615,6 @@ const storyMoments = ref<StoryMoment[]>([
   }
 ])
 
-// Данные путешествий с улучшенной читаемостью
 const journeys = ref<Journey[]>([
   {
     title: "Первая встреча",
@@ -627,7 +622,7 @@ const journeys = ref<Journey[]>([
     year: "2022",
     description: "Наша первая встреча началась в Челябинске. Мы много гуляли по городу, часто купались на карьерах. По пути в Екатеринбург заехали в Кыштым, где провели время с Фиском. В Екатеринбурге гуляли с Простиком, посетили аквапарк и кибер-клуб, где провели незабываемую ночь.",
     highlight: "Лето с любимым человеком — это незабываемое время. Хочется, чтобы оно длилось вечно.",
-    image: "https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/IMG20220812161755.jpg"
+    image: "https://sun9-17.userapi.com/s/v1/if2/ezPUNUHLQhVPE8Z1va9vC78NgiuWmkBpmi_xLt3-YLjC9LiKxAuIVyhcarAh4Fy0Rf-5k30mZv1Z63LkCp8n7fYp.jpg?quality=96&as=32x24,48x36,72x54,108x81,160x120,240x180,360x269,480x359,540x404,640x479,720x539,1080x808,1280x957,1440x1077,2560x1915&from=bu&cs=2560x0"
   },
   {
     title: "Поездка в Санкт-Петербург",
@@ -651,7 +646,15 @@ const journeys = ref<Journey[]>([
     year: "2024",
     description: "Зимние каникулы мы решили провести в заснеженном Таганае. Прогулки в заброшенную шахту, ледяные пещеры и уютно провести ночь просматривая фильмы — это путешествие подарило нам столько незабываемых воспоминаний.",
     highlight: "Я впервые встал на лыжи и, несмотря на множество падений, продолжал пробовать с таким энтузиазмом, что к концу дня уже уверенно спускался с пробитой печенью.",
-    image: "https://sun9-37.userapi.com/impg/mu692ERc9kJ5iPk5Oh9Qh9As2Sfdv6GkO-UIiw/GUq0EqcQekk.jpg?size=2560x1440&quality=95&sign=71298950d9d4e701681bcc4be71e5870&type=album"
+    image: "https://sun9-37.userapi.com/s/v1/if2/5i7RzOtu9wq0ZBYFX5PtjQ94y7a0eNEKlQ4hi-rgcaPBdxdUcba7-npi8TXyp-cg-FOL0g9-K0sCpSuZiuAlMQbI.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720,1440x810,2560x1440&from=bu&cs=2560x0"
+  },
+  {
+    title: "Поход в Таганае",
+    date: "август 2024",
+    year: "2024",
+    description: "Зимние каникулы мы решили провести в заснеженном Таганае. Прогулки в заброшенную шахту, ледяные пещеры и уютно провести ночь просматривая фильмы — это путешествие подарило нам столько незабываемых воспоминаний.",
+    highlight: "Я впервые встал на лыжи и, несмотря на множество падений, продолжал пробовать с таким энтузиазмом, что к концу дня уже уверенно спускался с пробитой печенью.",
+    image: "https://sun9-80.userapi.com/s/v1/if2/oO4IjWv0K8dgDp8BAa5J7Pu4S7xvNRif61dB6i0xC4be6p8tMFqwe2ItcGdBYY1oFQgPZViL-qfU2BowwVK5oe5d.jpg?quality=95&as=32x24,48x36,72x54,108x81,160x120,240x180,360x270,480x360,540x405,640x480,720x540,1080x810,1280x960,1440x1080,2560x1920&from=bu&cs=2560x0"
   },
   {
     title: "Новый год в Москве",
@@ -671,7 +674,6 @@ const journeys = ref<Journey[]>([
   }
 ])
 
-// Галерея артов Фелли
 const fellyArtworks = ref<FellyArtwork[]>([
   { 
     src: "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/Felly.jpg",
@@ -699,7 +701,6 @@ const fellyArtworks = ref<FellyArtwork[]>([
   }
 ])
 
-// Наследие от родителей с иконками
 const heritageData = ref<Heritage[]>([
   {
     id: 'felix-heritage',
@@ -737,10 +738,8 @@ const heritageData = ref<Heritage[]>([
   }
 ])
 
-// Основная галерея фотографий - теперь загружается из Supabase
 const galleryPhotos = ref<GalleryPhoto[]>([])
 
-// Факты с временной линией
 const factsData = ref<Fact[]>([
   {
     icon: "fas fa-gamepad",
@@ -773,7 +772,7 @@ const factsData = ref<Fact[]>([
     description: "За время отношений мы посетили вместе 6 городов и планируем поездку в США. Каждое путешествие — новые воспоминания."
   },
   {
-    icon: "fas fa-calendar-heart",
+    icon: "fas fa-calendar",
     title: "Особые даты",
     description: "Наша первая встреча была в августе 2022 года. С тех пор каждые полгода мы отмечаем маленькие годовщины."
   },
@@ -789,18 +788,12 @@ const factsData = ref<Fact[]>([
   }
 ])
 
-// Параграфы письма
 const letterParagraphs = ref<string[]>([
   'Felix, ты наполнил мою жизнь красками, смыслом и радостью. Каждый день рядом с тобой — это дар. Твоя улыбка освещает даже самые темные дни, а твоя поддержка дает силы двигаться вперед.',
   'Наша история только начинается, и я с нетерпением жду каждой новой главы, каждого нового приключения, каждого нового дня, проведенного вместе. Спасибо, что ты есть в моей жизни, моя любовь.'
 ])
 
-// Методы компонента
-
-/**
- * Генерирует случайные стили для звезд в фоне (оптимизированная версия)
- * @returns Объект с CSS-стилями для позиционирования и анимации звезд
- */
+// ОПТИМИЗИРОВАННЫЕ методы
 const generateStarStyle = () => ({
   left: Math.random() * 100 + '%',
   top: Math.random() * 100 + '%',
@@ -808,10 +801,6 @@ const generateStarStyle = () => ({
   animationDuration: (Math.random() * 2 + 1.5) + 's'
 })
 
-/**
- * Навигация к указанной секции с плавным скроллом
- * @param sectionId - ID целевой секции
- */
 const navigateToSection = (sectionId: string) => {
   activeSection.value = sectionId
   const element = document.getElementById(sectionId)
@@ -820,9 +809,6 @@ const navigateToSection = (sectionId: string) => {
   }
 }
 
-/**
- * Переключение на предыдущее путешествие в карусели
- */
 const prevJourney = () => {
   if (currentJourneyIndex.value > 0) {
     currentJourneyIndex.value--
@@ -831,9 +817,6 @@ const prevJourney = () => {
   }
 }
 
-/**
- * Переключение на следующее путешествие в карусели
- */
 const nextJourney = () => {
   if (currentJourneyIndex.value < journeys.value.length - 1) {
     currentJourneyIndex.value++
@@ -842,34 +825,23 @@ const nextJourney = () => {
   }
 }
 
-/**
- * Переключение отображения описания факта
- * @param index - Индекс факта
- */
 const toggleFact = (index: number) => {
   selectedFactIndex.value = selectedFactIndex.value === index ? null : index
 }
 
-/**
- * Оптимизированный обработчик скролла для параллакс эффекта с throttling
- */
+// УПРОЩЕННЫЙ обработчик скролла
 let ticking = false
 const handleScroll = () => {
   if (!ticking) {
     requestAnimationFrame(() => {
-      const scrollPosition = window.scrollY
-      if (parallaxImageRef.value) {
-        parallaxImageRef.value.style.transform = `translate3d(0, ${scrollPosition * 0.3}px, 0)`
-      }
+      // Просто обновляем позицию, навигация всегда видна
       ticking = false
     })
     ticking = true
   }
 }
 
-/**
- * Оптимизированная инициализация Intersection Observer
- */
+// УПРОЩЕННАЯ инициализация Intersection Observer
 const initializeIntersectionObserver = () => {
   const observerOptions = {
     threshold: 0.1,
@@ -880,24 +852,24 @@ const initializeIntersectionObserver = () => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         entry.target.classList.add('animate-in')
-        // Отключаем наблюдение после анимации для оптимизации
-        observer.unobserve(entry.target)
+        // Обновляем активную секцию
+        const sectionId = entry.target.id
+        if (sectionId && navigationItems.value.some(item => item.id === sectionId)) {
+          activeSection.value = sectionId
+        }
       }
     })
   }, observerOptions)
 
-  // Наблюдение за элементами для анимации - оптимизированный список
   nextTick(() => {
-    document.querySelectorAll('.story-chapter, .story-moment, .fact-item').forEach(el => {
+    // Наблюдаем за всеми секциями
+    document.querySelectorAll('.story-chapter').forEach(el => {
       observer.observe(el)
     })
   })
 }
 
-/**
- * ✅ ОПТИМИЗИРОВАННАЯ загрузка артов Felix (умный поиск)
- * @returns Promise с массивом артов
- */
+// ОПТИМИЗИРОВАННАЯ загрузка галереи
 const loadFelixGallery = async (): Promise<GalleryPhoto[]> => {
   try {
     isGalleryLoading.value = true
@@ -905,30 +877,25 @@ const loadFelixGallery = async (): Promise<GalleryPhoto[]> => {
 
     console.log('🔍 Загрузка артов Felix...')
 
-    // ✅ ШАГ 1: Пробуем поиск по тегу "Felix"
     let felixArts = await furryApi.getFurryArts({
       tags: ['Felix'],
-      limit: 50,
+      limit: 20,
       showNsfw: false,
       sort: 'newest'
     })
 
-    // ✅ ШАГ 2: Если нет тега, ищем по названию
     if (felixArts.length === 0) {
-      console.log('🔍 Поиск по тегам не дал результатов, ищем по названию...')
       felixArts = await furryApi.getFurryArts({
         search: 'Felix',
-        limit: 50,
+        limit: 20,
         showNsfw: false,
         sort: 'newest'
       })
     }
 
-    // ✅ ШАГ 3: Если всё ещё пусто, ищем по персонажам
     if (felixArts.length === 0) {
-      console.log('🦊 Ищем арты с персонажем Felix...')
       const allArts = await furryApi.getFurryArts({
-        limit: 100,
+        limit: 50,
         showNsfw: false,
         sort: 'newest'
       })
@@ -940,26 +907,22 @@ const loadFelixGallery = async (): Promise<GalleryPhoto[]> => {
         art.characters?.some((char: any) => 
           char.name?.toLowerCase().includes('felix')
         )
-      )
-      console.log(`🦊 По персонажам найдено: ${felixArts.length} артов`)
+      ).slice(0, 10)
     }
 
-    // ✅ РЕЗУЛЬТАТ
     if (felixArts.length > 0) {
-      console.log(`✅ Успех! Найдено ${felixArts.length} артов Felix`)
+      console.log(`✅ Найдено ${felixArts.length} артов Felix`)
       galleryError.value = null
       
-      // Преобразуем данные из API в формат GalleryPhoto
       return felixArts.map((art: any) => ({
         src: art.thumbnail_url || art.image_url,
         caption: art.title || 'Арт без названия',
         title: art.title || 'Арт без названия'
       }))
     } else {
-      console.log('🔭 Не найдено артов Felix ни по одному критерию')
+      console.log('🔭 Fallback данные')
       galleryError.value = 'В базе данных нет артов с персонажем Felix'
       
-      // Возвращаем fallback данные
       return [
         { 
           src: "https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/Felix%2F444kk.png", 
@@ -998,7 +961,6 @@ const loadFelixGallery = async (): Promise<GalleryPhoto[]> => {
     console.error('💥 Ошибка при загрузке галереи:', error)
     galleryError.value = `Ошибка API: ${error.message}`
     
-    // Возвращаем fallback данные при любой ошибке
     return [
       { 
         src: "https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/Felix%2F444kk.png", 
@@ -1014,21 +976,6 @@ const loadFelixGallery = async (): Promise<GalleryPhoto[]> => {
         src: "https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/Felix%2Fzoktef3_5_1.png", 
         caption: "Подготовка к фурри-конвенту заняла два месяца",
         title: "Подготовка к конвенту"
-      },
-      { 
-        src: "https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/Felix%2Fzakaz__20250222081635.png", 
-        caption: "Романтический вечер на побережье Финского залива",
-        title: "Романтический вечер"
-      },
-      { 
-        src: "https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/Felix%2Fmoskva2.png", 
-        caption: "Felix помогал мне с созданием этого референса",
-        title: "Работа над референсом"
-      },
-      { 
-        src: "https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/Felix%2F6G7LwzjFE90.jpg", 
-        caption: "Арт, который Felix заказал на нашу годовщину",
-        title: "Подарок на годовщину"
       }
     ]
   } finally {
@@ -1038,25 +985,20 @@ const loadFelixGallery = async (): Promise<GalleryPhoto[]> => {
 
 // Хуки жизненного цикла
 onMounted(async () => {
-  // Инициализация всех интерактивных элементов
-  initializeIntersectionObserver()
+  // Сразу устанавливаем первую секцию как активную
+  activeSection.value = 'beginning'
   
-  // Добавление обработчика скролла для параллакса - с оптимизацией
+  // Инициализация
+  initializeIntersectionObserver()
   window.addEventListener('scroll', handleScroll, { passive: true })
   
-  // ✅ Загрузка данных галереи через правильный API
-  console.log('🚀 Инициализация компонента, загрузка галереи через furryApi...')
+  // Загрузка галереи
   galleryPhotos.value = await loadFelixGallery()
   
-  if (galleryPhotos.value.length > 0) {
-    console.log(`📸 Галерея успешно загружена: ${galleryPhotos.value.length} изображений`)
-  } else {
-    console.log('🔭 Галерея пуста, возможно нет данных в БД')
-  }
+  // Навигация уже видна по умолчанию
 })
 
 onUnmounted(() => {
-  // Очистка обработчиков событий
   window.removeEventListener('scroll', handleScroll)
 })
 </script>
@@ -1066,7 +1008,7 @@ onUnmounted(() => {
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-/* CSS-переменные для согласованного дизайна */
+/* Переменные */
 :root {
   --bg-dark: #0C1217;
   --bg-darker: #080E12;
@@ -1080,16 +1022,30 @@ onUnmounted(() => {
   --transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
-/* Базовые стили и сброс */
+/* Базовые стили БЕЗ ДОПОЛНИТЕЛЬНЫХ СКРОЛЛОВ */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  height: 100%;
+}
 
+.felix-universe {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg-darker);
+  color: var(--text-light);
+  line-height: 1.6;
+  scroll-behavior: smooth;
+  width: 100%;
+  min-height: 100vh;
+}
 
-/* ОПТИМИЗИРОВАННЫЙ космический фон с меньшими ресурсами */
+/* ВОССТАНОВЛЕННЫЙ космический фон */
 .cosmic-background {
   position: fixed;
   top: 0;
@@ -1109,8 +1065,8 @@ onUnmounted(() => {
 
 .star {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  width: 2px;
+  height: 2px;
   background: white;
   border-radius: 50%;
   animation: twinkle linear infinite;
@@ -1119,10 +1075,9 @@ onUnmounted(() => {
 
 @keyframes twinkle {
   0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.2); }
+  50% { opacity: 1; transform: scale(1.5); }
 }
 
-/* ОПТИМИЗИРОВАННОЕ полярное сияние */
 .aurora-layer {
   position: absolute;
   width: 100%;
@@ -1133,7 +1088,7 @@ onUnmounted(() => {
   position: absolute;
   height: 100%;
   width: 150%;
-  opacity: 0.1;
+  opacity: 0.12;
   animation: aurora-flow 25s ease-in-out infinite;
   will-change: transform;
 }
@@ -1151,11 +1106,11 @@ onUnmounted(() => {
 }
 
 @keyframes aurora-flow {
-  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0.05; }
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0.08; }
   50% { transform: translate3d(30px, 0, 0) rotate(1deg); opacity: 0.15; }
 }
 
-/* ОПТИМИЗИРОВАННЫЙ Glassmorphism эффект */
+/* ОБЫЧНЫЙ Glassmorphism эффект */
 .glass-panel {
   background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(10px);
@@ -1166,7 +1121,6 @@ onUnmounted(() => {
     0 4px 16px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.02);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  contain: layout style;
 }
 
 .glass-panel:hover {
@@ -1178,7 +1132,19 @@ onUnmounted(() => {
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-/* АДАПТИВНЫЙ героический раздел */
+/* СТАТИЧНЫЙ Glassmorphism БЕЗ HOVER (для Фелли) */
+.glass-panel-static {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+/* Героический раздел */
 .hero-universe {
   min-height: 100vh;
   display: flex;
@@ -1233,7 +1199,6 @@ onUnmounted(() => {
   margin-bottom: clamp(2rem, 6vw, 4rem);
 }
 
-/* МАСШТАБИРУЕМЫЕ размеры с clamp() */
 .universe-title {
   font-size: clamp(2.5rem, 8vw, 6rem);
   font-weight: 900;
@@ -1321,35 +1286,42 @@ onUnmounted(() => {
   60% { transform: translateY(-4px); }
 }
 
-/* АДАПТИВНАЯ навигация */
-.story-navigation.fixed-nav {
+/* ВЫНЕСЕННАЯ НАВИГАЦИЯ - ГАРАНТИРОВАННОЕ ЗАКРЕПЛЕНИЕ */
+.story-navigation {
   position: fixed;
-  top: clamp(10px, 2vw, 20px);
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1000;
-  margin: 0;
+  z-index: 10000;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  width: auto;
+  height: auto;
 }
 
 .nav-glass {
   background: rgba(12, 18, 23, 0.95);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 50px;
-  padding: clamp(0.5rem, 1.5vw, 0.8rem);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  padding: 0.6rem 0.8rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
 }
 
 .nav-items {
   display: flex;
-  gap: clamp(0.2rem, 0.8vw, 0.3rem);
+  gap: 0.3rem;
+  align-items: center;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
-  gap: clamp(0.4rem, 1vw, 0.6rem);
-  padding: clamp(0.4rem, 1.2vw, 0.6rem) clamp(0.8rem, 2vw, 1.2rem);
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
   color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   border-radius: 40px;
@@ -1359,7 +1331,8 @@ onUnmounted(() => {
   border: none;
   cursor: pointer;
   font-family: inherit;
-  font-size: clamp(0.8rem, 1.8vw, 0.9rem);
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .nav-link:hover,
@@ -1370,7 +1343,7 @@ onUnmounted(() => {
   transform: translateY(-1px);
 }
 
-/* АДАПТИВНЫЙ основной контент */
+/* Основной контент */
 .story-cosmos {
   max-width: 1200px;
   margin: 0 auto;
@@ -1436,22 +1409,9 @@ onUnmounted(() => {
 }
 
 .story-moment {
-  opacity: 0;
-  transform: translateX(-30px);
-  transition: all 0.5s ease;
-}
-
-.story-moment.animate-in {
   opacity: 1;
   transform: translateX(0);
-}
-
-.story-moment:nth-child(even) {
-  transform: translateX(30px);
-}
-
-.story-moment:nth-child(even).animate-in {
-  transform: translateX(0);
+  transition: all 0.5s ease;
 }
 
 .moment-content {
@@ -1507,7 +1467,7 @@ onUnmounted(() => {
   max-width: 600px;
 }
 
-/* ОПТИМИЗИРОВАННЫЕ путешествия */
+/* Путешествия */
 .travels-showcase {
   max-width: 850px;
   margin: 0 auto;
@@ -1661,183 +1621,7 @@ onUnmounted(() => {
   font-style: italic;
 }
 
-/* УЛУЧШЕННАЯ галерея без интерактивности */
-.gallery-chapter.fullwidth {
-  margin-left: calc(-50vw + 50%);
-  margin-right: calc(-50vw + 50%);
-  width: 100vw;
-  max-width: none;
-  padding: 0;
-}
-
-.gallery-chapter.fullwidth .chapter-header {
-  margin-bottom: 2.5rem;
-  padding: 0 2rem;
-}
-
-.gallery-showcase {
-  width: 100%;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.03), rgba(118, 75, 162, 0.03));
-  padding: 3rem 0;
-  position: relative;
-}
-
-/* АДАПТИВНАЯ СЕТКА ГАЛЕРЕИ */
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
-  gap: clamp(1rem, 3vw, 2rem);
-  padding: 0 clamp(1rem, 3vw, 2rem);
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.gallery-item {
-  position: relative;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 15px;
-  overflow: hidden;
-  transition: transform 0.3s ease;
-}
-
-.gallery-item:hover {
-  transform: translateY(-5px);
-}
-
-.gallery-image {
-  position: relative;
-  width: 100%;
-  height: clamp(250px, 40vw, 400px);
-  overflow: hidden;
-}
-
-.gallery-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.gallery-item:hover .gallery-image img {
-  transform: scale(1.03);
-}
-
-.gallery-caption {
-  padding: clamp(1rem, 2.5vw, 1.5rem);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-}
-
-.gallery-caption p {
-  font-size: clamp(0.85rem, 2vw, 0.95rem);
-  line-height: 1.4;
-  margin: 0;
-  font-weight: 500;
-}
-
-/* Состояния загрузки для галереи */
-.gallery-loading,
-.gallery-error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 2rem;
-  text-align: center;
-}
-
-.loading-spinner {
-  margin-bottom: 1.2rem;
-}
-
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 3px solid rgba(102, 126, 234, 0.2);
-  border-top: 3px solid #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.loading-text {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 1.1rem;
-  font-weight: 500;
-}
-
-.error-icon {
-  font-size: 2.5rem;
-  margin-bottom: 0.8rem;
-}
-
-.error-text {
-  color: #ff6b6b;
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 0.4rem;
-}
-
-.error-subtext {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.95rem;
-}
-
-.gallery-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1.5rem 2rem;
-}
-
-.gallery-info {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-}
-
-.gallery-count {
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.gallery-buttons {
-  display: flex;
-  gap: 0.8rem;
-}
-
-.gallery-btn {
-  background: rgba(102, 126, 234, 0.1);
-  border: 1px solid rgba(102, 126, 234, 0.3);
-  color: white;
-  padding: 0.6rem 1.2rem;
-  border-radius: 40px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-weight: 500;
-  text-decoration: none;
-  backdrop-filter: blur(5px);
-  font-family: inherit;
-  font-size: 0.9rem;
-}
-
-.gallery-btn:hover {
-  background: rgba(102, 126, 234, 0.2);
-  border-color: rgba(102, 126, 234, 0.5);
-  transform: translateY(-1px);
-}
-
-/* Фелли секция - обновленная */
+/* ФЕЛЛИ СЕКЦИЯ БЕЗ HOVER ЭФФЕКТОВ */
 .felli-showcase-new {
   display: grid;
   gap: 2.5rem;
@@ -1943,11 +1727,6 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
-  transition: transform 0.3s ease;
-}
-
-.portrait-container:hover .main-portrait {
-  transform: scale(1.03);
 }
 
 .portrait-ring {
@@ -2009,24 +1788,23 @@ onUnmounted(() => {
   gap: 0.8rem;
 }
 
-.variant-item {
+/* СТАТИЧНЫЕ варианты БЕЗ HOVER */
+.variant-item-static {
   padding: 0.8rem;
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: border-color 0.3s ease;
   text-align: center;
   border: 2px solid transparent;
   background: rgba(255, 255, 255, 0.02);
 }
 
-.variant-item.active,
-.variant-item:hover {
+.variant-item-static.variant-selected {
   border-color: #667eea;
   background: rgba(102, 126, 234, 0.1);
-  transform: translateY(-3px);
 }
 
-.variant-item img {
+.variant-item-static img {
   width: 100%;
   height: 70px;
   object-fit: cover;
@@ -2046,13 +1824,9 @@ onUnmounted(() => {
   gap: 1.5rem;
 }
 
-.heritage-card {
+/* СТАТИЧНЫЕ карточки наследия БЕЗ HOVER */
+.heritage-card-static {
   padding: 1.5rem;
-  transition: all 0.3s ease;
-}
-
-.heritage-card:hover {
-  transform: translateY(-5px);
 }
 
 .heritage-header {
@@ -2066,7 +1840,7 @@ onUnmounted(() => {
   font-size: 2rem;
 }
 
-.heritage-card h4 {
+.heritage-card-static h4 {
   font-size: 1.2rem;
   color: white;
   margin: 0;
@@ -2078,7 +1852,8 @@ onUnmounted(() => {
   gap: 0.8rem;
 }
 
-.ability {
+/* АНИМИРОВАННЫЕ способности (только для указанных) */
+.ability-animated {
   display: flex;
   align-items: center;
   gap: 0.8rem;
@@ -2086,24 +1861,37 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
-.ability:hover {
+.ability-animated:hover {
   background: rgba(255, 255, 255, 0.08);
   transform: translateX(3px);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
 }
 
-.ability i {
+.ability-animated i {
   color: #667eea;
   font-size: 1.1rem;
   width: 20px;
   text-align: center;
+  transition: all 0.3s ease;
 }
 
-.ability span {
+.ability-animated:hover i {
+  color: #f093fb;
+  transform: scale(1.1);
+}
+
+.ability-animated span {
   color: white;
   font-weight: 600;
   font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.ability-animated:hover span {
+  color: #f093fb;
 }
 
 .felix-heritage {
@@ -2152,7 +1940,182 @@ onUnmounted(() => {
   font-style: normal;
 }
 
-/* ОПТИМИЗИРОВАННЫЕ факты */
+/* ИСПРАВЛЕННАЯ галерея без переполнения */
+.gallery-chapter.fullwidth {
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  width: 100vw;
+  max-width: 100vw;
+  padding: 0;
+  overflow: hidden;
+}
+
+.gallery-chapter.fullwidth .chapter-header {
+  margin-bottom: 2.5rem;
+  padding: 0 2rem;
+}
+
+.gallery-showcase {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.03), rgba(118, 75, 162, 0.03));
+  padding: 3rem 0;
+  position: relative;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: clamp(1rem, 3vw, 2rem);
+  padding: 0 clamp(1rem, 3vw, 2rem);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.gallery-item {
+  position: relative;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 15px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.gallery-item:hover {
+  transform: translateY(-5px);
+}
+
+.gallery-image {
+  position: relative;
+  width: 100%;
+  height: clamp(250px, 40vw, 400px);
+  overflow: hidden;
+}
+
+.gallery-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.gallery-item:hover .gallery-image img {
+  transform: scale(1.03);
+}
+
+.gallery-caption {
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+}
+
+.gallery-caption p {
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
+  line-height: 1.4;
+  margin: 0;
+  font-weight: 500;
+}
+
+.gallery-loading,
+.gallery-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  margin-bottom: 1.2rem;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(102, 126, 234, 0.2);
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.error-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.error-text {
+  color: #ff6b6b;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.error-subtext {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+}
+
+.gallery-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+}
+
+.gallery-info {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.gallery-count {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.gallery-buttons {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.gallery-btn {
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  text-decoration: none;
+  backdrop-filter: blur(5px);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.gallery-btn:hover {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Факты */
 .facts-section {
   padding: 3rem 2rem;
   border-radius: 25px;
@@ -2381,7 +2344,7 @@ onUnmounted(() => {
   font-size: 1.8rem;
 }
 
-/* Обновленный футер */
+/* Футер */
 .cosmos-footer {
   margin-top: 6rem;
   padding: 2.5rem 2rem;
@@ -2443,23 +2406,18 @@ onUnmounted(() => {
 }
 
 /* АДАПТИВНЫЕ медиа-запросы */
-@media (max-width: 1024px) {
+@media (max-width: 768px) {
   .nav-link span {
     display: none;
   }
   
   .nav-link {
-    width: clamp(40px, 6vw, 45px);
-    height: clamp(40px, 6vw, 45px);
+    width: 45px;
+    height: 45px;
     justify-content: center;
     padding: 0;
   }
-  
-  .felli-hero {
-    grid-template-columns: 1fr;
-    text-align: center;
-    gap: clamp(1.5rem, 4vw, 2rem);
-  }
+}
   
   .facts-timeline {
     padding-left: clamp(0.5rem, 2vw, 0.8rem);
@@ -2472,7 +2430,6 @@ onUnmounted(() => {
   .fact-item {
     margin-left: clamp(1rem, 3vw, 1.5rem);
   }
-}
 
 @media (max-width: 768px) {
   .moment-content {
@@ -2549,7 +2506,8 @@ onUnmounted(() => {
 }
 
 @media (max-width: 480px) {
-  .glass-panel {
+  .glass-panel,
+  .glass-panel-static {
     padding: clamp(1rem, 3vw, 1.2rem);
   }
   
@@ -2606,7 +2564,7 @@ onUnmounted(() => {
     grid-template-columns: 1fr;
   }
   
-  .variant-item img {
+  .variant-item-static img {
     height: clamp(80px, 15vw, 100px);
   }
   
@@ -2666,7 +2624,7 @@ onUnmounted(() => {
   }
 }
 
-/* ОПТИМИЗАЦИОННЫЕ стили для производительности */
+/* ОПТИМИЗАЦИЯ ПРОИЗВОДИТЕЛЬНОСТИ */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -2691,7 +2649,7 @@ onUnmounted(() => {
   }
 }
 
-/* Стили для высокого разрешения */
+/* Высокое разрешение */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   .hero-bg-image {
     image-rendering: -webkit-optimize-contrast;
@@ -2707,7 +2665,7 @@ img:not([src]) {
   opacity: 0;
 }
 
-/* Стили для доступности - фокус */
+/* Стили для доступности */
 button:focus,
 .nav-link:focus,
 .gallery-item:focus {
@@ -2718,7 +2676,7 @@ button:focus,
 /* Стили для печати */
 @media print {
   .scroll-indicator,
-  .fixed-nav,
+  .story-navigation,
   .gallery-controls {
     display: none !important;
   }
@@ -2737,7 +2695,8 @@ button:focus,
     color: #333 !important;
   }
   
-  .glass-panel {
+  .glass-panel,
+  .glass-panel-static {
     background: rgba(0, 0, 0, 0.05) !important;
     border: 1px solid #ddd !important;
   }
@@ -2752,6 +2711,7 @@ button:focus,
 }
 
 .glass-panel,
+.glass-panel-static,
 .journey-card,
 .gallery-item,
 .fact-item {
