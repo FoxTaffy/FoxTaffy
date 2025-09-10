@@ -313,10 +313,10 @@ export default {
           imageUrl: twopikonImage,
           location: "Калужская область",
           attendees: "200+",
-          status: "Буду учавствовать",
+          status: "Посетил",
           badge: false,
-          detailsUrl: "/events/PCON",
-          detailsReady: false,
+          detailsUrl: "/events/sillycon",
+          detailsReady: true,
           officialUrl: "https://sillycon.ru"
         },
         {

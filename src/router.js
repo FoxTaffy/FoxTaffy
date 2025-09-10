@@ -59,9 +59,9 @@ const routes = [
     component: () => import('./components/events/AFF5.vue')
   },
   {
-    path: '/events/tupicon',
+    path: '/events/sillycon',
     name: 'Тупикон',
-    component: () => import('./components/events/PCON.vue')
+    component: () => import('./components/events/sillycon.vue')
   },
   {
     path: '/events/fff',
