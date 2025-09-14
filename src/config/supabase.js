@@ -34,6 +34,540 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
 
 // ✅ ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ API ПОД РЕАЛЬНУЮ СХЕМУ БД
 export const furryApi = {
+  async getEvents(options = {}) {
+    const {
+      status = 'all', // 'upcoming', 'completed', 'all'
+      featured = false,
+      limit = 20,
+      offset = 0,
+      sort = 'date_desc' // 'date_desc', 'date_asc', 'name', 'rating'
+    } = options
+
+    try {
+      console.log('🎪 getEvents: Загружаем мероприятия из cons с опциями:', options)
+      
+      let query = supabase
+        .from('cons_full_view')
+        .select('*')
+
+      // Фильтр по статусу
+      if (status !== 'all') {
+        if (status === 'upcoming') {
+          query = query.gt('event_date', new Date().toISOString())
+        } else if (status === 'completed') {
+          query = query.lt('event_date', new Date().toISOString())
+        }
+      }
+
+      // Фильтр избранных
+      if (featured) {
+        query = query.eq('is_featured', true)
+      }
+
+      // Сортировка
+      switch (sort) {
+        case 'date_desc':
+          query = query.order('event_date', { ascending: false })
+          break
+        case 'date_asc':
+          query = query.order('event_date', { ascending: true })
+          break
+        case 'name':
+          query = query.order('name', { ascending: true })
+          break
+        case 'rating':
+          query = query.order('my_rating', { ascending: false, nullsLast: true })
+          break
+      }
+
+      // Пагинация
+      if (limit > 0) {
+        query = query.range(offset, offset + limit - 1)
+      }
+
+      const { data, error } = await query
+
+      if (error) throw error
+
+      console.log(`✅ getEvents: Загружено ${data?.length || 0} мероприятий из cons`)
+      return data || []
+
+    } catch (error) {
+      console.error('❌ getEvents: Ошибка загрузки мероприятий:', error)
+      
+      // Fallback на основную таблицу cons если представление не работает
+      try {
+        console.log('🔄 Пробуем fallback на основную таблицу cons...')
+        let fallbackQuery = supabase
+          .from('cons')
+          .select('*')
+
+        if (status === 'upcoming') {
+          fallbackQuery = fallbackQuery.gt('event_date', new Date().toISOString())
+        } else if (status === 'completed') {
+          fallbackQuery = fallbackQuery.lt('event_date', new Date().toISOString())
+        }
+
+        if (featured) {
+          fallbackQuery = fallbackQuery.eq('is_featured', true)
+        }
+
+        // Сортировка
+        switch (sort) {
+          case 'date_desc':
+            fallbackQuery = fallbackQuery.order('event_date', { ascending: false })
+            break
+          case 'date_asc':
+            fallbackQuery = fallbackQuery.order('event_date', { ascending: true })
+            break
+          case 'name':
+            fallbackQuery = fallbackQuery.order('name', { ascending: true })
+            break
+        }
+
+        if (limit > 0) {
+          fallbackQuery = fallbackQuery.range(offset, offset + limit - 1)
+        }
+
+        const { data: fallbackData, error: fallbackError } = await fallbackQuery
+        
+        if (fallbackError) throw fallbackError
+        
+        console.log(`✅ getEvents (fallback): Загружено ${fallbackData?.length || 0} мероприятий`)
+        return fallbackData || []
+        
+      } catch (fallbackError) {
+        console.error('❌ getEvents (fallback): Критическая ошибка:', fallbackError)
+        throw new Error(`Ошибка загрузки мероприятий: ${fallbackError.message}`)
+      }
+    }
+  },
+
+  async getEventBySlug(slug) {
+    try {
+      console.log('🎪 getEventBySlug: Загружаем мероприятие из cons:', slug)
+      
+      // Пробуем через представление
+      let { data: event, error: eventError } = await supabase
+        .from('cons_full_view')
+        .select('*')
+        .eq('slug', slug)
+        .single()
+
+      // Если представление не работает, используем основную таблицу
+      if (eventError) {
+        console.log('🔄 Fallback на основную таблицу cons...')
+        const { data: fallbackEvent, error: fallbackError } = await supabase
+          .from('cons')
+          .select('*')
+          .eq('slug', slug)
+          .single()
+          
+        if (fallbackError) throw fallbackError
+        event = fallbackEvent
+      }
+
+      // Загружаем связанные данные
+      const [linksData, featuresData, photosData, purchasesData] = await Promise.all([
+        supabase.from('con_links').select('*').eq('con_id', event.id).order('display_order'),
+        supabase.from('con_features').select('*').eq('con_id', event.id).order('display_order'),
+        supabase.from('con_photos').select('*').eq('con_id', event.id).order('display_order'),
+        supabase.from('con_purchases').select('*').eq('con_id', event.id).order('purchased_at', { ascending: false })
+      ])
+
+      const fullEvent = {
+        ...event,
+        links: linksData.data || [],
+        features: featuresData.data || [],
+        photos: photosData.data || [],
+        purchases: purchasesData.data || []
+      }
+
+      console.log('✅ getEventBySlug: Мероприятие загружено с полными данными')
+      return fullEvent
+
+    } catch (error) {
+      console.error('❌ getEventBySlug: Ошибка загрузки мероприятия:', error)
+      throw new Error(`Мероприятие не найдено: ${error.message}`)
+    }
+  },
+
+  async createEvent(eventData) {
+    try {
+      console.log('➕ createEvent: Создаём мероприятие в cons:', eventData.name)
+      
+      // Генерируем slug если не указан
+      if (!eventData.slug) {
+        eventData.slug = eventData.name
+          .toLowerCase()
+          .replace(/[^а-яё\w\s-]/gi, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim()
+      }
+
+      // Проверяем уникальность slug
+      const existingEvent = await this.checkEventSlugExists(eventData.slug)
+      if (existingEvent) {
+        eventData.slug = `${eventData.slug}-${Date.now()}`
+      }
+
+      const { data, error } = await supabase
+        .from('cons')
+        .insert([{
+          name: eventData.name.trim(),
+          slug: eventData.slug,
+          description: eventData.description?.trim(),
+          short_description: eventData.short_description?.trim(),
+          event_date: eventData.event_date,
+          announced_date: eventData.announced_date,
+          location: eventData.location?.trim(),
+          city: eventData.city?.trim(),
+          country: eventData.country || 'Россия',
+          banner_url: eventData.banner_url?.trim(),
+          logo_url: eventData.logo_url?.trim(),
+          status: eventData.status || 'upcoming',
+          event_type: eventData.event_type || 'convention',
+          attendance_status: eventData.attendance_status || 'planning',
+          attendees_count: eventData.attendees_count,
+          my_rating: eventData.my_rating,
+          is_featured: eventData.is_featured || false,
+          has_fursuit_friendly: eventData.has_fursuit_friendly !== false,
+          has_dealers_den: eventData.has_dealers_den || false,
+          has_art_show: eventData.has_art_show || false
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+
+      console.log('✅ createEvent: Мероприятие создано в cons:', data)
+      return data
+
+    } catch (error) {
+      console.error('❌ createEvent: Ошибка создания мероприятия:', error)
+      throw new Error(`Ошибка создания мероприятия: ${error.message}`)
+    }
+  },
+
+  async updateEvent(eventId, eventData) {
+    try {
+      console.log('🔄 updateEvent: Обновляем мероприятие в cons:', eventId)
+      
+      // Удаляем поля, которые нельзя обновлять
+      const { id, created_at, ...updateData } = eventData
+      updateData.updated_at = new Date().toISOString()
+
+      const { data, error } = await supabase
+        .from('cons')
+        .update(updateData)
+        .eq('id', eventId)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      console.log('✅ updateEvent: Мероприятие обновлено в cons')
+      return data
+
+    } catch (error) {
+      console.error('❌ updateEvent: Ошибка обновления мероприятия:', error)
+      throw new Error(`Ошибка обновления мероприятия: ${error.message}`)
+    }
+  },
+
+  async deleteEvent(eventId) {
+    try {
+      console.log('🗑️ deleteEvent: Удаляем мероприятие из cons:', eventId)
+      
+      const { error } = await supabase
+        .from('cons')
+        .delete()
+        .eq('id', eventId)
+
+      if (error) throw error
+
+      console.log('✅ deleteEvent: Мероприятие удалено из cons')
+      return true
+
+    } catch (error) {
+      console.error('❌ deleteEvent: Ошибка удаления мероприятия:', error)
+      throw new Error(`Ошибка удаления мероприятия: ${error.message}`)
+    }
+  },
+
+  async checkEventSlugExists(slug) {
+    try {
+      const { data, error } = await supabase
+        .from('cons')
+        .select('id')
+        .eq('slug', slug)
+        .maybeSingle()
+
+      if (error) throw error
+      return !!data
+    } catch (error) {
+      console.error('❌ checkEventSlugExists: Ошибка проверки slug:', error)
+      return false
+    }
+  },
+
+  // ============================================
+  // 🔗 МЕТОДЫ ДЛЯ ССЫЛОК МЕРОПРИЯТИЙ
+  // ============================================
+
+  async addEventLink(eventId, linkData) {
+    try {
+      const { data, error } = await supabase
+        .from('con_links')
+        .insert([{
+          con_id: eventId,
+          link_type: linkData.link_type,
+          title: linkData.title.trim(),
+          url: linkData.url.trim(),
+          icon_class: linkData.icon_class,
+          display_order: linkData.display_order || 1
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('❌ addEventLink: Ошибка добавления ссылки:', error)
+      throw error
+    }
+  },
+
+  async removeEventLink(linkId) {
+    try {
+      const { error } = await supabase
+        .from('con_links')
+        .delete()
+        .eq('id', linkId)
+
+      if (error) throw error
+      return true
+    } catch (error) {
+      console.error('❌ removeEventLink: Ошибка удаления ссылки:', error)
+      throw error
+    }
+  },
+
+  // ============================================
+  // ✨ МЕТОДЫ ДЛЯ ОСОБЕННОСТЕЙ МЕРОПРИЯТИЙ
+  // ============================================
+
+  async addEventFeature(eventId, featureData) {
+    try {
+      const { data, error } = await supabase
+        .from('con_features')
+        .insert([{
+          con_id: eventId,
+          feature_type: featureData.feature_type,
+          title: featureData.title.trim(),
+          description: featureData.description?.trim(),
+          icon_class: featureData.icon_class,
+          display_order: featureData.display_order || 1
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('❌ addEventFeature: Ошибка добавления особенности:', error)
+      throw error
+    }
+  },
+
+  // ============================================
+  // 📸 МЕТОДЫ ДЛЯ ФОТОГРАФИЙ МЕРОПРИЯТИЙ
+  // ============================================
+
+  async addEventPhoto(eventId, photoData) {
+    try {
+      const { data, error } = await supabase
+        .from('con_photos')
+        .insert([{
+          con_id: eventId,
+          image_url: photoData.image_url.trim(),
+          thumbnail_url: photoData.thumbnail_url?.trim(),
+          caption: photoData.caption?.trim(),
+          photo_type: photoData.photo_type || 'general',
+          is_featured: photoData.is_featured || false,
+          taken_at: photoData.taken_at,
+          display_order: photoData.display_order || 1
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('❌ addEventPhoto: Ошибка добавления фото:', error)
+      throw error
+    }
+  },
+
+  // ============================================
+  // 🛒 МЕТОДЫ ДЛЯ ПОКУПОК НА МЕРОПРИЯТИЯХ
+  // ============================================
+
+  async addEventPurchase(eventId, purchaseData) {
+    try {
+      const { data, error } = await supabase
+        .from('con_purchases')
+        .insert([{
+          con_id: eventId,
+          item_name: purchaseData.item_name.trim(),
+          description: purchaseData.description?.trim(),
+          price: purchaseData.price,
+          currency: purchaseData.currency || 'RUB',
+          vendor_name: purchaseData.vendor_name?.trim(),
+          category: purchaseData.category,
+          image_url: purchaseData.image_url?.trim(),
+          purchased_at: purchaseData.purchased_at || new Date().toISOString()
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+
+      // Обновляем счётчики в основной таблице
+      await this.updateEventCounters(eventId)
+      
+      return data
+    } catch (error) {
+      console.error('❌ addEventPurchase: Ошибка добавления покупки:', error)
+      throw error
+    }
+  },
+
+  async updateEventCounters(eventId) {
+    try {
+      // Получаем статистику покупок
+      const { data: purchaseStats, error } = await supabase
+        .from('con_purchases')
+        .select('price')
+        .eq('con_id', eventId)
+
+      if (error) throw error
+
+      const totalSpent = purchaseStats.reduce((sum, p) => sum + (p.price || 0), 0)
+      const purchasesCount = purchaseStats.length
+
+      // Обновляем счётчики
+      await supabase
+        .from('cons')
+        .update({
+          total_spent: totalSpent,
+          purchases_count: purchasesCount
+        })
+        .eq('id', eventId)
+
+    } catch (error) {
+      console.error('❌ updateEventCounters: Ошибка обновления счётчиков:', error)
+    }
+  },
+
+  // ============================================
+  // 📊 СТАТИСТИЧЕСКИЕ МЕТОДЫ ДЛЯ МЕРОПРИЯТИЙ
+  // ============================================
+
+  async getEventsStats() {
+    try {
+      console.log('📊 getEventsStats: Получаем статистику мероприятий из cons...')
+      
+      const { data, error } = await supabase
+        .from('cons')
+        .select(`
+          id,
+          status,
+          event_type,
+          my_rating,
+          total_spent,
+          attendees_count,
+          event_date
+        `)
+
+      if (error) throw error
+
+      const now = new Date()
+      const upcoming = data.filter(e => new Date(e.event_date) > now)
+      const completed = data.filter(e => new Date(e.event_date) <= now)
+
+      const stats = {
+        total: data.length,
+        upcoming: upcoming.length,
+        completed: completed.length,
+        totalSpent: data.reduce((sum, e) => sum + (e.total_spent || 0), 0),
+        averageRating: data.filter(e => e.my_rating).length > 0 ? 
+          (data.filter(e => e.my_rating).reduce((sum, e) => sum + e.my_rating, 0) / 
+           data.filter(e => e.my_rating).length).toFixed(1) : 0,
+        byType: {}
+      }
+
+      // Группировка по типам
+      data.forEach(event => {
+        const type = event.event_type || 'convention'
+        stats.byType[type] = (stats.byType[type] || 0) + 1
+      })
+
+      console.log('✅ getEventsStats: Статистика получена из cons:', stats)
+      return stats
+      
+    } catch (error) {
+      console.error('❌ getEventsStats: Ошибка получения статистики:', error)
+      return { 
+        total: 0, 
+        upcoming: 0, 
+        completed: 0, 
+        totalSpent: 0, 
+        averageRating: 0, 
+        byType: {} 
+      }
+    }
+  },
+
+  // ============================================
+  // 🔍 ПОИСК И ФИЛЬТРАЦИЯ МЕРОПРИЯТИЙ
+  // ============================================
+
+  async searchEvents(searchQuery, options = {}) {
+    try {
+      console.log('🔍 searchEvents: Поиск мероприятий в cons:', searchQuery)
+      
+      const { limit = 20, status = 'all' } = options
+      
+      let query = supabase
+        .from('cons')
+        .select('*')
+        .or(`name.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
+
+      // Фильтр по статусу
+      if (status !== 'all') {
+        if (status === 'upcoming') {
+          query = query.gt('event_date', new Date().toISOString())
+        } else if (status === 'completed') {
+          query = query.lt('event_date', new Date().toISOString())
+        }
+      }
+
+      query = query.order('event_date', { ascending: false }).limit(limit)
+
+      const { data, error } = await query
+
+      if (error) throw error
+
+      console.log(`✅ searchEvents: Найдено ${data?.length || 0} мероприятий в cons`)
+      return data || []
+
+    } catch (error) {
+      console.error('❌ searchEvents: Ошибка поиска:', error)
+      throw new Error(`Ошибка поиска мероприятий: ${error.message}`)
+    }
+  },
   
   // ============================================
   // ✅ ГЛАВНЫЙ МЕТОД - loadAllData

@@ -1,5 +1,5 @@
 <template>
-  <!-- Мероприятия - компактная версия с таблетками -->
+  <!-- Мероприятия - компактная версия для главной страницы -->
   <div class="section events-section">
     <h2 class="section-title">Мероприятия</h2>
     <p class="section-description">События, которые я посетил и планирую посетить. Присоединяйтесь!</p>
@@ -14,6 +14,7 @@
         >
           <i class="fas fa-calendar-alt"></i>
           <span>Предстоящие</span>
+          <span v-if="stats.upcoming > 0" class="tab-count">({{ stats.upcoming }})</span>
         </div>
         <div 
           class="tab" 
@@ -22,519 +23,379 @@
         >
           <i class="fas fa-history"></i>
           <span>Прошедшие</span>
+          <span v-if="stats.completed > 0" class="tab-count">({{ stats.completed }})</span>
         </div>
       </div>
     </div>
     
+    <!-- Загрузка -->
+    <div v-if="loading" class="events-loading">
+      <div class="loading-spinner"></div>
+      <p>Загружаем мероприятия...</p>
+    </div>
+    
+    <!-- Ошибка загрузки -->
+    <div v-else-if="error" class="events-error">
+      <i class="fas fa-exclamation-triangle"></i>
+      <p>Ошибка загрузки мероприятий: {{ error }}</p>
+      <button @click="loadEvents" class="retry-btn">Попробовать снова</button>
+    </div>
+    
     <!-- Контейнер для списка мероприятий -->
-    <div class="events-container">
+    <div v-else class="events-container">
       <!-- Предстоящие мероприятия -->
       <div class="events-list" v-show="activeTab === 'upcoming'">
+        <div v-if="upcomingEvents.length === 0" class="no-events">
+          <i class="fas fa-calendar-plus"></i>
+          <p>Пока нет запланированных мероприятий</p>
+        </div>
         <div 
-          v-for="(event, index) in visibleUpcomingEvents" 
-          :key="'upcoming-' + index" 
+          v-else
+          v-for="event in upcomingEvents.slice(0, maxDisplayed)" 
+          :key="event.id" 
           class="event-card upcoming"
+          @click="goToEventDetail(event.slug)"
         >
-          <div class="event-banner" :style="{ backgroundImage: `url(${event.imageUrl})` }">
+          <div class="event-banner" :style="{ backgroundImage: getBannerImage(event.banner_url) }">
             <div class="event-overlay"></div>
             <div class="event-date">
-              <span class="month">{{ getMonthShort(event.date) }}</span>
-              <span class="day">{{ getDayOfMonth(event.date) }}</span>
-              <span class="year">{{ getYear(event.date) }}</span>
+              <span class="month">{{ getMonthShort(event.event_date) }}</span>
+              <span class="day">{{ getDayOfMonth(event.event_date) }}</span>
+              <span class="year">{{ getYear(event.event_date) }}</span>
             </div>
             <div class="event-badges">
-              <span class="event-status">{{ event.status }}</span>
-              <span 
-                v-if="event.badge" 
-                class="event-badge" 
-                :class="event.badgeClass"
-              >{{ event.badgeText }}</span>
+              <span class="event-status">{{ getStatusText(event.attendance_status) }}</span>
+              <span v-if="event.is_featured" class="event-badge featured">⭐ Избранное</span>
+              <span v-if="event.my_rating" class="event-badge rating">
+                {{ '★'.repeat(event.my_rating) }}
+              </span>
             </div>
           </div>
           
           <div class="event-content">
             <h3 class="event-name">{{ event.name }}</h3>
             <div class="event-meta">
-              <div class="meta-item">
+              <div class="event-location">
                 <i class="fas fa-map-marker-alt"></i>
-                <span>{{ event.location }}</span>
+                <span>{{ event.city || event.location }}</span>
               </div>
-              <div class="meta-item">
+              <div v-if="event.attendees_count" class="event-attendees">
                 <i class="fas fa-users"></i>
-                <span>{{ event.attendees }}</span>
+                <span>{{ event.attendees_count }} участников</span>
               </div>
             </div>
-            <p class="event-desc">{{ event.description }}</p>
+            <p class="event-description">{{ event.short_description || event.description }}</p>
             
-            <div class="event-countdown">
-              <i class="fas fa-clock"></i>
-              <span>До начала: {{ getDaysUntil(event.date) }}</span>
-              <div class="progress-bar">
-                <div class="progress-fill" :style="{ width: getProgressWidth(event.date, event.announcedDate) }"></div>
+            <!-- Прогресс подготовки -->
+            <div v-if="event.preparation_progress < 100" class="event-progress">
+              <div class="progress-info">
+                <span>До события: {{ getDaysUntil(event.event_date) }}</span>
+                <span>{{ Math.round(event.preparation_progress) }}%</span>
               </div>
-            </div>
-
-            <!-- Кнопки действий -->
-            <div class="event-actions">
-              <!-- Ссылка на официальный сайт -->
-              <a v-if="event.officialUrl" :href="event.officialUrl" target="_blank" class="official-link-btn">
-                <i class="fas fa-external-link-alt"></i>
-                <span>Официальный сайт</span>
-              </a>
-              
-              <!-- Кнопка "Скоро..." если нет официального сайта -->
-              <div v-else class="coming-soon-btn">
-                <span>Скоро...</span>
-                <i class="fas fa-hourglass-half"></i>
+              <div class="progress-bar">
+                <div 
+                  class="progress-fill" 
+                  :style="{ width: event.preparation_progress + '%' }"
+                ></div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <!-- Кнопка "Загрузить ещё" для предстоящих событий -->
-        <div v-if="hasMoreUpcomingEvents" class="load-more-container">
-          <button class="load-more-btn" @click="loadMoreUpcoming">
-            <i class="fas fa-plus"></i>
-            <span>Загрузить ещё</span>
-          </button>
         </div>
       </div>
       
       <!-- Прошедшие мероприятия -->
       <div class="events-list" v-show="activeTab === 'past'">
+        <div v-if="pastEvents.length === 0" class="no-events">
+          <i class="fas fa-calendar-check"></i>
+          <p>Пока нет завершённых мероприятий</p>
+        </div>
         <div 
-          v-for="(event, index) in visiblePastEvents" 
-          :key="'past-' + index" 
-          class="event-card"
+          v-else
+          v-for="event in pastEvents.slice(0, maxDisplayed)" 
+          :key="event.id" 
+          class="event-card past"
+          @click="goToEventDetail(event.slug)"
         >
-          <div class="event-banner" :style="{ backgroundImage: `url(${event.imageUrl})` }">
+          <div class="event-banner" :style="{ backgroundImage: getBannerImage(event.banner_url) }">
             <div class="event-overlay"></div>
             <div class="event-date">
-              <span class="month">{{ getMonthShort(event.date) }}</span>
-              <span class="day">{{ getDayOfMonth(event.date) }}</span>
-              <span class="year">{{ getYear(event.date) }}</span>
+              <span class="month">{{ getMonthShort(event.event_date) }}</span>
+              <span class="day">{{ getDayOfMonth(event.event_date) }}</span>
+              <span class="year">{{ getYear(event.event_date) }}</span>
             </div>
             <div class="event-badges">
-              <span class="event-status visited">{{ event.status }}</span>
-              <span 
-                v-if="event.badge" 
-                class="event-badge" 
-                :class="event.badgeClass"
-              >{{ event.badgeText }}</span>
+              <span class="event-status completed">Завершено</span>
+              <span v-if="event.my_rating" class="event-badge rating">
+                {{ '★'.repeat(event.my_rating) }}
+              </span>
+              <span v-if="event.photos_count > 0" class="event-badge photos">
+                <i class="fas fa-camera"></i> {{ event.photos_count }}
+              </span>
             </div>
           </div>
           
           <div class="event-content">
             <h3 class="event-name">{{ event.name }}</h3>
             <div class="event-meta">
-              <div class="meta-item">
+              <div class="event-location">
                 <i class="fas fa-map-marker-alt"></i>
-                <span>{{ event.location }}</span>
+                <span>{{ event.city || event.location }}</span>
               </div>
-              <div class="meta-item">
+              <div v-if="event.attendees_count" class="event-attendees">
                 <i class="fas fa-users"></i>
-                <span>{{ event.attendees }}</span>
+                <span>{{ event.attendees_count }} участников</span>
               </div>
             </div>
-            <p class="event-desc">{{ event.description }}</p>
+            <p class="event-description">{{ event.short_description || event.description }}</p>
             
-            <!-- Кнопки действий для прошедших событий -->
-            <div class="event-actions">
-              <!-- Ссылка на официальный сайт -->
-              <a v-if="event.officialUrl" :href="event.officialUrl" target="_blank" class="official-link-btn secondary">
-                <i class="fas fa-external-link-alt"></i>
-                <span>Официальный сайт</span>
-              </a>
-              
-              <!-- Кнопка "Подробнее" или "Скоро..." в зависимости от готовности страницы -->
-              <div v-if="event.detailsReady" class="details-btn-container">
-                <router-link :to="event.detailsUrl" class="details-btn">
-                  <span>Подробнее</span>
-                  <i class="fas fa-arrow-right"></i>
-                </router-link>
+            <!-- Статистика после события -->
+            <div class="event-stats">
+              <div v-if="event.purchases_total > 0" class="stat-item">
+                <i class="fas fa-shopping-bag"></i>
+                <span>{{ event.purchases_total }} покупок</span>
               </div>
-              <div v-else class="details-btn-container">
-                <div class="coming-soon-btn">
-                  <span>Скоро...</span>
-                  <i class="fas fa-hourglass-half"></i>
-                </div>
+              <div v-if="event.total_spent > 0" class="stat-item">
+                <i class="fas fa-ruble-sign"></i>
+                <span>{{ formatMoney(event.total_spent) }}</span>
               </div>
             </div>
           </div>
         </div>
-        
-        <!-- Кнопка "Загрузить ещё" для прошедших событий -->
-        <div v-if="hasMorePastEvents" class="load-more-container">
-          <button class="load-more-btn" @click="loadMorePast">
-            <i class="fas fa-plus"></i>
-            <span>Загрузить ещё</span>
-          </button>
-        </div>
+      </div>
+      
+      <!-- Кнопка "Ещё" для перехода на полную страницу -->
+      <div class="events-more" v-if="hasMoreEvents">
+        <button @click="goToEventsPage" class="more-button">
+          <span>Посмотреть все мероприятия</span>
+          <i class="fas fa-arrow-right"></i>
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-// Импортируем изображения для событий
-import foxwoodImage from '@/assets/events/foxwood.jpg';
-import twopikonImage from '@/assets/events/2p.jpg';
-import furmarketImage from '@/assets/events/furmarket.jpg';
-import affImage from '@/assets/events/aff5.jpg';
-import fffImage from '@/assets/events/fff.jpg';
-import SFBImage from '@/assets/events/SFB.jpg';
-import TourFurrImage from '@/assets/events/TourFurr.jpg';
-import TrashConImage from '@/assets/events/TrashCon.jpg';
-import iLUVitImage from '@/assets/events/iLUVit.jpg';
+import { furryApi } from '../../config/supabase.js'
 
 export default {
   name: 'EventsSection',
+  
   data() {
     return {
+      // Состояние
       activeTab: 'upcoming',
-      eventsPerPage: 3,
-      visibleUpcomingCount: 3,
-      visiblePastCount: 3,
-      events: [
-        {
-          name: "♡ i LUV it ♡ маркет",
-          date: "2025-09-27",
-          announcedDate: "2025-01-27",
-          description: "Маркет на фурри-тематику.",
-          imageUrl: iLUVitImage,
-          location: "Москва",
-          attendees: "200+",
-          status: "Буду участвовать",
-          badge: false,
-          detailsUrl: "/events/",
-          badgeClass: "volunteer",
-          badgeText: "Волонтёр",
-          detailsReady: true,
-          officialUrl: "https://vk.com/i_luv_it_market_vk"
-        },
-        {
-          name: "TrashCon",
-          date: "2025-11-14",
-          announcedDate: "2025-01-14",
-          description: "Эпический конвент, посвященный вселенной Игры Престолов",
-          imageUrl: TrashConImage,
-          location: "Ленинградская область",
-          attendees: "140+",
-          status: "Буду участвовать",
-          badge: false,
-          detailsUrl: "/events/TrashCon",
-          badgeClass: "volunteer",
-          badgeText: "Волонтёр",
-          detailsReady: false,
-          officialUrl: "https://t.me/trashcon_fb"
-        },
-        {
-          name: "FurrMarket 4",
-          date: "2025-08-2",
-          announcedDate: "2025-01-2",
-          description: "Маркет на фурри-тематику.",
-          imageUrl: furmarketImage,
-          location: "Москва",
-          attendees: "100+",
-          status: "Посетил",
-          badge: false,
-          detailsUrl: "/events/FurrMarket4",
-          badgeClass: "volunteer",
-          badgeText: "Волонтёр",
-          detailsReady: true,
-          officialUrl: "https://vk.com/furrmarket"
-        },
-        {
-          name: "TourFurr",
-          date: "2025-08-7",
-          announcedDate: "2025-01-7",
-          description: "Еежегодный кемпинг-кон для любителей фурри-культуры, где каждый год новая тематика.",
-          imageUrl: TourFurrImage,
-          location: "Московская область",
-          attendees: "140+",
-          status: "Посетил",
-          badge: false,
-          detailsUrl: "/events/TourFurr",
-          badgeClass: "volunteer",
-          badgeText: "Волонтёр",
-          detailsReady: true,
-          officialUrl: "https://t.me/trashcon_fb"
-        },
-        {
-          name: "SkyFurrBurg",
-          date: "2025-07-5",
-          announcedDate: "2025-01-7",
-          description: "Конвент, который погрузит вас в пышные сады Эллады. Новый Скайфурр будет проведён в античном сеттинге.",
-          imageUrl: SFBImage,
-          location: "Московская область",
-          attendees: "70",
-          status: "Посетил",
-          badge: false,
-          detailsUrl: "/events/SkyFurrBurg",
-          badgeClass: "volunteer",
-          badgeText: "Волонтёр",
-          detailsReady: true,
-          officialUrl: "http://skyfurrburg.ru"
-        },
-        {
-          name: "Foxwood: Back to 2000s",
-          date: "2025-05-15",
-          announcedDate: "2025-01-15",
-          description: "Крупнейшая фурри-конвенция России с тематикой 2000-х годов. Вечеринки, конкурсы и мастер-классы!",
-          imageUrl: foxwoodImage,
-          location: "Подмосковье",
-          attendees: "140+",
-          status: "Посетил",
-          badge: true,
-          detailsUrl: "/events/foxwood",
-          badgeClass: "volunteer",
-          badgeText: "Волонтёр",
-          detailsReady: true,
-          officialUrl: "https://foxwood.camp"
-        },
-        {
-          name: "Fox Family Fest",
-          date: "2025-05-31",
-          announcedDate: "2025-01-31",
-          description: "Ежегодная образовательная выставка-фестиваль домашних лис",
-          imageUrl: fffImage,
-          location: "Москва",
-          attendees: "100+",
-          status: "Посетил",
-          detailsUrl: "/events/fff",
-          detailsReady: true,
-          officialUrl: "https://foxfamilyfest.ru"
-        },
-        {
-          name: "Тупикон",
-          date: "2025-09-5",
-          announcedDate: "2025-01-05",
-          description: "Конвент, который мы создаём так, как сами хотели бы его увидеть.",
-          imageUrl: twopikonImage,
-          location: "Калужская область",
-          attendees: "200+",
-          status: "Посетил",
-          badge: false,
-          detailsUrl: "/events/sillycon",
-          detailsReady: true,
-          officialUrl: "https://sillycon.ru"
-        },
-        {
-          name: "FurrMarket 3",
-          date: "2025-03-22",
-          description: "Маркет на фурри-тематику",
-          imageUrl: furmarketImage,
-          location: "Москва",
-          attendees: "200+",
-          status: "Посетил",
-          badge: true,
-          badgeClass: "vip",
-          badgeText: "VIP",
-          detailsUrl: "/events/furmarket",
-          detailsReady: true,
-          officialUrl: "https://vk.com/furrmarket"
-        },
-        {
-          name: "AnyFurry Fest V",
-          date: "2024-10-19",
-          description: "Фурри-фестиваль, на котором мы соберем всех пушистых.",
-          imageUrl: affImage,
-          location: "Москва",
-          attendees: "350+",
-          status: "Посетил",
-          badge: true,
-          badgeClass: "vip",
-          badgeText: "VIP",
-          detailsUrl: "/events/aff5",
-          detailsReady: true,
-          officialUrl: "https://vk.com/anyfurryfest"
-        },
-      ]
-    };
-  },
-  computed: {
-    // Автоматически сортирует события на предстоящие и прошедшие
-    upcomingEvents() {
-      const now = new Date();
-      return this.events.filter(event => {
-        const eventDate = new Date(event.date);
-        return eventDate >= now;
-      }).sort((a, b) => new Date(a.date) - new Date(b.date));
-    },
-    
-    pastEvents() {
-      const now = new Date();
-      return this.events.filter(event => {
-        const eventDate = new Date(event.date);
-        return eventDate < now;
-      }).sort((a, b) => new Date(b.date) - new Date(a.date)); // Сортировка по убыванию для прошедших
-    },
-    
-    // Видимые события с учетом пагинации
-    visibleUpcomingEvents() {
-      return this.upcomingEvents.slice(0, this.visibleUpcomingCount);
-    },
-    
-    visiblePastEvents() {
-      return this.pastEvents.slice(0, this.visiblePastCount);
-    },
-    
-    // Флаги для отображения кнопки "Загрузить ещё"
-    hasMoreUpcomingEvents() {
-      return this.visibleUpcomingCount < this.upcomingEvents.length;
-    },
-    
-    hasMorePastEvents() {
-      return this.visiblePastCount < this.pastEvents.length;
+      loading: true,
+      error: null,
+      
+      // Данные
+      upcomingEvents: [],
+      pastEvents: [],
+      stats: {
+        total: 0,
+        upcoming: 0,
+        completed: 0
+      },
+      
+      // Настройки отображения
+      maxDisplayed: 4 // Максимум событий на главной странице
     }
   },
+  
+  computed: {
+    hasMoreEvents() {
+      const currentEvents = this.activeTab === 'upcoming' ? this.upcomingEvents : this.pastEvents
+      return currentEvents.length > this.maxDisplayed
+    }
+  },
+  
+  async mounted() {
+    await this.loadEvents()
+  },
+  
   methods: {
-    // Загрузить больше событий
-    loadMoreUpcoming() {
-      this.visibleUpcomingCount += this.eventsPerPage;
+    async loadEvents() {
+      this.loading = true
+      this.error = null
+      
+      try {
+        // Загружаем предстоящие и прошедшие мероприятия
+        const [upcoming, past, stats] = await Promise.all([
+          furryApi.getEvents({ status: 'upcoming', limit: 10, sort: 'date_asc' }),
+          furryApi.getEvents({ status: 'completed', limit: 10, sort: 'date_desc' }),
+          furryApi.getEventsStats()
+        ])
+        
+        this.upcomingEvents = upcoming
+        this.pastEvents = past
+        this.stats = stats
+        
+        console.log('✅ События загружены:', { 
+          upcoming: upcoming.length, 
+          past: past.length,
+          stats 
+        })
+        
+      } catch (error) {
+        console.error('❌ Ошибка загрузки событий:', error)
+        this.error = error.message
+      } finally {
+        this.loading = false
+      }
     },
     
-    loadMorePast() {
-      this.visiblePastCount += this.eventsPerPage;
+    // Навигация
+    goToEventsPage() {
+      this.$router.push('/events')
     },
     
-    // Форматирование даты
+    goToEventDetail(slug) {
+      this.$router.push(`/events/${slug}`)
+    },
+    
+    // Форматирование данных
+    getBannerImage(bannerUrl) {
+      if (!bannerUrl) {
+        return 'url(https://via.placeholder.com/400x200/1a1a1a/ff7b25?text=🎪)'
+      }
+      return `url(${bannerUrl})`
+    },
+    
+    getStatusText(status) {
+      const statusMap = {
+        'planning': 'Планирую',
+        'registered': 'Зарегистрирован',
+        'attended': 'Посетил',
+        'missed': 'Пропустил',
+        'cancelled': 'Отменено'
+      }
+      return statusMap[status] || status
+    },
+    
     getMonthShort(dateString) {
-      const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
-      const date = new Date(dateString);
-      return months[date.getMonth()];
+      const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 
+                     'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек']
+      return months[new Date(dateString).getMonth()]
     },
     
     getDayOfMonth(dateString) {
-      const date = new Date(dateString);
-      return date.getDate();
+      return new Date(dateString).getDate()
     },
     
     getYear(dateString) {
-      const date = new Date(dateString);
-      return date.getFullYear();
+      return new Date(dateString).getFullYear()
     },
     
-    // Расчет дней до события
     getDaysUntil(dateString) {
-      const eventDate = new Date(dateString);
-      const currentDate = new Date();
+      const eventDate = new Date(dateString)
+      const now = new Date()
+      const diffTime = eventDate - now
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
       
-      // Устанавливаем время на начало дня для корректного расчета
-      eventDate.setHours(0, 0, 0, 0);
-      currentDate.setHours(0, 0, 0, 0);
-      
-      // Разница в днях
-      const diffTime = eventDate - currentDate;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (diffDays <= 0) return "Сегодня!";
-      if (diffDays === 1) return "1 день";
-      if (diffDays >= 2 && diffDays <= 4) return `${diffDays} дня`;
-      return `${diffDays} дней`;
+      if (diffDays < 0) return "Прошло"
+      if (diffDays === 0) return "Сегодня"
+      if (diffDays === 1) return "Завтра"
+      if (diffDays < 7) return `${diffDays} дня`
+      if (diffDays < 30) return `${Math.ceil(diffDays / 7)} недель`
+      return `${Math.ceil(diffDays / 30)} месяцев`
     },
     
-    // Расчет ширины полосы прогресса
-    getProgressWidth(eventDate, announcedDate) {
-      const event = new Date(eventDate);
-      const now = new Date();
-      const announced = announcedDate ? new Date(announcedDate) : new Date(event.getTime() - 100 * 24 * 60 * 60 * 1000); // Если дата анонса не указана, используем дефолт 100 дней до события
-      
-      // Если событие уже прошло
-      if (now > event) return '100%';
-      
-      // Общее количество дней от анонса до события
-      const totalPrepDays = (event - announced) / (1000 * 60 * 60 * 24);
-      
-      // Дней прошло с момента анонса
-      const daysPassed = (now - announced) / (1000 * 60 * 60 * 24);
-      
-      // Вычисляем процент прогресса
-      const progress = (daysPassed / totalPrepDays) * 100;
-      
-      // Ограничиваем значение от 0 до 100
-      return `${Math.max(0, Math.min(100, progress))}%`;
-    },
-    
-    // Метод для добавления нового события 
-    // Использование: this.$refs.eventsSection.addEvent({ ... })
-    addEvent(eventData) {
-      // Проверка на обязательные поля
-      const requiredFields = ['name', 'date', 'description', 'imageUrl', 'location', 'attendees', 'status'];
-      for (const field of requiredFields) {
-        if (!eventData[field]) {
-          console.error(`Ошибка: отсутствует обязательное поле "${field}"`);
-          return false;
-        }
-      }
-      
-      // Добавляем дефолтные значения для необязательных полей
-      const event = {
-        badge: false,
-        detailsReady: false,
-        ...eventData
-      };
-      
-      // Добавляем событие в список
-      this.events.push(event);
-      
-      // Сортируем события
-      return true;
-    },
-    
-    // Метод для обновления данных события
-    // Использование: this.$refs.eventsSection.updateEvent('Название события', { detailsReady: true })
-    updateEvent(eventName, updateData) {
-      const eventIndex = this.events.findIndex(event => event.name === eventName);
-      if (eventIndex === -1) {
-        console.error(`Ошибка: событие "${eventName}" не найдено`);
-        return false;
-      }
-      
-      // Обновляем данные события
-      this.events[eventIndex] = {
-        ...this.events[eventIndex],
-        ...updateData
-      };
-      
-      return true;
+    formatMoney(amount) {
+      return new Intl.NumberFormat('ru-RU', {
+        style: 'currency',
+        currency: 'RUB',
+        minimumFractionDigits: 0
+      }).format(amount)
     }
   }
-};
+}
 </script>
 
 <style scoped>
 /* Основные стили секции */
+.events-section {
+  padding: 3rem 0;
+  background: linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(34, 34, 34, 0.9));
+  border-radius: 1.2rem;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.events-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255, 123, 37, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(76, 175, 80, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(45deg, var(--accent-orange), var(--accent-green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.section-description {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* Стили табов */
 .events-tabs {
   display: flex;
   justify-content: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 1;
 }
 
 .tabs-container {
   display: flex;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 2rem;
-  padding: 0.35rem;
+  padding: 0.4rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 .tab {
-  padding: 0.6rem 1.3rem;
+  padding: 0.8rem 1.5rem;
   cursor: pointer;
   border-radius: 1.5rem;
-  font-size: 0.95rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   transition: all 0.3s ease;
   color: var(--text-muted);
   user-select: none;
+  white-space: nowrap;
 }
 
 .tab i {
   font-size: 0.9rem;
+}
+
+.tab-count {
+  font-size: 0.85rem;
+  opacity: 0.8;
 }
 
 .tab:hover:not(.active) {
@@ -548,40 +409,89 @@ export default {
   box-shadow: 0 5px 15px rgba(255, 123, 37, 0.3);
 }
 
+/* Состояния загрузки */
+.events-loading, .events-error, .no-events {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 123, 37, 0.3);
+  border-top: 3px solid var(--accent-orange);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.events-error i {
+  font-size: 2rem;
+  color: var(--accent-orange);
+  margin-bottom: 1rem;
+}
+
+.retry-btn {
+  margin-top: 1rem;
+  padding: 0.8rem 1.5rem;
+  background: linear-gradient(45deg, var(--accent-orange), var(--accent-green));
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.retry-btn:hover {
+  transform: translateY(-2px);
+}
+
+.no-events i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
 /* Контейнер мероприятий */
 .events-container {
   position: relative;
-  overflow: hidden;
+  z-index: 1;
 }
 
 .events-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.5rem;
+  padding: 0 1rem;
   animation: fadeIn 0.5s ease;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 /* Карточки мероприятий */
 .event-card {
   background: rgba(255, 255, 255, 0.03);
-  border-radius: 0.8rem;
+  border-radius: 1rem;
   overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
 }
 
 .event-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
   border-color: rgba(255, 123, 37, 0.3);
 }
 
@@ -590,8 +500,13 @@ export default {
   background: rgba(255, 123, 37, 0.05);
 }
 
+.event-card.past {
+  border-color: rgba(76, 175, 80, 0.2);
+  background: rgba(76, 175, 80, 0.05);
+}
+
 .event-banner {
-  height: 140px;
+  height: 160px;
   background-size: cover;
   background-position: center;
   position: relative;
@@ -608,141 +523,135 @@ export default {
 
 .event-date {
   position: absolute;
-  top: 0.75rem;
-  left: 0.75rem;
-  background: linear-gradient(45deg, var(--accent-orange), var(--accent-green));
+  top: 1rem;
+  left: 1rem;
+  background: rgba(0, 0, 0, 0.8);
   border-radius: 0.5rem;
-  padding: 0.4rem;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 40px;
+  padding: 0.5rem;
   text-align: center;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
-  z-index: 1;
+  min-width: 60px;
+  backdrop-filter: blur(10px);
 }
 
 .event-date .month {
-  font-size: 0.7rem;
-  font-weight: 700;
+  display: block;
+  font-size: 0.8rem;
   text-transform: uppercase;
+  color: var(--accent-orange);
+  font-weight: 600;
 }
 
 .event-date .day {
-  font-size: 1.2rem;
-  font-weight: 800;
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
   line-height: 1;
 }
 
 .event-date .year {
-  font-size: 0.7rem;
-  opacity: 0.9;
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 .event-badges {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: 1rem;
+  right: 1rem;
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
-  z-index: 1;
+  align-items: flex-end;
+}
+
+.event-status, .event-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
 }
 
 .event-status {
   background: rgba(255, 123, 37, 0.9);
   color: white;
-  padding: 0.3rem 0.7rem;
-  border-radius: 2rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  backdrop-filter: blur(5px);
 }
 
-.event-status.visited {
+.event-status.completed {
   background: rgba(76, 175, 80, 0.9);
 }
 
-.event-status.interested {
-  background: rgba(33, 150, 243, 0.9);
-}
-
-.event-badge {
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  padding: 0.3rem 0.7rem;
-  border-radius: 2rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  backdrop-filter: blur(5px);
-}
-
-.event-badge.vip {
+.event-badge.featured {
   background: rgba(255, 215, 0, 0.9);
-  color: #000;
+  color: #1a1a1a;
 }
 
-.event-badge.volunteer {
-  background: rgba(156, 39, 176, 0.9);
+.event-badge.rating {
+  background: rgba(255, 123, 37, 0.9);
   color: white;
 }
 
+.event-badge.photos {
+  background: rgba(76, 175, 80, 0.9);
+  color: white;
+}
+
+/* Контент карточки */
 .event-content {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  gap: 0.75rem;
+  padding: 1.5rem;
 }
 
 .event-name {
-  font-size: 1.1rem;
-  margin-bottom: 0;
+  font-size: 1.3rem;
   font-weight: 700;
   color: var(--text-light);
+  margin-bottom: 0.8rem;
+  line-height: 1.3;
 }
 
 .event-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
-  margin-bottom: 0;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
 }
 
-.meta-item i {
-  color: var(--accent-orange);
-  font-size: 0.75rem;
-}
-
-.event-desc {
-  font-size: 0.85rem;
-  color: var(--text-light);
-  margin-bottom: 0;
-  flex-grow: 1;
-  line-height: 1.4;
-}
-
-.event-countdown {
+.event-location, .event-attendees {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 0.5rem;
-  margin-top: auto;
-  font-size: 0.85rem;
+  align-items: center;
+  gap: 0.4rem;
 }
 
-.event-countdown i {
+.event-location i, .event-attendees i {
   color: var(--accent-orange);
-  margin-right: 0.5rem;
+}
+
+.event-description {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Прогресс подготовки */
+.event-progress {
+  margin-top: 1rem;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
 }
 
 .progress-bar {
@@ -756,213 +665,90 @@ export default {
   height: 100%;
   background: linear-gradient(90deg, var(--accent-orange), var(--accent-green));
   border-radius: 2px;
-  transition: width 1.5s cubic-bezier(0.075, 0.82, 0.165, 1);
+  transition: width 0.3s ease;
 }
 
-/* Новые стили для кнопок действий */
-.event-actions {
+/* Статистика после события */
+.event-stats {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: auto;
-  padding-top: 0.5rem;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Кнопка официального сайта */
-.official-link-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-light);
-  padding: 0.6rem 0.8rem;
-  border-radius: 0.4rem;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.85rem;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.official-link-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-2px);
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
-  color: var(--accent-orange);
-  border-color: rgba(255, 123, 37, 0.3);
-}
-
-.official-link-btn.secondary {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px dashed rgba(255, 255, 255, 0.1);
-}
-
-.official-link-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-style: solid;
-}
-
-.official-link-btn i {
-  transition: transform 0.3s ease;
-  font-size: 0.8rem;
-}
-
-.official-link-btn:hover i {
-  transform: scale(1.1);
-}
-
-/* Контейнер кнопки подробнее */
-.details-btn-container {
-  margin-top: 0;
-}
-
-.details-btn {
+.stat-item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background: linear-gradient(45deg, var(--accent-orange), var(--accent-green));
-  color: white;
-  padding: 0.6rem 0.8rem;
-  border-radius: 0.4rem;
-  text-decoration: none;
-  font-weight: 600;
+  gap: 0.4rem;
   font-size: 0.85rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 3px 8px rgba(255, 123, 37, 0.2);
+  color: var(--text-muted);
 }
 
-.details-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 5px 12px rgba(255, 123, 37, 0.3);
+.stat-item i {
+  color: var(--accent-green);
 }
 
-.details-btn i {
-  transition: transform 0.3s ease;
-  font-size: 0.8rem;
-}
-
-.details-btn:hover i {
-  transform: translateX(3px);
-}
-
-.coming-soon-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-light);
-  padding: 0.6rem 0.8rem;
-  border-radius: 0.4rem;
-  font-weight: 600;
-  font-size: 0.85rem;
-  transition: all 0.3s ease;
-  cursor: default;
-  border: 1px dashed rgba(255, 255, 255, 0.2);
-}
-
-.coming-soon-btn i {
-  animation: pulse 1.5s infinite;
-  color: var(--accent-orange);
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
-
-/* Кнопка "Загрузить ещё" */
-.load-more-container {
-  display: flex;
-  justify-content: center;
+/* Кнопка "Ещё" */
+.events-more {
+  text-align: center;
   margin-top: 2rem;
-  grid-column: 1 / -1;
+  padding: 0 1rem;
 }
 
-.load-more-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-light);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.8rem 1.5rem;
+.more-button {
+  padding: 1rem 2rem;
+  background: linear-gradient(45deg, var(--accent-orange), var(--accent-green));
+  border: none;
   border-radius: 2rem;
-  font-size: 0.9rem;
+  color: white;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  box-shadow: 0 5px 15px rgba(255, 123, 37, 0.3);
 }
 
-.load-more-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
+.more-button:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 25px rgba(255, 123, 37, 0.4);
 }
 
-.load-more-btn i {
-  font-size: 0.8rem;
+.more-button i {
   transition: transform 0.3s ease;
 }
 
-.load-more-btn:hover i {
-  transform: rotate(90deg);
+.more-button:hover i {
+  transform: translateX(5px);
 }
 
-/* Адаптивные стили */
-@media (max-width: 992px) {
-  .events-list {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  }
-}
-
+/* Адаптивность */
 @media (max-width: 768px) {
   .events-list {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: 1fr;
+    padding: 0;
   }
   
-  .tab {
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-  }
-  
-  .event-actions {
+  .event-meta {
+    flex-direction: column;
     gap: 0.5rem;
   }
   
-  .official-link-btn,
-  .details-btn,
-  .coming-soon-btn {
-    font-size: 0.8rem;
-    padding: 0.5rem 0.7rem;
-  }
-}
-
-@media (max-width: 576px) {
-  .events-list {
-    grid-template-columns: 1fr;
+  .event-stats {
+    flex-direction: column;
+    gap: 0.5rem;
   }
   
   .tabs-container {
-    width: 100%;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 0.5rem;
   }
   
   .tab {
-    flex: 1;
     justify-content: center;
-  }
-  
-  .event-actions {
-    flex-direction: column;
-  }
-  
-  .official-link-btn,
-  .details-btn {
-    width: 100%;
   }
 }
 </style>

@@ -33,12 +33,45 @@ const routes = [
       requiresAuth: false // Авторизация происходит внутри компонента
     }
   },
+
+  // ===============================================
+  // 🎪 СИСТЕМА МЕРОПРИЯТИЙ - НОВЫЕ МАРШРУТЫ
+  // ===============================================
+  
+  // Главная страница мероприятий
+  {
+    path: '/events',
+    name: 'Events',
+    component: () => import('./components/events/main.vue'),
+    meta: {
+      title: 'Все мероприятия | FoxTaffy.fun',
+      description: 'Полная коллекция конвентов, встреч и мероприятий, которые посетил Fox Taffy'
+    }
+  },
+
+  // Админ-панель мероприятий
+  {
+    path: '/events/admin',
+    name: 'EventsAdmin',
+    component: () => import('./components/events/admin.vue'),
+    meta: {
+      title: 'Админ мероприятий | FoxTaffy.fun',
+      description: 'Панель управления мероприятиями',
+      requiresAuth: false // Авторизация внутри компонента
+    }
+  },
+
+  // ===============================================
+  // 🎪 СУЩЕСТВУЮЩИЕ СТАТИЧЕСКИЕ МАРШРУТЫ МЕРОПРИЯТИЙ
+  // (Сохраняем все без изменений)
+  // ===============================================
+  
   {
     path: '/events/furmarket',
     name: 'FurMarket',
     component: () => import('./components/events/FurMarket.vue')
   },
-    {
+  {
     path: '/events/SkyFurrBurg',
     name: 'SkyFurrBurg',
     component: () => import('./components/events/sfb.vue')
@@ -73,6 +106,56 @@ const routes = [
     name: 'FoxWood 2000s',
     component: () => import('./components/events/FW2000.vue')
   },
+
+  // ===============================================
+  // 🎪 ДИНАМИЧЕСКИЙ МАРШРУТ ДЛЯ НОВЫХ МЕРОПРИЯТИЙ
+  // (Размещаем ПОСЛЕ статических для избежания конфликтов)
+  // ===============================================
+  
+  {
+    path: '/events/:slug',
+    name: 'EventDetail',
+    component: () => import('./components/events/EventDetailPage.vue'),
+    meta: {
+      title: 'Мероприятие | FoxTaffy.fun',
+      description: 'Подробная информация о мероприятии'
+    },
+    beforeEnter: (to, from, next) => {
+      const slug = to.params.slug
+      
+      // Список статических маршрутов, которые НЕ должны обрабатываться динамически
+      const staticRoutes = [
+        'admin',
+        'furmarket', 
+        'SkyFurrBurg', 
+        'FurrMarket4', 
+        'TourFurr', 
+        'aff5', 
+        'sillycon', 
+        'fff', 
+        'foxwood'
+      ]
+      
+      // Если это статический маршрут, перенаправляем на 404
+      if (staticRoutes.includes(slug)) {
+        next('/404')
+        return
+      }
+      
+      // Проверяем, что slug содержит только разрешённые символы
+      if (!/^[a-z0-9-]+$/.test(slug)) {
+        next('/events')
+        return
+      }
+      
+      next()
+    }
+  },
+
+  // ===============================================
+  // 404 - ДОЛЖЕН БЫТЬ ПОСЛЕДНИМ
+  // ===============================================
+  
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
@@ -113,13 +196,26 @@ router.beforeEach((to, from, next) => {
     }
   }
   
-  // Обновляем заголовок страницы для админки
+  // Обновляем заголовок страницы
   if (to.meta && to.meta.title) {
     document.title = to.meta.title
   } else if (to.name === 'Admin') {
     document.title = 'Админ-панель Fox Taffy'
+  } else if (to.name === 'EventsAdmin') {
+    document.title = 'Админ мероприятий Fox Taffy'
   } else {
     document.title = 'Fox Taffy'
+  }
+  
+  // Добавляем мета-описание для SEO
+  if (to.meta && to.meta.description) {
+    let metaDescription = document.querySelector('meta[name="description"]')
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta')
+      metaDescription.setAttribute('name', 'description')
+      document.head.appendChild(metaDescription)
+    }
+    metaDescription.setAttribute('content', to.meta.description)
   }
   
   next()
