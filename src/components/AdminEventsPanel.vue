@@ -404,7 +404,7 @@
   
   <script>
   import { furryApi } from '../config/supabase.js'
-  
+  import { getBannerImage, placeholders } from '@/utils/imageUtils'
   export default {
     name: 'AdminEventsPanel',
     
@@ -504,6 +504,14 @@
         } catch (error) {
           console.error('❌ Ошибка загрузки статистики:', error)
         }
+      },
+      getBannerImage(bannerUrl) {
+        if (!bannerUrl) {
+          // SVG заглушка вместо via.placeholder.com
+          const svgPlaceholder = "data:image/svg+xml,%3Csvg width='400' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='400' height='200' fill='%231a1a1a'/%3E%3Ctext x='200' y='110' font-family='Nunito,Arial,sans-serif' font-size='50' fill='%23ff7b25' text-anchor='middle'%3E🎪%3C/text%3E%3C/svg%3E"
+          return `url(${svgPlaceholder})`
+        }
+        return `url(${bannerUrl})`
       },
       
       // Поиск с задержкой
@@ -662,7 +670,9 @@
       
       getBannerImage(bannerUrl) {
         if (!bannerUrl) {
-          return 'url(https://via.placeholder.com/300x150/1a1a1a/ff7b25?text=🎪)'
+          // SVG заглушка 300x150 вместо via.placeholder.com
+          const svgPlaceholder = `data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22300%22%20height%3D%22150%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22300%22%20height%3D%22150%22%20fill%3D%22%231a1a1a%22%2F%3E%3Ctext%20x%3D%22150%22%20y%3D%2285%22%20font-family%3D%22Nunito%2CArial%2Csans-serif%22%20font-size%3D%2240%22%20fill%3D%22%23ff7b25%22%20text-anchor%3D%22middle%22%3E🎪%3C%2Ftext%3E%3C%2Fsvg%3E`
+          return `url(${svgPlaceholder})`
         }
         return `url(${bannerUrl})`
       },

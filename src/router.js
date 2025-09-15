@@ -4,41 +4,65 @@ import { createRouter, createWebHistory } from 'vue-router'
 const scrollPositions = {}
 
 const routes = [
+  // ===============================================
+  // 🏠 ОСНОВНЫЕ СТРАНИЦЫ САЙТА
+  // ===============================================
   {
     path: '/',
     name: 'Home',
-    component: () => import('./components/HomeView.vue')
+    component: () => import('./components/HomeView.vue'),
+    meta: {
+      title: 'Fox Taffy - Фурри-энтузиаст и путешественник',
+      description: 'Персональный сайт Fox Taffy - активного участника фурри-сообщества'
+    }
   },
   {
     path: '/taffy',
     name: 'Taffy',
-    component: () => import('./components/Taffy.vue')
+    component: () => import('./components/Taffy.vue'),
+    meta: {
+      title: 'История персонажа | Fox Taffy',
+      description: 'Эволюция дизайна персонажа Fox Taffy с 2019 по 2025 год'
+    }
   },
   {
     path: '/gallery',
     name: 'Gallery',
-    component: () => import('./components/Gallery/Gallery.vue')
+    component: () => import('./components/Gallery/Gallery.vue'),
+    meta: {
+      title: 'Галерея артов | Fox Taffy',
+      description: 'Коллекция заказанных артов с персонажем Fox Taffy'
+    }
   },
   {
     path: '/felix',
     name: 'Felix',
-    component: () => import('./components/Felix.vue')
+    component: () => import('./components/Felix.vue'),
+    meta: {
+      title: 'О Felix | Fox Taffy',
+      description: 'Информация о партнере Fox Taffy'
+    }
   },
+
+  // ===============================================
+  // ⚙️ АДМИН-ПАНЕЛИ
+  // ===============================================
   {
     path: '/admin',
     name: 'Admin',
     component: () => import('./components/AdminPanel.vue'),
     meta: {
-      title: 'Админ-панель Fox Taffy',
+      title: 'Админ-панель | Fox Taffy',
+      description: 'Панель управления галереей',
       requiresAuth: false // Авторизация происходит внутри компонента
     }
   },
 
   // ===============================================
-  // 🎪 СИСТЕМА МЕРОПРИЯТИЙ - НОВЫЕ МАРШРУТЫ
+  // 🎪 СИСТЕМА МЕРОПРИЯТИЙ - ИСПРАВЛЕННАЯ
   // ===============================================
   
-  // Главная страница мероприятий
+  // Главная страница всех мероприятий
   {
     path: '/events',
     name: 'Events',
@@ -62,49 +86,81 @@ const routes = [
   },
 
   // ===============================================
-  // 🎪 СУЩЕСТВУЮЩИЕ СТАТИЧЕСКИЕ МАРШРУТЫ МЕРОПРИЯТИЙ
-  // (Сохраняем все без изменений)
+  // 🎪 СТАТИЧЕСКИЕ МАРШРУТЫ МЕРОПРИЯТИЙ
+  // (Конкретные компоненты для каждого события)
   // ===============================================
   
   {
     path: '/events/furmarket',
     name: 'FurMarket',
-    component: () => import('./components/events/FurMarket.vue')
+    component: () => import('./components/events/FurMarket.vue'),
+    meta: {
+      title: 'FurMarket | Мероприятия Fox Taffy',
+      description: 'Отчёт Fox Taffy с маркета фурри-товаров FurMarket'
+    }
   },
   {
     path: '/events/SkyFurrBurg',
     name: 'SkyFurrBurg',
-    component: () => import('./components/events/sfb.vue')
+    component: () => import('./components/events/sfb.vue'),
+    meta: {
+      title: 'SkyFurrBurg | Мероприятия Fox Taffy',
+      description: 'Отчёт Fox Taffy с конвента SkyFurrBurg'
+    }
   },
   {
     path: '/events/FurrMarket4',
-    name: 'FurrMarket 4',
-    component: () => import('./components/events/FurrMarket4.vue')
+    name: 'FurrMarket4',
+    component: () => import('./components/events/FurrMarket4.vue'),
+    meta: {
+      title: 'FurrMarket 4 | Мероприятия Fox Taffy',
+      description: 'Отчёт Fox Taffy с четвёртого FurrMarket'
+    }
   },
   {
     path: '/events/TourFurr',
     name: 'TourFurr',
-    component: () => import('./components/events/TourFurr.vue')
+    component: () => import('./components/events/TourFurr.vue'),
+    meta: {
+      title: 'TourFurr | Мероприятия Fox Taffy',
+      description: 'Отчёт Fox Taffy с фурри-пикника TourFurr'
+    }
   },
   {
     path: '/events/aff5',
-    name: 'Any Furry Fest V',
-    component: () => import('./components/events/AFF5.vue')
+    name: 'AnyFurryFest5',
+    component: () => import('./components/events/AFF5.vue'),
+    meta: {
+      title: 'Any Furry Fest V | Мероприятия Fox Taffy',
+      description: 'Отчёт Fox Taffy с пятого Any Furry Fest'
+    }
   },
   {
     path: '/events/sillycon',
-    name: 'Тупикон',
-    component: () => import('./components/events/sillycon.vue')
+    name: 'Sillycon',
+    component: () => import('./components/events/sillycon.vue'),
+    meta: {
+      title: 'Тупикон | Мероприятия Fox Taffy',
+      description: 'Отчёт Fox Taffy с конвента Тупикон'
+    }
   },
   {
     path: '/events/fff',
     name: 'FFF',
-    component: () => import('./components/events/FFF.vue')
+    component: () => import('./components/events/FFF.vue'),
+    meta: {
+      title: 'FFF | Мероприятия Fox Taffy',
+      description: 'Отчёт Fox Taffy с летнего фурри-феста FFF'
+    }
   },
   {
     path: '/events/foxwood',
-    name: 'FoxWood 2000s',
-    component: () => import('./components/events/FW2000.vue')
+    name: 'FoxWood2000s',
+    component: () => import('./components/events/FW2000.vue'),
+    meta: {
+      title: 'FoxWood 2000s | Мероприятия Fox Taffy',
+      description: 'Отчёт Fox Taffy с ретро-мероприятия FoxWood 2000s'
+    }
   },
 
   // ===============================================
@@ -136,89 +192,229 @@ const routes = [
         'foxwood'
       ]
       
-      // Если это статический маршрут, перенаправляем на 404
+      // Если это статический маршрут, показываем 404
       if (staticRoutes.includes(slug)) {
-        next('/404')
+        console.warn(`Статический маршрут ${slug} обрабатывается динамически - перенаправляем на 404`)
+        next({ name: 'NotFound' })
         return
       }
       
       // Проверяем, что slug содержит только разрешённые символы
-      if (!/^[a-z0-9-]+$/.test(slug)) {
-        next('/events')
+      if (!/^[a-z0-9-]+$/i.test(slug)) {
+        console.warn(`Недопустимый slug: ${slug}`)
+        next({ name: 'Events' })
         return
       }
       
+      console.log(`✅ Динамический маршрут для мероприятия: ${slug}`)
       next()
     }
   },
 
   // ===============================================
-  // 404 - ДОЛЖЕН БЫТЬ ПОСЛЕДНИМ
+  // 📄 СЛУЖЕБНЫЕ СТРАНИЦЫ
   // ===============================================
   
+  // 404 - ДОЛЖЕН БЫТЬ ПРЕДПОСЛЕДНИМ
+  {
+    path: '/404',
+    name: 'NotFound',
+    component: () => import('./components/Error404.vue'),
+    meta: {
+      title: 'Страница не найдена | FoxTaffy.fun',
+      description: 'Запрашиваемая страница не существует'
+    }
+  },
+
+  // Перенаправление всех остальных маршрутов на 404 - ДОЛЖЕН БЫТЬ ПОСЛЕДНИМ
   {
     path: '/:pathMatch(.*)*',
-    name: 'NotFound',
-    component: () => import('@/components/Error404.vue')
+    redirect: '/404'
   }
 ]
 
+// ===============================================
+// 🛠️ СОЗДАНИЕ РОУТЕРА С КОНФИГУРАЦИЕЙ
+// ===============================================
+
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(),
   routes,
+  
+  // ===============================================
+  // 📜 УПРАВЛЕНИЕ СКРОЛЛОМ
+  // ===============================================
   scrollBehavior(to, from, savedPosition) {
-    // Если есть сохраненная позиция (используется при навигации назад/вперед)
+    // Если есть сохранённая позиция (браузер назад/вперёд)
     if (savedPosition) {
       return savedPosition
-    } 
-    // Если у нас есть сохраненная позиция для маршрута "to"
-    else if (scrollPositions[to.path]) {
-      return scrollPositions[to.path]
     }
-    // Если это переход на якорь на странице
-    else if (to.hash) {
-      return { el: to.hash }
-    } 
-    // По умолчанию: прокрутка в начало
-    else {
-      return { top: 0, left: 0 }
+    
+    // Если есть якорь в URL (#section)
+    if (to.hash) {
+      return {
+        el: to.hash,
+        behavior: 'smooth',
+        top: 80 // Отступ для фиксированной шапки
+      }
     }
+    
+    // Для новых страниц прокручиваем вверх
+    return { top: 0, behavior: 'smooth' }
   }
 })
 
-// Глобальный хук для сохранения позиции скролла
+// ===============================================
+// 🔒 НАВИГАЦИОННЫЕ ГВАРДИИ
+// ===============================================
+
+// Глобальный guard перед навигацией
 router.beforeEach((to, from, next) => {
-  // Сохраняем позицию скролла при покидании страницы
-  if (from.path) {
-    scrollPositions[from.path] = {
-      top: window.pageYOffset,
-      left: window.pageXOffset
-    }
+  // Сохраняем позицию скролла текущей страницы
+  if (from.name) {
+    scrollPositions[from.name] = window.pageYOffset
   }
   
-  // Обновляем заголовок страницы
-  if (to.meta && to.meta.title) {
-    document.title = to.meta.title
-  } else if (to.name === 'Admin') {
-    document.title = 'Админ-панель Fox Taffy'
-  } else if (to.name === 'EventsAdmin') {
-    document.title = 'Админ мероприятий Fox Taffy'
-  } else {
-    document.title = 'Fox Taffy'
+  // Логирование навигации в режиме разработки
+  if (import.meta.env.DEV) {
+    console.log(`🧭 Навигация: ${from.path || '/'} → ${to.path}`)
   }
   
-  // Добавляем мета-описание для SEO
-  if (to.meta && to.meta.description) {
-    let metaDescription = document.querySelector('meta[name="description"]')
-    if (!metaDescription) {
-      metaDescription = document.createElement('meta')
-      metaDescription.setAttribute('name', 'description')
-      document.head.appendChild(metaDescription)
-    }
-    metaDescription.setAttribute('content', to.meta.description)
+  // Проверка доступа к админ-страницам (если требуется)
+  if (to.meta.requiresAuth) {
+    // Здесь можно добавить логику проверки авторизации
+    // Пока пропускаем все запросы
   }
   
   next()
 })
 
+// Guard после навигации для обновления мета-тегов
+router.afterEach((to, from) => {
+  // Обновляем заголовок страницы
+  if (to.meta.title) {
+    document.title = to.meta.title
+  }
+  
+  // Обновляем description
+  if (to.meta.description) {
+    const metaDescription = document.querySelector('meta[name="description"]')
+    if (metaDescription) {
+      metaDescription.setAttribute('content', to.meta.description)
+    }
+  }
+  
+  // Обновляем Open Graph теги
+  if (to.meta.title) {
+    const ogTitle = document.querySelector('meta[property="og:title"]')
+    if (ogTitle) {
+      ogTitle.setAttribute('content', to.meta.title)
+    }
+    
+    const twitterTitle = document.querySelector('meta[name="twitter:title"]')
+    if (twitterTitle) {
+      twitterTitle.setAttribute('content', to.meta.title)
+    }
+  }
+  
+  if (to.meta.description) {
+    const ogDescription = document.querySelector('meta[property="og:description"]')
+    if (ogDescription) {
+      ogDescription.setAttribute('content', to.meta.description)
+    }
+    
+    const twitterDescription = document.querySelector('meta[name="twitter:description"]')
+    if (twitterDescription) {
+      twitterDescription.setAttribute('content', to.meta.description)
+    }
+  }
+  
+  // Обновляем канонический URL
+  const canonical = document.querySelector('link[rel="canonical"]')
+  if (canonical) {
+    canonical.setAttribute('href', `https://foxtaffy.fun${to.path}`)
+  }
+  
+  // Логирование в режиме разработки
+  if (import.meta.env.DEV) {
+    console.log(`✅ Навигация завершена: ${to.path}`)
+    if (to.meta.title) console.log(`📄 Заголовок: ${to.meta.title}`)
+  }
+})
+
+// ===============================================
+// 🚨 ОБРАБОТКА ОШИБОК РОУТЕРА
+// ===============================================
+
+router.onError((error) => {
+  console.error('❌ Ошибка роутера:', error)
+  
+  // В режиме разработки показываем подробную ошибку
+  if (import.meta.env.DEV) {
+    console.error('Стек ошибки:', error.stack)
+  }
+  
+  // В продакшене перенаправляем на главную
+  if (import.meta.env.PROD) {
+    router.push('/')
+  }
+})
+
+// ===============================================
+// 📤 ЭКСПОРТ РОУТЕРА
+// ===============================================
+
 export default router
+
+// ===============================================
+// 🔧 ДОПОЛНИТЕЛЬНЫЕ УТИЛИТЫ
+// ===============================================
+
+/**
+ * Программная навигация с обработкой ошибок
+ * @param {string} path - Путь для навигации
+ * @param {Object} options - Дополнительные опции
+ */
+export const navigateTo = (path, options = {}) => {
+  return router.push({ path, ...options }).catch(error => {
+    // Игнорируем ошибки дублированной навигации
+    if (error.name !== 'NavigationDuplicated') {
+      console.error('Ошибка навигации:', error)
+    }
+  })
+}
+
+/**
+ * Проверка текущего маршрута
+ * @param {string} routeName - Название маршрута
+ * @returns {boolean}
+ */
+export const isCurrentRoute = (routeName) => {
+  return router.currentRoute.value.name === routeName
+}
+
+/**
+ * Получение параметров текущего маршрута
+ * @returns {Object}
+ */
+export const getCurrentParams = () => {
+  return router.currentRoute.value.params
+}
+
+/**
+ * Создание безопасной ссылки на мероприятие
+ * @param {string} slug - Идентификатор мероприятия
+ * @returns {string}
+ */
+export const createEventLink = (slug) => {
+  if (!slug) return '/events'
+  
+  // Очищаем slug от недопустимых символов
+  const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').trim()
+  
+  return `/events/${cleanSlug}`
+}
+
+console.log('✅ Роутер FoxTaffy.fun инициализирован!')
+console.log(`📍 Всего маршрутов: ${routes.length}`)
+console.log('🎪 Система мероприятий: ИСПРАВЛЕНА и готова к работе!')
