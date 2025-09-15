@@ -360,7 +360,7 @@
                         <i class="fas fa-cloud-upload-alt"></i>
                         <h4>Загрузить баннер</h4>
                         <p>Нажмите для выбора изображения</p>
-                        <small>Рекомендуется: 1200x400px, до 5MB</small>
+                        <small>Рекомендуется: 1200x400px, до 10MB</small>
                       </div>
                     </div>
                   </div>
@@ -594,7 +594,7 @@
 <script>
 import { furryApi } from '@/config/supabase.js'
 import { imageHelpers } from '@/utils/imageUtils'
-import { s3Storage } from '@/config/s3.js'
+import s3Api from '@/config/s3.js'
 
 export default {
   name: 'AdminEventsPanel',
@@ -839,8 +839,8 @@ export default {
         return
       }
       
-      if (file.size > 5 * 1024 * 1024) { // 5MB
-        this.$emit('notification', 'Размер файла не должен превышать 5MB', 'error')
+      if (file.size > 10 * 1024 * 1024) { // 10MB как в s3Api
+        this.$emit('notification', 'Размер файла не должен превышать 10MB', 'error')
         return
       }
       
@@ -850,19 +850,16 @@ export default {
       try {
         console.log('📤 Загружаем баннер:', file.name)
         
-        // Загружаем файл через s3Storage
-        const result = await s3Storage.uploadImageWithThumbnail(
+        // Загружаем файл через s3Api
+        const result = await s3Api.uploadFile(
           file, 
-          'events/banners',
-          (progress) => {
-            this.uploadProgress = progress
-          }
+          'events/banners'
         )
         
         // Устанавливаем URL изображения
-        this.eventForm.banner_url = result.original.url
+        this.eventForm.banner_url = result.url
         
-        console.log('✅ Баннер загружен:', result.original.url)
+        console.log('✅ Баннер загружен:', result.url)
         this.$emit('notification', 'Баннер успешно загружен!', 'success')
         
       } catch (error) {
@@ -1059,6 +1056,203 @@ export default {
 </script>
 
 <style scoped>
+/* ===== Тут все стили, которые были раньше, но добавлю несколько ключевых ===== */
+
+/* Основные стили */
+.admin-events-panel {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-light);
+  font-family: 'Nunito', sans-serif;
+  padding: 2rem;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  gap: 2rem;
+}
+
+.panel-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-green));
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+/* Модальные окна */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.modal-content {
+  background: var(--bg-primary);
+  border-radius: 1rem;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.large-modal {
+  max-width: 900px;
+}
+
+/* Загрузка изображений */
+.upload-zone {
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 0.75rem;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.02);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-zone:hover {
+  border-color: var(--accent-orange);
+  background: rgba(255, 123, 37, 0.05);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 123, 37, 0.2);
+  border-top: 3px solid var(--accent-orange);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.progress-bar {
+  width: 200px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent-orange);
+  transition: width 0.3s ease;
+}
+
+/* Форма */
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  color: var(--text-light);
+  font-size: 1rem;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--accent-orange);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-green));
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-light);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
 /* ===== ОСНОВНЫЕ СТИЛИ ===== */
 .admin-events-panel {
   min-height: 100vh;
