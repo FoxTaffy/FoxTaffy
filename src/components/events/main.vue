@@ -11,6 +11,8 @@
               Здесь вы найдете подробные отчеты, фотографии и мои впечатления от каждого события.
             </p>
           </div>
+          
+          <!-- Статистика в шапке -->
           <div class="header-stats" v-if="stats.total > 0">
             <div class="stat-card">
               <div class="stat-number">{{ stats.total }}</div>
@@ -24,10 +26,14 @@
               <div class="stat-number">{{ stats.upcoming }}</div>
               <div class="stat-label">Планируется</div>
             </div>
+            <div class="stat-card">
+              <div class="stat-number">{{ formatMoney(stats.totalSpent) }}</div>
+              <div class="stat-label">Потрачено</div>
+            </div>
           </div>
         </div>
         
-        <!-- Навигация назад -->
+        <!-- Навигация -->
         <div class="page-navigation">
           <router-link to="/" class="back-button">
             <i class="fas fa-arrow-left"></i>
@@ -79,8 +85,9 @@
             <select v-model="sortBy" @change="applySorting">
               <option value="date_desc">Сначала новые</option>
               <option value="date_asc">Сначала старые</option>
-              <option value="name_asc">По названию (А-Я)</option>
-              <option value="rating_desc">По рейтингу</option>
+              <option value="rating_desc">Лучшие (по рейтингу)</option>
+              <option value="spent_desc">Самые дорогие</option>
+              <option value="name_asc">По названию А-Я</option>
             </select>
           </div>
         </div>
@@ -90,135 +97,238 @@
     <!-- Основной контент -->
     <div class="main-content">
       <div class="container">
+        
         <!-- Загрузка -->
-        <div v-if="loading" class="loading-container">
-          <div class="loading-spinner"></div>
-          <p>Загружаем мероприятия...</p>
+        <div v-if="loading" class="loading-state">
+          <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Загружаем мероприятия...</p>
+          </div>
         </div>
 
         <!-- Ошибка -->
-        <div v-else-if="error" class="error-container">
-          <i class="fas fa-exclamation-triangle"></i>
-          <h3>Проблема с загрузкой</h3>
-          <p>{{ error }}</p>
-          <button @click="loadEvents" class="retry-btn">
-            <i class="fas fa-redo"></i>
-            Попробовать снова
-          </button>
-          <p class="error-note">Показываем тестовые данные для демонстрации</p>
-        </div>
-
-        <!-- Пустой результат -->
-        <div v-else-if="filteredEvents.length === 0" class="empty-container">
-          <i class="fas fa-calendar-times"></i>
-          <h3>Мероприятия не найдены</h3>
-          <p v-if="searchQuery">
-            По запросу "{{ searchQuery }}" ничего не найдено.
-            <button @click="clearSearch" class="link-btn">Сбросить поиск</button>
-          </p>
-          <p v-else>Пока нет мероприятий в этой категории.</p>
+        <div v-else-if="error" class="error-state">
+          <div class="error-content">
+            <div class="error-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3>Упс, что-то пошло не так!</h3>
+            <p>{{ error }}</p>
+            <button @click="loadEvents" class="retry-btn">
+              <i class="fas fa-redo"></i>
+              <span>Попробовать снова</span>
+            </button>
+          </div>
         </div>
 
         <!-- Список мероприятий -->
-        <div v-else class="events-grid">
-          <div 
-            v-for="event in paginatedEvents" 
-            :key="event.id"
-            class="event-card"
-            :class="getEventCardClass(event)"
-            @click="goToEvent(event)"
-          >
-            <!-- Баннер -->
-            <div class="event-banner" :style="{ backgroundImage: getBannerImage(event.banner_url) }">
-              <div class="event-overlay"></div>
-              
-              <!-- Дата -->
-              <div class="event-date">
-                <span class="month">{{ getMonthShort(event.event_date) }}</span>
-                <span class="day">{{ getDayOfMonth(event.event_date) }}</span>
-                <span class="year">{{ getYear(event.event_date) }}</span>
+        <div v-else-if="paginatedEvents.length > 0" class="events-section">
+          
+          <!-- Сетка мероприятий -->
+          <div class="events-grid">
+            <!-- Предстоящие мероприятия -->
+            <div 
+              v-for="event in paginatedEvents" 
+              :key="event.id"
+              class="event-card"
+              :class="{
+                'upcoming-card': isUpcoming(event),
+                'completed-card': !isUpcoming(event),
+                'high-rating': event.my_rating >= 5
+              }"
+            >
+              <!-- Изображение мероприятия -->
+              <div class="event-image">
+                <img 
+                  v-if="event.meta_image" 
+                  :src="event.meta_image" 
+                  :alt="event.name"
+                  @error="handleImageError"
+                >
+                <div v-else class="no-image-placeholder">
+                  <i class="fas fa-calendar-alt"></i>
+                  <span>{{ event.name }}</span>
+                </div>
+                
+                <!-- Оверлей -->
+                <div class="image-overlay"></div>
+                
+                <!-- Дата в углу для предстоящих -->
+                <div v-if="isUpcoming(event)" class="event-date-badge">
+                  <div class="date-month">{{ getMonthShort(event.event_date) }}</div>
+                  <div class="date-day">{{ getDay(event.event_date) }}</div>
+                  <div class="date-year">{{ getYear(event.event_date) }}</div>
+                </div>
+
+                <!-- Рейтинг для завершённых -->
+                <div v-else-if="event.my_rating" class="event-rating-badge">
+                  <div class="rating-stars">
+                    <i 
+                      v-for="n in 5" 
+                      :key="n"
+                      class="fas fa-star"
+                      :class="{ 'active': n <= event.my_rating }"
+                    ></i>
+                  </div>
+                  <div class="rating-text">{{ event.my_rating }}/5</div>
+                </div>
               </div>
-              
-              <!-- Статус и бейджи -->
-              <div class="event-badges">
-                <span class="event-status" :class="getStatusClass(event.computed_status)">
-                  {{ getStatusText(event.computed_status) }}
-                </span>
-                <span v-if="event.my_rating" class="event-badge rating">
-                  <i class="fas fa-star"></i>
-                  {{ event.my_rating }}/5
-                </span>
-                <span v-if="event.photos_count > 0" class="event-badge photos">
-                  <i class="fas fa-camera"></i>
-                  {{ event.photos_count }}
-                </span>
+
+              <!-- Информация о мероприятии -->
+              <div class="event-content">
+                <!-- Заголовок -->
+                <div class="event-header">
+                  <h3 class="event-title">{{ event.name }}</h3>
+                  <div class="event-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>{{ event.city }}</span>
+                    <i class="fas fa-users"></i>
+                    <span>{{ event.attendees_count || 0 }}+</span>
+                  </div>
+                </div>
+
+                <!-- Описание -->
+                <p class="event-description">{{ truncateText(event.description || 'Описание мероприятия', 100) }}</p>
+
+                <!-- Информация о времени до начала (для предстоящих) -->
+                <div v-if="isUpcoming(event)" class="event-countdown">
+                  <div class="countdown-icon">
+                    <i class="fas fa-clock"></i>
+                  </div>
+                  <span>До начала: {{ getDaysUntilEvent(event.event_date) }}</span>
+                  <div class="countdown-bar">
+                    <div class="countdown-progress" :style="{ width: getCountdownProgress(event.event_date) + '%' }"></div>
+                  </div>
+                </div>
+
+                <!-- Дополнительная информация для завершённых -->
+                <div v-else class="event-stats">
+                  <div v-if="event.total_spent" class="stat-item">
+                    <i class="fas fa-ruble-sign"></i>
+                    <span>{{ formatMoney(event.total_spent) }}</span>
+                  </div>
+                  <div v-if="event.photos_count" class="stat-item">
+                    <i class="fas fa-camera"></i>
+                    <span>{{ event.photos_count }} фото</span>
+                  </div>
+                </div>
+
+                <!-- Кнопки действий -->
+                <div class="event-actions">
+                  <!-- Для предстоящих мероприятий -->
+                  <template v-if="isUpcoming(event)">
+                    <button @click.stop="planToAttend(event)" class="action-btn primary">
+                      <i class="fas fa-calendar-plus"></i>
+                      <span>Буду участвовать</span>
+                    </button>
+                    <button @click.stop="openOfficialSite(event)" class="action-btn secondary">
+                      <i class="fas fa-external-link-alt"></i>
+                      <span>Официальный сайт</span>
+                    </button>
+                  </template>
+
+                  <!-- Для завершённых мероприятий -->
+                  <template v-else>
+                    <button @click.stop="goToEvent(event)" class="action-btn primary">
+                      <i class="fas fa-eye"></i>
+                      <span>Подробнее</span>
+                    </button>
+                    <button @click.stop="openEventGallery(event)" class="action-btn secondary">
+                      <i class="fas fa-images"></i>
+                      <span>Фотографии</span>
+                    </button>
+                  </template>
+                </div>
               </div>
             </div>
-            
-            <!-- Информация -->
-            <div class="event-info">
-              <h3 class="event-name">{{ event.name }}</h3>
-              <div class="event-meta">
-                <div class="meta-item">
-                  <i class="fas fa-map-marker-alt"></i>
-                  <span>{{ event.city || event.location }}</span>
-                </div>
-                <div v-if="event.event_type" class="meta-item">
-                  <i :class="getEventTypeIcon(event.event_type)"></i>
-                  <span>{{ getEventTypeText(event.event_type) }}</span>
-                </div>
-                <div v-if="event.expected_visitors" class="meta-item">
-                  <i class="fas fa-users"></i>
-                  <span>{{ event.expected_visitors }}+ участников</span>
-                </div>
-              </div>
-              
-              <!-- Статистика -->
-              <div v-if="hasEventStats(event)" class="event-stats">
-                <div v-if="event.total_spent > 0" class="stat-item">
-                  <i class="fas fa-shopping-bag"></i>
-                  <span>{{ formatMoney(event.total_spent) }}</span>
-                </div>
-                <div v-if="event.purchases_count > 0" class="stat-item">
-                  <i class="fas fa-receipt"></i>
-                  <span>{{ event.purchases_count }} покупок</span>
-                </div>
-              </div>
+          </div>
+
+          <!-- Пагинация -->
+          <div v-if="totalPages > 1" class="pagination">
+            <button 
+              @click="changePage(currentPage - 1)"
+              :disabled="currentPage === 1"
+              class="pagination-btn prev"
+            >
+              <i class="fas fa-chevron-left"></i>
+              <span>Назад</span>
+            </button>
+
+            <div class="pagination-pages">
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                @click="changePage(page)"
+                class="pagination-page"
+                :class="{ 'active': page === currentPage }"
+              >
+                {{ page }}
+              </button>
             </div>
+
+            <button 
+              @click="changePage(currentPage + 1)"
+              :disabled="currentPage === totalPages"
+              class="pagination-btn next"
+            >
+              <span>Далее</span>
+              <i class="fas fa-chevron-right"></i>
+            </button>
           </div>
         </div>
 
-        <!-- Пагинация -->
-        <div v-if="totalPages > 1" class="pagination">
-          <button 
-            @click="prevPage" 
-            :disabled="currentPage === 1"
-            class="page-btn"
-          >
-            <i class="fas fa-chevron-left"></i>
-            Назад
-          </button>
-          
-          <div class="page-numbers">
-            <button 
-              v-for="page in visiblePages" 
-              :key="page"
-              @click="goToPage(page)"
-              class="page-btn"
-              :class="{ 'active': page === currentPage }"
-            >
-              {{ page }}
-            </button>
+        <!-- Пустое состояние -->
+        <div v-else class="empty-state">
+          <div class="empty-content">
+            <div class="empty-icon">
+              <i class="fas fa-calendar-times"></i>
+            </div>
+            <h3>Мероприятия не найдены</h3>
+            <p v-if="searchQuery || activeFilter !== 'all'">
+              По вашему запросу ничего не найдено. Попробуйте изменить критерии поиска.
+            </p>
+            <p v-else>
+              Пока что список мероприятий пуст. Возможно, данные еще загружаются.
+            </p>
+            <div class="empty-actions">
+              <button v-if="searchQuery || activeFilter !== 'all'" @click="clearAllFilters" class="clear-filters-btn">
+                <i class="fas fa-eraser"></i>
+                <span>Очистить фильтры</span>
+              </button>
+              <router-link to="/" class="home-btn">
+                <i class="fas fa-home"></i>
+                <span>На главную</span>
+              </router-link>
+            </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно превью (опционально) -->
+    <div v-if="previewEvent" class="event-preview-modal" @click="closePreview">
+      <div class="preview-content" @click.stop>
+        <button @click="closePreview" class="preview-close">
+          <i class="fas fa-times"></i>
+        </button>
+        
+        <div class="preview-image">
+          <img v-if="previewEvent.meta_image" :src="previewEvent.meta_image" :alt="previewEvent.name">
+          <div v-else class="preview-placeholder">
+            <i class="fas fa-calendar-alt"></i>
+          </div>
+        </div>
+        
+        <div class="preview-info">
+          <h3>{{ previewEvent.name }}</h3>
+          <p v-if="previewEvent.subtitle">{{ previewEvent.subtitle }}</p>
           
-          <button 
-            @click="nextPage" 
-            :disabled="currentPage === totalPages"
-            class="page-btn"
-          >
-            Вперед
-            <i class="fas fa-chevron-right"></i>
-          </button>
+          <div class="preview-actions">
+            <router-link :to="`/events/${previewEvent.slug}`" class="preview-btn primary">
+              <i class="fas fa-eye"></i>
+              <span>Посмотреть подробнее</span>
+            </router-link>
+          </div>
         </div>
       </div>
     </div>
@@ -226,55 +336,69 @@
 </template>
 
 <script>
-import { imageHelpers } from '@/utils/imageUtils'
 import { furryApi } from '@/config/supabase.js'
 
 export default {
-  name: 'EventsMainPage',
+  name: 'EventsMain',
+  
   data() {
     return {
-      // Данные
-      allEvents: [],
-      stats: { upcoming: 0, completed: 0, total: 0 },
+      // Состояние загрузки
       loading: false,
       error: null,
       
-      // Фильтры и поиск
+      // Данные
+      allEvents: [],
+      stats: {
+        total: 0,
+        upcoming: 0,
+        completed: 0,
+        totalSpent: 0
+      },
+      
+      // Фильтрация и поиск
       searchQuery: '',
       activeFilter: 'all',
       sortBy: 'date_desc',
       
       // Пагинация
       currentPage: 1,
-      eventsPerPage: 12,
+      eventsPerPage: 9,
       
-      // Дебаунсинг поиска
+      // Админ-режим
+      isAdminMode: false,
+      
+      // Модальное окно превью
+      previewEvent: null,
+      
+      // Таймеры
       searchTimeout: null,
-      
-      // Админ режим
-      isAdminMode: false
     }
   },
   
   computed: {
+    // Фильтры
     filters() {
       return [
         { key: 'all', label: 'Все', icon: 'fas fa-calendar-alt', count: this.stats.total },
         { key: 'upcoming', label: 'Предстоящие', icon: 'fas fa-clock', count: this.stats.upcoming },
         { key: 'completed', label: 'Посещённые', icon: 'fas fa-check-circle', count: this.stats.completed },
         { key: 'convention', label: 'Конвенты', icon: 'fas fa-calendar-star', count: this.getTypeCount('convention') },
-        { key: 'market', label: 'Маркеты', icon: 'fas fa-store', count: this.getTypeCount('market') }
+        { key: 'market', label: 'Маркеты', icon: 'fas fa-store', count: this.getTypeCount('market') },
+        { key: 'festival', label: 'Фестивали', icon: 'fas fa-music', count: this.getTypeCount('festival') },
+        { key: 'meetup', label: 'Встречи', icon: 'fas fa-users', count: this.getTypeCount('meetup') }
       ]
     },
     
+    // Отфильтрованные мероприятия
     filteredEvents() {
       let events = [...this.allEvents]
       
-      // Фильтр по статусу
+      // Фильтр по статусу/типу
       if (this.activeFilter === 'upcoming') {
-        events = events.filter(e => e.computed_status === 'upcoming' || e.computed_status === 'planning')
+        events = events.filter(e => this.isUpcoming(e))
       } else if (this.activeFilter === 'completed') {
-        events = events.filter(e => e.computed_status === 'completed' || e.computed_status === 'attended')
+        events = events.filter(e => !this.isUpcoming(e))
       } else if (this.activeFilter !== 'all') {
         events = events.filter(e => e.event_type === this.activeFilter)
       }
@@ -285,7 +409,8 @@ export default {
         events = events.filter(e => 
           e.name.toLowerCase().includes(query) ||
           (e.city && e.city.toLowerCase().includes(query)) ||
-          (e.location && e.location.toLowerCase().includes(query))
+          (e.location && e.location.toLowerCase().includes(query)) ||
+          (e.subtitle && e.subtitle.toLowerCase().includes(query))
         )
       }
       
@@ -297,9 +422,11 @@ export default {
           case 'date_desc':
             return new Date(b.event_date) - new Date(a.event_date)
           case 'name_asc':
-            return a.name.localeCompare(b.name)
+            return a.name.localeCompare(b.name, 'ru')
           case 'rating_desc':
             return (b.my_rating || 0) - (a.my_rating || 0)
+          case 'spent_desc':
+            return (b.total_spent || 0) - (a.total_spent || 0)
           default:
             return new Date(b.event_date) - new Date(a.event_date)
         }
@@ -308,6 +435,7 @@ export default {
       return events
     },
     
+    // Пагинация
     totalPages() {
       return Math.ceil(this.filteredEvents.length / this.eventsPerPage)
     },
@@ -351,6 +479,10 @@ export default {
   },
   
   methods: {
+    // ============================================
+    // ЗАГРУЗКА ДАННЫХ
+    // ============================================
+    
     async loadEvents() {
       this.loading = true
       this.error = null
@@ -364,92 +496,99 @@ export default {
         ])
         
         this.allEvents = events || []
-        this.stats = stats || { upcoming: 0, completed: 0, total: 0 }
+        this.stats = stats || { upcoming: 0, completed: 0, total: 0, totalSpent: 0 }
         
         console.log('✅ Events/main: Все мероприятия загружены:', { 
           total: this.allEvents.length, 
           stats: this.stats 
         })
         
+        // Сбрасываем пагинацию при новой загрузке
+        this.currentPage = 1
+        
       } catch (error) {
         console.error('❌ Events/main: Ошибка загрузки мероприятий:', error)
         this.error = error.message || 'Проблема с подключением к API'
         
-        // Fallback тестовые данные
-        this.allEvents = [
-          {
-            id: '1',
-            slug: 'any-furry-fest-5',
-            name: 'Any Furry Fest V',
-            event_date: '2024-08-17',
-            city: 'Москва',
-            location: 'Парк-отель "Воздвиженское"',
-            event_type: 'convention',
-            computed_status: 'completed',
-            attendance_status: 'attended',
-            my_rating: 5,
-            photos_count: 47,
-            total_spent: 8500,
-            purchases_count: 12,
-            expected_visitors: 400
-          },
-          {
-            id: '2', 
-            slug: 'furmarket-2024',
-            name: 'FurMarket 2024',
-            event_date: '2024-06-15',
-            city: 'Санкт-Петербург',
-            location: 'Ленэкспо',
-            event_type: 'market',
-            computed_status: 'completed',
-            attendance_status: 'attended',
-            my_rating: 4,
-            photos_count: 25,
-            total_spent: 3500,
-            purchases_count: 8,
-            expected_visitors: 200
-          },
-          {
-            id: '3',
-            slug: 'sky-furr-burg-2024',
-            name: 'SkyFurrBurg 2024',
-            event_date: '2024-09-20',
-            city: 'Санкт-Петербург',
-            location: 'ТРК "Континент"',
-            event_type: 'convention', 
-            computed_status: 'completed',
-            attendance_status: 'attended',
-            my_rating: 5,
-            photos_count: 33,
-            total_spent: 5200,
-            purchases_count: 9,
-            expected_visitors: 300
-          },
-          {
-            id: '4',
-            slug: 'any-furry-fest-6',
-            name: 'Any Furry Fest VI',
-            event_date: '2025-08-15',
-            city: 'Москва',
-            location: 'Парк-отель "Воздвиженское"',
-            event_type: 'convention',
-            computed_status: 'upcoming',
-            attendance_status: 'planning',
-            expected_visitors: 500
-          }
-        ]
-        
-        this.stats = { upcoming: 1, completed: 3, total: 4 }
-        console.log('⚠️ Events/main: Используем fallback данные для демонстрации')
+        // Fallback тестовые данные для разработки
+        if (process.env.NODE_ENV === 'development') {
+          this.loadFallbackData()
+        }
         
       } finally {
         this.loading = false
       }
     },
     
-    // Фильтрация и поиск
+    loadFallbackData() {
+      console.log('🧪 Events/main: Загружаем тестовые данные...')
+      
+      this.allEvents = [
+        {
+          id: '1',
+          slug: 'any-furry-fest-5',
+          name: 'Any Furry Fest V',
+          subtitle: 'Крупнейший фурри-фестиваль России',
+          event_date: '2024-08-17',
+          city: 'Москва',
+          location: 'Парк-отель "Воздвиженское"',
+          event_type: 'convention',
+          attendance_status: 'attended',
+          my_rating: 5,
+          total_spent: 8500,
+          attendees_count: 400,
+          photos_count: 47,
+          is_featured: true,
+          meta_image: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/events/aff5_banner.jpg',
+          description: 'Невероятный фестиваль! Три дня полного погружения в фурри-культуру.'
+        },
+        {
+          id: '2',
+          slug: 'foxwood-2000s',
+          name: 'FoxWood: Back to 2000s',
+          subtitle: 'Ретро-мероприятие в лесной тематике',
+          event_date: '2024-09-08',
+          city: 'Ленинградская область',
+          location: 'Загородный клуб "Бор"',
+          event_type: 'convention',
+          attendance_status: 'attended',
+          my_rating: 5,
+          total_spent: 7500,
+          attendees_count: 160,
+          photos_count: 32,
+          is_featured: true,
+          meta_image: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/events/foxwood_banner.jpg',
+          description: 'Совершенно потрясающая концепция! Лесная тематика смешанная с ностальгией по нулевым.'
+        }
+        // ... другие мероприятия
+      ]
+      
+      this.stats = {
+        total: 11,
+        upcoming: 3,
+        completed: 8,
+        totalSpent: 35600
+      }
+    },
+    
+    checkAdminMode() {
+      // Проверяем админ-код из localStorage
+      const adminCode = localStorage.getItem('fox_taffy_admin')
+      this.isAdminMode = adminCode === import.meta.env.VITE_ADMIN_SECRET_CODE
+    },
+    
+    // ============================================
+    // ФИЛЬТРАЦИЯ И ПОИСК
+    // ============================================
+    
     setFilter(filterKey) {
-      this.activeFilter = filterKey
+      if (this.activeFilter !== filterKey) {
+        this.activeFilter = filterKey
+        this.currentPage = 1
+      }
+    },
+    
+    applySorting() {
       this.currentPage = 1
     },
     
@@ -465,239 +604,319 @@ export default {
       this.currentPage = 1
     },
     
-    applySorting() {
+    clearAllFilters() {
+      this.searchQuery = ''
+      this.activeFilter = 'all'
+      this.sortBy = 'date_desc'
       this.currentPage = 1
     },
     
-    // Пагинация
-    goToPage(page) {
-      this.currentPage = page
-      this.scrollToTop()
-    },
+    // ============================================
+    // ПАГИНАЦИЯ
+    // ============================================
     
-    nextPage() {
-      if (this.currentPage < this.totalPages) {
-        this.currentPage++
-        this.scrollToTop()
+    changePage(page) {
+      if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+        this.currentPage = page
+        
+        // Скроллим к верху списка
+        document.querySelector('.events-grid')?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        })
       }
     },
     
-    prevPage() {
-      if (this.currentPage > 1) {
-        this.currentPage--
-        this.scrollToTop()
-      }
-    },
+    // ============================================
+    // НАВИГАЦИЯ И ДЕЙСТВИЯ
+    // ============================================
     
-    scrollToTop() {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    },
-    
-    // Навигация
     goToEvent(event) {
       if (event.slug) {
         this.$router.push(`/events/${event.slug}`)
+      } else {
+        console.warn('У мероприятия нет slug:', event.name)
       }
     },
     
-    // Вспомогательные функции
-    checkAdminMode() {
-      // Простая проверка админ режима
-      const adminCode = localStorage.getItem('fox_admin_code')
-      this.isAdminMode = !!adminCode
+    planToAttend(event) {
+      // Обработка кнопки "Буду участвовать"
+      console.log('Планируется посетить:', event.name)
+      // Здесь можно добавить в календарь, отправить уведомление и т.д.
+      alert(`Добавлено в планы: ${event.name}`)
     },
+    
+    openOfficialSite(event) {
+      // Открытие официального сайта мероприятия
+      const siteUrls = {
+        'any-furry-fest-7': 'https://anyfurryfest.ru',
+        'furmarket-5': 'https://furmarket.ru',
+        'summer-fest-2025': 'https://summerfest.ru'
+      }
+      
+      const url = siteUrls[event.slug] || '#'
+      if (url !== '#') {
+        window.open(url, '_blank')
+      } else {
+        alert('Официальный сайт ещё не объявлен')
+      }
+    },
+    
+    openEventGallery(event) {
+      // Открытие галереи фотографий мероприятия
+      alert(`Открытие галереи для: ${event.name}`)
+      // Можно перейти на страницу галереи или открыть модальное окно
+    },
+    
+    openPreview(event) {
+      this.previewEvent = event
+    },
+    
+    closePreview() {
+      this.previewEvent = null
+    },
+    
+    // ============================================
+    // УТИЛИТЫ
+    // ============================================
     
     getTypeCount(type) {
       return this.allEvents.filter(e => e.event_type === type).length
     },
     
-    hasEventStats(event) {
-      return event.total_spent > 0 || event.purchases_count > 0
+    isUpcoming(event) {
+      return new Date(event.event_date) > new Date()
     },
     
-    // Форматирование
-    getBannerImage(bannerUrl) {
-      return imageHelpers.getEventBanner(bannerUrl)
+    getStatusClass(event) {
+      return this.isUpcoming(event) ? 'upcoming' : 'completed'
     },
     
-    getEventCardClass(event) {
-      return {
-        'upcoming': ['upcoming', 'planning', 'registered'].includes(event.computed_status),
-        'completed': ['completed', 'attended'].includes(event.computed_status),
-        'has-rating': event.my_rating > 0
-      }
-    },
-    
-    getStatusClass(status) {
-      return {
-        'upcoming': ['upcoming', 'planning', 'registered'].includes(status),
-        'completed': ['completed', 'attended'].includes(status),
-        'cancelled': status === 'cancelled'
-      }
-    },
-    
-    getStatusText(status) {
+    getStatusText(event) {
       const statusMap = {
-        'upcoming': 'Предстоящее',
-        'planning': 'Планирую',
-        'registered': 'Зарегистрирован',
-        'completed': 'Завершено',
-        'attended': 'Посетил',
-        'cancelled': 'Отменено',
-        'missed': 'Пропустил'
+        planning: 'Планируется',
+        registered: 'Зарегистрирован',
+        attended: 'Посетил',
+        missed: 'Пропустил',
+        cancelled: 'Отменено'
       }
-      return statusMap[status] || 'Планирую'
+      return statusMap[event.attendance_status] || (this.isUpcoming(event) ? 'Предстоящее' : 'Завершено')
     },
     
-    getEventTypeIcon(type) {
-      const typeIcons = {
-        'convention': 'fas fa-calendar-star',
-        'meeting': 'fas fa-users',
-        'party': 'fas fa-glass-cheers',
-        'workshop': 'fas fa-chalkboard-teacher',
-        'market': 'fas fa-store',
-        'other': 'fas fa-calendar'
+    getTypeIcon(type) {
+      const iconMap = {
+        convention: 'fas fa-calendar-star',
+        market: 'fas fa-store',
+        festival: 'fas fa-music',
+        meetup: 'fas fa-users',
+        party: 'fas fa-glass-cheers',
+        workshop: 'fas fa-tools',
+        other: 'fas fa-calendar'
       }
-      return typeIcons[type] || 'fas fa-calendar'
+      return iconMap[type] || 'fas fa-calendar'
     },
     
-    getEventTypeText(type) {
-      const typeTexts = {
-        'convention': 'Конвент',
-        'meeting': 'Встреча',
-        'party': 'Вечеринка',
-        'workshop': 'Мастер-класс',
-        'market': 'Маркет',
-        'other': 'Мероприятие'
+    getTypeName(type) {
+      const typeMap = {
+        convention: 'Конвент',
+        market: 'Маркет',
+        festival: 'Фестиваль',
+        meetup: 'Встреча',
+        party: 'Вечеринка',
+        workshop: 'Мастер-класс',
+        other: 'Другое'
       }
-      return typeTexts[type] || 'Мероприятие'
+      return typeMap[type] || type
     },
     
+    formatEventDate(dateString) {
+      const date = new Date(dateString)
+      return date.toLocaleDateString('ru-RU', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    },
+    
+    // Методы для форматирования даты в угловом бейдже
     getMonthShort(dateString) {
-      if (!dateString) return '---'
-      const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 
-                     'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек']
-      return months[new Date(dateString).getMonth()]
+      const date = new Date(dateString)
+      const months = ['ЯНВ', 'ФЕВ', 'МАР', 'АПР', 'МАЙ', 'ИЮН', 'ИЮЛ', 'АВГ', 'СЕН', 'ОКТ', 'НОЯ', 'ДЕК']
+      return months[date.getMonth()]
     },
     
-    getDayOfMonth(dateString) {
-      if (!dateString) return '--'
-      return new Date(dateString).getDate()
+    getDay(dateString) {
+      const date = new Date(dateString)
+      return date.getDate()
     },
     
     getYear(dateString) {
-      if (!dateString) return '----'
-      return new Date(dateString).getFullYear()
+      const date = new Date(dateString)
+      return date.getFullYear()
+    },
+    
+    // Подсчёт дней до мероприятия
+    getDaysUntilEvent(dateString) {
+      const eventDate = new Date(dateString)
+      const today = new Date()
+      const diffTime = eventDate - today
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      
+      if (diffDays > 0) {
+        return `${diffDays} ${this.getDaysWord(diffDays)}`
+      } else if (diffDays === 0) {
+        return 'Сегодня!'
+      } else {
+        return 'Завершено'
+      }
+    },
+    
+    // Склонение слова "день"
+    getDaysWord(days) {
+      if (days % 10 === 1 && days % 100 !== 11) {
+        return 'день'
+      } else if ([2, 3, 4].includes(days % 10) && ![12, 13, 14].includes(days % 100)) {
+        return 'дня' 
+      } else {
+        return 'дней'
+      }
+    },
+    
+    // Прогресс-бар для обратного отсчёта (примерно за 3 месяца до события)
+    getCountdownProgress(dateString) {
+      const eventDate = new Date(dateString)
+      const today = new Date()
+      const totalPeriod = 90 * 24 * 60 * 60 * 1000 // 3 месяца в миллисекундах
+      const timeUntilEvent = eventDate - today
+      
+      if (timeUntilEvent <= 0) return 100
+      if (timeUntilEvent >= totalPeriod) return 0
+      
+      return Math.max(0, Math.min(100, ((totalPeriod - timeUntilEvent) / totalPeriod) * 100))
     },
     
     formatMoney(amount) {
       if (!amount) return '0 ₽'
-      return new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: 'RUB',
-        minimumFractionDigits: 0
-      }).format(amount)
+      return `${Number(amount).toLocaleString('ru-RU')} ₽`
+    },
+    
+    truncateText(text, maxLength) {
+      if (!text || text.length <= maxLength) return text
+      return text.substring(0, maxLength) + '...'
+    },
+    
+    handleImageError(event) {
+      // Скрываем сломанное изображение
+      event.target.style.display = 'none'
     },
     
     updateMetaTags() {
       document.title = 'Все мероприятия | FoxTaffy.fun'
       
-      const description = 'Полная коллекция конвентов, встреч и мероприятий, которые посетил Fox Taffy. Подробные отчеты, фотографии и впечатления от каждого события.'
-      
-      const metaDescription = document.querySelector('meta[name="description"]')
-      if (metaDescription) {
-        metaDescription.setAttribute('content', description)
+      // Обновляем мета-теги через Vue Router или другим способом
+      if (this.$updateMetaTags) {
+        this.$updateMetaTags({
+          title: 'Все мероприятия | FoxTaffy.fun',
+          description: `Полная коллекция из ${this.stats.total} конвентов и мероприятий, которые посетил Fox Taffy. Отчеты, фотографии и впечатления от каждого события.`,
+          image: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/aff5.jpg',
+          url: 'https://foxtaffy.fun/events'
+        })
       }
+    }
+  },
+  
+  beforeUnmount() {
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout)
     }
   }
 }
 </script>
 
 <style scoped>
-/* ===== ОСНОВНЫЕ СТИЛИ ===== */
+/* ===============================================
+   🎨 ОСНОВНЫЕ СТИЛИ
+   =============================================== */
+
 .events-main-page {
   min-height: 100vh;
-  background: var(--bg-primary);
+  background: var(--bg-primary, #1a1a1a);
+  color: var(--text-light, #f2f2f2);
+  font-family: 'Nunito', sans-serif;
 }
 
 .container {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 2rem;
 }
 
-/* ===== ШАПКА СТРАНИЦЫ ===== */
+/* ===============================================
+   📋 ШАПКА СТРАНИЦЫ
+   =============================================== */
+
 .page-header {
-  background: linear-gradient(135deg, 
-    rgba(26, 26, 26, 0.95) 0%, 
-    rgba(255, 123, 37, 0.1) 50%, 
-    rgba(26, 26, 26, 0.95) 100%
-  );
-  padding: 4rem 0 2rem;
+  background: linear-gradient(135deg, rgba(255, 123, 37, 0.1) 0%, rgba(76, 175, 80, 0.1) 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 3rem 0;
 }
 
 .header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
   gap: 3rem;
+  align-items: center;
   margin-bottom: 2rem;
-}
-
-.header-text {
-  flex: 1;
 }
 
 .page-title {
   font-size: 3rem;
-  font-weight: 700;
-  color: var(--text-light);
-  margin-bottom: 1rem;
-  background: linear-gradient(135deg, var(--accent-orange), var(--accent-green));
+  font-weight: 800;
+  color: var(--text-light, #f2f2f2);
+  margin: 0 0 1rem 0;
+  background: linear-gradient(135deg, var(--accent-orange, #ff7b25), var(--accent-green, #4caf50));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .page-description {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  color: var(--text-muted, #a0a0a0);
   line-height: 1.6;
-  color: var(--text-muted);
-  max-width: 600px;
+  margin: 0;
 }
 
 .header-stats {
-  display: flex;
-  gap: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
 }
 
-.stat-card {
+.header-stats .stat-card {
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 1rem;
-  padding: 1.5rem;
+  border-radius: 0.75rem;
+  padding: 1rem;
   text-align: center;
-  min-width: 100px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .stat-number {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--accent-orange);
-  margin-bottom: 0.5rem;
+  color: var(--accent-orange, #ff7b25);
 }
 
 .stat-label {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 0.8rem;
+  color: var(--text-muted, #a0a0a0);
+  margin-top: 0.25rem;
 }
 
 .page-navigation {
   display: flex;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .back-button, .admin-button {
@@ -705,43 +924,52 @@ export default {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 0.5rem;
-  color: var(--text-light);
+  border-radius: 0.75rem;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.back-button:hover, .admin-button:hover {
+.back-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-light, #f2f2f2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.back-button:hover {
   background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .admin-button {
-  background: rgba(255, 123, 37, 0.2);
-  border-color: rgba(255, 123, 37, 0.3);
+  background: var(--accent-orange, #ff7b25);
+  color: white;
 }
 
-/* ===== ФИЛЬТРЫ ===== */
+.admin-button:hover {
+  background: #e6691f;
+  transform: translateY(-1px);
+}
+
+/* ===============================================
+   🔍 ФИЛЬТРЫ И ПОИСК
+   =============================================== */
+
 .filters-section {
   background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   padding: 2rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .filters-container {
   display: flex;
-  align-items: center;
-  gap: 2rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .search-box {
   position: relative;
-  flex: 1;
-  min-width: 300px;
+  max-width: 500px;
 }
 
 .search-box i {
@@ -749,22 +977,23 @@ export default {
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-muted);
+  color: var(--text-muted, #a0a0a0);
 }
 
 .search-box input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 3rem;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.5rem;
-  color: var(--text-light);
+  border-radius: 0.75rem;
+  color: var(--text-light, #f2f2f2);
   font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
 .search-box input:focus {
   outline: none;
-  border-color: var(--accent-orange);
+  border-color: var(--accent-orange, #ff7b25);
   background: rgba(255, 255, 255, 0.08);
 }
 
@@ -773,16 +1002,22 @@ export default {
   right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
-  background: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
-  color: var(--text-muted);
+  color: var(--text-muted, #a0a0a0);
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
 }
 
 .clear-btn:hover {
-  color: var(--text-light);
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
 }
 
 .filter-tabs {
@@ -795,11 +1030,11 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
+  padding: 0.75rem 1rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.5rem;
-  color: var(--text-muted);
+  border-radius: 0.75rem;
+  color: var(--text-light, #f2f2f2);
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 500;
@@ -807,57 +1042,500 @@ export default {
 
 .filter-tab:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: var(--text-light);
+  border-color: var(--accent-orange, #ff7b25);
+  transform: translateY(-1px);
 }
 
 .filter-tab.active {
-  background: var(--accent-orange);
+  background: linear-gradient(135deg, var(--accent-orange, #ff7b25), var(--accent-green, #4caf50));
+  border-color: transparent;
   color: white;
-  border-color: var(--accent-orange);
 }
 
 .filter-count {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   opacity: 0.8;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.2rem 0.5rem;
+  border-radius: 1rem;
 }
 
 .sort-select select {
   padding: 0.75rem 1rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.5rem;
-  color: var(--text-light);
-  font-size: 1rem;
+  border-radius: 0.75rem;
+  color: var(--text-light, #f2f2f2);
+  cursor: pointer;
+  font-weight: 500;
   min-width: 200px;
 }
 
-.sort-select select:focus {
-  outline: none;
-  border-color: var(--accent-orange);
-}
+/* ===============================================
+   📋 ОСНОВНОЙ КОНТЕНТ
+   =============================================== */
 
-/* ===== ОСНОВНОЙ КОНТЕНТ ===== */
 .main-content {
   padding: 3rem 0;
 }
 
-.loading-container, .error-container, .empty-container {
+/* ===============================================
+   🎪 КАРТОЧКИ МЕРОПРИЯТИЙ - НОВЫЙ ДИЗАЙН
+   =============================================== */
+
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.event-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 1.5rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.event-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Стили для предстоящих мероприятий */
+.event-card.upcoming-card {
+  border-color: var(--accent-green, #4caf50);
+  box-shadow: 0 0 20px rgba(76, 175, 80, 0.15);
+}
+
+.event-card.upcoming-card:hover {
+  box-shadow: 0 25px 50px rgba(76, 175, 80, 0.3);
+}
+
+.event-card.upcoming-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent-green, #4caf50), #45a049);
+  z-index: 2;
+}
+
+/* Стили для завершённых мероприятий */
+.event-card.completed-card {
+  border-color: var(--accent-orange, #ff7b25);
+  box-shadow: 0 0 20px rgba(255, 123, 37, 0.1);
+}
+
+.event-card.completed-card:hover {
+  box-shadow: 0 25px 50px rgba(255, 123, 37, 0.2);
+}
+
+.event-card.high-rating {
+  border-color: #ffd700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+/* Изображение мероприятия */
+.event-image {
+  height: 220px;
+  position: relative;
+  overflow: hidden;
+}
+
+.event-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.event-card:hover .event-image img {
+  transform: scale(1.08);
+}
+
+.no-image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 123, 37, 0.15), rgba(76, 175, 80, 0.15));
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
+  color: var(--text-muted, #a0a0a0);
+  gap: 0.75rem;
+}
+
+.no-image-placeholder i {
+  font-size: 2.5rem;
+  opacity: 0.6;
+}
+
+.no-image-placeholder span {
+  font-weight: 600;
+  text-align: center;
+  padding: 0 1rem;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.7));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.event-card:hover .image-overlay {
+  opacity: 1;
+}
+
+/* Дата в углу для предстоящих мероприятий */
+.event-date-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: linear-gradient(135deg, var(--accent-green, #4caf50), #45a049);
+  color: white;
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  backdrop-filter: blur(10px);
+  z-index: 3;
+  min-width: 60px;
+}
+
+.date-month {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  letter-spacing: 0.5px;
+}
+
+.date-day {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  margin: 0.25rem 0;
+}
+
+.date-year {
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+/* Рейтинг для завершённых мероприятий */
+.event-rating-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  z-index: 3;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.event-rating-badge .rating-stars {
+  display: flex;
+  gap: 0.1rem;
+}
+
+.event-rating-badge .rating-stars .fa-star {
+  color: #666;
+  font-size: 0.8rem;
+}
+
+.event-rating-badge .rating-stars .fa-star.active {
+  color: #ffd700;
+}
+
+.event-rating-badge .rating-text {
+  font-size: 0.75rem;
+  color: white;
+  font-weight: 600;
+}
+
+/* Контент карточки */
+.event-content {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.event-header {
+  flex: none;
+}
+
+.event-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-light, #f2f2f2);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.3;
+}
+
+.event-location {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-muted, #a0a0a0);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.event-location i {
+  color: var(--accent-orange, #ff7b25);
+}
+
+.event-description {
+  color: var(--text-muted, #a0a0a0);
+  line-height: 1.5;
+  margin: 0;
+  font-size: 0.95rem;
+  flex: 1;
+}
+
+/* Обратный отсчёт для предстоящих */
+.event-countdown {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.countdown-icon {
+  width: 35px;
+  height: 35px;
+  background: var(--accent-green, #4caf50);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.countdown-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(76, 175, 80, 0.2);
+  border-radius: 0 0 0.75rem 0.75rem;
+  overflow: hidden;
+}
+
+.countdown-progress {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-green, #4caf50), #45a049);
+  transition: width 0.3s ease;
+}
+
+/* Статистика для завершённых */
+.event-stats {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted, #a0a0a0);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.stat-item i {
+  color: var(--accent-orange, #ff7b25);
+}
+
+.stat-item:first-child {
+  color: var(--accent-orange, #ff7b25);
+}
+
+/* Кнопки действий */
+.event-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: auto;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  text-decoration: none;
+  min-height: 45px;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn.primary {
+  background: linear-gradient(135deg, var(--accent-orange, #ff7b25), #e6691f);
+  color: white;
+}
+
+.action-btn.primary:hover {
+  background: linear-gradient(135deg, #e6691f, #cc5a1a);
+  box-shadow: 0 8px 20px rgba(255, 123, 37, 0.4);
+}
+
+/* Для предстоящих - зелёная кнопка "Буду участвовать" */
+.upcoming-card .action-btn.primary {
+  background: linear-gradient(135deg, var(--accent-green, #4caf50), #45a049);
+}
+
+.upcoming-card .action-btn.primary:hover {
+  background: linear-gradient(135deg, #45a049, #3d8b40);
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+}
+
+.action-btn.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-light, #f2f2f2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.action-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--accent-orange, #ff7b25);
+  color: var(--accent-orange, #ff7b25);
+}
+
+/* ===============================================
+   📄 ПАГИНАЦИЯ
+   =============================================== */
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  color: var(--text-light, #f2f2f2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-orange, #ff7b25);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-pages {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pagination-page {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-light, #f2f2f2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.pagination-page:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-orange, #ff7b25);
+}
+
+.pagination-page.active {
+  background: var(--accent-orange, #ff7b25);
+  border-color: var(--accent-orange, #ff7b25);
+  color: white;
+}
+
+/* ===============================================
+   🗂️ СОСТОЯНИЯ
+   =============================================== */
+
+.loading-state, .error-state, .empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  padding: 3rem 2rem;
+}
+
+.loading-spinner, .error-content, .empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
   text-align: center;
 }
 
-.loading-spinner {
-  width: 60px;
-  height: 60px;
-  border: 4px solid rgba(255, 123, 37, 0.2);
-  border-top: 4px solid var(--accent-orange);
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top: 4px solid var(--accent-orange, #ff7b25);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
 }
 
 @keyframes spin {
@@ -865,365 +1543,253 @@ export default {
   100% { transform: rotate(360deg); }
 }
 
-.error-container i, .empty-container i {
+.error-icon, .empty-icon {
   font-size: 4rem;
-  color: var(--accent-orange);
-  margin-bottom: 1rem;
+  color: var(--accent-orange, #ff7b25);
+  opacity: 0.5;
 }
 
-.error-note {
-  margin-top: 1rem;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  font-style: italic;
+.empty-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
-.retry-btn, .link-btn {
-  margin-top: 1rem;
+.clear-filters-btn, .home-btn, .retry-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: var(--accent-orange);
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.75rem;
   cursor: pointer;
+  transition: all 0.3s ease;
   font-weight: 600;
-  transition: all 0.3s ease;
+  text-decoration: none;
 }
 
-.link-btn {
-  background: none;
-  color: var(--accent-orange);
-  text-decoration: underline;
-  padding: 0;
-  margin-left: 0.5rem;
+.clear-filters-btn, .retry-btn {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-light, #f2f2f2);
 }
 
-.retry-btn:hover, .link-btn:hover {
-  transform: translateY(-2px);
+.home-btn {
+  background: var(--accent-orange, #ff7b25);
+  color: white;
+  border-color: var(--accent-orange, #ff7b25);
 }
 
-/* ===== СЕТКА МЕРОПРИЯТИЙ ===== */
-.events-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 2rem;
-  margin-bottom: 3rem;
+.clear-filters-btn:hover, .retry-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-orange, #ff7b25);
 }
 
-.event-card {
-  background: var(--bg-card);
+.home-btn:hover {
+  background: #e6691f;
+  border-color: #e6691f;
+}
+
+/* ===============================================
+   🪟 МОДАЛЬНОЕ ОКНО ПРЕВЬЮ
+   =============================================== */
+
+.event-preview-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.preview-content {
+  background: var(--bg-secondary, #222222);
   border-radius: 1rem;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
   overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  position: relative;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.event-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  border-color: rgba(255, 123, 37, 0.3);
-}
-
-.event-card.upcoming {
-  border-color: rgba(255, 123, 37, 0.2);
-  background: rgba(255, 123, 37, 0.03);
-}
-
-.event-card.completed {
-  border-color: rgba(76, 175, 80, 0.2);
-  background: rgba(76, 175, 80, 0.03);
-}
-
-.event-banner {
-  height: 200px;
-  background-size: cover;
-  background-position: center;
-  position: relative;
-}
-
-.event-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.7));
-}
-
-.event-date {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  background: rgba(0, 0, 0, 0.8);
-  border-radius: 0.5rem;
-  padding: 0.75rem;
-  text-align: center;
-  min-width: 70px;
-  backdrop-filter: blur(10px);
-}
-
-.event-date .month {
-  display: block;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  color: var(--accent-orange);
-  font-weight: 600;
-}
-
-.event-date .day {
-  display: block;
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: white;
-  line-height: 1;
-}
-
-.event-date .year {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.event-badges {
+.preview-close {
   position: absolute;
   top: 1rem;
   right: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: flex-end;
-}
-
-.event-status, .event-badge {
-  padding: 0.4rem 0.8rem;
-  border-radius: 1rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  backdrop-filter: blur(10px);
-  white-space: nowrap;
-}
-
-.event-status {
-  background: rgba(255, 123, 37, 0.9);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
   color: white;
-}
-
-.event-status.completed {
-  background: rgba(76, 175, 80, 0.9);
-}
-
-.event-status.cancelled {
-  background: rgba(244, 67, 54, 0.9);
-}
-
-.event-badge {
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-}
-
-.event-badge.rating {
-  background: rgba(255, 193, 7, 0.9);
-  color: #1a1a1a;
-}
-
-.event-badge.photos {
-  background: rgba(76, 175, 80, 0.9);
-}
-
-.event-info {
-  padding: 1.5rem;
-}
-
-.event-name {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--text-light);
-  margin-bottom: 1rem;
-  line-height: 1.3;
-}
-
-.event-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.meta-item {
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--text-muted);
+  justify-content: center;
+  z-index: 2;
+  transition: all 0.3s ease;
 }
 
-.meta-item i {
-  color: var(--accent-orange);
-  width: 16px;
-  flex-shrink: 0;
+.preview-close:hover {
+  background: rgba(239, 68, 68, 0.8);
 }
 
-.event-stats {
+.preview-image {
+  height: 250px;
+  position: relative;
+}
+
+.preview-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 123, 37, 0.2), rgba(76, 175, 80, 0.2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted, #a0a0a0);
+}
+
+.preview-placeholder i {
+  font-size: 3rem;
+}
+
+.preview-info {
+  padding: 2rem;
+}
+
+.preview-info h3 {
+  font-size: 1.5rem;
+  color: var(--text-light, #f2f2f2);
+  margin: 0 0 0.5rem 0;
+}
+
+.preview-info p {
+  color: var(--text-muted, #a0a0a0);
+  margin: 0 0 2rem 0;
+}
+
+.preview-actions {
   display: flex;
   gap: 1rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.stat-item {
+.preview-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-}
-
-.stat-item i {
-  color: var(--accent-orange);
-}
-
-/* ===== ПАГИНАЦИЯ ===== */
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 3rem;
-}
-
-.page-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.5rem;
-  color: var(--text-light);
-  cursor: pointer;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  font-weight: 600;
   transition: all 0.3s ease;
-  font-weight: 500;
 }
 
-.page-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px);
-}
-
-.page-btn.active {
-  background: var(--accent-orange);
-  border-color: var(--accent-orange);
+.preview-btn.primary {
+  background: var(--accent-orange, #ff7b25);
   color: white;
 }
 
-.page-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.preview-btn.primary:hover {
+  background: #e6691f;
+  transform: translateY(-1px);
 }
 
-.page-numbers {
-  display: flex;
-  gap: 0.25rem;
-}
-
-/* ===== АДАПТИВНОСТЬ ===== */
-@media (max-width: 1024px) {
-  .header-content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2rem;
-  }
-  
-  .header-stats {
-    align-self: stretch;
-    justify-content: space-between;
-  }
-  
-  .events-grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-  }
-}
+/* ===============================================
+   📱 АДАПТИВНОСТЬ
+   =============================================== */
 
 @media (max-width: 768px) {
   .container {
     padding: 0 1rem;
   }
   
+  .page-header {
+    padding: 2rem 0;
+  }
+  
+  .header-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
   .page-title {
     font-size: 2rem;
   }
   
-  .page-description {
-    font-size: 1rem;
+  .header-stats {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .header-stats .stat-card {
+    padding: 0.75rem;
   }
   
   .filters-container {
-    flex-direction: column;
-    align-items: stretch;
     gap: 1rem;
-  }
-  
-  .search-box {
-    min-width: unset;
   }
   
   .filter-tabs {
     justify-content: center;
   }
   
-  .sort-select select {
-    min-width: unset;
-    width: 100%;
-  }
-  
   .events-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .event-card {
+    max-width: 100%;
+  }
+  
+  .pagination {
+    flex-direction: column;
     gap: 1rem;
   }
   
-  .header-stats {
-    flex-wrap: wrap;
-  }
-  
-  .stat-card {
-    flex: 1;
-    min-width: 80px;
+  .pagination-pages {
+    order: 2;
   }
 }
 
 @media (max-width: 480px) {
-  .page-header {
-    padding: 2rem 0 1rem;
+  .container {
+    padding: 0 0.5rem;
   }
   
-  .main-content {
-    padding: 2rem 0;
+  .page-title {
+    font-size: 1.75rem;
   }
   
-  .event-banner {
-    height: 150px;
+  .header-stats {
+    grid-template-columns: repeat(2, 1fr);
   }
   
-  .event-info {
-    padding: 1rem;
+  .filter-tabs {
+    flex-direction: column;
+    align-items: stretch;
   }
   
-  .event-name {
-    font-size: 1.2rem;
-  }
-  
-  .pagination {
-    flex-wrap: wrap;
-  }
-  
-  .page-numbers {
-    order: -1;
-    width: 100%;
+  .filter-tab {
     justify-content: center;
-    margin-bottom: 1rem;
+  }
+  
+  .event-image {
+    height: 150px;
   }
 }
 </style>
