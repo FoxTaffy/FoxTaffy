@@ -68,163 +68,146 @@ export const furryApi = {
     try {
       console.log('🎪 getEvents: Загружаем мероприятия с опциями:', options)
       
-      // Пробуем использовать представление с полной статистикой
-      let query = supabase.from('events_full_stats').select('*')
-      
-      // Если представление недоступно, используем основную таблицу
-      if (!query) {
-        query = supabase.from('cons_full_view').select('*')
-      }
-      
-      // Если и это недоступно, используем базовую таблицу
-      if (!query) {
-        query = supabase.from('cons').select('*')
-      }
+      // Сначала пробуем использовать представление с полной статистикой
+      let query = supabase.from('cons').select('*')
 
       // Фильтрация по статусу
       if (status === 'upcoming') {
-        query = query.gt('event_date', new Date().toISOString())
+        query = query.gt('event_date', new Date().toISOString().split('T')[0])
       } else if (status === 'completed') {
-        query = query.lt('event_date', new Date().toISOString())
+        query = query.lt('event_date', new Date().toISOString().split('T')[0])
       } else if (status === 'featured') {
         query = query.eq('is_featured', true)
       }
-      
-      // Дополнительные фильтры
-      if (event_type) query = query.eq('event_type', event_type)
-      if (attendance_status) query = query.eq('attendance_status', attendance_status)
-      if (city) query = query.eq('city', city)
-      if (featured) query = query.eq('is_featured', true)
-      
+
+      // Фильтрация по типу мероприятия
+      if (event_type) {
+        query = query.eq('event_type', event_type)
+      }
+
+      // Фильтрация по статусу участия
+      if (attendance_status) {
+        query = query.eq('attendance_status', attendance_status)
+      }
+
+      // Фильтрация по городу
+      if (city) {
+        query = query.eq('city', city)
+      }
+
       // Поиск по тексту
       if (search) {
-        query = query.or(`name.ilike.%${search}%,location.ilike.%${search}%,subtitle.ilike.%${search}%`)
+        query = query.or(`name.ilike.%${search}%,subtitle.ilike.%${search}%,description.ilike.%${search}%,location.ilike.%${search}%`)
       }
-      
+
       // Сортировка
-      const sortOptions = {
-        'date_asc': { column: 'event_date', ascending: true },
+      const sortMapping = {
         'date_desc': { column: 'event_date', ascending: false },
+        'date_asc': { column: 'event_date', ascending: true },
         'name_asc': { column: 'name', ascending: true },
         'name_desc': { column: 'name', ascending: false },
         'rating_desc': { column: 'my_rating', ascending: false },
+        'rating_asc': { column: 'my_rating', ascending: true },
+        'spent_desc': { column: 'total_spent', ascending: false },
+        'spent_asc': { column: 'total_spent', ascending: true },
         'created_desc': { column: 'created_at', ascending: false }
       }
-      
-      const sortConfig = sortOptions[sort] || sortOptions['date_desc']
-      query = query.order(sortConfig.column, { ascending: sortConfig.ascending })
-      
+
+      const sortConfig = sortMapping[sort] || sortMapping['date_desc']
+      query = query.order(sortConfig.column, { ascending: sortConfig.ascending, nullsLast: true })
+
       // Пагинация
-      if (limit > 0) {
-        if (offset > 0) {
-          query = query.range(offset, offset + limit - 1)
-        } else {
-          query = query.limit(limit)
-        }
+      if (limit) {
+        query = query.limit(limit)
       }
-      
+      if (offset) {
+        query = query.range(offset, offset + limit - 1)
+      }
+
       const { data, error } = await query
-      
-      if (error) {
-        console.warn('Ошибка загрузки из представления, пробуем основную таблицу:', error)
-        return await this._getEventsFromBaseTable(options)
-      }
-      
-      console.log(`✅ getEvents: Загружено ${data?.length || 0} мероприятий`)
+
+      if (error) throw error
+
+      console.log('✅ getEvents: Мероприятия загружены:', data?.length || 0)
       return data || []
-      
+
     } catch (error) {
       console.error('❌ getEvents: Ошибка загрузки мероприятий:', error)
-      return await this._getEventsFromBaseTable(options)
+      throw new Error(`Ошибка загрузки мероприятий: ${error.message}`)
     }
   },
 
   /**
-   * Fallback метод для загрузки из основной таблицы
-   */
-  async _getEventsFromBaseTable(options) {
-    try {
-      console.log('🔄 Fallback на основную таблицу cons...')
-      
-      let query = supabase.from('cons').select('*')
-      
-      if (options.status === 'upcoming') {
-        query = query.gt('event_date', new Date().toISOString())
-      } else if (options.status === 'completed') {
-        query = query.lt('event_date', new Date().toISOString())
-      }
-      
-      if (options.featured) query = query.eq('is_featured', true)
-      if (options.search) {
-        query = query.or(`name.ilike.%${options.search}%,location.ilike.%${options.search}%`)
-      }
-      
-      query = query.order('event_date', { ascending: false })
-      
-      if (options.limit) query = query.limit(options.limit)
-      if (options.offset) query = query.range(options.offset, options.offset + options.limit - 1)
-      
-      const { data, error } = await query
-      if (error) throw error
-      
-      return data || []
-    } catch (error) {
-      console.error('❌ Fallback также не работает:', error)
-      return []
-    }
-  },
-
-  /**
-   * Получить мероприятие по slug с полными данными
+   * Получить мероприятие по slug
    */
   async getEventBySlug(slug) {
     try {
-      console.log('🔍 getEventBySlug: Загружаем мероприятие:', slug)
-      
-      // Загружаем основное мероприятие
-      let { data: event, error } = await supabase
-        .from('events_full_stats')
+      console.log('🔍 getEventBySlug: Ищем мероприятие по slug:', slug)
+
+      const { data, error } = await supabase
+        .from('cons')
         .select('*')
         .eq('slug', slug)
         .single()
 
-      // Fallback на основную таблицу
       if (error) {
-        console.log('🔄 Fallback на основную таблицу cons...')
-        const { data: fallbackEvent, error: fallbackError } = await supabase
-          .from('cons')
-          .select('*')
-          .eq('slug', slug)
-          .single()
-          
-        if (fallbackError) throw fallbackError
-        event = fallbackEvent
+        if (error.code === 'PGRST116') {
+          console.log('⚠️ getEventBySlug: Мероприятие не найдено')
+          return null
+        }
+        throw error
       }
 
-      // Загружаем связанные данные параллельно
-      const [linksData, featuresData, photosData, purchasesData] = await Promise.all([
-        this.getEventLinks(event.id),
-        this.getEventFeatures(event.id),
-        this.getEventPhotos(event.id),
-        this.getEventPurchases(event.id)
-      ])
-
-      // Собираем полный объект мероприятия
-      const fullEvent = {
-        ...event,
-        links: linksData,
-        features: featuresData,
-        photos: photosData,
-        purchases: purchasesData
-      }
-
-      console.log('✅ getEventBySlug: Мероприятие загружено с полными данными')
-      return fullEvent
+      console.log('✅ getEventBySlug: Мероприятие найдено:', data.name)
+      return data
 
     } catch (error) {
-      console.error('❌ getEventBySlug: Ошибка загрузки мероприятия:', error)
-      if (error.code === 'PGRST116') return null
-      throw new Error(`Ошибка загрузки мероприятия: ${error.message}`)
+      console.error('❌ getEventBySlug: Ошибка поиска мероприятия:', error)
+      throw new Error(`Ошибка поиска мероприятия: ${error.message}`)
+    }
+  },
+
+  /**
+   * Получить статистику мероприятий
+   */
+  async getEventsStats() {
+    try {
+      console.log('📊 getEventsStats: Получаем статистику мероприятий...')
+      
+      const { data, error } = await supabase
+        .from('cons')
+        .select('id, event_date, my_rating, total_spent, attendees_count, is_featured')
+
+      if (error) throw error
+
+      const now = new Date()
+      const todayISO = now.toISOString().split('T')[0]
+      
+      const upcoming = data.filter(e => e.event_date > todayISO)
+      const completed = data.filter(e => e.event_date <= todayISO)
+      const featured = data.filter(e => e.is_featured)
+
+      const stats = {
+        total: data.length,
+        upcoming: upcoming.length,
+        completed: completed.length,
+        featured: featured.length,
+        totalSpent: data.reduce((sum, e) => sum + (e.total_spent || 0), 0),
+        averageRating: data.filter(e => e.my_rating).length > 0 
+          ? data.reduce((sum, e) => sum + (e.my_rating || 0), 0) / data.filter(e => e.my_rating).length 
+          : 0,
+        totalAttendees: data.reduce((sum, e) => sum + (e.attendees_count || 0), 0)
+      }
+
+      console.log('✅ getEventsStats: Статистика получена:', stats)
+      return stats
+
+    } catch (error) {
+      console.error('❌ getEventsStats: Ошибка получения статистики:', error)
+      return {
+        total: 0, upcoming: 0, completed: 0, featured: 0,
+        totalSpent: 0, averageRating: 0, totalAttendees: 0
+      }
     }
   },
 
@@ -233,30 +216,25 @@ export const furryApi = {
    */
   async createEvent(eventData) {
     try {
-      console.log('➕ createEvent: Создаём мероприятие:', eventData.name)
+      console.log('➕ createEvent: Создаём новое мероприятие:', eventData.name)
       
-      // Генерируем slug если не указан
-      if (!eventData.slug) {
-        eventData.slug = eventData.name
-          .toLowerCase()
-          .replace(/[^а-яё\w\s-]/gi, '')
-          .replace(/\s+/g, '-')
-          .replace(/-+/g, '-')
-          .trim()
-      }
-
-      // Проверяем уникальность slug
-      const existingEvent = await this.checkEventSlugExists(eventData.slug)
-      if (existingEvent) {
-        eventData.slug = `${eventData.slug}-${Date.now()}`
-      }
-
-      // Подготавливаем данные
       const cleanData = this._cleanEventData(eventData)
+      
+      // Проверяем уникальность slug
+      if (cleanData.slug) {
+        const slugExists = await this.checkEventSlugExists(cleanData.slug)
+        if (slugExists) {
+          cleanData.slug = `${cleanData.slug}-${Date.now()}`
+        }
+      }
+      
+      // Устанавливаем временные метки
+      cleanData.created_at = new Date().toISOString()
+      cleanData.updated_at = new Date().toISOString()
       
       const { data, error } = await supabase
         .from('cons')
-        .insert([cleanData])
+        .insert(cleanData)
         .select('*')
         .single()
       
@@ -280,6 +258,17 @@ export const furryApi = {
       
       const cleanData = this._cleanEventData(updateData)
       cleanData.updated_at = new Date().toISOString()
+      
+      // Проверяем уникальность slug если он изменился
+      if (cleanData.slug) {
+        const existingEvent = await this.getEventById(eventId)
+        if (existingEvent && existingEvent.slug !== cleanData.slug) {
+          const slugExists = await this.checkEventSlugExists(cleanData.slug)
+          if (slugExists) {
+            cleanData.slug = `${cleanData.slug}-${Date.now()}`
+          }
+        }
+      }
       
       const { data, error } = await supabase
         .from('cons')
@@ -306,6 +295,15 @@ export const furryApi = {
     try {
       console.log('🗑️ deleteEvent: Удаляем мероприятие:', eventId)
       
+      // Сначала удаляем связанные данные
+      await Promise.all([
+        supabase.from('con_links').delete().eq('con_id', eventId),
+        supabase.from('con_features').delete().eq('con_id', eventId),
+        supabase.from('con_photos').delete().eq('con_id', eventId),
+        supabase.from('con_purchases').delete().eq('con_id', eventId)
+      ])
+      
+      // Затем удаляем само мероприятие
       const { error } = await supabase
         .from('cons')
         .delete()
@@ -313,12 +311,36 @@ export const furryApi = {
       
       if (error) throw error
       
-      console.log('✅ deleteEvent: Мероприятие удалено')
+      console.log('✅ deleteEvent: Мероприятие и все связанные данные удалены')
       return true
       
     } catch (error) {
       console.error('❌ deleteEvent: Ошибка удаления мероприятия:', error)
       throw new Error(`Ошибка удаления мероприятия: ${error.message}`)
+    }
+  },
+
+  /**
+   * Получить мероприятие по ID
+   */
+  async getEventById(eventId) {
+    try {
+      const { data, error } = await supabase
+        .from('cons')
+        .select('*')
+        .eq('id', eventId)
+        .single()
+      
+      if (error) {
+        if (error.code === 'PGRST116') return null // Not found
+        throw error
+      }
+      
+      return data
+      
+    } catch (error) {
+      console.error('❌ getEventById: Ошибка получения мероприятия:', error)
+      throw new Error(`Ошибка получения мероприятия: ${error.message}`)
     }
   },
 
@@ -335,352 +357,10 @@ export const furryApi = {
 
       if (error) throw error
       return !!data
+      
     } catch (error) {
       console.error('❌ checkEventSlugExists: Ошибка проверки slug:', error)
       return false
-    }
-  },
-
-  // ============================================
-  // 🔗 МЕТОДЫ ДЛЯ ССЫЛОК МЕРОПРИЯТИЙ
-  // ============================================
-
-  /**
-   * Получить ссылки мероприятия
-   */
-  async getEventLinks(eventId) {
-    try {
-      console.log('🔗 getEventLinks: Загружаем ссылки для мероприятия:', eventId)
-      
-      const { data, error } = await supabase
-        .from('con_links')
-        .select('*')
-        .eq('con_id', eventId)
-        .eq('is_active', true)
-        .order('display_order', { ascending: true })
-        .order('created_at', { ascending: true })
-      
-      if (error) throw error
-      
-      console.log(`✅ getEventLinks: Загружено ${data?.length || 0} ссылок`)
-      return data || []
-      
-    } catch (error) {
-      console.error('❌ getEventLinks: Ошибка загрузки ссылок:', error)
-      return []
-    }
-  },
-
-  /**
-   * Добавить ссылку к мероприятию
-   */
-  async addEventLink(eventId, linkData) {
-    try {
-      console.log('➕ addEventLink: Добавляем ссылку к мероприятию:', eventId)
-      
-      const { data, error } = await supabase
-        .from('con_links')
-        .insert([{
-          con_id: eventId,
-          link_type: linkData.link_type || 'website',
-          title: linkData.title?.trim(),
-          url: linkData.url?.trim(),
-          description: linkData.description?.trim(),
-          icon_class: linkData.icon_class?.trim(),
-          display_order: linkData.display_order || 0,
-          is_primary: linkData.is_primary || false,
-          is_active: linkData.is_active !== false
-        }])
-        .select('*')
-        .single()
-      
-      if (error) throw error
-      
-      console.log('✅ addEventLink: Ссылка добавлена:', data.title)
-      return data
-      
-    } catch (error) {
-      console.error('❌ addEventLink: Ошибка добавления ссылки:', error)
-      throw new Error(`Ошибка добавления ссылки: ${error.message}`)
-    }
-  },
-
-  /**
-   * Удалить ссылку мероприятия
-   */
-  async removeEventLink(linkId) {
-    try {
-      const { error } = await supabase
-        .from('con_links')
-        .delete()
-        .eq('id', linkId)
-      
-      if (error) throw error
-      return true
-      
-    } catch (error) {
-      console.error('❌ removeEventLink: Ошибка удаления ссылки:', error)
-      throw error
-    }
-  },
-
-  // ============================================
-  // ⭐ МЕТОДЫ ДЛЯ ОСОБЕННОСТЕЙ МЕРОПРИЯТИЙ
-  // ============================================
-
-  /**
-   * Получить особенности мероприятия
-   */
-  async getEventFeatures(eventId) {
-    try {
-      console.log('⭐ getEventFeatures: Загружаем особенности для мероприятия:', eventId)
-      
-      const { data, error } = await supabase
-        .from('con_features')
-        .select('*')
-        .eq('con_id', eventId)
-        .order('display_order', { ascending: true })
-        .order('created_at', { ascending: true })
-      
-      if (error) throw error
-      
-      console.log(`✅ getEventFeatures: Загружено ${data?.length || 0} особенностей`)
-      return data || []
-      
-    } catch (error) {
-      console.error('❌ getEventFeatures: Ошибка загрузки особенностей:', error)
-      return []
-    }
-  },
-
-  /**
-   * Добавить особенность к мероприятию
-   */
-  async addEventFeature(eventId, featureData) {
-    try {
-      console.log('➕ addEventFeature: Добавляем особенность к мероприятию:', eventId)
-      
-      const { data, error } = await supabase
-        .from('con_features')
-        .insert([{
-          con_id: eventId,
-          feature_type: featureData.feature_type || 'activity',
-          title: featureData.title?.trim(),
-          description: featureData.description?.trim(),
-          icon_class: featureData.icon_class?.trim(),
-          start_time: featureData.start_time,
-          end_time: featureData.end_time,
-          location_details: featureData.location_details?.trim(),
-          requirements: featureData.requirements?.trim(),
-          max_participants: featureData.max_participants,
-          display_order: featureData.display_order || 0,
-          is_featured: featureData.is_featured || false,
-          is_free: featureData.is_free !== false,
-          price: featureData.price || 0
-        }])
-        .select('*')
-        .single()
-      
-      if (error) throw error
-      
-      console.log('✅ addEventFeature: Особенность добавлена:', data.title)
-      return data
-      
-    } catch (error) {
-      console.error('❌ addEventFeature: Ошибка добавления особенности:', error)
-      throw new Error(`Ошибка добавления особенности: ${error.message}`)
-    }
-  },
-
-  // ============================================
-  // 📸 МЕТОДЫ ДЛЯ ФОТОГРАФИЙ МЕРОПРИЯТИЙ
-  // ============================================
-
-  /**
-   * Получить фотографии мероприятия
-   */
-  async getEventPhotos(eventId, options = {}) {
-    try {
-      console.log('📸 getEventPhotos: Загружаем фотографии для мероприятия:', eventId)
-      
-      let query = supabase
-        .from('con_photos')
-        .select('*')
-        .eq('con_id', eventId)
-      
-      // Фильтры
-      if (options.photo_type) query = query.eq('photo_type', options.photo_type)
-      if (options.featured_only) query = query.eq('is_featured', true)
-      if (options.avatar_only) query = query.eq('is_avatar', true)
-      if (options.limit) query = query.limit(options.limit)
-      
-      // Сортировка
-      const sortBy = options.sort || 'display_order'
-      const sortOrder = options.order === 'desc' ? { ascending: false } : { ascending: true }
-      query = query.order(sortBy, sortOrder)
-      
-      if (sortBy !== 'taken_at') {
-        query = query.order('taken_at', { ascending: false })
-      }
-      
-      const { data, error } = await query
-      
-      if (error) throw error
-      
-      console.log(`✅ getEventPhotos: Загружено ${data?.length || 0} фотографий`)
-      return data || []
-      
-    } catch (error) {
-      console.error('❌ getEventPhotos: Ошибка загрузки фотографий:', error)
-      return []
-    }
-  },
-
-  /**
-   * Добавить фотографию к мероприятию
-   */
-  async addEventPhoto(eventId, photoData) {
-    try {
-      console.log('➕ addEventPhoto: Добавляем фотографию к мероприятию:', eventId)
-      
-      const { data, error } = await supabase
-        .from('con_photos')
-        .insert([{
-          con_id: eventId,
-          image_url: photoData.image_url?.trim(),
-          thumbnail_url: photoData.thumbnail_url?.trim(),
-          caption: photoData.caption?.trim(),
-          alt_text: photoData.alt_text?.trim(),
-          photo_type: photoData.photo_type || 'general',
-          is_featured: photoData.is_featured || false,
-          is_avatar: photoData.is_avatar || false,
-          taken_at: photoData.taken_at,
-          taken_by: photoData.taken_by?.trim(),
-          display_order: photoData.display_order || 0
-        }])
-        .select('*')
-        .single()
-      
-      if (error) throw error
-      
-      console.log('✅ addEventPhoto: Фотография добавлена')
-      return data
-      
-    } catch (error) {
-      console.error('❌ addEventPhoto: Ошибка добавления фотографии:', error)
-      throw new Error(`Ошибка добавления фотографии: ${error.message}`)
-    }
-  },
-
-  // ============================================
-  // 🛒 МЕТОДЫ ДЛЯ ПОКУПОК НА МЕРОПРИЯТИЯХ
-  // ============================================
-
-  /**
-   * Получить покупки мероприятия
-   */
-  async getEventPurchases(eventId, options = {}) {
-    try {
-      console.log('🛒 getEventPurchases: Загружаем покупки для мероприятия:', eventId)
-      
-      let query = supabase
-        .from('con_purchases')
-        .select('*')
-        .eq('con_id', eventId)
-      
-      // Фильтры
-      if (options.category) query = query.eq('category', options.category)
-      if (options.vendor_name) query = query.ilike('vendor_name', `%${options.vendor_name}%`)
-      if (options.status) {
-        query = query.eq('status', options.status)
-      } else {
-        query = query.eq('status', 'completed')
-      }
-      if (options.limit) query = query.limit(options.limit)
-      
-      // Сортировка
-      const sortBy = options.sort || 'purchased_at'
-      const sortOrder = options.order === 'asc' ? { ascending: true } : { ascending: false }
-      query = query.order(sortBy, sortOrder)
-      
-      const { data, error } = await query
-      
-      if (error) throw error
-      
-      console.log(`✅ getEventPurchases: Загружено ${data?.length || 0} покупок`)
-      return data || []
-      
-    } catch (error) {
-      console.error('❌ getEventPurchases: Ошибка загрузки покупок:', error)
-      return []
-    }
-  },
-
-  /**
-   * Добавить покупку к мероприятию
-   */
-  async addEventPurchase(eventId, purchaseData) {
-    try {
-      console.log('➕ addEventPurchase: Добавляем покупку к мероприятию:', eventId)
-      
-      const { data, error } = await supabase
-        .from('con_purchases')
-        .insert([{
-          con_id: eventId,
-          item_name: purchaseData.item_name?.trim(),
-          description: purchaseData.description?.trim(),
-          price: purchaseData.price || 0,
-          currency: purchaseData.currency || 'RUB',
-          vendor_name: purchaseData.vendor_name?.trim(),
-          category: purchaseData.category || 'other',
-          image_url: purchaseData.image_url?.trim(),
-          quantity: purchaseData.quantity || 1,
-          purchased_at: purchaseData.purchased_at || new Date().toISOString(),
-          status: purchaseData.status || 'completed'
-        }])
-        .select('*')
-        .single()
-      
-      if (error) throw error
-
-      // Обновляем счётчики в основной таблице мероприятий
-      await this.updateEventCounters(eventId)
-      
-      console.log('✅ addEventPurchase: Покупка добавлена:', data.item_name)
-      return data
-      
-    } catch (error) {
-      console.error('❌ addEventPurchase: Ошибка добавления покупки:', error)
-      throw new Error(`Ошибка добавления покупки: ${error.message}`)
-    }
-  },
-
-  /**
-   * Обновить счётчики мероприятия
-   */
-  async updateEventCounters(eventId) {
-    try {
-      const { data: purchaseStats, error } = await supabase
-        .from('con_purchases')
-        .select('price, quantity')
-        .eq('con_id', eventId)
-        .eq('status', 'completed')
-
-      if (error) throw error
-
-      const totalSpent = purchaseStats.reduce((sum, p) => sum + ((p.price || 0) * (p.quantity || 1)), 0)
-      const purchasesCount = purchaseStats.length
-
-      await supabase
-        .from('cons')
-        .update({
-          total_spent: totalSpent,
-          purchases_count: purchasesCount
-        })
-        .eq('id', eventId)
-
-    } catch (error) {
-      console.error('❌ updateEventCounters: Ошибка обновления счётчиков:', error)
     }
   },
 
@@ -706,8 +386,15 @@ export const furryApi = {
     try {
       console.log('🎨 getFurryArts: Запрашиваем арты с опциями:', options)
       
-      // Пробуем использовать представление gallery_view
-      let query = supabase.from('gallery_view').select('*')
+      // Используем прямой запрос к основной таблице
+      let query = supabase
+        .from('arts')
+        .select(`
+          id, title, image_url, thumbnail_url, is_nsfw, upload_date,
+          art_collaborators!inner(persons!inner(nickname, avatar_url, is_friend))
+        `)
+        .eq('is_deleted', false)
+        .eq('art_collaborators.role', 'main_artist')
 
       // Поиск по названию
       if (search.trim()) {
@@ -716,137 +403,38 @@ export const furryApi = {
 
       // Фильтр по художникам
       if (artists.length > 0) {
-        query = query.in('artist_name', artists)
+        query = query.in('art_collaborators.persons.nickname', artists)
       }
 
       // NSFW фильтр
-      const hideNsfw = !showYiff && !showNsfw
-      if (hideNsfw) {
+      if (!showNsfw) {
         query = query.eq('is_nsfw', false)
       }
 
       // Сортировка
-      switch (sort) {
-        case 'newest':
-          query = query.order('upload_date', { ascending: false })
-          break
-        case 'oldest':
-          query = query.order('upload_date', { ascending: true })
-          break
-        case 'alphabetical':
-          query = query.order('title', { ascending: true })
-          break
-        case 'alphabetical-desc':
-          query = query.order('title', { ascending: false })
-          break
-        case 'artist':
-          query = query.order('artist_name', { ascending: true })
-          break
+      const sortMapping = {
+        'newest': { column: 'upload_date', ascending: false },
+        'oldest': { column: 'upload_date', ascending: true },
+        'title_asc': { column: 'title', ascending: true },
+        'title_desc': { column: 'title', ascending: false }
       }
+
+      const sortConfig = sortMapping[sort] || sortMapping['newest']
+      query = query.order(sortConfig.column, { ascending: sortConfig.ascending })
 
       // Пагинация
-      if (offset > 0) {
-        query = query.range(offset, offset + limit - 1)
-      } else {
+      if (limit) {
         query = query.limit(limit)
+      }
+      if (offset) {
+        query = query.range(offset, offset + limit - 1)
       }
 
       const { data, error } = await query
 
-      if (error) {
-        console.warn('⚠️ Ошибка запроса к gallery_view, используем прямой запрос:', error)
-        return await this._getFurryArtsDirectQuery(options)
-      }
-
-      console.log(`✅ getFurryArts: Получено артов из gallery_view: ${data?.length || 0}`)
-
-      // Обрабатываем данные для унификации
-      let processedArts = (data || []).map(art => ({
-        id: art.id,
-        title: art.title,
-        image_url: art.image_url,
-        thumbnail_url: art.thumbnail_url || art.image_url,
-        is_nsfw: art.is_nsfw || false,
-        created_date: art.upload_date,
-        upload_date: art.upload_date,
-        artist_name: art.artist_name,
-        artist_avatar: art.artist_avatar,
-        artist_is_friend: art.artist_is_friend,
-        characters: Array.isArray(art.characters) ? art.characters : [],
-        tags: Array.isArray(art.tags) ? art.tags.map(t => t.name) : [],
-        tagNames: Array.isArray(art.tags) ? art.tags.map(t => t.name) : []
-      }))
-
-      // Фильтрация по тегам
-      if (tags.length > 0) {
-        processedArts = processedArts.filter(art => 
-          tags.some(tagName => art.tagNames.includes(tagName))
-        )
-      }
-
-      console.log(`✅ getFurryArts: Обработано артов: ${processedArts.length}`)
-      return processedArts
-      
-    } catch (error) {
-      console.error('❌ getFurryArts: Ошибка получения артов:', error)
-      return await this._getFurryArtsDirectQuery(options)
-    }
-  },
-
-  /**
-   * Прямой запрос к таблицам если представление недоступно
-   */
-  async _getFurryArtsDirectQuery(options = {}) {
-    const { 
-      search = '', 
-      showNsfw = false,
-      sort = 'newest',
-      limit = 24,
-      offset = 0
-    } = options
-
-    try {
-      console.log('🔍 _getFurryArtsDirectQuery: Прямой запрос к таблицам...')
-      
-      let query = supabase
-        .from('arts')
-        .select(`
-          id,
-          title,
-          image_url,
-          thumbnail_url,
-          is_nsfw,
-          upload_date,
-          art_collaborators!inner(
-            role,
-            persons!inner(
-              nickname,
-              avatar_url,
-              is_friend
-            )
-          )
-        `)
-        .eq('is_deleted', false)
-        .eq('art_collaborators.role', 'main_artist')
-
-      if (search.trim()) query = query.ilike('title', `%${search}%`)
-      if (!showNsfw) query = query.eq('is_nsfw', false)
-
-      switch (sort) {
-        case 'newest': query = query.order('upload_date', { ascending: false }); break
-        case 'oldest': query = query.order('upload_date', { ascending: true }); break
-        case 'alphabetical': query = query.order('title', { ascending: true }); break
-      }
-
-      if (offset > 0) {
-        query = query.range(offset, offset + limit - 1)
-      } else {
-        query = query.limit(limit)
-      }
-
-      const { data, error } = await query
       if (error) throw error
 
+      // Обработка результатов
       const processedArts = (data || []).map(art => {
         const mainArtist = art.art_collaborators?.[0]?.persons
         
@@ -867,10 +455,11 @@ export const furryApi = {
         }
       })
 
+      console.log('✅ getFurryArts: Арты загружены:', processedArts.length)
       return processedArts
       
     } catch (error) {
-      console.error('❌ _getFurryArtsDirectQuery: Ошибка прямого запроса:', error)
+      console.error('❌ getFurryArts: Ошибка загрузки артов:', error)
       return []
     }
   },
@@ -904,12 +493,12 @@ export const furryApi = {
           }])
           .select('id')
           .single()
-        
+          
         if (createError) throw createError
         artistId = newArtist.id
       }
       
-      // Создаем арт
+      // Добавляем арт
       const { data: artResult, error: artError } = await supabase
         .from('arts')
         .insert([{
@@ -917,16 +506,15 @@ export const furryApi = {
           image_url: artData.image_url,
           thumbnail_url: artData.thumbnail_url || artData.image_url,
           is_nsfw: artData.is_nsfw || false,
-          upload_date: new Date().toISOString(),
-          is_deleted: false
+          upload_date: new Date().toISOString()
         }])
-        .select('id')
+        .select()
         .single()
       
       if (artError) throw artError
       
       // Связываем с художником
-      const { error: collaboratorError } = await supabase
+      const { error: collabError } = await supabase
         .from('art_collaborators')
         .insert([{
           art_id: artResult.id,
@@ -934,10 +522,10 @@ export const furryApi = {
           role: 'main_artist'
         }])
       
-      if (collaboratorError) throw collaboratorError
-
-      console.log('✅ addFurryArt: Арт добавлен с ID:', artResult.id)
-      return { id: artResult.id, ...artData }
+      if (collabError) throw collabError
+      
+      console.log('✅ addFurryArt: Арт добавлен:', artResult.title)
+      return artResult
       
     } catch (error) {
       console.error('❌ addFurryArt: Ошибка добавления арта:', error)
@@ -946,31 +534,107 @@ export const furryApi = {
   },
 
   /**
-   * Удалить арт
+   * Добавить теги к арту
    */
-  async deleteArt(artId) {
+  async addArtTags(artId, tagNames) {
     try {
-      console.log('🗑️ deleteArt: Удаляем арт:', artId)
+      console.log('🏷️ addArtTags: Добавляем теги к арту:', artId, tagNames)
       
-      // Удаляем все связи
-      await Promise.all([
-        supabase.from('art_tags').delete().eq('art_id', artId),
-        supabase.from('art_fursonas').delete().eq('art_id', artId),
-        supabase.from('art_collaborators').delete().eq('art_id', artId)
-      ])
-
-      // Помечаем арт как удаленный
-      const { error } = await supabase
-        .from('arts')
-        .update({ is_deleted: true })
-        .eq('id', artId)
+      for (const tagName of tagNames) {
+        // Находим или создаем тег
+        let tagId = null
+        const { data: existingTag, error: tagError } = await supabase
+          .from('tags')
+          .select('id')
+          .eq('name', tagName)
+          .maybeSingle()
+        
+        if (tagError) throw tagError
+        
+        if (existingTag) {
+          tagId = existingTag.id
+        } else {
+          const { data: newTag, error: createError } = await supabase
+            .from('tags')
+            .insert([{ name: tagName }])
+            .select('id')
+            .single()
+            
+          if (createError) throw createError
+          tagId = newTag.id
+        }
+        
+        // Связываем тег с артом
+        const { error: linkError } = await supabase
+          .from('art_tags')
+          .insert([{
+            art_id: artId,
+            tag_id: tagId
+          }])
+        
+        if (linkError && linkError.code !== '23505') { // Игнорируем дублирование
+          throw linkError
+        }
+      }
       
-      if (error) throw error
-      
-      console.log('✅ deleteArt: Арт удален')
+      console.log('✅ addArtTags: Теги добавлены')
       return true
+      
     } catch (error) {
-      console.error('❌ deleteArt: Ошибка удаления арта:', error)
+      console.error('❌ addArtTags: Ошибка добавления тегов:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Добавить персонажей к арту
+   */
+  async addArtCharacters(artId, characterNames) {
+    try {
+      console.log('🦊 addArtCharacters: Добавляем персонажей к арту:', artId, characterNames)
+      
+      for (const characterName of characterNames) {
+        // Находим или создаем персонажа
+        let characterId = null
+        const { data: existingCharacter, error: charError } = await supabase
+          .from('fursonas')
+          .select('id')
+          .eq('name', characterName)
+          .maybeSingle()
+        
+        if (charError) throw charError
+        
+        if (existingCharacter) {
+          characterId = existingCharacter.id
+        } else {
+          const { data: newCharacter, error: createError } = await supabase
+            .from('fursonas')
+            .insert([{ name: characterName }])
+            .select('id')
+            .single()
+            
+          if (createError) throw createError
+          characterId = newCharacter.id
+        }
+        
+        // Связываем персонажа с артом
+        const { error: linkError } = await supabase
+          .from('art_fursonas')
+          .insert([{
+            art_id: artId,
+            fursona_id: characterId
+          }])
+        
+        if (linkError && linkError.code !== '23505') { // Игнорируем дублирование
+          throw linkError
+        }
+      }
+      
+      console.log('✅ addArtCharacters: Персонажи добавлены')
+      return true
+      
+    } catch (error) {
+      console.error('❌ addArtCharacters: Ошибка добавления персонажей:', error)
       throw error
     }
   },
@@ -1019,7 +683,7 @@ export const furryApi = {
           name: artist.nickname,
           nickname: artist.nickname,
           avatar_url: artist.avatar_url,
-          is_friend: artist.is_friend,
+          is_friend: artist.is_friend || false,
           created_at: artist.created_at,
           count: artCount,
           artCount: artCount
@@ -1054,7 +718,7 @@ export const furryApi = {
         .from('persons')
         .insert([{
           nickname: artistData.nickname.trim(),
-          avatar_url: artistData.avatar_url?.trim() || null,
+          avatar_url: artistData.avatar_url || null,
           is_friend: artistData.is_friend || false
         }])
         .select()
@@ -1269,8 +933,7 @@ export const furryApi = {
         .from('fursonas')
         .insert([{
           name: characterData.name.trim(),
-          avatar_url: characterData.avatar_url?.trim() || null,
-          person_id: null
+          avatar_url: characterData.avatar_url || null
         }])
         .select()
 
@@ -1286,12 +949,12 @@ export const furryApi = {
   /**
    * Проверить существование персонажа
    */
-  async checkCharacterExists(characterName) {
+  async checkCharacterExists(name) {
     try {
       const { data, error } = await supabase
         .from('fursonas')
         .select('id')
-        .eq('name', characterName.trim())
+        .eq('name', name.trim())
         .maybeSingle()
 
       if (error) throw error
@@ -1307,98 +970,37 @@ export const furryApi = {
   // ============================================
 
   /**
-   * Получить общую статистику мероприятий
-   */
-  async getEventsStats() {
-    try {
-      console.log('📊 getEventsStats: Получаем статистику мероприятий...')
-      
-      const { data, error } = await supabase
-        .from('cons')
-        .select(`
-          id,
-          status,
-          event_type,
-          my_rating,
-          total_spent,
-          attendees_count,
-          event_date
-        `)
-
-      if (error) throw error
-
-      const now = new Date()
-      const upcoming = data.filter(e => new Date(e.event_date) > now)
-      const completed = data.filter(e => new Date(e.event_date) <= now)
-
-      const stats = {
-        total: data.length,
-        upcoming: upcoming.length,
-        completed: completed.length,
-        totalSpent: data.reduce((sum, e) => sum + (e.total_spent || 0), 0),
-        averageRating: data.filter(e => e.my_rating).length > 0 ? 
-          (data.filter(e => e.my_rating).reduce((sum, e) => sum + e.my_rating, 0) / 
-           data.filter(e => e.my_rating).length).toFixed(1) : 0,
-        byType: {}
-      }
-
-      // Группировка по типам
-      data.forEach(event => {
-        const type = event.event_type || 'convention'
-        stats.byType[type] = (stats.byType[type] || 0) + 1
-      })
-
-      console.log('✅ getEventsStats: Статистика получена:', stats)
-      return stats
-      
-    } catch (error) {
-      console.error('❌ getEventsStats: Ошибка получения статистики:', error)
-      return { 
-        total: 0, 
-        upcoming: 0, 
-        completed: 0, 
-        totalSpent: 0, 
-        averageRating: 0, 
-        byType: {} 
-      }
-    }
-  },
-
-  /**
-   * Получить статистику галереи
+   * Получить статистику панели управления
    */
   async getDashboardStats() {
     try {
-      console.log('📊 getDashboardStats: Получаем полную статистику...')
+      console.log('📊 getDashboardStats: Загружаем полную статистику...')
       
-      // Параллельно загружаем все данные
-      const [artists, tags, characters, arts] = await Promise.all([
+      const [artsResult, artistsResult, tagsResult, charactersResult] = await Promise.all([
+        this.getFurryArts({ limit: 1000, showNsfw: true }),
         this.getFurryArtists(),
-        this.getFurryTags(), 
-        this.getSpecies(),
-        this.getFurryArts({ limit: 1000, showNsfw: true })
+        this.getFurryTags(),
+        this.getSpecies()
       ])
       
-      // Подсчитываем статистику
       const stats = {
-        artists: artists.length,
-        tags: tags.length,
-        characters: characters.length,
-        arts: arts.length,
-        nsfwArts: arts.filter(art => art.is_nsfw).length,
-        sfwArts: arts.filter(art => !art.is_nsfw).length,
-        friendArtists: artists.filter(artist => artist.is_friend).length,
-        s3Files: arts.filter(art => this.isS3Url(art.image_url)).length,
-        recentUploads: arts.filter(art => {
-          if (!art.created_date) return false
-          const uploadDate = new Date(art.created_date)
+        arts: artsResult.length,
+        artists: artistsResult.length,
+        tags: tagsResult.length,
+        characters: charactersResult.length,
+        nsfwArts: artsResult.filter(art => art.is_nsfw).length,
+        sfwArts: artsResult.filter(art => !art.is_nsfw).length,
+        friendArtists: artistsResult.filter(artist => artist.is_friend).length,
+        s3Files: artsResult.filter(art => this.isS3Url(art.image_url)).length,
+        recentUploads: artsResult.filter(art => {
+          const uploadDate = new Date(art.upload_date)
           const weekAgo = new Date()
           weekAgo.setDate(weekAgo.getDate() - 7)
-          return uploadDate >= weekAgo
+          return uploadDate > weekAgo
         }).length,
-        topArtist: artists.length > 0 ? artists[0] : null,
-        topTag: tags.length > 0 ? tags[0] : null,
-        topCharacter: characters.length > 0 ? characters[0] : null
+        topArtist: artistsResult.length > 0 ? artistsResult[0] : null,
+        topTag: tagsResult.length > 0 ? tagsResult[0] : null,
+        topCharacter: charactersResult.length > 0 ? charactersResult[0] : null
       }
       
       console.log('✅ getDashboardStats: Полная статистика:', stats)
@@ -1414,130 +1016,112 @@ export const furryApi = {
     }
   },
 
-  /**
-   * Загрузить все данные галереи
-   */
-  async loadAllData(options = {}) {
-    try {
-      console.log('🔄 loadAllData: Загружаем все данные галереи...')
-      
-      const [artsResult, artistsResult, tagsResult, charactersResult] = await Promise.all([
-        this.getFurryArts(options),
-        this.getFurryArtists(),
-        this.getFurryTags(),
-        this.getSpecies()
-      ])
-      
-      const stats = {
-        arts: artsResult.length,
-        artists: artistsResult.length,
-        tags: tagsResult.length,
-        characters: charactersResult.length,
-        nsfwArts: artsResult.filter(art => art.is_nsfw).length,
-        sfwArts: artsResult.filter(art => !art.is_nsfw).length,
-        friendArtists: artistsResult.filter(artist => artist.is_friend).length,
-        s3Files: artsResult.filter(art => this.isS3Url(art.image_url)).length
-      }
-      
-      console.log('✅ loadAllData: Все данные загружены!')
-      
-      return {
-        arts: artsResult,
-        artists: artistsResult,
-        tags: tagsResult,
-        characters: charactersResult,
-        stats: stats
-      }
-      
-    } catch (error) {
-      console.error('❌ loadAllData: Ошибка загрузки всех данных:', error)
-      throw new Error(`Ошибка загрузки данных: ${error.message}`)
-    }
-  },
-
   // ============================================
-  // 🔧 ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
+  // 🧹 ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
   // ============================================
 
   /**
    * Очистка данных мероприятия перед сохранением
    */
-  _cleanEventData(eventData) {
-    const cleanData = {}
+  _cleanEventData(data) {
+    const cleaned = { ...data }
     
-    // Обязательные поля
-    if (eventData.name) cleanData.name = eventData.name.trim()
-    if (eventData.slug) cleanData.slug = eventData.slug.trim().toLowerCase()
-    if (eventData.event_date) cleanData.event_date = eventData.event_date
-    if (eventData.location) cleanData.location = eventData.location.trim()
+    // Удаляем системные поля
+    delete cleaned.id
+    delete cleaned.created_at
+    delete cleaned.updated_at
     
-    // Необязательные строковые поля
-    const stringFields = [
-      'subtitle', 'description', 'short_description', 'city', 'country', 
-      'address', 'venue_url', 'banner_url', 'logo_url', 'gallery_folder',
-      'my_role', 'my_review', 'meta_title', 'meta_description', 'og_image',
-      'official_website', 'tickets_url', 'currency'
+    // Конвертируем числовые поля
+    const numericFields = [
+      'my_rating', 'total_spent', 'attendees_count', 
+      'expected_visitors', 'entrance_fee'
     ]
     
-    stringFields.forEach(field => {
-      if (eventData[field] && typeof eventData[field] === 'string') {
-        cleanData[field] = eventData[field].trim()
+    numericFields.forEach(field => {
+      if (cleaned[field] !== null && cleaned[field] !== undefined) {
+        const num = Number(cleaned[field])
+        cleaned[field] = isNaN(num) ? null : num
       }
     })
     
-    // Даты
-    const dateFields = [
-      'announced_date', 'registration_start', 'registration_end'
-    ]
-    
-    dateFields.forEach(field => {
-      if (eventData[field]) {
-        cleanData[field] = eventData[field]
-      }
-    })
-    
-    // Перечисления
-    if (eventData.status) cleanData.status = eventData.status
-    if (eventData.event_type) cleanData.event_type = eventData.event_type
-    if (eventData.attendance_status) cleanData.attendance_status = eventData.attendance_status
-    
-    // Числовые поля
-    const numberFields = [
-      'attendees_count', 'expected_visitors', 'my_rating', 
-      'entrance_fee', 'total_spent'
-    ]
-    
-    numberFields.forEach(field => {
-      if (eventData[field] !== undefined && eventData[field] !== null && eventData[field] !== '') {
-        const num = parseFloat(eventData[field])
-        if (!isNaN(num)) {
-          cleanData[field] = num
-        }
-      }
-    })
-    
-    // Булевы поля
+    // Конвертируем булевы поля
     const booleanFields = [
-      'has_dealers_den', 'has_art_show', 'has_fursuit_parade', 'has_competitions',
-      'is_featured', 'is_nsfw', 'is_online'
+      'is_featured', 'has_dealers_den', 
+      'has_art_show', 'has_fursuit_parade'
     ]
     
     booleanFields.forEach(field => {
-      if (eventData[field] !== undefined) {
-        cleanData[field] = Boolean(eventData[field])
+      if (cleaned[field] !== null && cleaned[field] !== undefined) {
+        cleaned[field] = Boolean(cleaned[field])
       }
     })
     
-    // JSON поля
-    if (eventData.extra_data && typeof eventData.extra_data === 'object') {
-      cleanData.extra_data = eventData.extra_data
+    // Обрезаем строковые поля
+    const stringFields = [
+      'name', 'slug', 'subtitle', 'description', 'location', 
+      'city', 'country', 'official_website', 'meta_image', 
+      'meta_title', 'meta_description'
+    ]
+    
+    stringFields.forEach(field => {
+      if (typeof cleaned[field] === 'string') {
+        cleaned[field] = cleaned[field].trim() || null
+      }
+    })
+    
+    // Валидация дат
+    const dateFields = ['event_date', 'announced_date']
+    
+    dateFields.forEach(field => {
+      if (cleaned[field]) {
+        const date = new Date(cleaned[field])
+        if (isNaN(date.getTime())) {
+          throw new Error(`Неверный формат даты в поле ${field}`)
+        }
+        cleaned[field] = date.toISOString().split('T')[0] // Только дата, без времени
+      }
+    })
+    
+    // Валидация обязательных полей
+    if (!cleaned.name || cleaned.name.length < 3) {
+      throw new Error('Название мероприятия обязательно и должно содержать минимум 3 символа')
     }
     
-    return cleanData
+    if (!cleaned.event_date) {
+      throw new Error('Дата мероприятия обязательна')
+    }
+    
+    // Генерация slug если не указан
+    if (!cleaned.slug && cleaned.name) {
+      cleaned.slug = this._generateSlugFromName(cleaned.name)
+    }
+    
+    // Генерация meta_title если не указан
+    if (!cleaned.meta_title && cleaned.name) {
+      cleaned.meta_title = cleaned.name
+      if (cleaned.subtitle) {
+        cleaned.meta_title += ` - ${cleaned.subtitle}`
+      }
+    }
+    
+    return cleaned
   },
 
   /**
-   * Проверка S3 URL
+   * Генерация slug из названия
+   */
+  _generateSlugFromName(name) {
+    return name
+      .toLowerCase()
+      .replace(/[^a-zа-я0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim('-')
+      .substring(0, 50)
+  },
+
+  /**
+   * Проверить является ли URL ссылкой на S3/Supabase Storage
    */
   isS3Url(url) {
     if (!url) return false
@@ -1545,45 +1129,7 @@ export const furryApi = {
   },
 
   /**
-   * Поиск по мероприятиям
-   */
-  async searchEvents(searchQuery, options = {}) {
-    return this.getEvents({
-      search: searchQuery,
-      ...options
-    })
-  },
-
-  /**
-   * Поиск по галерее
-   */
-  async searchFurryContent(searchTerm) {
-    return this.getFurryArts({ search: searchTerm })
-  },
-
-  /**
-   * Проверка соединения с базой данных
-   */
-  async testConnection() {
-    try {
-      const { data, error } = await supabase
-        .from('cons')
-        .select('count')
-        .limit(1)
-      
-      if (error) throw error
-      
-      console.log('✅ Соединение с Supabase установлено')
-      return true
-      
-    } catch (error) {
-      console.error('❌ Ошибка соединения с Supabase:', error)
-      return false
-    }
-  },
-
-  /**
-   * Получить информацию о доступных таблицах
+   * Получить информацию о таблицах
    */
   async getTableInfo() {
     try {
