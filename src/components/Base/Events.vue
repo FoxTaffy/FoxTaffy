@@ -1,166 +1,157 @@
 <template>
   <!-- Мероприятия -->
-  <div class="section">
+  <div class="section events-section" id="events">
     <h2 class="section-title">Мероприятия</h2>
-    <p class="section-description">События, которые я посетил и планирую посетить. Присоединяйтесь!</p>
+    <p class="section-description">События, которые я посетил и планирую посетить.</p>
     
-    <div class="events-container">
-      <!-- Состояния загрузки -->
-      <div v-if="loading" class="loading-container">
-        <div class="loading-spinner"></div>
-        <p>Загружаем мероприятия...</p>
-      </div>
-      
-      <div v-else-if="error" class="error-container">
-        <i class="fas fa-exclamation-triangle"></i>
-        <p>{{ error }}</p>
-        <button @click="loadEvents" class="retry-btn">
-          <i class="fas fa-redo"></i>
-          Попробовать снова
-        </button>
-      </div>
-      
-      <!-- Основной контент -->
-      <div v-else>
-        <!-- Статистика в кратком виде -->
-        <div class="events-stats">
-          <div class="stats-grid">
-            <div class="stat-item">
-              <div class="stat-icon completed">
-                <i class="fas fa-check-circle"></i>
-              </div>
-              <div class="stat-content">
-                <div class="stat-number">{{ stats.completed }}+</div>
-                <div class="stat-label">Посещённых</div>
-              </div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-icon upcoming">
-                <i class="fas fa-calendar-plus"></i>
-              </div>
-              <div class="stat-content">
-                <div class="stat-number">{{ stats.upcoming }}</div>
-                <div class="stat-label">Планируемых</div>
-              </div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-icon total">
-                <i class="fas fa-calendar-alt"></i>
-              </div>
-              <div class="stat-content">
-                <div class="stat-number">{{ stats.totalSpent ? formatMoney(stats.totalSpent) : stats.total }}</div>
-                <div class="stat-label">{{ stats.totalSpent ? 'Потрачено' : 'Всего событий' }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Карточки последних событий -->
-        <div class="events-grid">
-          <div 
-            v-for="event in displayedEvents" 
-            :key="event.id"
-            class="event-card" 
-            :class="getEventCardClass(event)"
-            @click="goToEventDetail(event)"
+    <!-- Состояния загрузки -->
+    <div v-if="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Загружаем последние события...</p>
+    </div>
+    
+    <div v-else-if="error" class="error-state">
+      <i class="fas fa-exclamation-triangle"></i>
+      <p>{{ error }}</p>
+      <button @click="loadData" class="retry-button">
+        <i class="fas fa-redo"></i>
+        Попробовать снова
+      </button>
+    </div>
+    
+    <!-- Карточки мероприятий -->
+    <div v-else class="events-grid">
+      <!-- Две основные карточки -->
+      <div 
+        v-for="event in mainEvents" 
+        :key="event.id"
+        class="event-card"
+        :class="getCardClass(event)"
+        @click="openEvent(event)"
+      >
+        <!-- Изображение -->
+        <div class="card-image">
+          <img 
+            :src="getImageUrl(event)" 
+            :alt="event.name"
+            @error="onImageError"
           >
-            <div class="card-shine"></div>
-            
-            <!-- Изображение -->
-            <div class="event-image">
-              <img 
-                :src="getEventImage(event)" 
-                :alt="event.name"
-                @error="handleImageError"
-              >
-              
-              <!-- Бейдж статуса -->
-              <div class="event-status-badge" :class="getStatusBadgeClass(event)">
-                <i :class="getStatusIcon(event)"></i>
-                <span>{{ getStatusText(event) }}</span>
-              </div>
-              
-              <!-- Дата в углу (для предстоящих) -->
-              <div v-if="!isEventCompleted(event)" class="event-date-badge">
-                <div class="date-month">{{ getMonthShort(event.event_date) }}</div>
-                <div class="date-day">{{ getDay(event.event_date) }}</div>
-              </div>
-            </div>
-            
-            <!-- Содержимое карточки -->
-            <div class="event-content">
-              <!-- Заголовок и мета-информация -->
-              <div class="event-header">
-                <h3 class="event-title">{{ event.name }}</h3>
-                <div class="event-subtitle" v-if="event.subtitle">{{ event.subtitle }}</div>
-              </div>
-              
-              <!-- Основная информация -->
-              <div class="event-meta">
-                <div class="meta-item">
-                  <i class="fas fa-calendar-alt"></i>
-                  <span>{{ formatEventDate(event.event_date) }}</span>
-                </div>
-                <div class="meta-item">
-                  <i class="fas fa-map-marker-alt"></i>
-                  <span>{{ event.city || event.location || 'Уточняется' }}</span>
-                </div>
-                <div v-if="event.attendees_count" class="meta-item">
-                  <i class="fas fa-users"></i>
-                  <span>{{ event.attendees_count }}+ участников</span>
-                </div>
-              </div>
-              
-              <!-- Описание -->
-              <p class="event-description">
-                {{ truncateDescription(event.short_description || event.description || 'Подробности скоро...') }}
-              </p>
-              
-              <!-- Рейтинг (для завершённых событий) -->
-              <div v-if="event.my_rating && isEventCompleted(event)" class="event-rating">
-                <div class="rating-stars">
-                  <i 
-                    v-for="star in 5" 
-                    :key="star"
-                    class="fas fa-star"
-                    :class="{ active: star <= event.my_rating }"
-                  ></i>
-                </div>
-                <span class="rating-text">{{ event.my_rating }}/5</span>
-              </div>
-              
-              <!-- Дополнительная информация -->
-              <div class="event-extras" v-if="event.total_spent || event.photos_count">
-                <div v-if="event.total_spent" class="extra-item spent">
-                  <i class="fas fa-ruble-sign"></i>
-                  <span>{{ formatMoney(event.total_spent) }}</span>
-                </div>
-                <div v-if="event.photos_count" class="extra-item photos">
-                  <i class="fas fa-camera"></i>
-                  <span>{{ event.photos_count }} фото</span>
-                </div>
-              </div>
-            </div>
+          
+          <!-- Дата -->
+          <div class="date-badge">
+            <div class="month">{{ getMonth(event.event_date) }}</div>
+            <div class="day">{{ getDay(event.event_date) }}</div>
+            <div class="year">{{ getYear(event.event_date) }}</div>
+          </div>
+          
+          <!-- Статус -->
+          <div class="status-badge" :class="getStatusClass(event)">
+            {{ getStatusText(event) }}
           </div>
         </div>
         
-        <!-- Кнопка "Смотреть все" -->
-        <div class="events-footer">
-          <button class="view-all-btn" @click="goToAllEvents">
-            <div class="btn-content">
-              <div class="btn-icon">
-                <i class="fas fa-calendar-week"></i>
-              </div>
-              <div class="btn-text">
-                <div class="btn-title">Все мероприятия</div>
-                <div class="btn-subtitle">Полный список с фильтрами и поиском</div>
-              </div>
-              <div class="btn-arrow">
-                <i class="fas fa-arrow-right"></i>
-              </div>
+        <!-- Контент -->
+        <div class="card-content">
+          <h3 class="event-name">{{ event.name }}</h3>
+          
+          <!-- Мета информация -->
+          <div class="event-meta">
+            <div class="meta-item">
+              <i class="fas fa-map-marker-alt"></i>
+              <span>{{ getLocation(event) }}</span>
             </div>
-            <div class="btn-shine"></div>
-          </button>
+            <div v-if="event.attendees_count" class="meta-item">
+              <i class="fas fa-users"></i>
+              <span>{{ event.attendees_count }}+</span>
+            </div>
+          </div>
+          
+          <!-- Описание -->
+          <p class="event-description">{{ getDescription(event) }}</p>
+          
+          <!-- Прогресс или рейтинг -->
+          <div v-if="isUpcoming(event)" class="countdown-block">
+            <div class="countdown-text">
+              <i class="fas fa-clock"></i>
+              <span>До начала: {{ getTimeLeft(event.event_date) }}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" :style="{ width: getProgress(event.event_date) + '%' }"></div>
+            </div>
+          </div>
+          
+          <div v-else-if="event.my_rating" class="rating-block">
+            <div class="rating-text">
+              <i class="fas fa-star"></i>
+              <span>Моя оценка: {{ event.my_rating }}/5</span>
+            </div>
+            <div class="stars">
+              <i 
+                v-for="star in 5" 
+                :key="star"
+                class="fas fa-star"
+                :class="{ filled: star <= event.my_rating }"
+              ></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Карточка "Показать ещё" -->
+      <div class="event-card show-more-card" @click="showAllEvents">
+        <!-- Заблюренное изображение -->
+        <div class="card-image blurred">
+          <img 
+            :src="getImageUrl(thirdEvent)" 
+            :alt="thirdEvent.name"
+            @error="onImageError"
+          >
+          
+          <!-- Дата -->
+          <div class="date-badge">
+            <div class="month">{{ getMonth(thirdEvent.event_date) }}</div>
+            <div class="day">{{ getDay(thirdEvent.event_date) }}</div>
+            <div class="year">{{ getYear(thirdEvent.event_date) }}</div>
+          </div>
+          
+          <!-- Статус -->
+          <div class="status-badge" :class="getStatusClass(thirdEvent)">
+            {{ getStatusText(thirdEvent) }}
+          </div>
+        </div>
+        
+        <!-- Контент с блюром -->
+        <div class="card-content blurred-content">
+          <h3 class="event-name">{{ thirdEvent.name }}</h3>
+          
+          <div class="event-meta">
+            <div class="meta-item">
+              <i class="fas fa-map-marker-alt"></i>
+              <span>{{ getLocation(thirdEvent) }}</span>
+            </div>
+            <div v-if="thirdEvent.attendees_count" class="meta-item">
+              <i class="fas fa-users"></i>
+              <span>{{ thirdEvent.attendees_count }}+</span>
+            </div>
+          </div>
+          
+          <p class="event-description">{{ getDescription(thirdEvent) }}</p>
+        </div>
+        
+        <!-- Overlay поверх всей карточки -->
+        <div class="show-more-overlay">
+          <div class="overlay-content">
+            <div class="overlay-icon">
+              <i class="fas fa-calendar-week"></i>
+            </div>
+            <h4 class="overlay-title">Показать ещё</h4>
+            <p class="overlay-subtitle">{{ stats.total }}+ мероприятий</p>
+            <div class="overlay-stats">
+              <span>{{ stats.completed }} посещено</span>
+              <span class="divider">•</span>
+              <span>{{ stats.upcoming }} планируется</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -177,270 +168,345 @@ export default {
     return {
       loading: true,
       error: null,
-      
-      // Данные из API
       events: [],
       stats: {
-        upcoming: 0,
-        completed: 0,
         total: 0,
-        totalSpent: 0
+        upcoming: 0,
+        completed: 0
       }
     }
   },
   
   computed: {
-    // Отображаем 2-3 самых интересных события
-    displayedEvents() {
-      if (this.events.length === 0) return this.getFallbackEvents()
+    // Первые 2 события для основных карточек
+    mainEvents() {
+      if (this.events.length === 0) {
+        return this.getDefaultEvents().slice(0, 2)
+      }
       
-      // Получаем по одному самому свежему из каждой категории
-      const completed = this.events.filter(e => this.isEventCompleted(e))
-        .sort((a, b) => new Date(b.event_date) - new Date(a.event_date))
-        .slice(0, 2) // Последние 2 завершённых
+      const now = new Date()
       
-      const upcoming = this.events.filter(e => !this.isEventCompleted(e))
+      // Ближайшие предстоящие
+      const upcoming = this.events
+        .filter(e => new Date(e.event_date) > now)
         .sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
-        .slice(0, 1) // Ближайшее предстоящее
       
-      return [...upcoming, ...completed].slice(0, 3)
+      // Последние завершённые
+      const completed = this.events
+        .filter(e => new Date(e.event_date) <= now)
+        .sort((a, b) => new Date(b.event_date) - new Date(a.event_date))
+      
+      // Берём по одному из каждой категории
+      const result = []
+      if (upcoming.length > 0) result.push(upcoming[0])
+      if (completed.length > 0) result.push(completed[0])
+      
+      // Если недостаточно, добавляем ещё
+      if (result.length < 2) {
+        const remaining = [...upcoming.slice(1), ...completed.slice(1)]
+        while (result.length < 2 && remaining.length > 0) {
+          const next = remaining.shift()
+          if (!result.find(e => e.id === next.id)) {
+            result.push(next)
+          }
+        }
+      }
+      
+      return result.slice(0, 2)
+    },
+    
+    // Третье событие для заблюренной карточки
+    thirdEvent() {
+      if (this.events.length === 0) {
+        return this.getDefaultEvents()[2]
+      }
+      
+      const usedIds = this.mainEvents.map(e => e.id)
+      const remaining = this.events.filter(e => !usedIds.includes(e.id))
+      
+      return remaining.length > 0 ? remaining[0] : this.getDefaultEvents()[2]
     }
   },
   
   async mounted() {
-    await this.loadEvents()
+    await this.loadData()
   },
   
   methods: {
-    // =================== API МЕТОДЫ ===================
-    async loadEvents() {
+    // =================== ЗАГРУЗКА ДАННЫХ ===================
+    async loadData() {
       try {
         this.loading = true
         this.error = null
         
-        console.log('🎪 Events: Загружаем данные мероприятий...')
+        console.log('🎪 Загружаем мероприятия...')
         
-        // Параллельно загружаем события и статистику
         const [eventsData, statsData] = await Promise.allSettled([
           furryApi.getEvents({ 
-            status: 'all', 
-            featured: true, // Только избранные для главной страницы
-            limit: 10,
+            status: 'all',
+            featured: true,
+            limit: 15,
             sort: 'date_desc'
           }),
           furryApi.getEventsStats()
         ])
         
-        // Обрабатываем события
+        // Обработка событий
         if (eventsData.status === 'fulfilled') {
           this.events = eventsData.value || []
-          console.log(`✅ Events: Загружено ${this.events.length} событий`)
+          console.log(`✅ Загружено ${this.events.length} событий`)
         } else {
-          console.warn('⚠️ Events: Не удалось загрузить события:', eventsData.reason)
+          console.warn('⚠️ События не загружены:', eventsData.reason)
           this.events = []
         }
         
-        // Обрабатываем статистику
+        // Обработка статистики
         if (statsData.status === 'fulfilled') {
-          this.stats = { ...this.stats, ...statsData.value }
-          console.log('✅ Events: Статистика загружена:', this.stats)
+          this.stats = {
+            total: statsData.value?.total || 0,
+            upcoming: statsData.value?.upcoming || 0,
+            completed: statsData.value?.completed || 0
+          }
         } else {
-          console.warn('⚠️ Events: Не удалось загрузить статистику:', statsData.reason)
-          // Вычисляем статистику из загруженных событий
-          this.calculateStatsFromEvents()
+          this.calculateStats()
         }
         
-        // Если нет событий, используем fallback
+        // Fallback данные
         if (this.events.length === 0) {
-          console.log('🧪 Events: Используем fallback данные')
-          this.loadFallbackData()
+          console.log('📝 Используем fallback данные')
+          this.loadDefaultData()
         }
         
       } catch (error) {
-        console.error('❌ Events: Критическая ошибка:', error)
+        console.error('❌ Ошибка загрузки:', error)
         this.error = 'Не удалось загрузить мероприятия'
-        this.loadFallbackData()
+        this.loadDefaultData()
         
       } finally {
         this.loading = false
       }
     },
     
-    // Вычисляем статистику из текущих событий
-    calculateStatsFromEvents() {
+    calculateStats() {
+      if (this.events.length === 0) return
+      
       const now = new Date()
       this.stats = {
-        upcoming: this.events.filter(e => new Date(e.event_date) >= now).length,
-        completed: this.events.filter(e => new Date(e.event_date) < now).length,
         total: this.events.length,
-        totalSpent: this.events.reduce((sum, e) => sum + (e.total_spent || 0), 0)
+        upcoming: this.events.filter(e => new Date(e.event_date) > now).length,
+        completed: this.events.filter(e => new Date(e.event_date) <= now).length
       }
     },
     
     // =================== FALLBACK ДАННЫЕ ===================
-    getFallbackEvents() {
+    getDefaultEvents() {
       return [
         {
-          id: 'fb-1',
+          id: '1',
+          slug: 'summer-meetup-2025',
+          name: 'Summer Furry Meetup',
+          event_date: '2025-07-15T12:00:00Z',
+          city: 'Санкт-Петербург',
+          location: 'Парк 300-летия',
+          attendees_count: 50,
+          short_description: 'Летняя встреча фурри-сообщества с активностями на свежем воздухе.',
+          banner_url: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/events/summer_meetup.jpg',
+          event_type: 'meetup',
+          attendance_status: 'planning'
+        },
+        {
+          id: '2',
           slug: 'any-furry-fest-5',
           name: 'Any Furry Fest V',
-          subtitle: 'Крупнейший фурри-фестиваль России',
-          event_date: '2024-08-17',
+          event_date: '2024-08-17T09:00:00Z',
           city: 'Москва',
           location: 'Парк-отель "Воздвиженское"',
-          short_description: 'Невероятный трёхдневный фестиваль с множеством активностей, выставками артистов и незабываемой атмосферой фурри-сообщества.',
-          my_rating: 5,
-          total_spent: 8500,
           attendees_count: 400,
-          photos_count: 47,
-          is_featured: true,
+          my_rating: 5,
+          short_description: 'Крупнейший фурри-фестиваль России с множеством активностей.',
           banner_url: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/events/aff5_banner.jpg',
           event_type: 'convention',
           attendance_status: 'attended'
         },
         {
-          id: 'fb-2',
+          id: '3',
           slug: 'foxwood-2000s',
           name: 'FoxWood: Back to 2000s',
-          subtitle: 'Ретро-мероприятие в лесной тематике',
-          event_date: '2024-09-08',
+          event_date: '2024-09-08T10:00:00Z',
           city: 'Ленинградская область',
           location: 'Загородный клуб "Бор"',
-          short_description: 'Уникальная концепция: лесная тематика смешанная с ностальгией по нулевым. Атмосферное мероприятие на природе.',
-          my_rating: 5,
-          total_spent: 7500,
           attendees_count: 160,
-          photos_count: 32,
-          is_featured: true,
+          my_rating: 5,
+          short_description: 'Ретро-мероприятие в лесной тематике с ностальгией по нулевым.',
           banner_url: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/events/foxwood_banner.jpg',
           event_type: 'convention',
           attendance_status: 'attended'
-        },
-        {
-          id: 'fb-3',
-          slug: 'summer-meetup-2025',
-          name: 'Summer Furry Meetup',
-          subtitle: 'Летняя встреча сообщества',
-          event_date: '2025-07-15',
-          city: 'Санкт-Петербург',
-          location: 'Парк 300-летия',
-          short_description: 'Предстоящая летняя встреча фурри-сообщества с активностями на свежем воздухе и фотосессией.',
-          attendees_count: 50,
-          is_featured: true,
-          banner_url: 'https://via.placeholder.com/400x250/4caf50/ffffff?text=Summer+Meetup',
-          event_type: 'meetup',
-          attendance_status: 'planning'
         }
       ]
     },
     
-    loadFallbackData() {
-      this.events = this.getFallbackEvents()
+    loadDefaultData() {
+      this.events = this.getDefaultEvents()
       this.stats = {
-        upcoming: 1,
-        completed: 2,
         total: 3,
-        totalSpent: 16000
+        upcoming: 1,
+        completed: 2
       }
     },
     
     // =================== УТИЛИТЫ ===================
-    isEventCompleted(event) {
-      return new Date(event.event_date) < new Date()
+    isUpcoming(event) {
+      return new Date(event.event_date) > new Date()
     },
     
-    getEventCardClass(event) {
-      const classes = []
-      
-      if (this.isEventCompleted(event)) {
-        classes.push('completed')
-        if (event.my_rating >= 4) classes.push('high-rating')
-      } else {
-        classes.push('upcoming')
-      }
-      
-      return classes.join(' ')
+    getCardClass(event) {
+      return this.isUpcoming(event) ? 'upcoming' : 'completed'
     },
     
-    getStatusBadgeClass(event) {
-      return this.isEventCompleted(event) ? 'completed' : 'upcoming'
-    },
-    
-    getStatusIcon(event) {
-      return this.isEventCompleted(event) ? 'fas fa-check-circle' : 'fas fa-calendar-plus'
+    getStatusClass(event) {
+      return this.isUpcoming(event) ? 'upcoming' : 'completed'
     },
     
     getStatusText(event) {
-      if (this.isEventCompleted(event)) {
-        return event.attendance_status === 'attended' ? 'Посетил' : 'Завершено'
-      }
-      return 'Скоро'
-    },
-    
-    // =================== ФОРМАТИРОВАНИЕ ===================
-    getEventImage(event) {
-      if (event.banner_url) return event.banner_url
-      if (event.image_url) return event.image_url  
-      if (event.meta_image) return event.meta_image
-      
-      // Генерируем placeholder в зависимости от типа события
-      const color = this.isEventCompleted(event) ? 'ff7b25' : '4caf50'
-      return `https://via.placeholder.com/400x250/${color}/ffffff?text=${encodeURIComponent(event.name)}`
-    },
-    
-    handleImageError(e) {
-      e.target.src = 'https://via.placeholder.com/400x250/2a2a2a/ff7b25?text=Event+Image'
-    },
-    
-    formatEventDate(dateString) {
-      if (!dateString) return 'Дата уточняется'
-      
-      try {
-        const date = new Date(dateString)
-        return date.toLocaleDateString('ru-RU', { 
-          day: 'numeric', 
-          month: 'long', 
-          year: 'numeric'
-        })
-      } catch {
-        return 'Дата уточняется'
+      if (this.isUpcoming(event)) {
+        return 'Буду участвовать'
+      } else {
+        return 'Посетил'
       }
     },
     
-    getMonthShort(dateString) {
+    // =================== ФОРМАТИРОВАНИЕ ДАТЫ ===================
+    getMonth(dateString) {
       const months = ['ЯНВ', 'ФЕВ', 'МАР', 'АПР', 'МАЙ', 'ИЮН', 'ИЮЛ', 'АВГ', 'СЕН', 'ОКТ', 'НОЯ', 'ДЕК']
-      return months[new Date(dateString).getMonth()]
+      try {
+        return months[new Date(dateString).getMonth()]
+      } catch {
+        return 'МЕС'
+      }
     },
     
     getDay(dateString) {
-      return new Date(dateString).getDate()
-    },
-    
-    formatMoney(amount) {
-      if (!amount) return '0 ₽'
-      return new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: 'RUB',
-        minimumFractionDigits: 0
-      }).format(amount)
-    },
-    
-    truncateDescription(text, maxLength = 120) {
-      if (!text) return 'Подробности скоро...'
-      return text.length > maxLength ? text.slice(0, maxLength) + '...' : text
-    },
-    
-    // =================== НАВИГАЦИЯ ===================
-    goToEventDetail(event) {
-      if (event.slug) {
-        this.$router.push(`/events/${event.slug}`)
-      } else {
-        console.warn('⚠️ Нет slug для мероприятия:', event)
-        this.goToAllEvents()
+      try {
+        return new Date(dateString).getDate()
+      } catch {
+        return '1'
       }
     },
     
-    goToAllEvents() {
+    getYear(dateString) {
+      try {
+        return new Date(dateString).getFullYear()
+      } catch {
+        return '2025'
+      }
+    },
+    
+    // =================== ВРЕМЯ ДО СОБЫТИЯ ===================
+    getTimeLeft(dateString) {
+      try {
+        const eventDate = new Date(dateString)
+        const now = new Date()
+        const diffTime = eventDate - now
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+        
+        if (diffDays > 0) {
+          return `${diffDays} ${this.pluralizeDays(diffDays)}`
+        } else if (diffDays === 0) {
+          return 'Сегодня!'
+        } else {
+          return 'Завершено'
+        }
+      } catch {
+        return 'Скоро'
+      }
+    },
+    
+    pluralizeDays(days) {
+      const lastDigit = days % 10
+      const lastTwoDigits = days % 100
+      
+      if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+        return 'дней'
+      } else if (lastDigit === 1) {
+        return 'день'
+      } else if (lastDigit >= 2 && lastDigit <= 4) {
+        return 'дня'
+      } else {
+        return 'дней'
+      }
+    },
+    
+    getProgress(dateString) {
+      try {
+        const eventDate = new Date(dateString)
+        const now = new Date()
+        const diffDays = Math.ceil((eventDate - now) / (1000 * 60 * 60 * 24))
+        
+        const maxDays = 100
+        return Math.max(0, Math.min(100, ((maxDays - diffDays) / maxDays) * 100))
+      } catch {
+        return 50
+      }
+    },
+    
+    // =================== КОНТЕНТ ===================
+    getLocation(event) {
+      return event.city || event.location || 'Место уточняется'
+    },
+    
+    getDescription(event) {
+      let text = event.short_description || event.description || ''
+      
+      if (!text) {
+        const defaults = {
+          convention: 'Конвент, который мы создаём так, как сами хотели бы его посетить.',
+          meetup: 'Встреча фурри-сообщества для общения и новых знакомств.',
+          festival: 'Фестиваль с насыщенной программой и яркими впечатлениями.',
+          market: 'Маркет товаров и услуг для фурри-сообщества.'
+        }
+        text = defaults[event.event_type] || 'Интересное мероприятие для нашего сообщества.'
+      }
+      
+      return text.length > 120 ? text.slice(0, 120) + '...' : text
+    },
+    
+    // =================== ИЗОБРАЖЕНИЯ ===================
+    getImageUrl(event) {
+      const urls = [event.banner_url, event.image_url, event.meta_image, event.logo_url]
+      
+      for (const url of urls) {
+        if (url && this.isValidUrl(url)) {
+          return url
+        }
+      }
+      
+      const color = this.isUpcoming(event) ? '4caf50' : 'ff7b25'
+      const name = encodeURIComponent(event.name?.slice(0, 8) || 'Event')
+      return `https://via.placeholder.com/400x250/${color}/ffffff?text=${name}`
+    },
+    
+    isValidUrl(url) {
+      return url && typeof url === 'string' && (
+        url.startsWith('http') || 
+        url.startsWith('https') ||
+        url.startsWith('/')
+      )
+    },
+    
+    onImageError(event) {
+      event.target.src = 'https://via.placeholder.com/400x250/2a2a2a/ff7b25?text=Event'
+    },
+    
+    // =================== НАВИГАЦИЯ ===================
+    openEvent(event) {
+      if (event.slug) {
+        this.$router.push(`/events/${event.slug}`)
+      } else {
+        this.showAllEvents()
+      }
+    },
+    
+    showAllEvents() {
       this.$router.push('/events')
     }
   }
@@ -448,39 +514,30 @@ export default {
 </script>
 
 <style scoped>
-/* Используем те же CSS переменные, что и в остальном проекте */
-
-/* ===== ОСНОВНОЙ КОНТЕЙНЕР ===== */
-.events-container {
-  max-width: 100%;
-}
-
+/* ===== ОСНОВА ===== */
 .section-description {
-  text-align: center;
   color: var(--text-muted);
   margin-bottom: 2rem;
-  font-size: 1.1rem;
+  text-align: left;
+  font-size: 1rem;
   line-height: 1.6;
 }
 
 /* ===== СОСТОЯНИЯ ЗАГРУЗКИ ===== */
-.loading-container, .error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 3rem;
+.loading-state, .error-state {
   text-align: center;
+  padding: 3rem 1rem;
   color: var(--text-muted);
 }
 
-.loading-spinner {
-  width: 50px;
-  height: 50px;
+.spinner {
+  width: 40px;
+  height: 40px;
   border: 3px solid rgba(255, 123, 37, 0.2);
   border-top: 3px solid var(--accent-orange);
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  margin: 0 auto 1.5rem;
 }
 
 @keyframes spin {
@@ -488,376 +545,327 @@ export default {
   100% { transform: rotate(360deg); }
 }
 
-.retry-btn {
-  display: flex;
+.retry-button {
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   background: var(--accent-orange);
   color: white;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  transition: all 0.4s ease;
+  margin-top: 1rem;
 }
 
-.retry-btn:hover {
+.retry-button:hover {
   background: #e6691f;
   transform: translateY(-2px);
-}
-
-.error-container i {
-  font-size: 2rem;
-  color: var(--accent-orange);
-}
-
-/* ===== СТАТИСТИКА ===== */
-.events-stats {
-  margin-bottom: 2.5rem;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 1.2rem;
-  border-radius: 0.75rem;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.stat-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  transform: translateY(-3px);
-}
-
-.stat-icon {
-  width: 45px;
-  height: 45px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: 1.2rem;
-  color: white;
-  flex-shrink: 0;
-}
-
-.stat-icon.completed {
-  background: linear-gradient(135deg, var(--accent-orange), #e6691f);
-}
-
-.stat-icon.upcoming {
-  background: linear-gradient(135deg, var(--accent-green), #45a049);
-}
-
-.stat-icon.total {
-  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-number {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-light);
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  margin-top: 0.2rem;
+  box-shadow: 0 6px 20px rgba(255, 123, 37, 0.3);
 }
 
 /* ===== СЕТКА КАРТОЧЕК ===== */
 .events-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2rem;
-  margin-bottom: 2.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
 }
 
 /* ===== КАРТОЧКИ СОБЫТИЙ ===== */
 .event-card {
-  background: var(--card-bg);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 1rem;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
-  display: flex;
-  flex-direction: column;
+  backdrop-filter: blur(10px);
+  transform: translateY(0) scale(1);
 }
 
 .event-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  border-color: rgba(255, 123, 37, 0.4);
-}
-
-/* Стили по статусу события */
-.event-card.completed {
-  border-left: 4px solid var(--accent-orange);
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .event-card.upcoming {
   border-left: 4px solid var(--accent-green);
 }
 
-.event-card.high-rating {
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+.event-card.completed {
+  border-left: 4px solid var(--accent-orange);
 }
 
-/* Эффект блеска при hover */
-.card-shine {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transition: left 0.6s ease;
-  z-index: 1;
-  pointer-events: none;
+.event-card.upcoming:hover {
+  box-shadow: 0 12px 25px rgba(76, 175, 80, 0.2);
 }
 
-.event-card:hover .card-shine {
-  left: 100%;
+.event-card.completed:hover {
+  box-shadow: 0 12px 25px rgba(255, 123, 37, 0.2);
 }
 
-/* ===== ИЗОБРАЖЕНИЯ СОБЫТИЙ ===== */
-.event-image {
+/* ===== ИЗОБРАЖЕНИЯ ===== */
+.card-image {
   position: relative;
-  height: 220px;
+  height: 200px;
   overflow: hidden;
+  border-radius: 1rem 1rem 0 0;
 }
 
-.event-image img {
+.card-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.4s ease;
+  transition: transform 0.6s ease;
+  transform-origin: center;
 }
 
-.event-card:hover .event-image img {
-  transform: scale(1.1);
+.event-card:hover .card-image img {
+  transform: scale(1.02);
 }
 
-/* Бейдж статуса */
-.event-status-badge {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 2rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  z-index: 2;
+.card-image.blurred img {
+  filter: blur(4px);
 }
 
-.event-status-badge.completed {
-  background: rgba(255, 123, 37, 0.9);
-  color: white;
-}
-
-.event-status-badge.upcoming {
-  background: rgba(76, 175, 80, 0.9);
-  color: white;
-}
-
-/* Дата в углу (для предстоящих событий) */
-.event-date-badge {
+/* ===== ДАТА В УГЛУ ===== */
+.date-badge {
   position: absolute;
   top: 1rem;
   left: 1rem;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.85);
   color: white;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
+  padding: 0.6rem;
+  border-radius: 0.6rem;
   text-align: center;
-  backdrop-filter: blur(10px);
-  min-width: 50px;
+  backdrop-filter: blur(15px);
+  min-width: 65px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 3;
+  transition: all 0.4s ease;
 }
 
-.date-month {
+.event-card:hover .date-badge {
+  transform: scale(1.05);
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.month {
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--accent-green);
-}
-
-.date-day {
-  font-size: 1.2rem;
-  font-weight: 700;
+  color: var(--accent-orange);
   line-height: 1;
 }
 
-/* ===== СОДЕРЖИМОЕ КАРТОЧКИ ===== */
-.event-content {
-  padding: 1.5rem;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.day {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0.1rem 0;
 }
 
-.event-header {
-  margin-bottom: 0.5rem;
+.year {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1;
 }
 
-.event-title {
+/* ===== СТАТУС В УГЛУ (УМЕНЬШЕННЫЙ) ===== */
+.status-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 1.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 3;
+  transition: all 0.4s ease;
+  white-space: nowrap;
+}
+
+.event-card:hover .status-badge {
+  transform: scale(1.05);
+}
+
+.status-badge.upcoming {
+  background: rgba(76, 175, 80, 0.9);
+  color: white;
+}
+
+.status-badge.completed {
+  background: rgba(255, 123, 37, 0.9);
+  color: white;
+}
+
+/* ===== КОНТЕНТ КАРТОЧКИ ===== */
+.card-content {
+  padding: 1rem;
+  position: relative;
+}
+
+.blurred-content {
+  filter: blur(2px);
+}
+
+.event-name {
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--text-light);
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.75rem;
   line-height: 1.3;
 }
 
-.event-subtitle {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-/* Мета-информация */
 .event-meta {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   color: var(--text-muted);
   font-size: 0.9rem;
 }
 
 .meta-item i {
-  color: var(--accent-orange);
   width: 16px;
   text-align: center;
+  font-size: 0.9rem;
 }
 
-/* Описание */
+.meta-item:first-child i {
+  color: #e74c3c;
+}
+
+.meta-item:last-child i {
+  color: #3498db;
+}
+
 .event-description {
-  color: #c0c0c0;
+  color: rgba(255, 255, 255, 0.9);
   font-size: 0.95rem;
-  line-height: 1.5;
-  flex: 1;
+  line-height: 1.6;
+  margin-bottom: 1rem;
 }
 
-/* Рейтинг */
-.event-rating {
+/* ===== ОБРАТНЫЙ ОТСЧЁТ ===== */
+.countdown-block {
+  background: rgba(76, 175, 80, 0.1);
+  padding: 0.75rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.countdown-text {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
-.rating-stars {
+.countdown-text i {
+  color: var(--accent-green);
+}
+
+.progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-green), var(--accent-orange));
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* ===== РЕЙТИНГ ===== */
+.rating-block {
+  background: rgba(255, 123, 37, 0.1);
+  padding: 0.75rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(255, 123, 37, 0.2);
+}
+
+.rating-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.rating-text i {
+  color: #ffc107;
+}
+
+.stars {
   display: flex;
   gap: 0.2rem;
 }
 
-.rating-stars i {
+.stars i {
   color: rgba(255, 255, 255, 0.2);
-  font-size: 0.9rem;
-  transition: color 0.2s ease;
+  font-size: 1rem;
+  transition: color 0.3s ease;
 }
 
-.rating-stars i.active {
+.stars i.filled {
   color: #ffc107;
 }
 
-.rating-text {
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  font-weight: 600;
+/* ===== КАРТОЧКА "ПОКАЗАТЬ ЕЩЁ" (ПОЛНОСТЬЮ ЗАБЛЮРЕННАЯ) ===== */
+.show-more-card {
+  position: relative;
 }
 
-/* Дополнительная информация */
-.event-extras {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: auto;
-}
-
-.extra-item {
+.show-more-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 0.4rem 0.8rem;
+  justify-content: center;
   border-radius: 1rem;
+  z-index: 10;
+  transition: all 0.4s ease;
 }
 
-.extra-item.spent {
-  background: rgba(76, 175, 80, 0.1);
-  color: var(--accent-green);
-  border: 1px solid rgba(76, 175, 80, 0.2);
+.show-more-card:hover .show-more-overlay {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
 }
 
-.extra-item.photos {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-/* ===== КНОПКА "СМОТРЕТЬ ВСЕ" ===== */
-.events-footer {
+.overlay-content {
   text-align: center;
-  margin-top: 1rem;
+  padding: 2rem;
 }
 
-.view-all-btn {
-  background: linear-gradient(135deg, var(--accent-orange), #ff9550);
-  border: none;
-  border-radius: 1rem;
-  cursor: pointer;
-  overflow: hidden;
-  position: relative;
-  transition: all 0.3s ease;
-  width: 100%;
-  max-width: 400px;
-  padding: 0;
-}
-
-.view-all-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 15px 35px rgba(255, 123, 37, 0.3);
-}
-
-.btn-content {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.2rem 1.5rem;
-  position: relative;
-  z-index: 2;
-}
-
-.btn-icon {
+.overlay-icon {
   width: 50px;
   height: 50px;
   background: rgba(255, 255, 255, 0.2);
@@ -865,96 +873,119 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.4rem;
   color: white;
-  font-size: 1.3rem;
-  flex-shrink: 0;
+  margin: 0 auto 1rem;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.4s ease;
 }
 
-.btn-text {
-  flex: 1;
-  text-align: left;
-  color: white;
+.show-more-card:hover .overlay-icon {
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.25);
 }
 
-.btn-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 0.2rem;
-}
-
-.btn-subtitle {
-  font-size: 0.85rem;
-  opacity: 0.9;
-}
-
-.btn-arrow {
-  color: white;
+.overlay-title {
   font-size: 1.2rem;
-  transition: transform 0.3s ease;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-.view-all-btn:hover .btn-arrow {
-  transform: translateX(5px);
+.overlay-subtitle {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 1rem;
 }
 
-.btn-shine {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.6s ease;
+.overlay-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.view-all-btn:hover .btn-shine {
-  left: 100%;
+.divider {
+  opacity: 0.6;
 }
 
 /* ===== АДАПТИВНОСТЬ ===== */
 @media (max-width: 768px) {
   .events-grid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1.2rem;
   }
   
-  .stats-grid {
-    grid-template-columns: 1fr;
+  .card-image {
+    height: 180px;
   }
   
-  .stat-item {
-    padding: 1rem;
+  .card-content {
+    padding: 0.875rem;
   }
   
-  .event-content {
-    padding: 1.2rem;
-  }
-  
-  .event-title {
+  .event-name {
     font-size: 1.2rem;
   }
   
-  .btn-content {
-    padding: 1rem 1.2rem;
+  .event-meta {
+    flex-direction: column;
+    gap: 0.6rem;
   }
   
-  .btn-title {
-    font-size: 1rem;
+  .overlay-stats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .divider {
+    display: none;
+  }
+  
+  .status-badge {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.65rem;
   }
 }
 
 @media (max-width: 480px) {
-  .events-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  .card-image {
+    height: 160px;
   }
   
-  .event-image {
-    height: 180px;
+  .card-content {
+    padding: 0.75rem;
   }
   
-  .section-description {
+  .event-name {
+    font-size: 1.1rem;
+  }
+  
+  .event-description {
+    font-size: 0.9rem;
+  }
+  
+  .overlay-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+  
+  .overlay-title {
     font-size: 1rem;
+  }
+  
+  .overlay-content {
+    padding: 1.5rem;
+  }
+  
+  .status-badge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.6rem;
   }
 }
 </style>

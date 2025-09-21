@@ -1,6 +1,6 @@
 <template>
   <!-- Мои сообщества -->
-  <div class="section">
+  <div class="section communities-section" id="communities">
     <h2 class="section-title">Мои сообщества</h2>
     <p class="section-description">Присоединяйтесь к моим сообществам в соцсетях, где я делюсь контентом и общаюсь с фурри-фэндомом</p>
     

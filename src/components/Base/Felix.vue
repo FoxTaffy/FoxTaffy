@@ -1,6 +1,6 @@
 <template>
   <!-- Моя половинка -->
-  <div class="section felix-section">
+  <div class="section felix-section" id="felix">
     <h2 class="section-title">Моя половинка</h2>
     <div class="felix-container">
       <div class="felix-gallery">

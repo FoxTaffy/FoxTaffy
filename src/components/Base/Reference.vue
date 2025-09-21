@@ -1,6 +1,6 @@
 <template>
   <!-- Референс фурсоны -->
-  <div class="section reference-section">
+  <div class="section reference-section" id="reference">
     <h2 class="section-title">Референс фурсоны</h2>
     <div class="reference-container">
       <!-- Основное изображение референса с переходом в галерею -->

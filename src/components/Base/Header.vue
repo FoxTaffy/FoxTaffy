@@ -1,6 +1,6 @@
 <template>
   <!-- Header Section -->
-  <div class="header">
+  <div class="header" id="header">
     <div class="header-content">
       <div class="avatar-section">
         <div class="avatar-container">

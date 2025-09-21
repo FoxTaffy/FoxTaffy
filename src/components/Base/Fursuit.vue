@@ -1,6 +1,6 @@
 <template>
   <!-- Мой фурсьют -->
-  <div class="section fursuit-section">
+  <div class="section fursuit-section" id="fursuit">
     <h2 class="section-title">Мой фурсьют</h2>
     <div class="fursuit-container">
       <div class="fursuit-gallery">

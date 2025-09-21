@@ -1,164 +1,152 @@
 <template>
-  <div id="app">
-    <!-- Навигационная панель -->
-    <nav class="navbar" :class="{ 'scrolled': isScrolled, 'mobile-open': isMobileMenuOpen }">
-      <div class="nav-container">
-        <!-- Логотип -->
-        <router-link to="/" class="nav-logo" @click="closeMobileMenu">
-          <div class="logo-avatar">
-            <img src="https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery//Avatar.jpg" 
-                 alt="Fox Taffy Avatar" 
-                 class="avatar-img">
-            <div class="logo-status"></div>
-          </div>
-          <div class="logo-text">
-            <h3>Fox Taffy</h3>
-            <span>FoxTaffy.fun</span>
-          </div>
-        </router-link>
-
-        <!-- Основное меню (десктоп) -->
-        <div class="nav-menu">
-          <!-- Якорные ссылки для секций главной страницы -->
-          <a 
-            v-for="section in mainSections" 
-            :key="section.anchor"
-            :href="section.anchor" 
-            class="nav-link"
-            :class="{ 'active': activeSection === section.anchor }"
-            @click="scrollToSection(section.anchor, $event)"
-          >
-            <i :class="section.icon"></i>
-            <span>{{ section.name }}</span>
-            <div class="link-indicator"></div>
-          </a>
-
-          <!-- Выпадающее меню "Другое" -->
-          <div class="dropdown" 
-               :class="{ 'open': isDropdownOpen }" 
-               @mouseenter="openDropdown" 
-               @mouseleave="startCloseTimer">
-            <button class="dropdown-toggle nav-link" :class="{ 'active': isOtherPageActive }">
-              <i class="fas fa-ellipsis-h"></i>
-              <span>Другое</span>
-              <i class="fas fa-chevron-down dropdown-arrow" :class="{ 'rotated': isDropdownOpen }"></i>
-            </button>
-            
-            <div class="dropdown-menu" @mouseenter="cancelCloseTimer" @mouseleave="startCloseTimer">
-              <router-link 
-                v-for="page in otherPages" 
-                :key="page.path"
-                :to="page.path" 
-                class="dropdown-item"
-                @click="closeMobileMenu"
-              >
-                <i :class="page.icon"></i>
-                <div class="dropdown-item-content">
-                  <span class="dropdown-item-title">{{ page.name }}</span>
-                  <span class="dropdown-item-description">{{ page.description }}</span>
-                </div>
-              </router-link>
-            </div>
-          </div>
+  <nav class="navbar" :class="{ 'scrolled': isScrolled, 'mobile-open': isMobileMenuOpen }">
+    <div class="nav-container">
+      <!-- Логотип -->
+      <router-link to="/" class="nav-logo" @click="closeMobileMenu">
+        <div class="logo-avatar">
+          <img src="https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery//Avatar.jpg" 
+               alt="Fox Taffy Avatar" 
+               class="avatar-img">
+          <div class="logo-status"></div>
         </div>
-
-        <!-- Социальные сети -->
-        <div class="nav-social">
-          <a 
-            v-for="social in socialLinks" 
-            :key="social.name"
-            :href="social.url" 
-            target="_blank" 
-            class="social-link"
-            :title="social.name"
-          >
-            <i :class="social.icon"></i>
-          </a>
+        <div class="logo-text">
+          <h3>Fox Taffy</h3>
+          <span>FoxTaffy.fun</span>
         </div>
+      </router-link>
 
-        <!-- Мобильное меню кнопка -->
-        <button class="mobile-toggle" @click="toggleMobileMenu" :class="{ 'active': isMobileMenuOpen }">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      </div>
+      <!-- Основное меню (десктоп) -->
+      <div class="nav-menu">
+        <!-- Якорные ссылки для секций главной страницы -->
+        <a 
+          v-for="section in mainSections" 
+          :key="section.anchor"
+          :href="section.anchor" 
+          class="nav-link"
+          :class="{ 'active': activeSection === section.anchor }"
+          @click="scrollToSection(section.anchor, $event)"
+        >
+          <i :class="section.icon"></i>
+          <span>{{ section.name }}</span>
+          <div class="link-indicator"></div>
+        </a>
 
-      <!-- Мобильное меню -->
-      <div class="mobile-menu" :class="{ 'open': isMobileMenuOpen }">
-        <div class="mobile-menu-content">
-          <!-- Секции главной страницы -->
-          <div class="mobile-section">
-            <h4 class="mobile-section-title">Секции страницы</h4>
-            <a 
-              v-for="section in mainSections" 
-              :key="section.anchor + '-mobile'"
-              :href="section.anchor" 
-              class="mobile-nav-link"
-              @click="scrollToSection(section.anchor, $event, true)"
-            >
-              <i :class="section.icon"></i>
-              <span>{{ section.name }}</span>
-              <i class="fas fa-anchor"></i>
-            </a>
-          </div>
-
-          <!-- Отдельные страницы -->
-          <div class="mobile-section">
-            <h4 class="mobile-section-title">Другие страницы</h4>
+        <!-- Выпадающее меню "Другое" -->
+        <div class="dropdown" :class="{ 'open': isDropdownOpen }" @mouseenter="openDropdown" @mouseleave="closeDropdown">
+          <button class="dropdown-toggle nav-link" :class="{ 'active': isOtherPageActive }">
+            <i class="fas fa-ellipsis-h"></i>
+            <span>Другое</span>
+            <i class="fas fa-chevron-down dropdown-arrow" :class="{ 'rotated': isDropdownOpen }"></i>
+          </button>
+          
+          <div class="dropdown-menu">
             <router-link 
               v-for="page in otherPages" 
-              :key="page.path + '-mobile'"
+              :key="page.path"
               :to="page.path" 
-              class="mobile-nav-link"
+              class="dropdown-item"
               @click="closeMobileMenu"
             >
               <i :class="page.icon"></i>
-              <span>{{ page.name }}</span>
-              <i class="fas fa-external-link-alt"></i>
+              <div class="dropdown-item-content">
+                <span class="dropdown-item-title">{{ page.name }}</span>
+                <span class="dropdown-item-description">{{ page.description }}</span>
+              </div>
             </router-link>
-          </div>
-          
-          <!-- Социальные сети -->
-          <div class="mobile-social">
-            <h4>Связаться со мной</h4>
-            <div class="mobile-social-grid">
-              <a 
-                v-for="social in socialLinks" 
-                :key="social.name + '-mobile'"
-                :href="social.url" 
-                target="_blank" 
-                class="mobile-social-link"
-              >
-                <i :class="social.icon"></i>
-                <span>{{ social.name }}</span>
-              </a>
-            </div>
           </div>
         </div>
       </div>
 
-      <!-- Overlay для мобильного меню -->
-      <div class="mobile-overlay" :class="{ 'visible': isMobileMenuOpen }" @click="closeMobileMenu"></div>
-    </nav>
-    
-    <!-- Основной контент -->
-    <main class="main-content">
-      <router-view />
-    </main>
-  </div>
+      <!-- Социальные сети -->
+      <div class="nav-social">
+        <a 
+          v-for="social in socialLinks" 
+          :key="social.name"
+          :href="social.url" 
+          target="_blank" 
+          class="social-link"
+          :title="social.name"
+        >
+          <i :class="social.icon"></i>
+        </a>
+      </div>
+
+      <!-- Мобильное меню кнопка -->
+      <button class="mobile-toggle" @click="toggleMobileMenu" :class="{ 'active': isMobileMenuOpen }">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+
+    <!-- Мобильное меню -->
+    <div class="mobile-menu" :class="{ 'open': isMobileMenuOpen }">
+      <div class="mobile-menu-content">
+        <!-- Секции главной страницы -->
+        <div class="mobile-section">
+          <h4 class="mobile-section-title">Секции страницы</h4>
+          <a 
+            v-for="section in mainSections" 
+            :key="section.anchor + '-mobile'"
+            :href="section.anchor" 
+            class="mobile-nav-link"
+            @click="scrollToSection(section.anchor, $event, true)"
+          >
+            <i :class="section.icon"></i>
+            <span>{{ section.name }}</span>
+            <i class="fas fa-anchor"></i>
+          </a>
+        </div>
+
+        <!-- Отдельные страницы -->
+        <div class="mobile-section">
+          <h4 class="mobile-section-title">Другие страницы</h4>
+          <router-link 
+            v-for="page in otherPages" 
+            :key="page.path + '-mobile'"
+            :to="page.path" 
+            class="mobile-nav-link"
+            @click="closeMobileMenu"
+          >
+            <i :class="page.icon"></i>
+            <span>{{ page.name }}</span>
+            <i class="fas fa-external-link-alt"></i>
+          </router-link>
+        </div>
+        
+        <!-- Социальные сети -->
+        <div class="mobile-social">
+          <h4>Связаться со мной</h4>
+          <div class="mobile-social-grid">
+            <a 
+              v-for="social in socialLinks" 
+              :key="social.name + '-mobile'"
+              :href="social.url" 
+              target="_blank" 
+              class="mobile-social-link"
+            >
+              <i :class="social.icon"></i>
+              <span>{{ social.name }}</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay для мобильного меню -->
+    <div class="mobile-overlay" :class="{ 'visible': isMobileMenuOpen }" @click="closeMobileMenu"></div>
+  </nav>
 </template>
 
 <script>
 export default {
-  name: 'App',
+  name: 'NavigationBar',
   data() {
     return {
       isScrolled: false,
       isMobileMenuOpen: false,
       isDropdownOpen: false,
       activeSection: '#header',
-      closeTimer: null,
       
       // Секции главной страницы (якорные ссылки)
       mainSections: [
@@ -264,9 +252,6 @@ export default {
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll)
     window.removeEventListener('resize', this.handleResize)
-    if (this.closeTimer) {
-      clearTimeout(this.closeTimer)
-    }
   },
   methods: {
     handleScroll() {
@@ -287,23 +272,12 @@ export default {
       document.body.style.overflow = ''
     },
     openDropdown() {
-      if (this.closeTimer) {
-        clearTimeout(this.closeTimer)
-        this.closeTimer = null
-      }
       this.isDropdownOpen = true
     },
-    startCloseTimer() {
-      this.closeTimer = setTimeout(() => {
+    closeDropdown() {
+      setTimeout(() => {
         this.isDropdownOpen = false
-        this.closeTimer = null
-      }, 300) // Задержка 300ms перед закрытием
-    },
-    cancelCloseTimer() {
-      if (this.closeTimer) {
-        clearTimeout(this.closeTimer)
-        this.closeTimer = null
-      }
+      }, 300) // Небольшая задержка для плавности
     },
     scrollToSection(anchor, event, closeMobile = false) {
       event.preventDefault()
@@ -353,7 +327,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 /* ===============================================
    🎨 ОСНОВНЫЕ ПЕРЕМЕННЫЕ
    =============================================== */
@@ -858,14 +832,6 @@ export default {
 }
 
 /* ===============================================
-   📄 ОСНОВНОЙ КОНТЕНТ
-   =============================================== */
-.main-content {
-  margin-top: 70px;
-  min-height: calc(100vh - 70px);
-}
-
-/* ===============================================
    📱 АДАПТИВНОСТЬ
    =============================================== */
 @media (max-width: 768px) {
@@ -904,11 +870,6 @@ export default {
   .mobile-menu {
     top: 60px;
     height: calc(100vh - 60px);
-  }
-  
-  .main-content {
-    margin-top: 60px;
-    min-height: calc(100vh - 60px);
   }
   
   .logo-avatar {

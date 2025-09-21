@@ -1,7 +1,6 @@
 <template>
-  <div class="section">
+  <div class="section bio-section" id="bio">
     <h2 class="section-title">О себе</h2>
-    
     <!-- Навигация -->
     <div class="bio-tabs">
       <div 
