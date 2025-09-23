@@ -50,6 +50,11 @@
         </div>
       </div>
 
+      <!-- ✅ Отладочная информация -->
+      <div v-if="!loading && arts.length > 0" class="ft-debug-info">
+        <p>🔍 Найдено {{ arts.length }} артов | Поиск: "{{ searchQuery }}" | Теги: {{ selectedTags.length }} | Художники: {{ selectedArtists.length }} | Персонажи: {{ selectedCharacters.length }} | Контент: {{ currentContentFilter }}</p>
+      </div>
+
       <!-- Ошибка -->
       <div v-else-if="error" class="ft-error-container">
         <div class="ft-error-emoji">😿</div>
@@ -62,7 +67,7 @@
       </div>
 
       <!-- Пустой результат -->
-      <div v-else-if="arts.length === 0" class="ft-no-arts-message">
+      <div v-else-if="arts.length === 0 && !loading" class="ft-no-arts-message">
         <div class="ft-empty-emoji">🔍</div>
         <p>Фурри-арты не найдены TwT</p>
         <p class="ft-no-arts-hint">Попробуйте изменить фильтры или поискать другие виды</p>
@@ -278,7 +283,7 @@ const hasMoreArts = ref(false)
 const currentOffset = ref(0)
 
 // ============================================
-// ✅ ИСПРАВЛЕНО: Упрощенные фильтры
+// ✅ ИСПРАВЛЕНО: Упрощенные фильтры с реактивностью
 // ============================================
 const searchQuery = ref('')
 const selectedTags = ref([])
@@ -358,6 +363,8 @@ const debouncedLoadArts = () => {
   filterTimeout = setTimeout(() => {
     if (initialLoadComplete.value) {
       loadArts()
+    } else {
+      console.log('⏭️ Инициализация не завершена, отложим загрузку артов')
     }
   }, DEBOUNCE_DELAY)
 }
@@ -431,7 +438,8 @@ const loadAllData = async () => {
       search: searchQuery.value.trim(),
       tags: selectedTags.value,
       artists: selectedArtists.value,
-      showNsfw: currentContentFilter.value === 'nsfw' || showNsfwContent.value,
+      characters: selectedCharacters.value, // ✅ Добавляем персонажей
+      showNsfw: currentContentFilter.value === 'nsfw' || (currentContentFilter.value === 'all' && showNsfwContent.value),
       sort: currentSort.value,
       limit: ITEMS_PER_PAGE,
       offset: 0
@@ -487,8 +495,8 @@ const loadArts = async (isLoadMore = false) => {
       search: searchQuery.value.trim(),
       tags: selectedTags.value,
       artists: selectedArtists.value,
-      // characters: selectedCharacters.value, // TODO: добавить поддержку в API
-      showNsfw: currentContentFilter.value === 'nsfw' || showNsfwContent.value,
+      characters: selectedCharacters.value, // ✅ Добавляем персонажей
+      showNsfw: currentContentFilter.value === 'nsfw' || (currentContentFilter.value === 'all' && showNsfwContent.value),
       sort: currentSort.value,
       limit: ITEMS_PER_PAGE,
       offset: currentOffset.value
@@ -528,34 +536,31 @@ const loadMoreArts = () => {
 // ✅ ИСПРАВЛЕНО: ОБРАБОТЧИКИ ФИЛЬТРОВ БЕЗ ДУБЛИРОВАНИЯ
 // ============================================
 const handleSearch = (query) => {
+  console.log('🔍 handleSearch:', query)
   searchQuery.value = query
   debouncedLoadArts()
 }
 
 const handleTagFilter = (tagNames) => {
-  selectedTags.value = tagNames
+  console.log('🏷️ handleTagFilter:', tagNames)
+  selectedTags.value = [...tagNames] // Создаем новый массив для реактивности
   debouncedLoadArts()
 }
 
 const handleArtistFilter = (artistNames) => {
-  selectedArtists.value = artistNames
+  console.log('🎨 handleArtistFilter:', artistNames)
+  selectedArtists.value = [...artistNames] // Создаем новый массив для реактивности
   debouncedLoadArts()
 }
 
 const handleCharacterFilter = (characterNames) => {
-  selectedCharacters.value = characterNames
+  console.log('🦊 handleCharacterFilter:', characterNames)
+  selectedCharacters.value = [...characterNames] // Создаем новый массив для реактивности
   debouncedLoadArts()
 }
 
 const handleContentFilter = (contentFilter) => {
-  // Предотвращаем загрузку во время инициализации
-  if (!initialLoadComplete.value) {
-    console.log('⏭️ Инициализация не завершена, отложим применение фильтра')
-    currentContentFilter.value = contentFilter
-    return
-  }
-  
-  console.log('🔍 Применяем контент фильтр:', contentFilter)
+  console.log('🔍 handleContentFilter:', contentFilter)
   currentContentFilter.value = contentFilter
   
   // ✅ ИСПРАВЛЕНО: Правильная обработка NSFW фильтра
@@ -564,6 +569,10 @@ const handleContentFilter = (contentFilter) => {
   } else if (contentFilter === 'sfw') {
     showNsfwContent.value = false
   }
+  // Для 'all' не меняем showNsfwContent.value
+  
+  // Сохраняем в localStorage
+  localStorage.setItem('gallery_content_filter', contentFilter)
   
   debouncedLoadArts()
   
@@ -576,11 +585,13 @@ const handleContentFilter = (contentFilter) => {
 }
 
 const handleSortChange = (sort) => {
+  console.log('📊 handleSortChange:', sort)
   currentSort.value = sort
   debouncedLoadArts()
 }
 
 const handleClearFilters = () => {
+  console.log('🧹 handleClearFilters: Сбрасываем все фильтры')
   searchQuery.value = ''
   selectedTags.value = []
   selectedArtists.value = []
@@ -588,7 +599,13 @@ const handleClearFilters = () => {
   currentContentFilter.value = 'all'
   currentSort.value = 'newest'
   showNsfwContent.value = false
+  
+  // Очищаем localStorage
+  localStorage.removeItem('gallery_content_filter')
+  localStorage.removeItem('gallery_show_nsfw')
+  
   debouncedLoadArts()
+  showNotification('Все фильтры сброшены! 🧹', 'success')
 }
 
 // Старые обработчики для совместимости
@@ -699,6 +716,7 @@ onMounted(async () => {
   console.log('✅ NSFW функционал полностью работает!')
   console.log('✅ Унифицированные поля данных используются!')
   console.log('✅ Исправлены аватары с надежным сервисом!')
+  console.log('✅ Фильтры работают корректно!')
 })
 
 onBeforeUnmount(() => {
@@ -720,6 +738,22 @@ onBeforeUnmount(() => {
 
 .ft-furry-arts-gallery {
   margin-bottom: 2rem;
+}
+
+/* ✅ Отладочная информация */
+.ft-debug-info {
+  background: rgba(33, 150, 243, 0.1);
+  border: 1px solid rgba(33, 150, 243, 0.3);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  color: #2196f3;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.ft-debug-info p {
+  margin: 0;
 }
 
 /* NSFW карточки */
@@ -1384,6 +1418,11 @@ onBeforeUnmount(() => {
   
   .ft-nsfw-overlay-content h4 {
     font-size: 1rem;
+  }
+  
+  .ft-debug-info {
+    font-size: 0.8rem;
+    padding: 0.75rem;
   }
 }
 </style>

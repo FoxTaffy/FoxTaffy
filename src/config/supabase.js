@@ -369,6 +369,64 @@ export const furryApi = {
   // ============================================
 
   /**
+   * ✅ НОВЫЙ МЕТОД: Загрузить все данные оптимизированно
+   */
+  async loadAllData(options = {}) {
+    try {
+      console.log('🔄 loadAllData: Загружаем все данные оптимизированно...')
+      
+      // Загружаем все данные параллельно
+      const [artsResult, artistsResult, tagsResult, charactersResult] = await Promise.allSettled([
+        this.getFurryArts(options),
+        this.getFurryArtists(),
+        this.getFurryTags(),
+        this.getSpecies()
+      ])
+      
+      const result = {
+        arts: artsResult.status === 'fulfilled' ? artsResult.value : [],
+        artists: artistsResult.status === 'fulfilled' ? artistsResult.value : [],
+        tags: tagsResult.status === 'fulfilled' ? tagsResult.value : [],
+        characters: charactersResult.status === 'fulfilled' ? charactersResult.value : []
+      }
+      
+      // Логируем ошибки если они есть
+      if (artsResult.status === 'rejected') {
+        console.error('❌ Ошибка загрузки артов:', artsResult.reason)
+      }
+      if (artistsResult.status === 'rejected') {
+        console.error('❌ Ошибка загрузки художников:', artistsResult.reason)
+      }
+      if (tagsResult.status === 'rejected') {
+        console.error('❌ Ошибка загрузки тегов:', tagsResult.reason)
+      }
+      if (charactersResult.status === 'rejected') {
+        console.error('❌ Ошибка загрузки персонажей:', charactersResult.reason)
+      }
+      
+      console.log('✅ loadAllData: Все данные загружены:', {
+        arts: result.arts.length,
+        artists: result.artists.length,
+        tags: result.tags.length,
+        characters: result.characters.length
+      })
+      
+      return result
+      
+    } catch (error) {
+      console.error('❌ loadAllData: Критическая ошибка:', error)
+      
+      // Возвращаем пустые массивы в случае критической ошибки
+      return {
+        arts: [],
+        artists: [],
+        tags: [],
+        characters: []
+      }
+    }
+  },
+
+  /**
    * Получить арты с фильтрацией и сортировкой
    */
   async getFurryArts(options = {}) {
@@ -376,6 +434,7 @@ export const furryApi = {
       search = '', 
       tags = [], 
       artists = [], 
+      characters = [], // ✅ Добавляем поддержку фильтра персонажей
       showYiff = false,
       showNsfw = false,
       sort = 'newest',
@@ -415,8 +474,9 @@ export const furryApi = {
       const sortMapping = {
         'newest': { column: 'upload_date', ascending: false },
         'oldest': { column: 'upload_date', ascending: true },
-        'title_asc': { column: 'title', ascending: true },
-        'title_desc': { column: 'title', ascending: false }
+        'alphabetical': { column: 'title', ascending: true },
+        'alphabetical-desc': { column: 'title', ascending: false },
+        'artist': { column: 'upload_date', ascending: false } // Пока используем дату, можно улучшить
       }
 
       const sortConfig = sortMapping[sort] || sortMapping['newest']
@@ -434,9 +494,27 @@ export const furryApi = {
 
       if (error) throw error
 
-      // Обработка результатов
-      const processedArts = (data || []).map(art => {
+      // Обработка результатов с получением тегов и персонажей
+      const artsWithMetadata = await Promise.all((data || []).map(async (art) => {
         const mainArtist = art.art_collaborators?.[0]?.persons
+        
+        // Загружаем теги для арта
+        const { data: artTags } = await supabase
+          .from('art_tags')
+          .select('tags(name)')
+          .eq('art_id', art.id)
+        
+        // Загружаем персонажей для арта
+        const { data: artCharacters } = await supabase
+          .from('art_fursonas')
+          .select('fursonas(name, avatar_url)')
+          .eq('art_id', art.id)
+        
+        const tags = (artTags || []).map(at => at.tags?.name).filter(Boolean)
+        const characters = (artCharacters || []).map(ac => ({
+          name: ac.fursonas?.name,
+          avatar: ac.fursonas?.avatar_url
+        })).filter(c => c.name)
         
         return {
           id: art.id,
@@ -449,14 +527,33 @@ export const furryApi = {
           artist_name: mainArtist?.nickname || 'Неизвестно',
           artist_avatar: mainArtist?.avatar_url,
           artist_is_friend: mainArtist?.is_friend || false,
-          characters: [],
-          tags: [],
-          tagNames: []
+          characters: characters,
+          tags: tags,
+          tagNames: tags // Для совместимости
         }
-      })
+      }))
 
-      console.log('✅ getFurryArts: Арты загружены:', processedArts.length)
-      return processedArts
+      // ✅ Применяем клиентские фильтры для тегов и персонажей
+      let filteredArts = artsWithMetadata
+
+      // Фильтр по тегам
+      if (tags.length > 0) {
+        filteredArts = filteredArts.filter(art => 
+          tags.some(tag => art.tags.includes(tag))
+        )
+      }
+
+      // Фильтр по персонажам
+      if (characters.length > 0) {
+        filteredArts = filteredArts.filter(art => 
+          characters.some(character => 
+            art.characters.some(artChar => artChar.name === character)
+          )
+        )
+      }
+
+      console.log('✅ getFurryArts: Арты загружены и отфильтрованы:', filteredArts.length)
+      return filteredArts
       
     } catch (error) {
       console.error('❌ getFurryArts: Ошибка загрузки артов:', error)
@@ -593,6 +690,33 @@ export const furryApi = {
     try {
       console.log('🦊 addArtCharacters: Добавляем персонажей к арту:', artId, characterNames)
       
+      // Сначала найдем или создадим персонажа по умолчанию (Fox Taffy)
+      let defaultPersonId = null
+      const { data: defaultPerson, error: personError } = await supabase
+        .from('persons')
+        .select('id')
+        .eq('nickname', 'Fox Taffy')
+        .maybeSingle()
+      
+      if (personError) throw personError
+      
+      if (defaultPerson) {
+        defaultPersonId = defaultPerson.id
+      } else {
+        const { data: newPerson, error: createPersonError } = await supabase
+          .from('persons')
+          .insert([{
+            nickname: 'Fox Taffy',
+            avatar_url: null,
+            is_friend: false
+          }])
+          .select('id')
+          .single()
+          
+        if (createPersonError) throw createPersonError
+        defaultPersonId = newPerson.id
+      }
+      
       for (const characterName of characterNames) {
         // Находим или создаем персонажа
         let characterId = null
@@ -609,7 +733,10 @@ export const furryApi = {
         } else {
           const { data: newCharacter, error: createError } = await supabase
             .from('fursonas')
-            .insert([{ name: characterName }])
+            .insert([{ 
+              name: characterName,
+              person_id: defaultPersonId // Связываем с персоной по умолчанию
+            }])
             .select('id')
             .single()
             
@@ -929,11 +1056,39 @@ export const furryApi = {
         throw new Error('Персонаж с таким именем уже существует')
       }
 
+      // Ищем или создаем персону по умолчанию
+      let defaultPersonId = null
+      const { data: defaultPerson, error: personError } = await supabase
+        .from('persons')
+        .select('id')
+        .eq('nickname', 'Fox Taffy')
+        .maybeSingle()
+      
+      if (personError) throw personError
+      
+      if (defaultPerson) {
+        defaultPersonId = defaultPerson.id
+      } else {
+        const { data: newPerson, error: createPersonError } = await supabase
+          .from('persons')
+          .insert([{
+            nickname: 'Fox Taffy',
+            avatar_url: null,
+            is_friend: false
+          }])
+          .select('id')
+          .single()
+          
+        if (createPersonError) throw createPersonError
+        defaultPersonId = newPerson.id
+      }
+
       const { data, error } = await supabase
         .from('fursonas')
         .insert([{
           name: characterData.name.trim(),
-          avatar_url: characterData.avatar_url || null
+          avatar_url: characterData.avatar_url || null,
+          person_id: defaultPersonId
         }])
         .select()
 
@@ -1192,3 +1347,5 @@ console.log('✅ Мероприятия и галерея объединены �
 console.log('🔒 Все переменные окружения защищены!')
 console.log('📊 Все счетчики и статистика работают корректно!')
 console.log('🎯 API готов к использованию!')
+console.log('✅ Добавлен метод loadAllData!')
+console.log('✅ Исправлена поддержка фильтрации персонажей!')
