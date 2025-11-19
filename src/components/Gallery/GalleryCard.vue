@@ -162,23 +162,42 @@ const formatDate = (dateString) => {
 </script>
 
 <style scoped>
-/* Карточка арта */
+/* Карточка арта (Pinterest-style) */
 .ft-simple-art-card {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 1rem;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   backdrop-filter: blur(10px);
   position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .ft-simple-art-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-8px) scale(1.02);
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 123, 37, 0.3);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 123, 37, 0.4);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 123, 37, 0.2);
+}
+
+/* Анимация появления карточки */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ft-simple-art-card {
+  animation: fadeInUp 0.5s ease-out;
 }
 
 /* NSFW граница */
@@ -195,15 +214,25 @@ const formatDate = (dateString) => {
   z-index: 1;
 }
 
-/* Контейнер изображения */
+/* Контейнер изображения (Pinterest-style: естественные пропорции) */
 .ft-art-image-container {
   position: relative;
-  aspect-ratio: 1;
   overflow: hidden;
   background: rgba(0, 0, 0, 0.2);
+  border-radius: 1rem 1rem 0 0;
+}
+
+/* Изображение с естественными пропорциями */
+.ft-art-image-container::before {
+  content: '';
+  display: block;
+  padding-top: 100%; /* По умолчанию квадрат, но изображение может изменить пропорции */
 }
 
 .ft-art-thumbnail {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -222,7 +251,30 @@ const formatDate = (dateString) => {
 }
 
 .ft-simple-art-card:hover .ft-art-thumbnail {
-  transform: scale(1.05);
+  transform: scale(1.1);
+}
+
+/* Overlay градиент при наведении */
+.ft-art-image-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.ft-simple-art-card:hover .ft-art-image-container::after {
+  opacity: 1;
 }
 
 /* Placeholder */
@@ -322,16 +374,21 @@ const formatDate = (dateString) => {
   transform: scale(1.1);
 }
 
-/* Информация */
+/* Информация (Pinterest-style: компактная) */
 .ft-art-info {
-  padding: 1.25rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
 }
 
 .ft-art-title {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #f2f2f2;
   margin: 0;
@@ -340,6 +397,12 @@ const formatDate = (dateString) => {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  line-height: 1.4;
+  transition: color 0.3s ease;
+}
+
+.ft-simple-art-card:hover .ft-art-title {
+  color: #ff7b25;
 }
 
 /* Художник */
@@ -481,9 +544,17 @@ const formatDate = (dateString) => {
 
 /* Адаптивность */
 @media (max-width: 768px) {
+  .ft-simple-art-card:hover {
+    transform: translateY(-4px) scale(1.01);
+  }
+
   .ft-art-info {
-    padding: 1rem;
-    gap: 0.8rem;
+    padding: 0.875rem;
+    gap: 0.625rem;
+  }
+
+  .ft-art-title {
+    font-size: 1rem;
   }
 
   .ft-character-avatar,
@@ -495,6 +566,40 @@ const formatDate = (dateString) => {
   .ft-character-avatar:not(:first-child),
   .ft-more-characters {
     margin-left: -10px;
+  }
+
+  .ft-artist-pill {
+    padding: 0.4rem 0.6rem;
+    gap: 0.5rem;
+  }
+
+  .ft-artist-avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .ft-artist-name {
+    font-size: 0.85rem;
+  }
+
+  .ft-tag-pill {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
+  }
+}
+
+/* Уменьшение motion для пользователей с prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .ft-simple-art-card,
+  .ft-art-thumbnail,
+  .ft-art-title,
+  .ft-artist-pill {
+    transition: none;
+    animation: none;
+  }
+
+  .ft-simple-art-card:hover {
+    transform: none;
   }
 }
 </style>

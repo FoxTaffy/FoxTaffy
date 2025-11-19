@@ -30,18 +30,6 @@
       <!-- Скелетон загрузки -->
       <GallerySkeleton v-if="loading" :count="12" />
 
-      <!-- Отладочная информация -->
-      <div v-else-if="!loading && arts.length > 0" class="ft-debug-info">
-        <p>
-          🔍 Найдено {{ arts.length }} артов |
-          Поиск: "{{ filters.searchQuery.value }}" |
-          Теги: {{ filters.selectedTags.value.length }} |
-          Художники: {{ filters.selectedArtists.value.length }} |
-          Персонажи: {{ filters.selectedCharacters.value.length }} |
-          Контент: {{ filters.currentContentFilter.value }}
-        </p>
-      </div>
-
       <!-- Ошибка -->
       <div v-else-if="error" class="ft-error-container">
         <div class="ft-error-emoji">😿</div>
@@ -64,18 +52,42 @@
         </button>
       </div>
 
-      <!-- Сетка артов с оптимизацией -->
-      <GalleryGrid
-        v-else
-        :arts="arts"
-        :show-nsfw="filters.showNsfwContent.value"
-        :is-nsfw-unlocked="filters.isNsfwArtUnlocked"
-        @open-lightbox="lightbox.openLightbox"
-        @unlock-nsfw="handleUnlockNsfw"
-        @filter-artist="quickFilterByArtist"
-        @filter-character="quickFilterBySpecies"
-        @filter-tag="quickFilterByTag"
-      />
+      <!-- Контент с артами -->
+      <div v-else>
+        <!-- Отладочная информация (компактная) -->
+        <div class="ft-results-bar">
+          <div class="ft-results-count">
+            <i class="fas fa-images"></i>
+            <span>{{ arts.length }} {{ arts.length === 1 ? 'арт' : 'артов' }}</span>
+          </div>
+          <div class="ft-results-filters" v-if="hasActiveFilters">
+            <span class="ft-filter-badge" v-if="filters.searchQuery.value">
+              <i class="fas fa-search"></i> {{ filters.searchQuery.value }}
+            </span>
+            <span class="ft-filter-badge" v-if="filters.selectedTags.value.length">
+              <i class="fas fa-tags"></i> {{ filters.selectedTags.value.length }}
+            </span>
+            <span class="ft-filter-badge" v-if="filters.selectedArtists.value.length">
+              <i class="fas fa-palette"></i> {{ filters.selectedArtists.value.length }}
+            </span>
+            <span class="ft-filter-badge" v-if="filters.selectedCharacters.value.length">
+              <i class="fas fa-paw"></i> {{ filters.selectedCharacters.value.length }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Pinterest-style сетка артов -->
+        <GalleryGrid
+          :arts="arts"
+          :show-nsfw="filters.showNsfwContent.value"
+          :is-nsfw-unlocked="filters.isNsfwArtUnlocked"
+          @open-lightbox="lightbox.openLightbox"
+          @unlock-nsfw="handleUnlockNsfw"
+          @filter-artist="quickFilterByArtist"
+          @filter-character="quickFilterBySpecies"
+          @filter-tag="quickFilterByTag"
+        />
+      </div>
 
       <!-- Кнопка "Загрузить ещё" -->
       <div v-if="hasMoreArts && !loading" class="ft-load-more-container">
@@ -156,6 +168,14 @@ const initialLoadComplete = ref(false)
 const availableTags = computed(() => tags.value)
 const availableArtists = computed(() => artists.value)
 const availableCharacters = computed(() => species.value)
+
+const hasActiveFilters = computed(() => {
+  return filters.searchQuery.value.trim() !== '' ||
+         filters.selectedTags.value.length > 0 ||
+         filters.selectedArtists.value.length > 0 ||
+         filters.selectedCharacters.value.length > 0 ||
+         filters.currentContentFilter.value !== 'all'
+})
 
 // ============================================
 // ЗАГРУЗКА ДАННЫХ
@@ -448,20 +468,52 @@ onBeforeUnmount(() => {
   margin-bottom: 2rem;
 }
 
-/* Отладочная информация */
-.ft-debug-info {
-  background: rgba(33, 150, 243, 0.1);
-  border: 1px solid rgba(33, 150, 243, 0.3);
-  border-radius: 0.5rem;
-  padding: 1rem;
+/* Панель результатов (Pinterest-style) */
+.ft-results-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
   margin-bottom: 1.5rem;
-  color: #2196f3;
-  font-size: 0.9rem;
-  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.ft-debug-info p {
-  margin: 0;
+.ft-results-count {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f2f2f2;
+}
+
+.ft-results-count i {
+  color: #ff7b25;
+  font-size: 1.2rem;
+}
+
+.ft-results-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ft-filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 123, 37, 0.15);
+  border: 1px solid rgba(255, 123, 37, 0.3);
+  border-radius: 1rem;
+  font-size: 0.85rem;
+  color: #ff7b25;
+  font-weight: 500;
+}
+
+.ft-filter-badge i {
+  font-size: 0.8rem;
 }
 
 /* Ошибки и пустые состояния */
@@ -615,16 +667,31 @@ onBeforeUnmount(() => {
     padding: 1rem 0.5rem;
   }
 
+  .ft-results-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+  }
+
+  .ft-results-count {
+    font-size: 1rem;
+  }
+
+  .ft-results-filters {
+    width: 100%;
+  }
+
+  .ft-filter-badge {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+
   .ft-notification {
     left: 1rem;
     right: 1rem;
     bottom: 1rem;
     max-width: none;
-  }
-
-  .ft-debug-info {
-    font-size: 0.8rem;
-    padding: 0.75rem;
   }
 }
 </style>
