@@ -22,14 +22,11 @@
         
         <!-- Изображение референса -->
         <div class="fox-taffy-image-wrapper">
-          <transition name="fade" mode="out-in">
-            <img
-              :key="currentReferenceUrl"
-              :src="currentReferenceUrl"
-              alt="Fox Taffy Reference Sheet"
-              class="fox-taffy-reference-image"
-            >
-          </transition>
+          <img
+            :src="currentReferenceUrl"
+            alt="Fox Taffy Reference Sheet"
+            class="fox-taffy-reference-image"
+          >
         </div>
       </div>
       <!-- Цветовая палитра -->
