@@ -86,12 +86,13 @@
 
 <script>
 import { ref, reactive, computed, onMounted } from 'vue';
+import { useNsfwToggle } from '@/composables/useNsfwToggle';
 
 export default {
   name: 'FoxTaffyReference',
   setup() {
-    // Состояние референса
-    const showNsfw = ref(false);
+    // Состояние NSFW (синхронизировано с галереей)
+    const { showNsfw, toggle: toggleNsfw } = useNsfwToggle();
     
     // Цвета персонажа
     const characterColors = ref([
@@ -159,7 +160,7 @@ export default {
     
     // Методы
     const toggleReferenceType = () => {
-      localStorage.setItem('foxtaffy_reference_nsfw', showNsfw.value ? 'true' : 'false');
+      toggleNsfw();
     };
     
     const copyColor = (color) => {
@@ -204,10 +205,7 @@ export default {
       }
     };
     
-    // Хуки жизненного цикла
-    onMounted(() => {
-      showNsfw.value = localStorage.getItem('foxtaffy_reference_nsfw') === 'true';
-    });
+    // Хуки жизненного цикла (NSFW состояние инициализируется в composable)
     
     return {
       // Состояние референса

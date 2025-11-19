@@ -145,19 +145,6 @@
         </div>
       </div>
 
-      <!-- NSFW toggle (простая таблетка вкл/выкл) -->
-      <button
-        @click="toggleNsfw"
-        class="nsfw-toggle-btn"
-        :class="{ active: showNsfw }"
-      >
-        <i class="fas fa-exclamation-triangle"></i>
-        <span>NSFW</span>
-        <div class="toggle-switch">
-          <div class="toggle-slider" :class="{ on: showNsfw }"></div>
-        </div>
-      </button>
-
       <!-- Сортировка -->
       <div class="filter-dropdown" ref="sortRef">
         <button 
@@ -249,13 +236,6 @@
           <span>{{ character }}</span>
           <button @click.stop="removeCharacter(character)"><i class="fas fa-times"></i></button>
         </div>
-        
-        <!-- NSFW фильтр -->
-        <div v-if="showNsfw" class="filter-pill content-pill nsfw">
-          <i class="fas fa-exclamation-triangle"></i>
-          <span>NSFW включен</span>
-          <button @click="toggleNsfw"><i class="fas fa-times"></i></button>
-        </div>
       </div>
     </div>
   </section>
@@ -280,17 +260,15 @@ const props = defineProps({
   selectedTags: { type: Array, default: () => [] },
   selectedArtists: { type: Array, default: () => [] },
   selectedCharacters: { type: Array, default: () => [] },
-  currentSort: { type: String, default: 'newest' },
-  currentContentFilter: { type: String, default: 'all' } // all, sfw, nsfw
+  currentSort: { type: String, default: 'newest' }
 })
 
 // Emits
 const emit = defineEmits([
   'search',
-  'filter-tags', 
+  'filter-tags',
   'filter-artists',
   'filter-characters',
-  'filter-content',
   'sort-change',
   'clear-filters'
 ])
@@ -333,17 +311,12 @@ const selectedTags = computed(() => props.selectedTags)
 const selectedArtists = computed(() => props.selectedArtists)
 const selectedCharacters = computed(() => props.selectedCharacters)
 const currentSort = computed(() => props.currentSort)
-const currentContentFilter = computed(() => props.currentContentFilter)
-
-// NSFW toggle состояние вычисляется из currentContentFilter
-const showNsfw = computed(() => currentContentFilter.value === 'all' || currentContentFilter.value === 'nsfw')
 
 const hasActiveFilters = computed(() => {
-  return searchQuery.value.trim() !== '' || 
-         selectedTags.value.length > 0 || 
-         selectedArtists.value.length > 0 || 
+  return searchQuery.value.trim() !== '' ||
+         selectedTags.value.length > 0 ||
+         selectedArtists.value.length > 0 ||
          selectedCharacters.value.length > 0 ||
-         currentContentFilter.value !== 'all' ||
          currentSort.value !== 'newest'
 })
 
@@ -353,7 +326,6 @@ const activeFiltersCount = computed(() => {
   count += selectedTags.value.length
   count += selectedArtists.value.length
   count += selectedCharacters.value.length
-  if (currentContentFilter.value !== 'all') count++
   if (currentSort.value !== 'newest') count++
   return count
 })
@@ -475,16 +447,6 @@ const removeArtist = (artist) => {
 const removeCharacter = (character) => {
   const newCharacters = selectedCharacters.value.filter(c => c !== character)
   emit('filter-characters', newCharacters)
-}
-
-// ============================================
-// ✅ ПРОСТОЙ NSFW TOGGLE
-// ============================================
-const toggleNsfw = () => {
-  // Переключаем: если сейчас включено (all/nsfw), выключаем (sfw), и наоборот
-  const newValue = showNsfw.value ? 'sfw' : 'all'
-  // Эмитим изменение: 'all' когда включаем (показывать всё включая NSFW), 'sfw' когда выключаем (только SFW)
-  emit('filter-content', newValue)
 }
 
 // ============================================

@@ -9,7 +9,6 @@
       @filter-tags="handleTagFilter"
       @filter-artists="handleArtistFilter"
       @filter-characters="handleCharacterFilter"
-      @filter-content="handleContentFilter"
       @sort-change="handleSortChange"
       @clear-filters="handleClearFilters"
       @filter-by-tag="handleFilterByTag"
@@ -22,7 +21,6 @@
       :selected-artists="filters.selectedArtists.value"
       :selected-characters="filters.selectedCharacters.value"
       :current-sort="filters.currentSort.value"
-      :current-content-filter="filters.currentContentFilter.value"
     />
 
     <!-- Галерея -->
@@ -79,7 +77,7 @@
         <!-- Pinterest-style сетка артов -->
         <GalleryGrid
           :arts="arts"
-          :show-nsfw="filters.showNsfwContent.value"
+          :show-nsfw="showNsfw"
           :is-nsfw-unlocked="filters.isNsfwArtUnlocked"
           @open-lightbox="lightbox.openLightbox"
           @unlock-nsfw="handleUnlockNsfw"
@@ -130,12 +128,14 @@ import { furryApi as api } from '@/config/supabase.js'
 import { useGalleryFilters } from '@/composables/useGalleryFilters'
 import { useLightbox } from '@/composables/useLightbox'
 import { useNotifications } from '@/composables/useNotifications'
+import { useNsfwToggle } from '@/composables/useNsfwToggle'
 
 // ============================================
 // КОМПОЗАБЛЫ
 // ============================================
 const filters = useGalleryFilters()
 const notifications = useNotifications()
+const { showNsfw } = useNsfwToggle() // NSFW состояние синхронизировано с Reference.vue
 
 // ============================================
 // СОСТОЯНИЕ ДАННЫХ
@@ -196,8 +196,7 @@ const loadAllData = async () => {
       tags: filters.selectedTags.value,
       artists: filters.selectedArtists.value,
       characters: filters.selectedCharacters.value,
-      showNsfw: filters.currentContentFilter.value === 'nsfw' ||
-                (filters.currentContentFilter.value === 'all' && filters.showNsfwContent.value),
+      showNsfw: showNsfw.value,
       sort: filters.currentSort.value,
       limit: ITEMS_PER_PAGE,
       offset: 0
@@ -248,8 +247,7 @@ const loadArts = async (isLoadMore = false) => {
       tags: filters.selectedTags.value,
       artists: filters.selectedArtists.value,
       characters: filters.selectedCharacters.value,
-      showNsfw: filters.currentContentFilter.value === 'nsfw' ||
-                (filters.currentContentFilter.value === 'all' && filters.showNsfwContent.value),
+      showNsfw: showNsfw.value,
       sort: filters.currentSort.value,
       limit: ITEMS_PER_PAGE,
       offset: currentOffset.value
@@ -325,34 +323,6 @@ const handleCharacterFilter = (characterNames) => {
       loadArts()
     }
   })
-}
-
-const handleContentFilter = (contentFilter) => {
-  console.log('🔍 handleContentFilter:', contentFilter)
-  filters.currentContentFilter.value = contentFilter
-
-  if (contentFilter === 'all') {
-    filters.showNsfwContent.value = true
-  } else if (contentFilter === 'nsfw') {
-    filters.showNsfwContent.value = true
-  } else if (contentFilter === 'sfw') {
-    filters.showNsfwContent.value = false
-  }
-
-  filters.saveSettings()
-
-  filters.debouncedApplyFilters(() => {
-    if (initialLoadComplete.value) {
-      loadArts()
-    }
-  })
-
-  const filterNames = {
-    all: 'NSFW включен',
-    sfw: 'Только SFW',
-    nsfw: 'Только NSFW'
-  }
-  notifications.showNotification(`${filterNames[contentFilter]} 🔍`, 'info')
 }
 
 const handleSortChange = (sort) => {

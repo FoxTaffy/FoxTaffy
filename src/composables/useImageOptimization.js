@@ -35,7 +35,7 @@ export function useImageOptimization() {
           })
         },
         {
-          rootMargin: '50px', // Загружаем за 50px до видимости
+          rootMargin: '400px', // Загружаем за 400px до видимости (вместо 50px)
           threshold: 0.01
         }
       )
@@ -75,7 +75,7 @@ export function useImageOptimization() {
   const optimizeImageUrl = (url, options = {}) => {
     const {
       width = null,
-      quality = 80,
+      quality = 75, // Снижено с 80 до 75 для лучшего сжатия
       format = 'webp'
     } = options
 

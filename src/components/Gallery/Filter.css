@@ -218,65 +218,6 @@
   justify-content: space-between;
 }
 
-/* NSFW Toggle Button */
-.nsfw-toggle-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  border: 1px solid rgba(255, 107, 107, 0.3);
-  border-radius: 0.5rem;
-  background: rgba(255, 107, 107, 0.1);
-  color: #ff6b6b;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  font-family: inherit;
-  white-space: nowrap;
-}
-
-.nsfw-toggle-btn:hover {
-  background: rgba(255, 107, 107, 0.15);
-  border-color: rgba(255, 107, 107, 0.4);
-}
-
-.nsfw-toggle-btn.active {
-  background: rgba(255, 107, 107, 0.25);
-  border-color: rgba(255, 107, 107, 0.6);
-  color: #ff5252;
-}
-
-.toggle-switch {
-  position: relative;
-  width: 2.5rem;
-  height: 1.25rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 0.75rem;
-  transition: background 0.3s ease;
-}
-
-.nsfw-toggle-btn.active .toggle-switch {
-  background: rgba(255, 107, 107, 0.3);
-}
-
-.toggle-slider {
-  position: absolute;
-  top: 0.125rem;
-  left: 0.125rem;
-  width: 1rem;
-  height: 1rem;
-  background: #666;
-  border-radius: 50%;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.toggle-slider.on {
-  left: calc(100% - 1.125rem);
-  background: #ff5252;
-  box-shadow: 0 0 10px rgba(255, 82, 82, 0.5);
-}
-
 /* Кнопка очистки всех фильтров */
 .clear-all-btn {
   display: flex;

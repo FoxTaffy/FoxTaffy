@@ -133,7 +133,7 @@ const { isLoaded, isInView, handleImageLoad } = useLazyImage(imageContainerRef)
 // Оптимизированный URL превью
 const optimizedImageUrl = computed(() => {
   const url = props.art.thumbnail_url || props.art.image_url
-  return optimizeImageUrl(url, { width: 600, quality: 85 })
+  return optimizeImageUrl(url, { width: 400, quality: 75 }) // Уменьшено с 600px до 400px для быстрой загрузки
 })
 
 // Аватары по умолчанию
