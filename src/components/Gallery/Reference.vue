@@ -22,11 +22,14 @@
         
         <!-- Изображение референса -->
         <div class="fox-taffy-image-wrapper">
-          <img 
-            :src="currentReferenceUrl" 
-            alt="Fox Taffy Reference Sheet" 
-            class="fox-taffy-reference-image"
-          >
+          <transition name="fade" mode="out-in">
+            <img
+              :key="currentReferenceUrl"
+              :src="currentReferenceUrl"
+              alt="Fox Taffy Reference Sheet"
+              class="fox-taffy-reference-image"
+            >
+          </transition>
         </div>
       </div>
       <!-- Цветовая палитра -->
@@ -384,6 +387,22 @@ export default {
   border: none;
   margin: 0;
   padding: 0;
+}
+
+/* Анимация переключения NSFW/SFW */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
 }
 
 /* Информация о референсе */
