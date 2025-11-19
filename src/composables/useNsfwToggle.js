@@ -17,8 +17,10 @@ export function useNsfwToggle() {
     isInitialized.value = true
 
     // Следим за изменениями и сохраняем в localStorage
-    watch(showNsfw, (newValue) => {
+    watch(showNsfw, (newValue, oldValue) => {
+      console.log(`👁️ useNsfwToggle watch: ${oldValue} → ${newValue}`)
       localStorage.setItem('foxtaffy_reference_nsfw', newValue ? 'true' : 'false')
+      console.log(`💾 useNsfwToggle: сохранено в localStorage: ${newValue}`)
     })
 
     // Слушаем изменения из других вкладок
@@ -30,7 +32,9 @@ export function useNsfwToggle() {
   }
 
   const toggle = () => {
+    const oldValue = showNsfw.value
     showNsfw.value = !showNsfw.value
+    console.log(`🔀 useNsfwToggle: toggle вызван, ${oldValue} → ${showNsfw.value}`)
   }
 
   return {
