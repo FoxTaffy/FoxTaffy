@@ -145,61 +145,18 @@
         </div>
       </div>
 
-      <!-- ✅ ИСПРАВЛЕННЫЙ NSFW фильтр -->
-      <div class="content-filter">
-        <div class="filter-dropdown" ref="contentRef">
-          <button 
-            class="filter-btn content-btn" 
-            @click="toggleDropdown('content')"
-            :class="{ 
-              active: currentContentFilter !== 'all',
-              sfw: currentContentFilter === 'sfw',
-              nsfw: currentContentFilter === 'nsfw'
-            }"
-          >
-            <i :class="getContentIcon()"></i>
-            <span>{{ getContentLabel() }}</span>
-            <i class="fas fa-chevron-down" :class="{ rotated: showDropdowns.content }"></i>
-          </button>
-          
-          <div v-if="showDropdowns.content" class="dropdown-content">
-            <div class="dropdown-header">
-              <span>Фильтр по содержанию</span>
-            </div>
-            <div class="dropdown-list">
-              <button 
-                @click="setContentFilter('all')"
-                class="dropdown-item content-item"
-                :class="{ active: currentContentFilter === 'all' }"
-              >
-                <i class="fas fa-eye"></i>
-                <span class="item-name">Всё содержимое</span>
-                <span class="item-description">SFW + NSFW</span>
-              </button>
-              
-              <button 
-                @click="setContentFilter('sfw')"
-                class="dropdown-item content-item sfw-item"
-                :class="{ active: currentContentFilter === 'sfw' }"
-              >
-                <i class="fas fa-shield-alt"></i>
-                <span class="item-name">Только SFW</span>
-                <span class="item-description">Безопасно для работы</span>
-              </button>
-              
-              <button 
-                @click="setContentFilter('nsfw')"
-                class="dropdown-item content-item nsfw-item"
-                :class="{ active: currentContentFilter === 'nsfw' }"
-              >
-                <i class="fas fa-exclamation-triangle"></i>
-                <span class="item-name">Только NSFW</span>
-                <span class="item-description">Контент 18+</span>
-              </button>
-            </div>
-          </div>
+      <!-- NSFW toggle (простая таблетка вкл/выкл) -->
+      <button
+        @click="toggleNsfw"
+        class="nsfw-toggle-btn"
+        :class="{ active: showNsfw }"
+      >
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>NSFW</span>
+        <div class="toggle-switch">
+          <div class="toggle-slider" :class="{ on: showNsfw }"></div>
         </div>
-      </div>
+      </button>
 
       <!-- Сортировка -->
       <div class="filter-dropdown" ref="sortRef">
@@ -293,11 +250,11 @@
           <button @click.stop="removeCharacter(character)"><i class="fas fa-times"></i></button>
         </div>
         
-        <!-- Контент фильтр -->
-        <div v-if="currentContentFilter !== 'all'" class="filter-pill content-pill" :class="currentContentFilter">
-          <i :class="getContentIcon()"></i>
-          <span>{{ getContentLabel() }}</span>
-          <button @click="setContentFilter('all')"><i class="fas fa-times"></i></button>
+        <!-- NSFW фильтр -->
+        <div v-if="showNsfw" class="filter-pill content-pill nsfw">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>NSFW включен</span>
+          <button @click="toggleNsfw"><i class="fas fa-times"></i></button>
         </div>
       </div>
     </div>
@@ -348,7 +305,6 @@ const showDropdowns = ref({
   tags: false,
   artists: false,
   characters: false,
-  content: false,
   sort: false
 })
 
@@ -356,7 +312,6 @@ const showDropdowns = ref({
 const tagsRef = ref(null)
 const artistsRef = ref(null)
 const charactersRef = ref(null)
-const contentRef = ref(null)
 const sortRef = ref(null)
 
 // Опции сортировки
@@ -379,6 +334,9 @@ const selectedArtists = computed(() => props.selectedArtists)
 const selectedCharacters = computed(() => props.selectedCharacters)
 const currentSort = computed(() => props.currentSort)
 const currentContentFilter = computed(() => props.currentContentFilter)
+
+// NSFW toggle состояние вычисляется из currentContentFilter
+const showNsfw = computed(() => currentContentFilter.value === 'all' || currentContentFilter.value === 'nsfw')
 
 const hasActiveFilters = computed(() => {
   return searchQuery.value.trim() !== '' || 
@@ -520,27 +478,13 @@ const removeCharacter = (character) => {
 }
 
 // ============================================
-// ✅ NSFW/Content фильтры
+// ✅ ПРОСТОЙ NSFW TOGGLE
 // ============================================
-const setContentFilter = (filter) => {
-  closeAllDropdowns()
-  emit('filter-content', filter)
-}
-
-const getContentIcon = () => {
-  switch (currentContentFilter.value) {
-    case 'sfw': return 'fas fa-shield-alt'
-    case 'nsfw': return 'fas fa-exclamation-triangle'
-    default: return 'fas fa-eye'
-  }
-}
-
-const getContentLabel = () => {
-  switch (currentContentFilter.value) {
-    case 'sfw': return 'Только SFW'
-    case 'nsfw': return 'Только NSFW'
-    default: return 'Всё содержимое'
-  }
+const toggleNsfw = () => {
+  // Переключаем: если сейчас включено (all/nsfw), выключаем (sfw), и наоборот
+  const newValue = showNsfw.value ? 'sfw' : 'all'
+  // Эмитим изменение: 'all' когда включаем (показывать всё включая NSFW), 'sfw' когда выключаем (только SFW)
+  emit('filter-content', newValue)
 }
 
 // ============================================
@@ -569,7 +513,7 @@ const clearAllFilters = () => {
 // ОБРАБОТКА КЛИКОВ ВНЕ ДРОПДАУНОВ
 // ============================================
 const handleClickOutside = (event) => {
-  const dropdownRefs = [tagsRef.value, artistsRef.value, charactersRef.value, contentRef.value, sortRef.value]
+  const dropdownRefs = [tagsRef.value, artistsRef.value, charactersRef.value, sortRef.value]
   const clickedOutside = dropdownRefs.every(ref => ref && !ref.contains(event.target))
   if (clickedOutside) {
     closeAllDropdowns()
@@ -581,10 +525,7 @@ const handleClickOutside = (event) => {
 // ============================================
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
-  console.log('✅ Filter.vue оптимизирован!')
-  console.log('✅ Убрано дублирование состояния!')
-  console.log('✅ Аватары исправлены на надежный сервис!')
-  console.log('✅ Добавлен debounce для поиска!')
+  console.log('✅ Filter.vue оптимизирован с простым NSFW toggle!')
 })
 
 onBeforeUnmount(() => {

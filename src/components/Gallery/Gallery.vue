@@ -331,7 +331,9 @@ const handleContentFilter = (contentFilter) => {
   console.log('🔍 handleContentFilter:', contentFilter)
   filters.currentContentFilter.value = contentFilter
 
-  if (contentFilter === 'nsfw') {
+  if (contentFilter === 'all') {
+    filters.showNsfwContent.value = true
+  } else if (contentFilter === 'nsfw') {
     filters.showNsfwContent.value = true
   } else if (contentFilter === 'sfw') {
     filters.showNsfwContent.value = false
@@ -346,11 +348,11 @@ const handleContentFilter = (contentFilter) => {
   })
 
   const filterNames = {
-    all: 'Всё содержимое',
+    all: 'NSFW включен',
     sfw: 'Только SFW',
     nsfw: 'Только NSFW'
   }
-  notifications.showNotification(`Фильтр: ${filterNames[contentFilter]} 🔍`, 'info')
+  notifications.showNotification(`${filterNames[contentFilter]} 🔍`, 'info')
 }
 
 const handleSortChange = (sort) => {

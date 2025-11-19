@@ -92,15 +92,12 @@
       <!-- Теги -->
       <div v-if="art.tags && art.tags.length > 0" class="ft-art-tags">
         <span
-          v-for="(tagName, index) in art.tags.slice(0, 3)"
+          v-for="(tagName, index) in art.tags"
           :key="tagName + index"
           class="ft-tag-pill"
           @click.stop="$emit('filter-tag', tagName)"
         >
           {{ tagName }}
-        </span>
-        <span v-if="art.tags.length > 3" class="ft-more-tags-pill">
-          +{{ art.tags.length - 3 }}
         </span>
       </div>
 
