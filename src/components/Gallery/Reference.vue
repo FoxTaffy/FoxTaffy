@@ -156,9 +156,9 @@ export default {
     // Вычисляемые свойства
     const currentReferenceUrl = computed(() => {
       if (showNsfw.value) {
-        return 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/reference_nsfw.png';
+        return 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/621/reference_nsfw.png';
       }
-      return 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/reference.png';
+      return 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/621/reference.png';
     });
     
     // Методы
@@ -308,6 +308,12 @@ export default {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.fox-taffy-reference-switch:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: scale(1.02);
 }
 
 .fox-taffy-switch-label {
@@ -316,10 +322,12 @@ export default {
   font-weight: 600;
   margin: 0;
   padding: 0;
+  transition: all 0.3s ease;
 }
 
 .fox-taffy-switch-label.fox-taffy-active {
   color: #f2f2f2;
+  transform: scale(1.1);
 }
 
 .fox-taffy-switch {

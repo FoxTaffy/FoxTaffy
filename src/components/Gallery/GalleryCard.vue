@@ -173,7 +173,6 @@ const formatDate = (dateString) => {
 }
 
 .ft-simple-art-card:hover {
-  transform: translateY(-8px) scale(1.02);
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 123, 37, 0.4);
   box-shadow:
@@ -248,7 +247,7 @@ const formatDate = (dateString) => {
 }
 
 .ft-simple-art-card:hover .ft-art-thumbnail {
-  transform: scale(1.1);
+  /* Убрана анимация приближения */
 }
 
 /* Overlay градиент при наведении */

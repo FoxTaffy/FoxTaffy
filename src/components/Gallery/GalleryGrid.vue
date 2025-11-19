@@ -35,10 +35,10 @@ defineEmits([
 </script>
 
 <style scoped>
-/* Strict 4-column Grid Layout */
+/* 3-column Grid Layout */
 .ft-furry-gallery-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
   grid-auto-rows: auto;
 }
