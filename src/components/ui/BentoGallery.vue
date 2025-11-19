@@ -97,9 +97,7 @@ const gridRef = ref<HTMLElement | null>(null)
 const expandedItem = ref<number | null>(null)
 const isDragging = ref(false)
 const startX = ref(0)
-const startY = ref(0)
 const scrollLeft = ref(0)
-const scrollTop = ref(0)
 
 const getCurrentExpandedItem = () => {
   return props.imageItems.find(item => item.id === expandedItem.value)
@@ -115,20 +113,15 @@ const handleMouseDown = (e: MouseEvent) => {
   if (!gridRef.value) return
   isDragging.value = true
   startX.value = e.pageX - gridRef.value.offsetLeft
-  startY.value = e.pageY - gridRef.value.offsetTop
   scrollLeft.value = gridRef.value.scrollLeft
-  scrollTop.value = gridRef.value.scrollTop
 }
 
 const handleMouseMove = (e: MouseEvent) => {
   if (!isDragging.value || !gridRef.value) return
   e.preventDefault()
   const x = e.pageX - gridRef.value.offsetLeft
-  const y = e.pageY - gridRef.value.offsetTop
   const walkX = (x - startX.value) * 2
-  const walkY = (y - startY.value) * 2
   gridRef.value.scrollLeft = scrollLeft.value - walkX
-  gridRef.value.scrollTop = scrollTop.value - walkY
 }
 
 const handleMouseUp = () => {
@@ -139,19 +132,14 @@ const handleTouchStart = (e: TouchEvent) => {
   if (!gridRef.value || e.touches.length === 0) return
   isDragging.value = true
   startX.value = e.touches[0].pageX - gridRef.value.offsetLeft
-  startY.value = e.touches[0].pageY - gridRef.value.offsetTop
   scrollLeft.value = gridRef.value.scrollLeft
-  scrollTop.value = gridRef.value.scrollTop
 }
 
 const handleTouchMove = (e: TouchEvent) => {
   if (!isDragging.value || !gridRef.value || e.touches.length === 0) return
   const x = e.touches[0].pageX - gridRef.value.offsetLeft
-  const y = e.touches[0].pageY - gridRef.value.offsetTop
   const walkX = (x - startX.value) * 2
-  const walkY = (y - startY.value) * 2
   gridRef.value.scrollLeft = scrollLeft.value - walkX
-  gridRef.value.scrollTop = scrollTop.value - walkY
 }
 
 const handleTouchEnd = () => {
@@ -162,13 +150,15 @@ const handleTouchEnd = () => {
 <style scoped>
 .bento-gallery-container {
   width: 100%;
-  padding: 2rem 1rem;
+  padding: 2rem 0;
   background: transparent;
+  overflow: hidden;
 }
 
 .bento-header {
   text-align: center;
   margin-bottom: 2rem;
+  padding: 0 1rem;
 }
 
 .bento-title {
@@ -189,23 +179,20 @@ const handleTouchEnd = () => {
 }
 
 .bento-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  display: flex;
+  gap: 1.5rem;
   overflow-x: auto;
   overflow-y: hidden;
   cursor: grab;
   user-select: none;
-  padding: 1rem;
+  padding: 1rem 2rem;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
 }
 
-@media (min-width: 768px) {
-  .bento-grid {
-    grid-template-columns: repeat(4, 1fr);
-    grid-auto-rows: 250px;
-  }
+.bento-grid:active {
+  cursor: grabbing;
 }
 
 .bento-item {
@@ -216,22 +203,42 @@ const handleTouchEnd = () => {
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  flex-shrink: 0;
+  height: 400px;
+}
+
+/* Различные размеры для элементов */
+.bento-item.md\:col-span-2.md\:row-span-2 {
+  width: 500px;
+  height: 500px;
+}
+
+.bento-item.md\:row-span-1 {
+  width: 350px;
+  height: 400px;
+}
+
+.bento-item.md\:row-span-2 {
+  width: 400px;
+  height: 500px;
+}
+
+.bento-item.md\:col-span-2.md\:row-span-1 {
+  width: 600px;
+  height: 350px;
+}
+
+@media (max-width: 768px) {
+  .bento-item {
+    width: 280px !important;
+    height: 350px !important;
+  }
 }
 
 .bento-item:hover {
   transform: translateY(-4px);
   box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
   border-color: rgba(102, 126, 234, 0.5);
-}
-
-@media (min-width: 768px) {
-  .bento-item.md\:col-span-2 {
-    grid-column: span 2;
-  }
-
-  .bento-item.md\:row-span-2 {
-    grid-row: span 2;
-  }
 }
 
 .bento-image-wrapper {
@@ -403,20 +410,28 @@ const handleTouchEnd = () => {
 
 /* Scrollbar styles */
 .bento-grid::-webkit-scrollbar {
-  height: 8px;
+  height: 12px;
 }
 
 .bento-grid::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
+  border-radius: 6px;
+  margin: 0 2rem;
 }
 
 .bento-grid::-webkit-scrollbar-thumb {
-  background: rgba(102, 126, 234, 0.5);
-  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.6) 100%);
+  border-radius: 6px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
 }
 
 .bento-grid::-webkit-scrollbar-thumb:hover {
-  background: rgba(102, 126, 234, 0.7);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+}
+
+/* Для Firefox */
+.bento-grid {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(102, 126, 234, 0.6) rgba(255, 255, 255, 0.05);
 }
 </style>
