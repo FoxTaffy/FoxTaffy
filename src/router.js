@@ -100,7 +100,7 @@ const routes = [
     }
   },
   {
-    path: '/events/SkyFurrBurg',
+    path: '/events/skyfurrburg',
     name: 'SkyFurrBurg',
     component: () => import('./components/events/sfb.vue'),
     meta: {
@@ -109,7 +109,7 @@ const routes = [
     }
   },
   {
-    path: '/events/FurrMarket4',
+    path: '/events/furrmarket4',
     name: 'FurrMarket4',
     component: () => import('./components/events/FurrMarket4.vue'),
     meta: {
@@ -118,7 +118,7 @@ const routes = [
     }
   },
   {
-    path: '/events/TourFurr',
+    path: '/events/tourfurr',
     name: 'TourFurr',
     component: () => import('./components/events/TourFurr.vue'),
     meta: {
@@ -182,13 +182,13 @@ const routes = [
       // Список статических маршрутов, которые НЕ должны обрабатываться динамически
       const staticRoutes = [
         'admin',
-        'furmarket', 
-        'SkyFurrBurg', 
-        'FurrMarket4', 
-        'TourFurr', 
-        'aff5', 
-        'sillycon', 
-        'fff', 
+        'furmarket',
+        'skyfurrburg',
+        'furrmarket4',
+        'tourfurr',
+        'aff5',
+        'sillycon',
+        'fff',
         'foxwood'
       ]
       
