@@ -191,6 +191,7 @@ const loadAllData = async () => {
   error.value = ''
 
   try {
+    console.log(`📡 Загружаем данные с showNsfw: ${showNsfw.value}`)
     const allData = await api.loadAllData({
       search: filters.searchQuery.value.trim(),
       tags: filters.selectedTags.value,
@@ -215,7 +216,10 @@ const loadAllData = async () => {
     initialLoadComplete.value = true
 
     const nsfwCount = allData.arts.filter(art => art.is_nsfw).length
-    console.log(`📊 Загружено: артов ${allData.arts.length}, художников ${allData.artists.length}, тегов ${allData.tags.length}, персонажей ${allData.characters.length}, NSFW: ${nsfwCount}`)
+    const sfwCount = allData.arts.filter(art => !art.is_nsfw).length
+    console.log(`📊 Загружено: артов ${allData.arts.length} (SFW: ${sfwCount}, NSFW: ${nsfwCount})`)
+    console.log(`📊 Художников: ${allData.artists.length}, Тегов: ${allData.tags.length}, Персонажей: ${allData.characters.length}`)
+    console.log(`🔞 showNsfw был: ${showNsfw.value} → ${nsfwCount > 0 ? 'NSFW арты загружены ✅' : 'NSFW артов нет ⚠️'}`)
     console.log('✅ Все данные загружены оптимизированно!')
 
   } catch (err) {
@@ -267,7 +271,9 @@ const loadArts = async (isLoadMore = false) => {
     currentOffset.value += newArts.length
 
     const nsfwCount = newArts.filter(art => art.is_nsfw).length
-    console.log(`📊 Загружено артов: ${newArts.length}, NSFW: ${nsfwCount}`)
+    const sfwCount = newArts.filter(art => !art.is_nsfw).length
+    console.log(`📊 Загружено артов: ${newArts.length} (SFW: ${sfwCount}, NSFW: ${nsfwCount})`)
+    console.log(`🔞 showNsfw=${showNsfw.value} → ${nsfwCount > 0 ? 'NSFW арты загружены ✅' : 'NSFW артов нет ⚠️'}`)
 
   } catch (err) {
     error.value = err.message || 'Ошибка загрузки фурри-артов'
@@ -404,13 +410,17 @@ const handleUnlockNsfw = (artId) => {
 // ============================================
 // Следим за изменением NSFW и перезагружаем арты
 watch(showNsfw, (newValue, oldValue) => {
+  console.log(`👀 Watch NSFW сработал: ${oldValue} → ${newValue}, initialLoadComplete: ${initialLoadComplete.value}`)
+
   if (initialLoadComplete.value && newValue !== oldValue) {
-    console.log(`🔄 NSFW изменен: ${oldValue} → ${newValue}, перезагружаем арты...`)
+    console.log(`🔄 NSFW изменен, перезагружаем арты...`)
     notifications.showNotification(
       newValue ? 'NSFW контент включен 🔞' : 'Только SFW контент ✅',
       'info'
     )
     loadArts()
+  } else if (!initialLoadComplete.value) {
+    console.log(`⏳ Начальная загрузка еще не завершена, пропускаем перезагрузку`)
   }
 })
 
