@@ -156,9 +156,9 @@ export default {
     // Вычисляемые свойства
     const currentReferenceUrl = computed(() => {
       if (showNsfw.value) {
-        return 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/621/reference_nsfw.png';
+        return 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/reference_nsfw.png';
       }
-      return 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/621/reference.png';
+      return 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/reference.png';
     });
     
     // Методы
@@ -368,7 +368,7 @@ export default {
   background: #4caf50;
   border-radius: 50%;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fox-taffy-switch-input:checked + .fox-taffy-slider {

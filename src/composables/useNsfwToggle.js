@@ -19,21 +19,12 @@ export function useNsfwToggle() {
     // Следим за изменениями и сохраняем в localStorage
     watch(showNsfw, (newValue) => {
       localStorage.setItem('foxtaffy_reference_nsfw', newValue ? 'true' : 'false')
-      // Эмитим событие для синхронизации между вкладками
-      window.dispatchEvent(new CustomEvent('nsfw-toggle-changed', { detail: newValue }))
     })
 
     // Слушаем изменения из других вкладок
     window.addEventListener('storage', (e) => {
       if (e.key === 'foxtaffy_reference_nsfw') {
         showNsfw.value = e.newValue === 'true'
-      }
-    })
-
-    // Слушаем изменения в текущей вкладке
-    window.addEventListener('nsfw-toggle-changed', (e) => {
-      if (e.detail !== showNsfw.value) {
-        showNsfw.value = e.detail
       }
     })
   }
