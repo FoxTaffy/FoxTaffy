@@ -117,7 +117,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import Reference from './Reference.vue'
 import Filter from './Filter.vue'
 import GalleryCard from './GalleryCard.vue'
@@ -400,6 +400,21 @@ const handleUnlockNsfw = (artId) => {
 }
 
 // ============================================
+// РЕАКТИВНОСТЬ - ОТСЛЕЖИВАНИЕ NSFW
+// ============================================
+// Следим за изменением NSFW и перезагружаем арты
+watch(showNsfw, (newValue, oldValue) => {
+  if (initialLoadComplete.value && newValue !== oldValue) {
+    console.log(`🔄 NSFW изменен: ${oldValue} → ${newValue}, перезагружаем арты...`)
+    notifications.showNotification(
+      newValue ? 'NSFW контент включен 🔞' : 'Только SFW контент ✅',
+      'info'
+    )
+    loadArts()
+  }
+})
+
+// ============================================
 // ЖИЗНЕННЫЙ ЦИКЛ
 // ============================================
 onMounted(async () => {
@@ -415,10 +430,11 @@ onMounted(async () => {
   window.addEventListener('keydown', lightbox.handleKeyDown)
 
   console.log('✅ Оптимизированная Gallery.vue инициализирована!')
-  console.log('✨ Использованы композаблы: useGalleryFilters, useLightbox, useNotifications')
+  console.log('✨ Использованы композаблы: useGalleryFilters, useLightbox, useNotifications, useNsfwToggle')
   console.log('✨ Использованы подкомпоненты: GalleryCard, GalleryGrid, GallerySkeleton, GalleryLightbox')
   console.log('✨ Применена оптимизация изображений с IntersectionObserver')
   console.log('✨ Добавлен v-memo для предотвращения лишних ре-рендеров')
+  console.log(`✨ NSFW синхронизирован с Reference.vue, текущее состояние: ${showNsfw.value}`)
 })
 
 onBeforeUnmount(() => {
