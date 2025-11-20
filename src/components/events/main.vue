@@ -26,10 +26,6 @@
               <div class="stat-number">{{ stats.upcoming }}</div>
               <div class="stat-label">Планируется</div>
             </div>
-            <div class="stat-card">
-              <div class="stat-number">{{ formatMoney(stats.totalSpent) }}</div>
-              <div class="stat-label">Потрачено</div>
-            </div>
           </div>
         </div>
         
@@ -86,7 +82,6 @@
               <option value="date_desc">Сначала новые</option>
               <option value="date_asc">Сначала старые</option>
               <option value="rating_desc">Лучшие (по рейтингу)</option>
-              <option value="spent_desc">Самые дорогие</option>
               <option value="name_asc">По названию А-Я</option>
             </select>
           </div>
@@ -127,8 +122,8 @@
           <!-- Сетка мероприятий -->
           <div class="events-grid">
             <!-- Предстоящие мероприятия -->
-            <div 
-              v-for="event in paginatedEvents" 
+            <div
+              v-for="event in paginatedEvents"
               :key="event.id"
               class="event-card"
               :class="{
@@ -136,6 +131,7 @@
                 'completed-card': !isUpcoming(event),
                 'high-rating': event.my_rating >= 5
               }"
+              @click="goToEvent(event)"
             >
               <!-- Изображение мероприятия -->
               <div class="event-image">
@@ -203,10 +199,6 @@
 
                 <!-- Дополнительная информация для завершённых -->
                 <div v-else class="event-stats">
-                  <div v-if="event.total_spent" class="stat-item">
-                    <i class="fas fa-ruble-sign"></i>
-                    <span>{{ formatMoney(event.total_spent) }}</span>
-                  </div>
                   <div v-if="event.photos_count" class="stat-item">
                     <i class="fas fa-camera"></i>
                     <span>{{ event.photos_count }} фото</span>
@@ -425,8 +417,6 @@ export default {
             return a.name.localeCompare(b.name, 'ru')
           case 'rating_desc':
             return (b.my_rating || 0) - (a.my_rating || 0)
-          case 'spent_desc':
-            return (b.total_spent || 0) - (a.total_spent || 0)
           default:
             return new Date(b.event_date) - new Date(a.event_date)
         }
