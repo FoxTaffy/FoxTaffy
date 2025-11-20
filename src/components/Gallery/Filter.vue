@@ -145,62 +145,6 @@
         </div>
       </div>
 
-      <!-- ✅ ИСПРАВЛЕННЫЙ NSFW фильтр -->
-      <div class="content-filter">
-        <div class="filter-dropdown" ref="contentRef">
-          <button 
-            class="filter-btn content-btn" 
-            @click="toggleDropdown('content')"
-            :class="{ 
-              active: currentContentFilter !== 'all',
-              sfw: currentContentFilter === 'sfw',
-              nsfw: currentContentFilter === 'nsfw'
-            }"
-          >
-            <i :class="getContentIcon()"></i>
-            <span>{{ getContentLabel() }}</span>
-            <i class="fas fa-chevron-down" :class="{ rotated: showDropdowns.content }"></i>
-          </button>
-          
-          <div v-if="showDropdowns.content" class="dropdown-content">
-            <div class="dropdown-header">
-              <span>Фильтр по содержанию</span>
-            </div>
-            <div class="dropdown-list">
-              <button 
-                @click="setContentFilter('all')"
-                class="dropdown-item content-item"
-                :class="{ active: currentContentFilter === 'all' }"
-              >
-                <i class="fas fa-eye"></i>
-                <span class="item-name">Всё содержимое</span>
-                <span class="item-description">SFW + NSFW</span>
-              </button>
-              
-              <button 
-                @click="setContentFilter('sfw')"
-                class="dropdown-item content-item sfw-item"
-                :class="{ active: currentContentFilter === 'sfw' }"
-              >
-                <i class="fas fa-shield-alt"></i>
-                <span class="item-name">Только SFW</span>
-                <span class="item-description">Безопасно для работы</span>
-              </button>
-              
-              <button 
-                @click="setContentFilter('nsfw')"
-                class="dropdown-item content-item nsfw-item"
-                :class="{ active: currentContentFilter === 'nsfw' }"
-              >
-                <i class="fas fa-exclamation-triangle"></i>
-                <span class="item-name">Только NSFW</span>
-                <span class="item-description">Контент 18+</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Сортировка -->
       <div class="filter-dropdown" ref="sortRef">
         <button 
@@ -292,13 +236,6 @@
           <span>{{ character }}</span>
           <button @click.stop="removeCharacter(character)"><i class="fas fa-times"></i></button>
         </div>
-        
-        <!-- Контент фильтр -->
-        <div v-if="currentContentFilter !== 'all'" class="filter-pill content-pill" :class="currentContentFilter">
-          <i :class="getContentIcon()"></i>
-          <span>{{ getContentLabel() }}</span>
-          <button @click="setContentFilter('all')"><i class="fas fa-times"></i></button>
-        </div>
       </div>
     </div>
   </section>
@@ -323,17 +260,15 @@ const props = defineProps({
   selectedTags: { type: Array, default: () => [] },
   selectedArtists: { type: Array, default: () => [] },
   selectedCharacters: { type: Array, default: () => [] },
-  currentSort: { type: String, default: 'newest' },
-  currentContentFilter: { type: String, default: 'all' } // all, sfw, nsfw
+  currentSort: { type: String, default: 'newest' }
 })
 
 // Emits
 const emit = defineEmits([
   'search',
-  'filter-tags', 
+  'filter-tags',
   'filter-artists',
   'filter-characters',
-  'filter-content',
   'sort-change',
   'clear-filters'
 ])
@@ -348,7 +283,6 @@ const showDropdowns = ref({
   tags: false,
   artists: false,
   characters: false,
-  content: false,
   sort: false
 })
 
@@ -356,7 +290,6 @@ const showDropdowns = ref({
 const tagsRef = ref(null)
 const artistsRef = ref(null)
 const charactersRef = ref(null)
-const contentRef = ref(null)
 const sortRef = ref(null)
 
 // Опции сортировки
@@ -378,14 +311,12 @@ const selectedTags = computed(() => props.selectedTags)
 const selectedArtists = computed(() => props.selectedArtists)
 const selectedCharacters = computed(() => props.selectedCharacters)
 const currentSort = computed(() => props.currentSort)
-const currentContentFilter = computed(() => props.currentContentFilter)
 
 const hasActiveFilters = computed(() => {
-  return searchQuery.value.trim() !== '' || 
-         selectedTags.value.length > 0 || 
-         selectedArtists.value.length > 0 || 
+  return searchQuery.value.trim() !== '' ||
+         selectedTags.value.length > 0 ||
+         selectedArtists.value.length > 0 ||
          selectedCharacters.value.length > 0 ||
-         currentContentFilter.value !== 'all' ||
          currentSort.value !== 'newest'
 })
 
@@ -395,7 +326,6 @@ const activeFiltersCount = computed(() => {
   count += selectedTags.value.length
   count += selectedArtists.value.length
   count += selectedCharacters.value.length
-  if (currentContentFilter.value !== 'all') count++
   if (currentSort.value !== 'newest') count++
   return count
 })
@@ -520,30 +450,6 @@ const removeCharacter = (character) => {
 }
 
 // ============================================
-// ✅ NSFW/Content фильтры
-// ============================================
-const setContentFilter = (filter) => {
-  closeAllDropdowns()
-  emit('filter-content', filter)
-}
-
-const getContentIcon = () => {
-  switch (currentContentFilter.value) {
-    case 'sfw': return 'fas fa-shield-alt'
-    case 'nsfw': return 'fas fa-exclamation-triangle'
-    default: return 'fas fa-eye'
-  }
-}
-
-const getContentLabel = () => {
-  switch (currentContentFilter.value) {
-    case 'sfw': return 'Только SFW'
-    case 'nsfw': return 'Только NSFW'
-    default: return 'Всё содержимое'
-  }
-}
-
-// ============================================
 // СОРТИРОВКА
 // ============================================
 const setSort = (sortValue) => {
@@ -569,7 +475,7 @@ const clearAllFilters = () => {
 // ОБРАБОТКА КЛИКОВ ВНЕ ДРОПДАУНОВ
 // ============================================
 const handleClickOutside = (event) => {
-  const dropdownRefs = [tagsRef.value, artistsRef.value, charactersRef.value, contentRef.value, sortRef.value]
+  const dropdownRefs = [tagsRef.value, artistsRef.value, charactersRef.value, sortRef.value]
   const clickedOutside = dropdownRefs.every(ref => ref && !ref.contains(event.target))
   if (clickedOutside) {
     closeAllDropdowns()
@@ -581,10 +487,7 @@ const handleClickOutside = (event) => {
 // ============================================
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
-  console.log('✅ Filter.vue оптимизирован!')
-  console.log('✅ Убрано дублирование состояния!')
-  console.log('✅ Аватары исправлены на надежный сервис!')
-  console.log('✅ Добавлен debounce для поиска!')
+  console.log('✅ Filter.vue оптимизирован с простым NSFW toggle!')
 })
 
 onBeforeUnmount(() => {

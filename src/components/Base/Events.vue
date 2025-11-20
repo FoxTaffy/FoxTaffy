@@ -480,9 +480,10 @@ export default {
         }
       }
       
+      // Используем SVG placeholder вместо via.placeholder.com
       const color = this.isUpcoming(event) ? '4caf50' : 'ff7b25'
-      const name = encodeURIComponent(event.name?.slice(0, 8) || 'Event')
-      return `https://via.placeholder.com/400x250/${color}/ffffff?text=${name}`
+      const name = event.name?.slice(0, 8) || 'Event'
+      return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='250'%3E%3Crect width='400' height='250' fill='%23${color}'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-size='24' fill='%23ffffff'%3E${encodeURIComponent(name)}%3C/text%3E%3C/svg%3E`
     },
     
     isValidUrl(url) {
@@ -494,7 +495,8 @@ export default {
     },
     
     onImageError(event) {
-      event.target.src = 'https://via.placeholder.com/400x250/2a2a2a/ff7b25?text=Event'
+      // Используем SVG placeholder вместо via.placeholder.com
+      event.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='250'%3E%3Crect width='400' height='250' fill='%232a2a2a'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-size='24' fill='%23ff7b25'%3EEvent%3C/text%3E%3C/svg%3E"
     },
     
     // =================== НАВИГАЦИЯ ===================

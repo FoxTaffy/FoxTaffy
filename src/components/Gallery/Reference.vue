@@ -9,9 +9,9 @@
         <div class="fox-taffy-reference-switch">
           <span class="fox-taffy-switch-label" :class="{ 'fox-taffy-active': !showNsfw }">SFW</span>
           <label class="fox-taffy-switch">
-            <input 
-              type="checkbox" 
-              v-model="showNsfw" 
+            <input
+              type="checkbox"
+              :checked="showNsfw"
               @change="toggleReferenceType"
               class="fox-taffy-switch-input"
             >
@@ -22,9 +22,9 @@
         
         <!-- Изображение референса -->
         <div class="fox-taffy-image-wrapper">
-          <img 
-            :src="currentReferenceUrl" 
-            alt="Fox Taffy Reference Sheet" 
+          <img
+            :src="currentReferenceUrl"
+            alt="Fox Taffy Reference Sheet"
             class="fox-taffy-reference-image"
           >
         </div>
@@ -86,12 +86,13 @@
 
 <script>
 import { ref, reactive, computed, onMounted } from 'vue';
+import { useNsfwToggle } from '@/composables/useNsfwToggle';
 
 export default {
   name: 'FoxTaffyReference',
   setup() {
-    // Состояние референса
-    const showNsfw = ref(false);
+    // Состояние NSFW (синхронизировано с галереей)
+    const { showNsfw, toggle: toggleNsfw } = useNsfwToggle();
     
     // Цвета персонажа
     const characterColors = ref([
@@ -159,7 +160,9 @@ export default {
     
     // Методы
     const toggleReferenceType = () => {
-      localStorage.setItem('foxtaffy_reference_nsfw', showNsfw.value ? 'true' : 'false');
+      console.log('🔄 Reference: toggleReferenceType вызван, текущее showNsfw:', showNsfw.value);
+      toggleNsfw();
+      console.log('✅ Reference: после toggle, новое showNsfw:', showNsfw.value);
     };
     
     const copyColor = (color) => {
@@ -204,10 +207,7 @@ export default {
       }
     };
     
-    // Хуки жизненного цикла
-    onMounted(() => {
-      showNsfw.value = localStorage.getItem('foxtaffy_reference_nsfw') === 'true';
-    });
+    // Хуки жизненного цикла (NSFW состояние инициализируется в composable)
     
     return {
       // Состояние референса
@@ -307,6 +307,12 @@ export default {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.fox-taffy-reference-switch:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: scale(1.02);
 }
 
 .fox-taffy-switch-label {
@@ -315,10 +321,12 @@ export default {
   font-weight: 600;
   margin: 0;
   padding: 0;
+  transition: all 0.3s ease;
 }
 
 .fox-taffy-switch-label.fox-taffy-active {
   color: #f2f2f2;
+  transform: scale(1.1);
 }
 
 .fox-taffy-switch {
@@ -343,10 +351,15 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(76, 175, 80, 0.2);
   border-radius: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fox-taffy-slider:hover {
+  background: rgba(76, 175, 80, 0.3);
+  border-color: rgba(76, 175, 80, 0.6);
 }
 
 .fox-taffy-slider:before {
@@ -358,18 +371,24 @@ export default {
   bottom: 3px;
   background: #4caf50;
   border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.5);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fox-taffy-switch-input:checked + .fox-taffy-slider {
-  background: rgba(255, 107, 107, 0.2);
-  border-color: rgba(255, 107, 107, 0.5);
+  background: rgba(255, 107, 107, 0.3);
+  border-color: rgba(255, 107, 107, 0.6);
+}
+
+.fox-taffy-switch-input:checked + .fox-taffy-slider:hover {
+  background: rgba(255, 107, 107, 0.4);
+  border-color: rgba(255, 107, 107, 0.8);
 }
 
 .fox-taffy-switch-input:checked + .fox-taffy-slider:before {
   transform: translateX(28px);
   background: #ff6b6b;
+  box-shadow: 0 2px 12px rgba(255, 107, 107, 0.6);
 }
 
 .fox-taffy-image-wrapper {
@@ -386,6 +405,22 @@ export default {
   border: none;
   margin: 0;
   padding: 0;
+}
+
+/* Анимация переключения NSFW/SFW */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
 }
 
 /* Информация о референсе */
