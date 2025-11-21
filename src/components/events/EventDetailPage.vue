@@ -411,13 +411,13 @@
                       </li>
                     </ul>
                   </div>
-                  <div v-if="event.cons_list && event.cons_list.length > 0" class="cons-block">
+                  <div v-if="event.cons_text && event.cons_text.length > 0" class="cons-block">
                     <h4 class="cons-title">
                       <i class="fas fa-thumbs-down"></i>
                       Минусы
                     </h4>
                     <ul class="cons-list">
-                      <li v-for="(con, index) in event.cons_list" :key="index">
+                      <li v-for="(con, index) in event.cons_text" :key="index">
                         <i class="fas fa-times"></i>
                         <span>{{ con }}</span>
                       </li>
@@ -514,7 +514,7 @@ export default {
     hasProsOrCons() {
       return this.event && (
         (this.event.pros && this.event.pros.length > 0) ||
-        (this.event.cons_list && this.event.cons_list.length > 0)
+        (this.event.cons_text && this.event.cons_text.length > 0)
       )
     },
     calculatedOverallRating() {

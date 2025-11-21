@@ -762,10 +762,10 @@
                   Минусы
                 </label>
                 <div class="list-input-container">
-                  <div v-for="(item, index) in eventForm.cons_list" :key="'con-' + index" class="list-item con-item">
+                  <div v-for="(item, index) in eventForm.cons_text" :key="'con-' + index" class="list-item con-item">
                     <i class="fas fa-times"></i>
                     <input
-                      v-model="eventForm.cons_list[index]"
+                      v-model="eventForm.cons_text[index]"
                       type="text"
                       class="form-input small"
                       placeholder="Минус..."
@@ -1246,7 +1246,7 @@ export default {
         has_fursuit_parade: false,
         my_review: '',
         pros: [],
-        cons_list: [],
+        cons_text: [],
         purchase_items: [],
         rating_organization: null,
         rating_program: null,
@@ -1341,14 +1341,14 @@ export default {
     },
 
     addConItem() {
-      if (!this.eventForm.cons_list) {
-        this.eventForm.cons_list = []
+      if (!this.eventForm.cons_text) {
+        this.eventForm.cons_text = []
       }
-      this.eventForm.cons_list.push('')
+      this.eventForm.cons_text.push('')
     },
 
     removeConItem(index) {
-      this.eventForm.cons_list.splice(index, 1)
+      this.eventForm.cons_text.splice(index, 1)
     },
 
     editEvent(event) {
