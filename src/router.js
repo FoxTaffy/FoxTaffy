@@ -86,88 +86,10 @@ const routes = [
   },
 
   // ===============================================
-  // 🎪 СТАТИЧЕСКИЕ МАРШРУТЫ МЕРОПРИЯТИЙ
-  // (Конкретные компоненты для каждого события)
+  // 🎪 ЕДИНЫЙ ДИНАМИЧЕСКИЙ МАРШРУТ ДЛЯ ВСЕХ МЕРОПРИЯТИЙ
+  // Все мероприятия теперь используют EventDetailPage.vue
   // ===============================================
-  
-  {
-    path: '/events/furmarket',
-    name: 'FurMarket',
-    component: () => import('./components/events/FurMarket.vue'),
-    meta: {
-      title: 'FurMarket | Мероприятия Fox Taffy',
-      description: 'Отчёт Fox Taffy с маркета фурри-товаров FurMarket'
-    }
-  },
-  {
-    path: '/events/SkyFurrBurg',
-    name: 'SkyFurrBurg',
-    component: () => import('./components/events/sfb.vue'),
-    meta: {
-      title: 'SkyFurrBurg | Мероприятия Fox Taffy',
-      description: 'Отчёт Fox Taffy с конвента SkyFurrBurg'
-    }
-  },
-  {
-    path: '/events/FurrMarket4',
-    name: 'FurrMarket4',
-    component: () => import('./components/events/FurrMarket4.vue'),
-    meta: {
-      title: 'FurrMarket 4 | Мероприятия Fox Taffy',
-      description: 'Отчёт Fox Taffy с четвёртого FurrMarket'
-    }
-  },
-  {
-    path: '/events/TourFurr',
-    name: 'TourFurr',
-    component: () => import('./components/events/TourFurr.vue'),
-    meta: {
-      title: 'TourFurr | Мероприятия Fox Taffy',
-      description: 'Отчёт Fox Taffy с фурри-пикника TourFurr'
-    }
-  },
-  {
-    path: '/events/aff5',
-    name: 'AnyFurryFest5',
-    component: () => import('./components/events/AFF5.vue'),
-    meta: {
-      title: 'Any Furry Fest V | Мероприятия Fox Taffy',
-      description: 'Отчёт Fox Taffy с пятого Any Furry Fest'
-    }
-  },
-  {
-    path: '/events/sillycon',
-    name: 'Sillycon',
-    component: () => import('./components/events/sillycon.vue'),
-    meta: {
-      title: 'Тупикон | Мероприятия Fox Taffy',
-      description: 'Отчёт Fox Taffy с конвента Тупикон'
-    }
-  },
-  {
-    path: '/events/fff',
-    name: 'FFF',
-    component: () => import('./components/events/FFF.vue'),
-    meta: {
-      title: 'FFF | Мероприятия Fox Taffy',
-      description: 'Отчёт Fox Taffy с летнего фурри-феста FFF'
-    }
-  },
-  {
-    path: '/events/foxwood',
-    name: 'FoxWood2000s',
-    component: () => import('./components/events/FW2000.vue'),
-    meta: {
-      title: 'FoxWood 2000s | Мероприятия Fox Taffy',
-      description: 'Отчёт Fox Taffy с ретро-мероприятия FoxWood 2000s'
-    }
-  },
 
-  // ===============================================
-  // 🎪 ДИНАМИЧЕСКИЙ МАРШРУТ ДЛЯ НОВЫХ МЕРОПРИЯТИЙ
-  // (Размещаем ПОСЛЕ статических для избежания конфликтов)
-  // ===============================================
-  
   {
     path: '/events/:slug',
     name: 'EventDetail',
@@ -178,35 +100,21 @@ const routes = [
     },
     beforeEnter: (to, from, next) => {
       const slug = to.params.slug
-      
-      // Список статических маршрутов, которые НЕ должны обрабатываться динамически
-      const staticRoutes = [
-        'admin',
-        'furmarket', 
-        'SkyFurrBurg', 
-        'FurrMarket4', 
-        'TourFurr', 
-        'aff5', 
-        'sillycon', 
-        'fff', 
-        'foxwood'
-      ]
-      
-      // Если это статический маршрут, показываем 404
-      if (staticRoutes.includes(slug)) {
-        console.warn(`Статический маршрут ${slug} обрабатывается динамически - перенаправляем на 404`)
-        next({ name: 'NotFound' })
+
+      // Блокируем только admin
+      if (slug === 'admin') {
+        next({ name: 'EventsAdmin' })
         return
       }
-      
+
       // Проверяем, что slug содержит только разрешённые символы
       if (!/^[a-z0-9-]+$/i.test(slug)) {
         console.warn(`Недопустимый slug: ${slug}`)
         next({ name: 'Events' })
         return
       }
-      
-      console.log(`✅ Динамический маршрут для мероприятия: ${slug}`)
+
+      console.log(`✅ Загружаем мероприятие: ${slug}`)
       next()
     }
   },

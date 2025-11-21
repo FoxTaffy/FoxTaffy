@@ -792,6 +792,25 @@
               ></textarea>
             </div>
 
+            <!-- Отметка о завершении обзора -->
+            <div class="form-group review-completed-group">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  v-model="eventForm.review_completed"
+                  class="form-checkbox"
+                />
+                <span class="checkbox-text">
+                  <i class="fas fa-check-circle"></i>
+                  Обзор завершён
+                </span>
+              </label>
+              <div class="form-hint">
+                <i class="fas fa-info-circle"></i>
+                Отметьте, когда полностью заполните отзыв. Мероприятие исчезнет из уведомлений.
+              </div>
+            </div>
+
             <!-- Покупки для маркетов/фестивалей -->
             <div v-if="eventForm.event_type === 'festival' || eventForm.event_type === 'market'" class="purchases-block">
               <h5 class="block-title">
@@ -1354,6 +1373,19 @@ export default {
     editEvent(event) {
       this.isEditing = true
       this.eventForm = { ...event }
+
+      // Конвертируем дату из ISO формата в YYYY-MM-DD для input[type="date"]
+      if (this.eventForm.event_date) {
+        this.eventForm.event_date = this.eventForm.event_date.split('T')[0]
+      }
+      if (this.eventForm.announced_date) {
+        this.eventForm.announced_date = this.eventForm.announced_date.split('T')[0]
+      }
+
+      // Инициализируем массивы если они null
+      if (!this.eventForm.pros) this.eventForm.pros = []
+      if (!this.eventForm.cons_text) this.eventForm.cons_text = []
+
       this.currentStep = 0
       this.maxReachedStep = 3 // Allow access to all steps when editing
       this.showCreateModal = true
@@ -3356,6 +3388,44 @@ export default {
 .add-list-item.con:hover {
   border-color: var(--accent-red);
   color: var(--accent-red);
+}
+
+/* Review completed checkbox */
+.review-completed-group {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.form-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent-green);
+  cursor: pointer;
+}
+
+.checkbox-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.checkbox-text i {
+  color: var(--accent-green);
+}
+
+.form-checkbox:checked + .checkbox-text {
+  color: var(--accent-green);
 }
 
 .status-selector {
