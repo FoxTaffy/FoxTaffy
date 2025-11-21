@@ -129,9 +129,9 @@
             >
               <!-- Изображение мероприятия -->
               <div class="event-image">
-                <img 
-                  v-if="event.meta_image" 
-                  :src="event.meta_image" 
+                <img
+                  v-if="event.logo_url || event.avatar_url || event.meta_image"
+                  :src="event.logo_url || event.avatar_url || event.meta_image"
                   :alt="event.name"
                   @error="handleImageError"
                 >
