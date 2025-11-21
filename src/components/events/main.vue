@@ -223,13 +223,21 @@
 
                   <!-- Для завершённых мероприятий -->
                   <template v-else>
-                    <button @click.stop="goToEvent(event)" class="action-btn primary">
+                    <button
+                      v-if="!isReviewMissing(event)"
+                      @click.stop="goToEvent(event)"
+                      class="action-btn primary"
+                    >
                       <i class="fas fa-eye"></i>
                       <span>Подробнее</span>
                     </button>
-                    <button @click.stop="openEventGallery(event)" class="action-btn secondary">
-                      <i class="fas fa-images"></i>
-                      <span>Фотографии</span>
+                    <button
+                      v-else
+                      class="action-btn primary disabled"
+                      disabled
+                    >
+                      <i class="fas fa-pen"></i>
+                      <span>Обзор не написан</span>
                     </button>
                   </template>
                 </div>
@@ -678,6 +686,12 @@ export default {
     
     isUpcoming(event) {
       return new Date(event.event_date) > new Date()
+    },
+
+    // Проверка отсутствия обзора для прошедших событий
+    isReviewMissing(event) {
+      const isPast = new Date(event.event_date) < new Date()
+      return isPast && !event.review_completed
     },
     
     getStatusClass(event) {
@@ -1478,6 +1492,18 @@ export default {
   background: rgba(255, 255, 255, 0.15);
   border-color: var(--accent-orange, #ff7b25);
   color: var(--accent-orange, #ff7b25);
+}
+
+.action-btn.disabled {
+  background: rgba(128, 128, 128, 0.3);
+  color: var(--text-muted, #a0a0a0);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.action-btn.disabled:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 /* ===============================================

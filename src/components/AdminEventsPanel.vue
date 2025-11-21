@@ -811,6 +811,24 @@
               </div>
             </div>
 
+            <!-- Папка фотографий S3 -->
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fas fa-folder-open"></i>
+                Папка фотографий (S3)
+              </label>
+              <input
+                v-model="eventForm.photos_folder"
+                type="text"
+                class="form-input"
+                placeholder="https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/SFB/"
+              />
+              <div class="form-hint">
+                <i class="fas fa-info-circle"></i>
+                URL папки в S3 с фотографиями мероприятия
+              </div>
+            </div>
+
             <!-- Покупки для маркетов/фестивалей -->
             <div v-if="eventForm.event_type === 'festival' || eventForm.event_type === 'market'" class="purchases-block">
               <h5 class="block-title">
@@ -1273,7 +1291,8 @@ export default {
         rating_location: null,
         rating_participants: null,
         rating_food: null,
-        review_completed: false
+        review_completed: false,
+        photos_folder: ''
       }
     },
     
