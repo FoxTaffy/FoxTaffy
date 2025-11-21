@@ -86,22 +86,6 @@
             </div>
           </div>
 
-          <div v-if="event.entrance_fee > 0" class="event-info-card">
-            <div class="info-icon"><i class="fas fa-ticket-alt"></i></div>
-            <div class="info-content">
-              <div class="info-label">Входной билет</div>
-              <div class="info-value">{{ formatMoney(event.entrance_fee) }}</div>
-            </div>
-          </div>
-
-          <div v-if="event.total_spent > 0" class="event-info-card">
-            <div class="info-icon"><i class="fas fa-wallet"></i></div>
-            <div class="info-content">
-              <div class="info-label">Всего потрачено</div>
-              <div class="info-value">{{ formatMoney(event.total_spent) }}</div>
-            </div>
-          </div>
-
           <div v-if="event.announced_date" class="event-info-card">
             <div class="info-icon"><i class="fas fa-bullhorn"></i></div>
             <div class="info-content">
@@ -137,7 +121,7 @@
             </a>
             
             <a
-              v-if="purchases.length > 0 || event.purchases_summary || event.total_spent > 0"
+              v-if="purchases.length > 0 || event.purchases_summary"
               href="#purchases"
               class="nav-tab"
               :class="{ 'active': activeTab === 'purchases' }"

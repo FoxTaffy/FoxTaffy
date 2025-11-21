@@ -118,8 +118,6 @@
           <option value="name_desc">По названию Я-А</option>
           <option value="rating_desc">По рейтингу ⬇</option>
           <option value="rating_asc">По рейтингу ⬆</option>
-          <option value="spent_desc">По тратам ⬇</option>
-          <option value="spent_asc">По тратам ⬆</option>
         </select>
       </div>
     </div>
@@ -219,16 +217,11 @@
           
           <!-- Дополнительная информация -->
           <div class="event-extras">
-            <div v-if="event.total_spent" class="event-spent">
-              <i class="fas fa-ruble-sign"></i>
-              <span>{{ formatMoney(event.total_spent) }}</span>
-            </div>
-            
             <div v-if="event.attendees_count || event.expected_visitors" class="event-attendees">
               <i class="fas fa-users"></i>
               <span>{{ event.attendees_count || event.expected_visitors }} участников</span>
             </div>
-            
+
             <div v-if="event.photos_count" class="event-photos">
               <i class="fas fa-images"></i>
               <span>{{ event.photos_count }} фото</span>
@@ -445,7 +438,7 @@
                 <i class="fas fa-chart-bar"></i>
                 Оценка и статистика
               </h4>
-              
+
               <div class="form-row two-columns">
                 <div class="form-group">
                   <label class="form-label">Моя оценка</label>
@@ -458,53 +451,73 @@
                     <option value="5">⭐⭐⭐⭐⭐ 5 - Отлично</option>
                   </select>
                 </div>
-                
-                <div class="form-group">
-                  <label class="form-label">Потрачено денег</label>
-                  <input 
-                    v-model="eventForm.total_spent" 
-                    type="number" 
-                    class="form-input"
-                    placeholder="0"
-                    min="0"
-                  />
-                </div>
-              </div>
-              
-              <div class="form-row two-columns">
+
                 <div class="form-group">
                   <label class="form-label">Количество участников</label>
-                  <input 
-                    v-model="eventForm.attendees_count" 
-                    type="number" 
-                    class="form-input"
-                    placeholder="0"
-                    min="0"
-                  />
-                </div>
-                
-                <div class="form-group">
-                  <label class="form-label">Ожидаемых посетителей</label>
-                  <input 
-                    v-model="eventForm.expected_visitors" 
-                    type="number" 
+                  <input
+                    v-model="eventForm.attendees_count"
+                    type="number"
                     class="form-input"
                     placeholder="0"
                     min="0"
                   />
                 </div>
               </div>
-              
+
               <div class="form-row">
                 <div class="form-group">
-                  <label class="form-label">Стоимость входа</label>
-                  <input 
-                    v-model="eventForm.entrance_fee" 
-                    type="number" 
+                  <label class="form-label">Ожидаемых посетителей</label>
+                  <input
+                    v-model="eventForm.expected_visitors"
+                    type="number"
                     class="form-input"
                     placeholder="0"
                     min="0"
                   />
+                </div>
+              </div>
+            </div>
+
+            <!-- Покупки (только для фестивалей и маркетов) -->
+            <div v-if="eventForm.event_type === 'festival' || eventForm.event_type === 'market'" class="form-section purchases-section">
+              <h4 class="section-title">
+                <i class="fas fa-shopping-bag"></i>
+                Покупки и траты
+              </h4>
+
+              <div class="form-row two-columns">
+                <div class="form-group">
+                  <label class="form-label">Стоимость входа</label>
+                  <input
+                    v-model="eventForm.entrance_fee"
+                    type="number"
+                    class="form-input"
+                    placeholder="0 ₽"
+                    min="0"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Всего потрачено</label>
+                  <input
+                    v-model="eventForm.total_spent"
+                    type="number"
+                    class="form-input"
+                    placeholder="0 ₽"
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Описание покупок</label>
+                  <textarea
+                    v-model="eventForm.purchases_summary"
+                    class="form-textarea"
+                    placeholder="Что было куплено на мероприятии..."
+                    rows="3"
+                  ></textarea>
                 </div>
               </div>
             </div>
@@ -834,6 +847,7 @@ export default {
         attendees_count: null,
         expected_visitors: null,
         entrance_fee: null,
+        purchases_summary: '',
         official_website: '',
         meta_image: '',
         is_featured: false,
@@ -1683,7 +1697,6 @@ export default {
   margin-bottom: 1rem;
 }
 
-.event-spent,
 .event-attendees,
 .event-photos {
   display: flex;
@@ -1691,10 +1704,6 @@ export default {
   gap: 0.5rem;
   color: var(--text-muted);
   font-size: 0.9rem;
-}
-
-.event-spent i {
-  color: var(--accent-green);
 }
 
 .event-attendees i {
@@ -1938,6 +1947,15 @@ export default {
   border-radius: var(--border-radius-medium);
   padding: 1.5rem;
   background: rgba(255, 255, 255, 0.02);
+}
+
+.form-section.purchases-section {
+  border-color: var(--accent-green);
+  background: rgba(76, 175, 80, 0.05);
+}
+
+.form-section.purchases-section .section-title i {
+  color: var(--accent-green);
 }
 
 .section-title {
