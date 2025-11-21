@@ -24,45 +24,100 @@
       </div>
     </div>
 
-    <!-- Статистическая панель -->
-    <div v-if="!loading && stats" class="stats-grid">
-      <div class="stat-card total">
-        <div class="stat-icon">
-          <i class="fas fa-calendar-alt"></i>
+    <!-- Статистическая панель с графиком -->
+    <div v-if="!loading && stats" class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-card total">
+          <div class="stat-icon">
+            <i class="fas fa-calendar-alt"></i>
+          </div>
+          <div class="stat-info">
+            <div class="stat-number">{{ stats.total || 0 }}</div>
+            <div class="stat-label">Всего событий</div>
+          </div>
+          <div class="stat-trend up">
+            <i class="fas fa-arrow-up"></i>
+          </div>
         </div>
-        <div class="stat-info">
-          <div class="stat-number">{{ stats.total || 0 }}</div>
-          <div class="stat-label">Всего событий</div>
+
+        <div class="stat-card upcoming">
+          <div class="stat-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="stat-info">
+            <div class="stat-number">{{ stats.upcoming || 0 }}</div>
+            <div class="stat-label">Предстоящих</div>
+          </div>
+          <div class="stat-progress">
+            <div class="progress-fill" :style="{ width: upcomingPercent + '%' }"></div>
+          </div>
+        </div>
+
+        <div class="stat-card completed">
+          <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-info">
+            <div class="stat-number">{{ stats.completed || 0 }}</div>
+            <div class="stat-label">Завершённых</div>
+          </div>
+          <div class="stat-progress">
+            <div class="progress-fill" :style="{ width: completedPercent + '%' }"></div>
+          </div>
+        </div>
+
+        <div class="stat-card featured">
+          <div class="stat-icon">
+            <i class="fas fa-star"></i>
+          </div>
+          <div class="stat-info">
+            <div class="stat-number">{{ stats.featured || 0 }}</div>
+            <div class="stat-label">Избранных</div>
+          </div>
         </div>
       </div>
-      
-      <div class="stat-card upcoming">
-        <div class="stat-icon">
-          <i class="fas fa-clock"></i>
+
+      <!-- Визуальная диаграмма распределения -->
+      <div class="chart-section">
+        <h3 class="chart-title">
+          <i class="fas fa-chart-pie"></i>
+          Распределение мероприятий
+        </h3>
+        <div class="donut-chart">
+          <svg viewBox="0 0 100 100" class="chart-svg">
+            <circle
+              cx="50" cy="50" r="40"
+              fill="none"
+              stroke="rgba(255, 123, 37, 0.8)"
+              stroke-width="8"
+              :stroke-dasharray="upcomingArc + ' ' + (251.2 - upcomingArc)"
+              stroke-dashoffset="0"
+              transform="rotate(-90 50 50)"
+            />
+            <circle
+              cx="50" cy="50" r="40"
+              fill="none"
+              stroke="rgba(76, 175, 80, 0.8)"
+              stroke-width="8"
+              :stroke-dasharray="completedArc + ' ' + (251.2 - completedArc)"
+              :stroke-dashoffset="-upcomingArc"
+              transform="rotate(-90 50 50)"
+            />
+          </svg>
+          <div class="chart-center">
+            <span class="chart-total">{{ stats.total || 0 }}</span>
+            <span class="chart-label">всего</span>
+          </div>
         </div>
-        <div class="stat-info">
-          <div class="stat-number">{{ stats.upcoming || 0 }}</div>
-          <div class="stat-label">Предстоящих</div>
-        </div>
-      </div>
-      
-      <div class="stat-card completed">
-        <div class="stat-icon">
-          <i class="fas fa-check-circle"></i>
-        </div>
-        <div class="stat-info">
-          <div class="stat-number">{{ stats.completed || 0 }}</div>
-          <div class="stat-label">Завершённых</div>
-        </div>
-      </div>
-      
-      <div class="stat-card featured">
-        <div class="stat-icon">
-          <i class="fas fa-star"></i>
-        </div>
-        <div class="stat-info">
-          <div class="stat-number">{{ stats.featured || 0 }}</div>
-          <div class="stat-label">Избранных</div>
+        <div class="chart-legend">
+          <div class="legend-item">
+            <span class="legend-dot upcoming"></span>
+            <span>Предстоящие ({{ stats.upcoming || 0 }})</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot completed"></span>
+            <span>Завершённые ({{ stats.completed || 0 }})</span>
+          </div>
         </div>
       </div>
     </div>
@@ -423,34 +478,88 @@
               />
             </div>
 
-            <div class="form-row two-columns">
-              <div class="form-group">
-                <label class="form-label">Лого/Аватар для карточки</label>
-                <div class="avatar-upload">
-                  <input
-                    v-model="eventForm.avatar_url"
-                    type="url"
-                    class="form-input"
-                    placeholder="https://example.com/logo.jpg"
-                  />
-                  <div v-if="eventForm.avatar_url" class="avatar-preview">
-                    <img :src="eventForm.avatar_url" alt="Avatar" @error="eventForm.avatar_url = ''" />
-                  </div>
+            <div class="form-group">
+              <label class="form-label">Лого/Аватар для карточки</label>
+              <div class="upload-tabs">
+                <button
+                  type="button"
+                  @click="avatarUploadMethod = 's3'"
+                  class="upload-tab"
+                  :class="{ active: avatarUploadMethod === 's3' }"
+                >
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  Загрузить файл
+                </button>
+                <button
+                  type="button"
+                  @click="avatarUploadMethod = 'url'"
+                  class="upload-tab"
+                  :class="{ active: avatarUploadMethod === 'url' }"
+                >
+                  <i class="fas fa-link"></i>
+                  URL
+                </button>
+              </div>
+              <div v-if="avatarUploadMethod === 's3'" class="upload-area">
+                <FileUploader
+                  v-model="eventForm.avatar_url"
+                  folder="events/avatars"
+                  :show-info="false"
+                  @file-uploaded="onAvatarUploaded"
+                />
+              </div>
+              <div v-else class="url-input-area">
+                <input
+                  v-model="eventForm.avatar_url"
+                  type="url"
+                  class="form-input"
+                  placeholder="https://example.com/logo.jpg"
+                />
+                <div v-if="eventForm.avatar_url" class="avatar-preview">
+                  <img :src="eventForm.avatar_url" alt="Avatar" @error="eventForm.avatar_url = ''" />
                 </div>
               </div>
+            </div>
 
-              <div class="form-group">
-                <label class="form-label">Баннер (широкий)</label>
-                <div class="banner-upload">
-                  <input
-                    v-model="eventForm.meta_image"
-                    type="url"
-                    class="form-input"
-                    placeholder="https://example.com/banner.jpg"
-                  />
-                  <div v-if="eventForm.meta_image" class="banner-preview small">
-                    <img :src="eventForm.meta_image" alt="Banner" @error="eventForm.meta_image = ''" />
-                  </div>
+            <div class="form-group">
+              <label class="form-label">Баннер (широкий)</label>
+              <div class="upload-tabs">
+                <button
+                  type="button"
+                  @click="bannerUploadMethod = 's3'"
+                  class="upload-tab"
+                  :class="{ active: bannerUploadMethod === 's3' }"
+                >
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  Загрузить файл
+                </button>
+                <button
+                  type="button"
+                  @click="bannerUploadMethod = 'url'"
+                  class="upload-tab"
+                  :class="{ active: bannerUploadMethod === 'url' }"
+                >
+                  <i class="fas fa-link"></i>
+                  URL
+                </button>
+              </div>
+              <div v-if="bannerUploadMethod === 's3'" class="upload-area">
+                <FileUploader
+                  v-model="eventForm.meta_image"
+                  folder="events/banners"
+                  :show-info="false"
+                  @file-uploaded="onBannerUploaded"
+                />
+              </div>
+              <div v-else class="url-input-area">
+                <input
+                  v-model="eventForm.meta_image"
+                  type="url"
+                  class="form-input"
+                  placeholder="https://example.com/banner.jpg"
+                />
+                <div v-if="eventForm.meta_image" class="banner-preview">
+                  <img :src="eventForm.meta_image" alt="Banner" @error="eventForm.meta_image = ''" />
                 </div>
               </div>
             </div>
@@ -762,10 +871,15 @@
 
 <script>
 import { furryApi } from '@/config/supabase.js'
+import FileUploader from '@/FileUploader.vue'
 
 export default {
   name: 'AdminEventsPanel',
-  
+
+  components: {
+    FileUploader
+  },
+
   emits: ['notification'],
   
   data() {
@@ -801,6 +915,10 @@ export default {
       // Удаление
       eventToDelete: null,
       deleting: false,
+
+      // Upload методы
+      avatarUploadMethod: 's3',
+      bannerUploadMethod: 's3',
 
       // Wizard
       currentStep: 0,
@@ -881,6 +999,26 @@ export default {
     isEventInPast() {
       if (!this.eventForm.event_date) return false
       return new Date(this.eventForm.event_date) < new Date()
+    },
+
+    upcomingPercent() {
+      if (!this.stats.total) return 0
+      return Math.round((this.stats.upcoming / this.stats.total) * 100)
+    },
+
+    completedPercent() {
+      if (!this.stats.total) return 0
+      return Math.round((this.stats.completed / this.stats.total) * 100)
+    },
+
+    upcomingArc() {
+      if (!this.stats.total) return 0
+      return (this.stats.upcoming / this.stats.total) * 251.2
+    },
+
+    completedArc() {
+      if (!this.stats.total) return 0
+      return (this.stats.completed / this.stats.total) * 251.2
     },
 
     filteredStatuses() {
@@ -1086,6 +1224,16 @@ export default {
 
     removePurchaseItem(index) {
       this.eventForm.purchase_items.splice(index, 1)
+    },
+
+    onAvatarUploaded(fileData) {
+      this.eventForm.avatar_url = fileData.url
+      this.$emit('notification', 'Аватар загружен', 'success')
+    },
+
+    onBannerUploaded(fileData) {
+      this.eventForm.meta_image = fileData.url
+      this.$emit('notification', 'Баннер загружен', 'success')
     },
 
     editEvent(event) {
@@ -1454,6 +1602,8 @@ export default {
   border-radius: var(--border-radius-large);
   padding: 1.5rem;
   transition: all 0.3s ease;
+  position: relative;
+  flex-wrap: wrap;
 }
 
 .stat-card:hover {
@@ -1504,6 +1654,148 @@ export default {
   font-size: 0.9rem;
   color: var(--text-muted);
   margin-top: 0.25rem;
+}
+
+.stat-trend {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+}
+
+.stat-trend.up {
+  background: rgba(76, 175, 80, 0.2);
+  color: var(--accent-green);
+}
+
+.stat-progress {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  margin-top: 0.75rem;
+  overflow: hidden;
+}
+
+.stat-progress .progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+.stat-card.upcoming .progress-fill {
+  background: var(--accent-orange);
+}
+
+.stat-card.completed .progress-fill {
+  background: var(--accent-green);
+}
+
+/* Stats section layout */
+.stats-section {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Chart section */
+.chart-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-large);
+  padding: 1.5rem;
+}
+
+.chart-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin: 0 0 1.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chart-title i {
+  color: var(--accent-orange);
+}
+
+.donut-chart {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 1.5rem;
+}
+
+.chart-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.chart-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.chart-total {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-light);
+  line-height: 1;
+}
+
+.chart-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-dot.upcoming {
+  background: var(--accent-orange);
+}
+
+.legend-dot.completed {
+  background: var(--accent-green);
+}
+
+@media (max-width: 1024px) {
+  .stats-section {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-section {
+    order: -1;
+  }
 }
 
 /* ===============================================
@@ -1734,49 +2026,66 @@ export default {
    =============================================== */
 
 .events-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 1.5rem;
 }
 
 .event-card {
   display: flex;
+  flex-direction: column;
   background: var(--bg-card);
   border-radius: var(--border-radius-large);
   overflow: hidden;
   border: 1px solid var(--border-light);
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .event-card:hover {
   background: var(--bg-card-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-soft);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
 }
 
 .event-card.featured {
   border-color: var(--accent-purple);
-  box-shadow: 0 0 0 1px rgba(156, 39, 176, 0.3);
+  box-shadow: 0 0 20px rgba(156, 39, 176, 0.2);
+}
+
+.event-card.featured::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-purple), var(--accent-orange));
 }
 
 .event-card.high-rating {
   border-color: var(--accent-green);
 }
 
+.event-card.upcoming {
+  border-color: var(--accent-orange);
+}
+
 .event-preview {
-  width: 200px;
+  width: 100%;
   flex-shrink: 0;
 }
 
 .event-banner {
   width: 100%;
-  height: 180px;
+  height: 160px;
   background-size: cover;
   background-position: center;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .no-image-placeholder {
@@ -2844,13 +3153,53 @@ export default {
   max-width: 120px;
 }
 
-/* Avatar upload */
-.avatar-upload {
+/* Upload tabs */
+.upload-tabs {
   display: flex;
-  flex-direction: column;
   gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
+.upload-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-small);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.upload-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-light);
+}
+
+.upload-tab.active {
+  background: var(--accent-orange);
+  border-color: var(--accent-orange);
+  color: white;
+}
+
+.upload-area {
+  margin-bottom: 1rem;
+}
+
+.url-input-area {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Avatar upload */
 .avatar-preview {
   width: 80px;
   height: 80px;
@@ -2865,8 +3214,18 @@ export default {
   object-fit: cover;
 }
 
-.banner-preview.small {
-  height: 80px;
+.banner-preview {
+  width: 100%;
+  height: 120px;
+  border-radius: var(--border-radius-small);
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+}
+
+.banner-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Purchase items */
