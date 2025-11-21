@@ -14,6 +14,10 @@ ADD COLUMN IF NOT EXISTS rating_food INTEGER CHECK (rating_food >= 1 AND rating_
 ALTER TABLE cons
 ADD COLUMN IF NOT EXISTS review_completed BOOLEAN DEFAULT false;
 
+-- Поле для URL папки фотографий в S3
+ALTER TABLE cons
+ADD COLUMN IF NOT EXISTS photos_folder TEXT;
+
 -- Изменяем pros и cons_text на JSONB для хранения массивов
 -- Сначала переименуем старые поля
 ALTER TABLE cons RENAME COLUMN pros TO pros_old;
