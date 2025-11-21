@@ -133,7 +133,7 @@
             </a>
             
             <a
-              v-if="event.my_review || event.my_rating || event.conclusion"
+              v-if="event.my_review || event.my_rating || event.conclusion || event.pros || event.cons_text"
               href="#impressions"
               class="nav-tab"
               :class="{ 'active': activeTab === 'impressions' }"
@@ -293,10 +293,6 @@
                   <i class="fas fa-ruble-sign"></i>
                   <span>{{ formatMoney(totalSpent) }} потрачено</span>
                 </div>
-                <div v-if="event.entrance_fee > 0" class="purchase-stat">
-                  <i class="fas fa-ticket-alt"></i>
-                  <span>{{ formatMoney(event.entrance_fee) }} вход</span>
-                </div>
               </div>
 
               <!-- Текстовая сводка покупок -->
@@ -347,8 +343,26 @@
                 <span class="rating-text">{{ event.my_rating }}/5</span>
               </div>
 
+              <!-- Плюсы и минусы -->
+              <div v-if="event.pros || event.cons_text" class="pros-cons-section">
+                <div v-if="event.pros" class="pros-block">
+                  <h3 class="pros-title">
+                    <i class="fas fa-plus-circle"></i>
+                    Плюсы
+                  </h3>
+                  <div class="pros-text">{{ event.pros }}</div>
+                </div>
+                <div v-if="event.cons_text" class="cons-block">
+                  <h3 class="cons-title">
+                    <i class="fas fa-minus-circle"></i>
+                    Минусы
+                  </h3>
+                  <div class="cons-text">{{ event.cons_text }}</div>
+                </div>
+              </div>
+
               <div v-if="event.my_review" class="review-text" v-html="event.my_review"></div>
-              <div v-else-if="!event.conclusion" class="no-review">
+              <div v-else-if="!event.conclusion && !event.pros && !event.cons_text" class="no-review">
                 <i class="fas fa-pen"></i>
                 <p>Отзыв о мероприятии пока не написан</p>
               </div>
@@ -1161,6 +1175,62 @@ export default {
   font-size: 1.1rem;
   line-height: 1.7;
   color: var(--text-light);
+}
+
+/* ===== ПЛЮСЫ И МИНУСЫ ===== */
+.pros-cons-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.pros-block,
+.cons-block {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pros-block {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.cons-block {
+  background: rgba(244, 67, 54, 0.1);
+  border-color: rgba(244, 67, 54, 0.3);
+}
+
+.pros-title,
+.cons-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.pros-title {
+  color: #4caf50;
+}
+
+.cons-title {
+  color: #f44336;
+}
+
+.pros-text,
+.cons-text {
+  color: var(--text-light);
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+@media (max-width: 768px) {
+  .pros-cons-section {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ===== ЗАКЛЮЧЕНИЕ ===== */

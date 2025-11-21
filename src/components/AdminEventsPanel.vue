@@ -609,7 +609,7 @@
                   Минусы
                 </label>
                 <textarea
-                  v-model="eventForm.cons"
+                  v-model="eventForm.cons_text"
                   class="form-textarea"
                   placeholder="Что не понравилось..."
                   rows="3"
@@ -631,30 +631,8 @@
             <div v-if="eventForm.event_type === 'festival' || eventForm.event_type === 'market'" class="purchases-block">
               <h5 class="block-title">
                 <i class="fas fa-shopping-bag"></i>
-                Покупки и траты
+                Покупки
               </h5>
-              <div class="form-row two-columns">
-                <div class="form-group">
-                  <label class="form-label">Стоимость входа</label>
-                  <input
-                    v-model="eventForm.entrance_fee"
-                    type="number"
-                    class="form-input"
-                    placeholder="0 ₽"
-                    min="0"
-                  />
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Всего потрачено</label>
-                  <input
-                    v-model="eventForm.total_spent"
-                    type="number"
-                    class="form-input"
-                    placeholder="0 ₽"
-                    min="0"
-                  />
-                </div>
-              </div>
 
               <!-- Список покупок -->
               <div class="form-group">
@@ -1032,10 +1010,8 @@ export default {
         event_type: 'convention',
         attendance_status: 'planning',
         my_rating: null,
-        total_spent: null,
         attendees_count: null,
         expected_visitors: null,
-        entrance_fee: null,
         purchases_summary: '',
         official_website: '',
         meta_image: '',
@@ -1046,7 +1022,7 @@ export default {
         has_fursuit_parade: false,
         my_review: '',
         pros: '',
-        cons: '',
+        cons_text: '',
         purchase_items: []
       }
     },
