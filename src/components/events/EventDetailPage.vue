@@ -51,7 +51,7 @@
               <div class="info-value">{{ formatEventDate(event.event_date) }}</div>
             </div>
           </div>
-          
+
           <div v-if="getEventTime(event.event_date)" class="event-info-card">
             <div class="info-icon"><i class="fas fa-clock"></i></div>
             <div class="info-content">
@@ -59,21 +59,54 @@
               <div class="info-value">{{ getEventTime(event.event_date) }}</div>
             </div>
           </div>
-          
+
           <div class="event-info-card">
             <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
             <div class="info-content">
               <div class="info-label">Место проведения</div>
               <div class="info-value">{{ event.location }}</div>
-              <div v-if="event.city && event.city !== event.location" class="info-extra">{{ event.city }}</div>
+              <div v-if="event.city" class="info-extra">{{ event.city }}<span v-if="event.country">, {{ event.country }}</span></div>
             </div>
           </div>
-          
+
           <div v-if="event.attendees_count" class="event-info-card">
             <div class="info-icon"><i class="fas fa-users"></i></div>
             <div class="info-content">
               <div class="info-label">Участников</div>
               <div class="info-value">{{ event.attendees_count }}+</div>
+              <div v-if="event.expected_visitors" class="info-extra">Ожидалось: {{ event.expected_visitors }}</div>
+            </div>
+          </div>
+
+          <div v-if="event.event_type" class="event-info-card">
+            <div class="info-icon"><i class="fas fa-tag"></i></div>
+            <div class="info-content">
+              <div class="info-label">Тип мероприятия</div>
+              <div class="info-value">{{ getEventTypeName(event.event_type) }}</div>
+            </div>
+          </div>
+
+          <div v-if="event.entrance_fee > 0" class="event-info-card">
+            <div class="info-icon"><i class="fas fa-ticket-alt"></i></div>
+            <div class="info-content">
+              <div class="info-label">Входной билет</div>
+              <div class="info-value">{{ formatMoney(event.entrance_fee) }}</div>
+            </div>
+          </div>
+
+          <div v-if="event.total_spent > 0" class="event-info-card">
+            <div class="info-icon"><i class="fas fa-wallet"></i></div>
+            <div class="info-content">
+              <div class="info-label">Всего потрачено</div>
+              <div class="info-value">{{ formatMoney(event.total_spent) }}</div>
+            </div>
+          </div>
+
+          <div v-if="event.announced_date" class="event-info-card">
+            <div class="info-icon"><i class="fas fa-bullhorn"></i></div>
+            <div class="info-content">
+              <div class="info-label">Дата анонса</div>
+              <div class="info-value">{{ formatEventDate(event.announced_date) }}</div>
             </div>
           </div>
         </div>
@@ -103,23 +136,23 @@
               <span class="tab-count">({{ photos.length }})</span>
             </a>
             
-            <a 
-              v-if="purchases.length > 0" 
-              href="#purchases" 
-              class="nav-tab" 
-              :class="{ 'active': activeTab === 'purchases' }" 
+            <a
+              v-if="purchases.length > 0 || event.purchases_summary || event.total_spent > 0"
+              href="#purchases"
+              class="nav-tab"
+              :class="{ 'active': activeTab === 'purchases' }"
               @click.prevent="activeTab = 'purchases'"
             >
               <i class="fas fa-shopping-bag"></i>
               <span>Покупки</span>
-              <span class="tab-count">({{ purchases.length }})</span>
+              <span v-if="purchases.length > 0" class="tab-count">({{ purchases.length }})</span>
             </a>
             
-            <a 
-              v-if="event.my_review || event.my_rating"
-              href="#impressions" 
-              class="nav-tab" 
-              :class="{ 'active': activeTab === 'impressions' }" 
+            <a
+              v-if="event.my_review || event.my_rating || event.conclusion"
+              href="#impressions"
+              class="nav-tab"
+              :class="{ 'active': activeTab === 'impressions' }"
               @click.prevent="activeTab = 'impressions'"
             >
               <i class="fas fa-heart"></i>
@@ -139,16 +172,32 @@
                 <i class="fas fa-info-circle"></i>
                 <p>Описание мероприятия пока не добавлено</p>
               </div>
-              
-              <!-- Официальные ресурсы -->
-              <div v-if="links.length > 0" class="event-links">
-                <h3 class="links-title">Официальные ресурсы:</h3>
+
+              <!-- Официальный сайт -->
+              <div v-if="event.official_website" class="event-links">
+                <h3 class="links-title">Официальный сайт:</h3>
                 <div class="links-container">
-                  <a 
-                    v-for="link in links" 
-                    :key="link.id" 
-                    :href="link.url" 
-                    target="_blank" 
+                  <a
+                    :href="event.official_website"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="event-link"
+                  >
+                    <i class="fas fa-globe"></i>
+                    <span>{{ getWebsiteDomain(event.official_website) }}</span>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Официальные ресурсы из базы -->
+              <div v-if="links.length > 0" class="event-links">
+                <h3 class="links-title">Ссылки:</h3>
+                <div class="links-container">
+                  <a
+                    v-for="link in links"
+                    :key="link.id"
+                    :href="link.url"
+                    target="_blank"
                     rel="noopener noreferrer"
                     class="event-link"
                   >
@@ -157,10 +206,53 @@
                   </a>
                 </div>
               </div>
-              
-              <!-- Особенности мероприятия -->
+
+              <!-- Встроенные особенности мероприятия -->
+              <div v-if="hasBuiltInFeatures" class="features-container">
+                <h3 class="features-title">Что было на мероприятии</h3>
+                <div class="features-grid">
+                  <div v-if="event.has_dealers_den" class="feature-card">
+                    <div class="feature-icon">
+                      <i class="fas fa-store"></i>
+                    </div>
+                    <div class="feature-content">
+                      <h4 class="feature-title">Dealers Den</h4>
+                      <p class="feature-description">Торговая зона с мерчем и артами</p>
+                    </div>
+                  </div>
+                  <div v-if="event.has_art_show" class="feature-card">
+                    <div class="feature-icon">
+                      <i class="fas fa-palette"></i>
+                    </div>
+                    <div class="feature-content">
+                      <h4 class="feature-title">Арт-выставка</h4>
+                      <p class="feature-description">Выставка работ художников</p>
+                    </div>
+                  </div>
+                  <div v-if="event.has_fursuit_parade" class="feature-card">
+                    <div class="feature-icon">
+                      <i class="fas fa-paw"></i>
+                    </div>
+                    <div class="feature-content">
+                      <h4 class="feature-title">Фурсьют-парад</h4>
+                      <p class="feature-description">Парад участников в костюмах</p>
+                    </div>
+                  </div>
+                  <div v-if="event.has_competitions" class="feature-card">
+                    <div class="feature-icon">
+                      <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="feature-content">
+                      <h4 class="feature-title">Конкурсы</h4>
+                      <p class="feature-description">Различные соревнования и конкурсы</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Дополнительные особенности из базы -->
               <div v-if="features.length > 0" class="features-container">
-                <h3 class="features-title">Особенности мероприятия</h3>
+                <h3 class="features-title">Дополнительные особенности</h3>
                 <div class="features-grid">
                   <div v-for="feature in features" :key="feature.id" class="feature-card">
                     <div class="feature-icon">
@@ -206,7 +298,7 @@
               Покупки
               <span class="section-count">({{ purchases.length }})</span>
             </h2>
-            <div v-if="purchases.length > 0">
+            <div v-if="purchases.length > 0 || event.purchases_summary">
               <!-- Сводка покупок -->
               <div class="purchases-summary">
                 <div class="purchase-stat">
@@ -217,6 +309,16 @@
                   <i class="fas fa-ruble-sign"></i>
                   <span>{{ formatMoney(totalSpent) }} потрачено</span>
                 </div>
+                <div v-if="event.entrance_fee > 0" class="purchase-stat">
+                  <i class="fas fa-ticket-alt"></i>
+                  <span>{{ formatMoney(event.entrance_fee) }} вход</span>
+                </div>
+              </div>
+
+              <!-- Текстовая сводка покупок -->
+              <div v-if="event.purchases_summary" class="purchases-text-summary">
+                <h3 class="summary-title">Что было куплено:</h3>
+                <p class="summary-text">{{ event.purchases_summary }}</p>
               </div>
               
               <!-- Список покупок -->
@@ -251,8 +353,8 @@
             <div class="impressions-content">
               <div v-if="event.my_rating" class="review-rating">
                 <div class="rating-stars">
-                  <i 
-                    v-for="n in 5" 
+                  <i
+                    v-for="n in 5"
                     :key="n"
                     class="fas fa-star"
                     :class="{ 'active': n <= event.my_rating }"
@@ -260,11 +362,17 @@
                 </div>
                 <span class="rating-text">{{ event.my_rating }}/5</span>
               </div>
-              
+
               <div v-if="event.my_review" class="review-text" v-html="event.my_review"></div>
-              <div v-else class="no-review">
+              <div v-else-if="!event.conclusion" class="no-review">
                 <i class="fas fa-pen"></i>
                 <p>Отзыв о мероприятии пока не написан</p>
+              </div>
+
+              <!-- Заключение -->
+              <div v-if="event.conclusion" class="conclusion-section">
+                <h3 class="conclusion-title">Итоги</h3>
+                <div class="conclusion-text" v-html="event.conclusion"></div>
               </div>
             </div>
           </div>
@@ -321,6 +429,14 @@ export default {
   computed: {
     totalSpent() {
       return this.purchases.reduce((sum, purchase) => sum + (purchase.price || 0), 0)
+    },
+    hasBuiltInFeatures() {
+      return this.event && (
+        this.event.has_dealers_den ||
+        this.event.has_art_show ||
+        this.event.has_fursuit_parade ||
+        this.event.has_competitions
+      )
     }
   },
   
@@ -409,6 +525,29 @@ export default {
         cancelled: 'Отменено'
       }
       return statusMap[event.attendance_status] || 'Неизвестно'
+    },
+
+    getEventTypeName(eventType) {
+      const typeMap = {
+        convention: 'Конвент',
+        market: 'Маркет',
+        festival: 'Фестиваль',
+        meetup: 'Встреча',
+        exhibition: 'Выставка',
+        party: 'Вечеринка',
+        online: 'Онлайн',
+        other: 'Другое'
+      }
+      return typeMap[eventType] || eventType
+    },
+
+    getWebsiteDomain(url) {
+      try {
+        const domain = new URL(url).hostname
+        return domain.replace('www.', '')
+      } catch {
+        return url
+      }
     },
     
     formatEventDate(dateString) {
@@ -1038,6 +1177,47 @@ export default {
   font-size: 1.1rem;
   line-height: 1.7;
   color: var(--text-light);
+}
+
+/* ===== ЗАКЛЮЧЕНИЕ ===== */
+.conclusion-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.conclusion-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-bottom: 1rem;
+}
+
+.conclusion-text {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: var(--text-light);
+}
+
+/* ===== СВОДКА ПОКУПОК ===== */
+.purchases-text-summary {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.summary-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-bottom: 0.75rem;
+}
+
+.summary-text {
+  color: var(--text-muted);
+  line-height: 1.6;
 }
 
 /* ===== НАВИГАЦИЯ ===== */
