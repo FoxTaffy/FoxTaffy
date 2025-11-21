@@ -29,18 +29,12 @@
           </div>
         </div>
         
-        <!-- Навигация -->
-        <div class="page-navigation">
-          <router-link to="/" class="back-button">
-            <i class="fas fa-arrow-left"></i>
-            <span>На главную</span>
-          </router-link>
-          <router-link to="/events/admin" class="admin-button" v-if="isAdminMode">
-            <i class="fas fa-cog"></i>
-            <span>Управление</span>
-          </router-link>
-        </div>
       </div>
+
+      <!-- Кнопка "На главную" в углу -->
+      <router-link to="/" class="home-corner-button">
+        <i class="fas fa-home"></i>
+      </router-link>
     </div>
 
     <!-- Фильтры и поиск -->
@@ -135,9 +129,9 @@
             >
               <!-- Изображение мероприятия -->
               <div class="event-image">
-                <img 
-                  v-if="event.meta_image" 
-                  :src="event.meta_image" 
+                <img
+                  v-if="event.logo_url || event.avatar_url || event.meta_image"
+                  :src="event.logo_url || event.avatar_url || event.meta_image"
                   :alt="event.name"
                   @error="handleImageError"
                 >
@@ -188,10 +182,8 @@
 
                 <!-- Информация о времени до начала (для предстоящих) -->
                 <div v-if="isUpcoming(event)" class="event-countdown">
-                  <div class="countdown-icon">
-                    <i class="fas fa-clock"></i>
-                  </div>
-                  <span>До начала: {{ getDaysUntilEvent(event.event_date) }}</span>
+                  <div class="countdown-label">До начала</div>
+                  <div class="countdown-value">{{ getDaysUntilEvent(event.event_date) }}</div>
                   <div class="countdown-bar">
                     <div class="countdown-progress" :style="{ width: getCountdownProgress(event.event_date) + '%' }"></div>
                   </div>
@@ -209,11 +201,7 @@
                 <div class="event-actions">
                   <!-- Для предстоящих мероприятий -->
                   <template v-if="isUpcoming(event)">
-                    <button @click.stop="planToAttend(event)" class="action-btn primary">
-                      <i class="fas fa-calendar-plus"></i>
-                      <span>Буду участвовать</span>
-                    </button>
-                    <button @click.stop="openOfficialSite(event)" class="action-btn secondary">
+                    <button @click.stop="openOfficialSite(event)" class="action-btn primary">
                       <i class="fas fa-external-link-alt"></i>
                       <span>Официальный сайт</span>
                     </button>
@@ -926,19 +914,33 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.back-button:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-1px);
+/* Кнопка "На главную" в углу */
+.home-corner-button {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  width: 50px;
+  height: 50px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light, #f2f2f2);
+  text-decoration: none;
+  font-size: 1.2rem;
+  z-index: 100;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-.admin-button {
+.home-corner-button:hover {
   background: var(--accent-orange, #ff7b25);
-  color: white;
-}
-
-.admin-button:hover {
-  background: #e6691f;
-  transform: translateY(-1px);
+  border-color: var(--accent-orange, #ff7b25);
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(255, 123, 37, 0.4);
 }
 
 /* ===============================================
@@ -1305,28 +1307,30 @@ export default {
   flex: 1;
 }
 
-/* Обратный отсчёт для предстоящих */
+/* Обратный отсчёт для предстоящих - улучшенный дизайн */
 .event-countdown {
-  background: rgba(76, 175, 80, 0.1);
-  border: 1px solid rgba(76, 175, 80, 0.2);
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(76, 175, 80, 0.05));
+  border: 1px solid rgba(76, 175, 80, 0.3);
   border-radius: 0.75rem;
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  padding: 1rem 1.25rem;
   position: relative;
+  text-align: center;
 }
 
-.countdown-icon {
-  width: 35px;
-  height: 35px;
-  background: var(--accent-green, #4caf50);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 0.9rem;
+.countdown-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent-green, #4caf50);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.countdown-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-light, #f2f2f2);
+  line-height: 1.2;
 }
 
 .countdown-bar {

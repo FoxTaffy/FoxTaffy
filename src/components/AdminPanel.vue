@@ -986,20 +986,18 @@
                   </div>
                   
                   <div class="form-group">
-                    <label>Аватар (URL)</label>
-                    <input 
+                    <AvatarUploader
                       v-model="modal.data.avatar_url"
-                      type="url" 
-                      placeholder="https://example.com/avatar.jpg"
-                      class="form-input"
-                    >
+                      label="Аватар"
+                      folder="avatars"
+                    />
                   </div>
-                  
+
                   <div class="form-group">
                     <label class="checkbox-label">
-                      <input 
+                      <input
                         v-model="modal.data.is_friend"
-                        type="checkbox" 
+                        type="checkbox"
                         class="checkbox"
                       >
                       <span class="checkmark"></span>
@@ -1039,13 +1037,11 @@
                   </div>
                   
                   <div class="form-group">
-                    <label>Аватар (URL)</label>
-                    <input 
+                    <AvatarUploader
                       v-model="modal.data.avatar_url"
-                      type="url" 
-                      placeholder="https://example.com/character.jpg"
-                      class="form-input"
-                    >
+                      label="Аватар персонажа"
+                      folder="avatars"
+                    />
                   </div>
                 </div>
               </div>
@@ -1163,6 +1159,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { furryApi } from '@/config/supabase.js'
 import FileUploader from '@/components/FileUploader.vue'
+import AvatarUploader from '@/components/AvatarUploader.vue'
 
 // Константы
 const ADMIN_CODE = import.meta.env.VITE_ADMIN_SECRET_CODE || 'FoxTaffy621'
