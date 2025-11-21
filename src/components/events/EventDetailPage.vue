@@ -343,21 +343,86 @@
                 <span class="rating-text">{{ event.my_rating }}/5</span>
               </div>
 
-              <!-- Плюсы и минусы -->
-              <div v-if="event.pros || event.cons_text" class="pros-cons-section">
-                <div v-if="event.pros" class="pros-block">
-                  <h3 class="pros-title">
-                    <i class="fas fa-plus-circle"></i>
-                    Плюсы
-                  </h3>
-                  <div class="pros-text">{{ event.pros }}</div>
+              <!-- Оценки по категориям -->
+              <div v-if="hasMultiRatings" class="multi-rating-section">
+                <h3 class="rating-section-title">Моя оценка</h3>
+                <div class="rating-categories-grid">
+                  <div v-if="event.rating_organization" class="rating-cat-card">
+                    <span class="cat-label">Организация</span>
+                    <div class="cat-stars">
+                      <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= event.rating_organization }"></i>
+                    </div>
+                    <span class="cat-value">{{ event.rating_organization }}/5</span>
+                  </div>
+                  <div v-if="event.rating_program" class="rating-cat-card">
+                    <span class="cat-label">Программа</span>
+                    <div class="cat-stars">
+                      <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= event.rating_program }"></i>
+                    </div>
+                    <span class="cat-value">{{ event.rating_program }}/5</span>
+                  </div>
+                  <div v-if="event.rating_atmosphere" class="rating-cat-card">
+                    <span class="cat-label">Атмосфера</span>
+                    <div class="cat-stars">
+                      <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= event.rating_atmosphere }"></i>
+                    </div>
+                    <span class="cat-value">{{ event.rating_atmosphere }}/5</span>
+                  </div>
+                  <div v-if="event.rating_location" class="rating-cat-card">
+                    <span class="cat-label">Локация</span>
+                    <div class="cat-stars">
+                      <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= event.rating_location }"></i>
+                    </div>
+                    <span class="cat-value">{{ event.rating_location }}/5</span>
+                  </div>
+                  <div v-if="event.rating_participants" class="rating-cat-card">
+                    <span class="cat-label">Участники</span>
+                    <div class="cat-stars">
+                      <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= event.rating_participants }"></i>
+                    </div>
+                    <span class="cat-value">{{ event.rating_participants }}/5</span>
+                  </div>
+                  <div v-if="event.rating_food" class="rating-cat-card">
+                    <span class="cat-label">Питание</span>
+                    <div class="cat-stars">
+                      <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= event.rating_food }"></i>
+                    </div>
+                    <span class="cat-value">{{ event.rating_food }}/5</span>
+                  </div>
                 </div>
-                <div v-if="event.cons_text" class="cons-block">
-                  <h3 class="cons-title">
-                    <i class="fas fa-minus-circle"></i>
-                    Минусы
-                  </h3>
-                  <div class="cons-text">{{ event.cons_text }}</div>
+                <div class="overall-rating-display">
+                  Общая оценка: <strong>{{ calculatedOverallRating }}/5</strong>
+                </div>
+              </div>
+
+              <!-- Плюсы и минусы как списки -->
+              <div v-if="hasProsOrCons" class="pros-cons-section">
+                <h3 class="opinion-title">Мое мнение</h3>
+                <div class="pros-cons-columns">
+                  <div v-if="event.pros && event.pros.length > 0" class="pros-block">
+                    <h4 class="pros-title">
+                      <i class="fas fa-thumbs-up"></i>
+                      Плюсы
+                    </h4>
+                    <ul class="pros-list">
+                      <li v-for="(pro, index) in event.pros" :key="index">
+                        <i class="fas fa-check"></i>
+                        <span>{{ pro }}</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div v-if="event.cons_list && event.cons_list.length > 0" class="cons-block">
+                    <h4 class="cons-title">
+                      <i class="fas fa-thumbs-down"></i>
+                      Минусы
+                    </h4>
+                    <ul class="cons-list">
+                      <li v-for="(con, index) in event.cons_list" :key="index">
+                        <i class="fas fa-times"></i>
+                        <span>{{ con }}</span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
 
@@ -435,6 +500,37 @@ export default {
         this.event.has_fursuit_parade ||
         this.event.has_competitions
       )
+    },
+    hasMultiRatings() {
+      return this.event && (
+        this.event.rating_organization ||
+        this.event.rating_program ||
+        this.event.rating_atmosphere ||
+        this.event.rating_location ||
+        this.event.rating_participants ||
+        this.event.rating_food
+      )
+    },
+    hasProsOrCons() {
+      return this.event && (
+        (this.event.pros && this.event.pros.length > 0) ||
+        (this.event.cons_list && this.event.cons_list.length > 0)
+      )
+    },
+    calculatedOverallRating() {
+      if (!this.event) return '0.0'
+      const ratings = [
+        this.event.rating_organization,
+        this.event.rating_program,
+        this.event.rating_atmosphere,
+        this.event.rating_location,
+        this.event.rating_participants,
+        this.event.rating_food
+      ].filter(r => r !== null && r > 0)
+
+      if (ratings.length === 0) return '0.0'
+      const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+      return avg.toFixed(1)
     }
   },
   
@@ -1177,12 +1273,89 @@ export default {
   color: var(--text-light);
 }
 
+/* ===== МНОЖЕСТВЕННЫЕ ОЦЕНКИ ===== */
+.multi-rating-section {
+  margin-bottom: 2rem;
+}
+
+.rating-section-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin: 0 0 1.5rem 0;
+}
+
+.rating-categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.rating-cat-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.cat-label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.cat-stars {
+  display: flex;
+  justify-content: center;
+  gap: 0.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.cat-stars i {
+  font-size: 0.9rem;
+  color: rgba(255, 193, 7, 0.3);
+}
+
+.cat-stars i.active {
+  color: #ffc107;
+}
+
+.cat-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent-orange);
+}
+
+.overall-rating-display {
+  text-align: right;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.overall-rating-display strong {
+  font-size: 1.1rem;
+  color: var(--accent-orange);
+}
+
 /* ===== ПЛЮСЫ И МИНУСЫ ===== */
 .pros-cons-section {
+  margin-bottom: 2rem;
+}
+
+.opinion-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin: 0 0 1.5rem 0;
+}
+
+.pros-cons-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
-  margin-bottom: 2rem;
 }
 
 .pros-block,
@@ -1209,7 +1382,7 @@ export default {
   gap: 0.5rem;
   font-size: 1rem;
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin: 0 0 1rem 0;
 }
 
 .pros-title {
@@ -1220,16 +1393,45 @@ export default {
   color: #f44336;
 }
 
-.pros-text,
-.cons-text {
+.pros-list,
+.cons-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pros-list li,
+.cons-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
   color: var(--text-light);
-  line-height: 1.6;
-  white-space: pre-line;
+  line-height: 1.5;
+}
+
+.pros-list li:last-child,
+.cons-list li:last-child {
+  margin-bottom: 0;
+}
+
+.pros-list li i {
+  color: #4caf50;
+  margin-top: 0.2rem;
+}
+
+.cons-list li i {
+  color: #f44336;
+  margin-top: 0.2rem;
 }
 
 @media (max-width: 768px) {
-  .pros-cons-section {
+  .pros-cons-columns {
     grid-template-columns: 1fr;
+  }
+
+  .rating-categories-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

@@ -24,6 +24,27 @@
       </div>
     </div>
 
+    <!-- Уведомление о событиях без обзора -->
+    <div v-if="eventsNeedingReview.length > 0" class="review-alert">
+      <div class="alert-icon">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <div class="alert-content">
+        <h4>Требуется написать обзор</h4>
+        <p>{{ eventsNeedingReview.length }} мероприятий прошли и ждут обзора</p>
+      </div>
+      <div class="alert-actions">
+        <button
+          v-for="event in eventsNeedingReview.slice(0, 3)"
+          :key="event.id"
+          class="alert-event-btn"
+          @click="editEvent(event)"
+        >
+          {{ event.name }}
+        </button>
+      </div>
+    </div>
+
     <!-- Статистическая панель с графиком -->
     <div v-if="!loading && stats" class="stats-section">
       <div class="stats-grid">
@@ -660,20 +681,30 @@
               </div>
             </div>
 
+            <!-- Множественные оценки по категориям -->
             <div class="form-group">
-              <label class="form-label">Моя оценка</label>
-              <div class="rating-selector">
-                <button
-                  v-for="n in 5"
-                  :key="n"
-                  type="button"
-                  class="rating-star"
-                  :class="{ 'active': eventForm.my_rating >= n }"
-                  @click="eventForm.my_rating = n"
-                >
-                  <i class="fas fa-star"></i>
-                </button>
-                <span v-if="eventForm.my_rating" class="rating-label">{{ getRatingLabel(eventForm.my_rating) }}</span>
+              <label class="form-label">Оценки по категориям</label>
+              <div class="multi-rating-grid">
+                <div v-for="category in ratingCategories" :key="category.key" class="rating-category">
+                  <span class="category-name">{{ category.label }}</span>
+                  <div class="category-stars">
+                    <button
+                      v-for="n in 5"
+                      :key="n"
+                      type="button"
+                      class="rating-star small"
+                      :class="{ 'active': eventForm[category.key] >= n }"
+                      @click="eventForm[category.key] = n"
+                    >
+                      <i class="fas fa-star"></i>
+                    </button>
+                  </div>
+                  <span class="category-value">{{ eventForm[category.key] || 0 }}/5</span>
+                </div>
+              </div>
+              <div class="overall-rating">
+                <span>Общая оценка:</span>
+                <strong>{{ calculatedOverallRating }}/5</strong>
               </div>
             </div>
 
@@ -698,31 +729,56 @@
               </div>
             </div>
 
+            <!-- Плюсы как список -->
             <div class="form-row two-columns">
               <div class="form-group">
                 <label class="form-label">
-                  <i class="fas fa-plus-circle" style="color: var(--accent-green)"></i>
+                  <i class="fas fa-thumbs-up" style="color: var(--accent-green)"></i>
                   Плюсы
                 </label>
-                <textarea
-                  v-model="eventForm.pros"
-                  class="form-textarea"
-                  placeholder="Что понравилось..."
-                  rows="3"
-                ></textarea>
+                <div class="list-input-container">
+                  <div v-for="(item, index) in eventForm.pros" :key="'pro-' + index" class="list-item pro-item">
+                    <i class="fas fa-check"></i>
+                    <input
+                      v-model="eventForm.pros[index]"
+                      type="text"
+                      class="form-input small"
+                      placeholder="Плюс..."
+                    />
+                    <button type="button" class="remove-list-item" @click="removeProItem(index)">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <button type="button" class="add-list-item pro" @click="addProItem">
+                    <i class="fas fa-plus"></i>
+                    Добавить плюс
+                  </button>
+                </div>
               </div>
 
               <div class="form-group">
                 <label class="form-label">
-                  <i class="fas fa-minus-circle" style="color: var(--accent-red)"></i>
+                  <i class="fas fa-thumbs-down" style="color: var(--accent-red)"></i>
                   Минусы
                 </label>
-                <textarea
-                  v-model="eventForm.cons_text"
-                  class="form-textarea"
-                  placeholder="Что не понравилось..."
-                  rows="3"
-                ></textarea>
+                <div class="list-input-container">
+                  <div v-for="(item, index) in eventForm.cons_list" :key="'con-' + index" class="list-item con-item">
+                    <i class="fas fa-times"></i>
+                    <input
+                      v-model="eventForm.cons_list[index]"
+                      type="text"
+                      class="form-input small"
+                      placeholder="Минус..."
+                    />
+                    <button type="button" class="remove-list-item" @click="removeConItem(index)">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <button type="button" class="add-list-item con" @click="addConItem">
+                    <i class="fas fa-plus"></i>
+                    Добавить минус
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -943,6 +999,14 @@ export default {
         { value: 'attended', label: 'Посетил', icon: 'fas fa-star' },
         { value: 'missed', label: 'Пропустил', icon: 'fas fa-times-circle' },
         { value: 'cancelled', label: 'Отменено', icon: 'fas fa-ban' }
+      ],
+      ratingCategories: [
+        { key: 'rating_organization', label: 'Организация' },
+        { key: 'rating_program', label: 'Программа' },
+        { key: 'rating_atmosphere', label: 'Атмосфера' },
+        { key: 'rating_location', label: 'Локация' },
+        { key: 'rating_participants', label: 'Участники' },
+        { key: 'rating_food', label: 'Питание' }
       ]
     }
   },
@@ -1019,6 +1083,28 @@ export default {
     completedArc() {
       if (!this.stats.total) return 0
       return (this.stats.completed / this.stats.total) * 251.2
+    },
+
+    calculatedOverallRating() {
+      const ratings = [
+        this.eventForm.rating_organization,
+        this.eventForm.rating_program,
+        this.eventForm.rating_atmosphere,
+        this.eventForm.rating_location,
+        this.eventForm.rating_participants,
+        this.eventForm.rating_food
+      ].filter(r => r !== null && r > 0)
+
+      if (ratings.length === 0) return '0.0'
+      const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+      return avg.toFixed(1)
+    },
+
+    eventsNeedingReview() {
+      return this.events.filter(e => {
+        const isPast = new Date(e.event_date) < new Date()
+        return isPast && !e.review_completed
+      })
     },
 
     filteredStatuses() {
@@ -1159,9 +1245,16 @@ export default {
         has_art_show: false,
         has_fursuit_parade: false,
         my_review: '',
-        pros: '',
-        cons_text: '',
-        purchase_items: []
+        pros: [],
+        cons_list: [],
+        purchase_items: [],
+        rating_organization: null,
+        rating_program: null,
+        rating_atmosphere: null,
+        rating_location: null,
+        rating_participants: null,
+        rating_food: null,
+        review_completed: false
       }
     },
     
@@ -1234,6 +1327,28 @@ export default {
     onBannerUploaded(fileData) {
       this.eventForm.meta_image = fileData.url
       this.$emit('notification', 'Баннер загружен', 'success')
+    },
+
+    addProItem() {
+      if (!this.eventForm.pros) {
+        this.eventForm.pros = []
+      }
+      this.eventForm.pros.push('')
+    },
+
+    removeProItem(index) {
+      this.eventForm.pros.splice(index, 1)
+    },
+
+    addConItem() {
+      if (!this.eventForm.cons_list) {
+        this.eventForm.cons_list = []
+      }
+      this.eventForm.cons_list.push('')
+    },
+
+    removeConItem(index) {
+      this.eventForm.cons_list.splice(index, 1)
     },
 
     editEvent(event) {
@@ -1580,6 +1695,73 @@ export default {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* ===============================================
+   🔔 УВЕДОМЛЕНИЕ ОБ ОБЗОРАХ
+   =============================================== */
+
+.review-alert {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), rgba(255, 152, 0, 0.1));
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: var(--border-radius-large);
+  margin-bottom: 2rem;
+}
+
+.alert-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 193, 7, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #ffc107;
+  flex-shrink: 0;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-content h4 {
+  margin: 0 0 0.25rem 0;
+  color: var(--text-light);
+  font-size: 1.1rem;
+}
+
+.alert-content p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.alert-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.alert-event-btn {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 193, 7, 0.2);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: var(--border-radius-small);
+  color: #ffc107;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.alert-event-btn:hover {
+  background: rgba(255, 193, 7, 0.3);
+  transform: translateY(-2px);
 }
 
 /* ===============================================
@@ -3042,6 +3224,138 @@ export default {
   margin-left: 1rem;
   color: var(--text-muted);
   font-weight: 600;
+}
+
+/* Multi-rating grid */
+.multi-rating-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.rating-category {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-small);
+  padding: 1rem;
+  text-align: center;
+}
+
+.category-name {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.category-stars {
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.rating-star.small {
+  padding: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.category-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent-orange);
+}
+
+.overall-rating {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-light);
+  color: var(--text-muted);
+}
+
+.overall-rating strong {
+  font-size: 1.2rem;
+  color: var(--accent-orange);
+}
+
+/* List input container */
+.list-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.list-item > i {
+  width: 20px;
+  text-align: center;
+}
+
+.pro-item > i {
+  color: var(--accent-green);
+}
+
+.con-item > i {
+  color: var(--accent-red);
+}
+
+.list-item .form-input.small {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.remove-list-item {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(244, 67, 54, 0.2);
+  color: var(--accent-red);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  transition: all 0.3s ease;
+}
+
+.remove-list-item:hover {
+  background: rgba(244, 67, 54, 0.4);
+}
+
+.add-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px dashed var(--border-light);
+  border-radius: var(--border-radius-small);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+}
+
+.add-list-item.pro:hover {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+.add-list-item.con:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
 }
 
 .status-selector {
