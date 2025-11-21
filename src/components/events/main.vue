@@ -135,11 +135,11 @@
               }"
               @click="goToEvent(event)"
             >
-              <!-- Изображение мероприятия -->
+              <!-- Изображение мероприятия (логотип/аватар) -->
               <div class="event-image">
-                <img 
-                  v-if="event.meta_image" 
-                  :src="event.meta_image" 
+                <img
+                  v-if="event.avatar_url || event.meta_image"
+                  :src="event.avatar_url || event.meta_image"
                   :alt="event.name"
                   @error="handleImageError"
                 >
@@ -158,8 +158,8 @@
                   <div class="date-year">{{ getYear(event.event_date) }}</div>
                 </div>
 
-                <!-- Рейтинг для завершённых -->
-                <div v-else-if="getOverallRating(event) > 0" class="event-rating-badge">
+                <!-- Рейтинг для завершённых (только если обзор написан) -->
+                <div v-else-if="getOverallRating(event) > 0 && !isReviewMissing(event)" class="event-rating-badge">
                   <div class="rating-stars">
                     <i
                       v-for="n in 5"
