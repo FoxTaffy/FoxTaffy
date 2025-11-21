@@ -2,6 +2,8 @@
   <div class="events-main-page">
     <!-- Шапка страницы -->
     <div class="page-header">
+      <div class="header-background"></div>
+      <div class="header-overlay"></div>
       <div class="container">
         <div class="header-content">
           <div class="header-text">
@@ -209,13 +211,21 @@
 
                   <!-- Для завершённых мероприятий -->
                   <template v-else>
-                    <button @click.stop="goToEvent(event)" class="action-btn primary">
+                    <button
+                      v-if="event.review_completed"
+                      @click.stop="goToEvent(event)"
+                      class="action-btn primary"
+                    >
                       <i class="fas fa-eye"></i>
                       <span>Подробнее</span>
                     </button>
-                    <button @click.stop="openEventGallery(event)" class="action-btn secondary">
-                      <i class="fas fa-images"></i>
-                      <span>Фотографии</span>
+                    <button
+                      v-else
+                      class="action-btn disabled"
+                      disabled
+                    >
+                      <i class="fas fa-pencil-alt"></i>
+                      <span>Обзор не написан</span>
                     </button>
                   </template>
                 </div>
@@ -834,9 +844,37 @@ export default {
    =============================================== */
 
 .page-header {
-  background: linear-gradient(135deg, rgba(255, 123, 37, 0.1) 0%, rgba(76, 175, 80, 0.1) 100%);
+  position: relative;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: 3rem 0;
+  overflow: hidden;
+}
+
+.header-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/events/sfb_banner.jpg');
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+}
+
+.header-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(26, 26, 26, 0.85) 0%, rgba(26, 26, 26, 0.95) 100%);
+  z-index: 1;
+}
+
+.page-header .container {
+  position: relative;
+  z-index: 2;
 }
 
 .header-content {
@@ -1434,6 +1472,18 @@ export default {
   background: rgba(255, 255, 255, 0.15);
   border-color: var(--accent-orange, #ff7b25);
   color: var(--accent-orange, #ff7b25);
+}
+
+.action-btn.disabled {
+  background: rgba(128, 128, 128, 0.3);
+  color: rgba(255, 255, 255, 0.4);
+  cursor: not-allowed;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+.action-btn.disabled:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 /* ===============================================

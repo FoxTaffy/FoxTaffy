@@ -531,12 +531,94 @@
               <div class="form-row">
                 <div class="form-group">
                   <label class="form-label">Баннер (URL изображения)</label>
-                  <input 
-                    v-model="eventForm.meta_image" 
-                    type="url" 
+                  <input
+                    v-model="eventForm.meta_image"
+                    type="url"
                     class="form-input"
                     placeholder="https://example.com/banner.jpg"
                   />
+                </div>
+              </div>
+
+              <div class="form-row two-columns">
+                <div class="form-group">
+                  <label class="form-label">Логотип/Аватар (URL)</label>
+                  <input
+                    v-model="eventForm.logo_url"
+                    type="url"
+                    class="form-input"
+                    placeholder="https://example.com/logo.jpg"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Папка с фото (S3 URL)</label>
+                  <input
+                    v-model="eventForm.photos_folder"
+                    type="url"
+                    class="form-input"
+                    placeholder="https://storage.../events/photos/"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Детальные рейтинги -->
+            <div class="form-section">
+              <h4 class="section-title">
+                <i class="fas fa-star-half-alt"></i>
+                Детальные рейтинги (1-5)
+              </h4>
+
+              <div class="form-row three-columns">
+                <div class="form-group">
+                  <label class="form-label">Организация</label>
+                  <select v-model="eventForm.rating_organization" class="form-select">
+                    <option :value="null">—</option>
+                    <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Программа</label>
+                  <select v-model="eventForm.rating_program" class="form-select">
+                    <option :value="null">—</option>
+                    <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Атмосфера</label>
+                  <select v-model="eventForm.rating_atmosphere" class="form-select">
+                    <option :value="null">—</option>
+                    <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row three-columns">
+                <div class="form-group">
+                  <label class="form-label">Локация</label>
+                  <select v-model="eventForm.rating_location" class="form-select">
+                    <option :value="null">—</option>
+                    <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Участники</label>
+                  <select v-model="eventForm.rating_participants" class="form-select">
+                    <option :value="null">—</option>
+                    <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Питание</label>
+                  <select v-model="eventForm.rating_food" class="form-select">
+                    <option :value="null">—</option>
+                    <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -549,6 +631,15 @@
               </h4>
               
               <div class="form-checkboxes">
+                <label class="checkbox-label">
+                  <input v-model="eventForm.review_completed" type="checkbox" class="form-checkbox" />
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-text">
+                    <i class="fas fa-check-circle"></i>
+                    Обзор завершён
+                  </span>
+                </label>
+
                 <label class="checkbox-label">
                   <input v-model="eventForm.is_featured" type="checkbox" class="form-checkbox" />
                   <span class="checkbox-custom"></span>
@@ -836,10 +927,21 @@ export default {
         entrance_fee: null,
         official_website: '',
         meta_image: '',
+        logo_url: '',
+        photos_folder: '',
         is_featured: false,
         has_dealers_den: false,
         has_art_show: false,
-        has_fursuit_parade: false
+        has_fursuit_parade: false,
+        review_completed: false,
+        rating_organization: null,
+        rating_program: null,
+        rating_atmosphere: null,
+        rating_location: null,
+        rating_participants: null,
+        rating_food: null,
+        pros_text: [],
+        cons_text: []
       }
     },
     
@@ -858,6 +960,23 @@ export default {
     editEvent(event) {
       this.isEditing = true
       this.eventForm = { ...event }
+
+      // Конвертируем дату из ISO в YYYY-MM-DD для input[type="date"]
+      if (this.eventForm.event_date) {
+        this.eventForm.event_date = this.eventForm.event_date.split('T')[0]
+      }
+      if (this.eventForm.announced_date) {
+        this.eventForm.announced_date = this.eventForm.announced_date.split('T')[0]
+      }
+
+      // Инициализируем массивы если они null
+      if (!this.eventForm.pros_text) {
+        this.eventForm.pros_text = []
+      }
+      if (!this.eventForm.cons_text) {
+        this.eventForm.cons_text = []
+      }
+
       this.showCreateModal = true
     },
     
@@ -1963,6 +2082,12 @@ export default {
 .form-row.two-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-row.three-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 1rem;
 }
 
