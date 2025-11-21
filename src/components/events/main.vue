@@ -127,71 +127,97 @@
               }"
               @click="goToEvent(event)"
             >
-              <!-- Аватар мероприятия -->
-              <div class="event-avatar">
-                <img
-                  v-if="event.logo_url || event.meta_image"
-                  :src="event.logo_url || event.meta_image"
+              <!-- Изображение мероприятия -->
+              <div class="event-image">
+                <img 
+                  v-if="event.meta_image" 
+                  :src="event.meta_image" 
                   :alt="event.name"
                   @error="handleImageError"
                 >
-                <div v-else class="avatar-placeholder">
+                <div v-else class="no-image-placeholder">
                   <i class="fas fa-calendar-alt"></i>
+                  <span>{{ event.name }}</span>
+                </div>
+                
+                <!-- Оверлей -->
+                <div class="image-overlay"></div>
+                
+                <!-- Дата в углу для предстоящих -->
+                <div v-if="isUpcoming(event)" class="event-date-badge">
+                  <div class="date-month">{{ getMonthShort(event.event_date) }}</div>
+                  <div class="date-day">{{ getDay(event.event_date) }}</div>
+                  <div class="date-year">{{ getYear(event.event_date) }}</div>
                 </div>
 
-                <!-- Статус бейдж -->
-                <div v-if="isUpcoming(event)" class="status-indicator upcoming">
-                  <i class="fas fa-clock"></i>
-                </div>
-                <div v-else-if="event.my_rating >= 4" class="status-indicator rated">
-                  <i class="fas fa-star"></i>
+                <!-- Рейтинг для завершённых -->
+                <div v-else-if="event.my_rating" class="event-rating-badge">
+                  <div class="rating-stars">
+                    <i 
+                      v-for="n in 5" 
+                      :key="n"
+                      class="fas fa-star"
+                      :class="{ 'active': n <= event.my_rating }"
+                    ></i>
+                  </div>
+                  <div class="rating-text">{{ event.my_rating }}/5</div>
                 </div>
               </div>
 
               <!-- Информация о мероприятии -->
               <div class="event-content">
-                <!-- Заголовок и дата -->
+                <!-- Заголовок -->
                 <div class="event-header">
                   <h3 class="event-title">{{ event.name }}</h3>
-                  <div class="event-date">
-                    {{ formatEventDate(event.event_date) }}
+                  <div class="event-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>{{ event.city }}</span>
+                    <i class="fas fa-users"></i>
+                    <span>{{ event.attendees_count || 0 }}+</span>
                   </div>
-                </div>
-
-                <div class="event-location">
-                  <i class="fas fa-map-marker-alt"></i>
-                  <span>{{ event.city }}</span>
-                  <span class="separator">•</span>
-                  <i class="fas fa-users"></i>
-                  <span>{{ event.attendees_count || 0 }}+</span>
                 </div>
 
                 <!-- Описание -->
-                <p class="event-description">{{ truncateText(event.description || 'Описание мероприятия', 80) }}</p>
+                <p class="event-description">{{ truncateText(event.description || 'Описание мероприятия', 100) }}</p>
 
-                <!-- Нижняя часть карточки -->
-                <div class="event-footer">
-                  <!-- Для предстоящих -->
-                  <div v-if="isUpcoming(event)" class="event-countdown">
-                    <span class="countdown-label">До начала</span>
-                    <span class="countdown-value">{{ getDaysUntilEvent(event.event_date) }}</span>
+                <!-- Информация о времени до начала (для предстоящих) -->
+                <div v-if="isUpcoming(event)" class="event-countdown">
+                  <div class="countdown-label">До начала</div>
+                  <div class="countdown-value">{{ getDaysUntilEvent(event.event_date) }}</div>
+                  <div class="countdown-bar">
+                    <div class="countdown-progress" :style="{ width: getCountdownProgress(event.event_date) + '%' }"></div>
                   </div>
+                </div>
 
-                  <!-- Для завершённых -->
-                  <div v-else class="event-rating">
-                    <div v-if="event.my_rating" class="rating-stars">
-                      <i
-                        v-for="n in 5"
-                        :key="n"
-                        class="fas fa-star"
-                        :class="{ 'active': n <= event.my_rating }"
-                      ></i>
-                    </div>
-                    <span v-if="event.photos_count" class="photos-count">
-                      <i class="fas fa-camera"></i>
-                      {{ event.photos_count }}
-                    </span>
+                <!-- Дополнительная информация для завершённых -->
+                <div v-else class="event-stats">
+                  <div v-if="event.photos_count" class="stat-item">
+                    <i class="fas fa-camera"></i>
+                    <span>{{ event.photos_count }} фото</span>
                   </div>
+                </div>
+
+                <!-- Кнопки действий -->
+                <div class="event-actions">
+                  <!-- Для предстоящих мероприятий -->
+                  <template v-if="isUpcoming(event)">
+                    <button @click.stop="openOfficialSite(event)" class="action-btn primary">
+                      <i class="fas fa-external-link-alt"></i>
+                      <span>Официальный сайт</span>
+                    </button>
+                  </template>
+
+                  <!-- Для завершённых мероприятий -->
+                  <template v-else>
+                    <button @click.stop="goToEvent(event)" class="action-btn primary">
+                      <i class="fas fa-eye"></i>
+                      <span>Подробнее</span>
+                    </button>
+                    <button @click.stop="openEventGallery(event)" class="action-btn secondary">
+                      <i class="fas fa-images"></i>
+                      <span>Фотографии</span>
+                    </button>
+                  </template>
                 </div>
               </div>
             </div>
@@ -1058,16 +1084,14 @@ export default {
 
 .event-card {
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 1rem;
+  border-radius: 1.5rem;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
   display: flex;
-  flex-direction: row;
-  padding: 1.25rem;
-  gap: 1.25rem;
+  flex-direction: column;
 }
 
 .event-card:hover {
@@ -1113,195 +1137,218 @@ export default {
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
 }
 
-/* Аватар мероприятия */
-.event-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 1rem;
-  overflow: hidden;
-  flex-shrink: 0;
+/* Изображение мероприятия */
+.event-image {
+  height: 220px;
   position: relative;
-  background: rgba(255, 255, 255, 0.05);
+  overflow: hidden;
 }
 
-.event-avatar img {
+.event-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s ease;
 }
 
-.event-card:hover .event-avatar img {
-  transform: scale(1.05);
+.event-card:hover .event-image img {
+  transform: scale(1.08);
 }
 
-.avatar-placeholder {
+.no-image-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(255, 123, 37, 0.2), rgba(76, 175, 80, 0.2));
+  background: linear-gradient(135deg, rgba(255, 123, 37, 0.15), rgba(76, 175, 80, 0.15));
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   color: var(--text-muted, #a0a0a0);
+  gap: 0.75rem;
 }
 
-.avatar-placeholder i {
-  font-size: 1.75rem;
+.no-image-placeholder i {
+  font-size: 2.5rem;
   opacity: 0.6;
 }
 
-/* Индикатор статуса на аватаре */
-.status-indicator {
+.no-image-placeholder span {
+  font-weight: 600;
+  text-align: center;
+  padding: 0 1rem;
+}
+
+.image-overlay {
   position: absolute;
-  bottom: -4px;
-  right: -4px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.65rem;
-  border: 2px solid var(--bg-primary, #1a1a1a);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.7));
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.status-indicator.upcoming {
-  background: var(--accent-green, #4caf50);
+.event-card:hover .image-overlay {
+  opacity: 1;
+}
+
+/* Дата в углу для предстоящих мероприятий */
+.event-date-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: linear-gradient(135deg, var(--accent-green, #4caf50), #45a049);
   color: white;
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  backdrop-filter: blur(10px);
+  z-index: 3;
+  min-width: 60px;
 }
 
-.status-indicator.rated {
-  background: #ffd700;
-  color: #333;
+.date-month {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  letter-spacing: 0.5px;
+}
+
+.date-day {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  margin: 0.25rem 0;
+}
+
+.date-year {
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+/* Рейтинг для завершённых мероприятий */
+.event-rating-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  z-index: 3;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.event-rating-badge .rating-stars {
+  display: flex;
+  gap: 0.1rem;
+}
+
+.event-rating-badge .rating-stars .fa-star {
+  color: #666;
+  font-size: 0.8rem;
+}
+
+.event-rating-badge .rating-stars .fa-star.active {
+  color: #ffd700;
+}
+
+.event-rating-badge .rating-text {
+  font-size: 0.75rem;
+  color: white;
+  font-weight: 600;
 }
 
 /* Контент карточки */
 .event-content {
+  padding: 1.5rem;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  min-width: 0;
+  gap: 1rem;
 }
 
 .event-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.75rem;
+  flex: none;
 }
 
 .event-title {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--text-light, #f2f2f2);
-  margin: 0;
+  margin: 0 0 0.5rem 0;
   line-height: 1.3;
-  flex: 1;
-}
-
-.event-date {
-  font-size: 0.75rem;
-  color: var(--text-muted, #a0a0a0);
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .event-location {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
   color: var(--text-muted, #a0a0a0);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 500;
 }
 
 .event-location i {
   color: var(--accent-orange, #ff7b25);
-  font-size: 0.75rem;
-}
-
-.event-location .separator {
-  opacity: 0.5;
 }
 
 .event-description {
   color: var(--text-muted, #a0a0a0);
-  line-height: 1.4;
+  line-height: 1.5;
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   flex: 1;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+}
+
+/* Обратный отсчёт для предстоящих - улучшенный дизайн */
+.event-countdown {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(76, 175, 80, 0.05));
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  position: relative;
+  text-align: center;
+}
+
+.countdown-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent-green, #4caf50);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.countdown-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-light, #f2f2f2);
+  line-height: 1.2;
+}
+
+.countdown-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(76, 175, 80, 0.2);
+  border-radius: 0 0 0.75rem 0.75rem;
   overflow: hidden;
 }
 
-/* Футер карточки */
-.event-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: auto;
-  padding-top: 0.5rem;
+.countdown-progress {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-green, #4caf50), #45a049);
+  transition: width 0.3s ease;
 }
-
-/* Обратный отсчёт - компактный стиль */
-.event-countdown {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(76, 175, 80, 0.15);
-  padding: 0.4rem 0.75rem;
-  border-radius: 0.5rem;
-}
-
-.event-countdown .countdown-label {
-  font-size: 0.7rem;
-  color: var(--accent-green, #4caf50);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.event-countdown .countdown-value {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-light, #f2f2f2);
-}
-
-/* Рейтинг для завершённых */
-.event-rating {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.event-rating .rating-stars {
-  display: flex;
-  gap: 0.1rem;
-}
-
-.event-rating .rating-stars .fa-star {
-  color: rgba(255, 255, 255, 0.2);
-  font-size: 0.7rem;
-}
-
-.event-rating .rating-stars .fa-star.active {
-  color: #ffd700;
-}
-
-.photos-count {
-  font-size: 0.75rem;
-  color: var(--text-muted, #a0a0a0);
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.photos-count i {
-  font-size: 0.7rem;
-}
-
 
 /* Статистика для завершённых */
 .event-stats {
