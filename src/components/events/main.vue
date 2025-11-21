@@ -2,6 +2,8 @@
   <div class="events-main-page">
     <!-- Шапка страницы -->
     <div class="page-header">
+      <div class="header-background" style="background-image: url('https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/SFB/2025-08-05%2009-21-25.JPG')"></div>
+      <div class="header-overlay"></div>
       <div class="container">
         <div class="header-content">
           <div class="header-text">
@@ -123,13 +125,15 @@
               :class="{
                 'upcoming-card': isUpcoming(event),
                 'completed-card': !isUpcoming(event),
-                'high-rating': event.my_rating >= 5
+                'high-rating': getOverallRating(event) >= 4.5
               }"
               @click="goToEvent(event)"
             >
-              <!-- Изображение мероприятия -->
+              <!-- Изображение мероприятия (логотип/аватар) -->
               <div class="event-image">
                 <img
+                  v-if="event.avatar_url || event.meta_image"
+                  :src="event.avatar_url || event.meta_image"
                   v-if="event.logo_url || event.avatar_url || event.meta_image"
                   :src="event.logo_url || event.avatar_url || event.meta_image"
                   :alt="event.name"
@@ -150,17 +154,17 @@
                   <div class="date-year">{{ getYear(event.event_date) }}</div>
                 </div>
 
-                <!-- Рейтинг для завершённых -->
-                <div v-else-if="event.my_rating" class="event-rating-badge">
+                <!-- Рейтинг для завершённых (только если обзор написан) -->
+                <div v-else-if="getOverallRating(event) > 0 && !isReviewMissing(event)" class="event-rating-badge">
                   <div class="rating-stars">
-                    <i 
-                      v-for="n in 5" 
+                    <i
+                      v-for="n in 5"
                       :key="n"
                       class="fas fa-star"
-                      :class="{ 'active': n <= event.my_rating }"
+                      :class="{ 'active': n <= Math.round(getOverallRating(event)) }"
                     ></i>
                   </div>
-                  <div class="rating-text">{{ event.my_rating }}/5</div>
+                  <div class="rating-text">{{ getOverallRating(event) }}/5</div>
                 </div>
               </div>
 
@@ -209,13 +213,21 @@
 
                   <!-- Для завершённых мероприятий -->
                   <template v-else>
-                    <button @click.stop="goToEvent(event)" class="action-btn primary">
+                    <button
+                      v-if="!isReviewMissing(event)"
+                      @click.stop="goToEvent(event)"
+                      class="action-btn primary"
+                    >
                       <i class="fas fa-eye"></i>
                       <span>Подробнее</span>
                     </button>
-                    <button @click.stop="openEventGallery(event)" class="action-btn secondary">
-                      <i class="fas fa-images"></i>
-                      <span>Фотографии</span>
+                    <button
+                      v-else
+                      class="action-btn primary disabled"
+                      disabled
+                    >
+                      <i class="fas fa-pen"></i>
+                      <span>Обзор не написан</span>
                     </button>
                   </template>
                 </div>
@@ -404,7 +416,7 @@ export default {
           case 'name_asc':
             return a.name.localeCompare(b.name, 'ru')
           case 'rating_desc':
-            return (b.my_rating || 0) - (a.my_rating || 0)
+            return this.getOverallRating(b) - this.getOverallRating(a)
           default:
             return new Date(b.event_date) - new Date(a.event_date)
         }
@@ -665,6 +677,12 @@ export default {
     isUpcoming(event) {
       return new Date(event.event_date) > new Date()
     },
+
+    // Проверка отсутствия обзора для прошедших событий
+    isReviewMissing(event) {
+      const isPast = new Date(event.event_date) < new Date()
+      return isPast && !event.review_completed
+    },
     
     getStatusClass(event) {
       return this.isUpcoming(event) ? 'upcoming' : 'completed'
@@ -787,6 +805,26 @@ export default {
       // Скрываем сломанное изображение
       event.target.style.display = 'none'
     },
+
+    // Вычисление общего рейтинга из 6 категорий
+    getOverallRating(event) {
+      const ratings = [
+        event.rating_organization,
+        event.rating_program,
+        event.rating_atmosphere,
+        event.rating_location,
+        event.rating_participants,
+        event.rating_food
+      ].filter(r => r !== null && r !== undefined && r > 0)
+
+      // Если есть старый my_rating, используем его как fallback
+      if (ratings.length === 0) {
+        return event.my_rating || 0
+      }
+
+      const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+      return avg.toFixed(1)
+    },
     
     updateMetaTags() {
       document.title = 'Все мероприятия | FoxTaffy.fun'
@@ -834,9 +872,35 @@ export default {
    =============================================== */
 
 .page-header {
-  background: linear-gradient(135deg, rgba(255, 123, 37, 0.1) 0%, rgba(76, 175, 80, 0.1) 100%);
+  position: relative;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: 3rem 0;
+  overflow: hidden;
+}
+
+.header-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.header-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(26, 26, 26, 0.85) 0%, rgba(26, 26, 26, 0.75) 100%);
+}
+
+.page-header .container {
+  position: relative;
+  z-index: 1;
 }
 
 .header-content {
@@ -1434,6 +1498,18 @@ export default {
   background: rgba(255, 255, 255, 0.15);
   border-color: var(--accent-orange, #ff7b25);
   color: var(--accent-orange, #ff7b25);
+}
+
+.action-btn.disabled {
+  background: rgba(128, 128, 128, 0.3);
+  color: var(--text-muted, #a0a0a0);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.action-btn.disabled:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 /* ===============================================

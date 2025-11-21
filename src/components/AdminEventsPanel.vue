@@ -24,45 +24,121 @@
       </div>
     </div>
 
-    <!-- Статистическая панель -->
-    <div v-if="!loading && stats" class="stats-grid">
-      <div class="stat-card total">
-        <div class="stat-icon">
-          <i class="fas fa-calendar-alt"></i>
+    <!-- Уведомление о событиях без обзора -->
+    <div v-if="eventsNeedingReview.length > 0" class="review-alert">
+      <div class="alert-icon">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <div class="alert-content">
+        <h4>Требуется написать обзор</h4>
+        <p>{{ eventsNeedingReview.length }} мероприятий прошли и ждут обзора</p>
+      </div>
+      <div class="alert-actions">
+        <button
+          v-for="event in eventsNeedingReview.slice(0, 3)"
+          :key="event.id"
+          class="alert-event-btn"
+          @click="editEvent(event)"
+        >
+          {{ event.name }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Статистическая панель с графиком -->
+    <div v-if="!loading && stats" class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-card total">
+          <div class="stat-icon">
+            <i class="fas fa-calendar-alt"></i>
+          </div>
+          <div class="stat-info">
+            <div class="stat-number">{{ stats.total || 0 }}</div>
+            <div class="stat-label">Всего событий</div>
+          </div>
+          <div class="stat-trend up">
+            <i class="fas fa-arrow-up"></i>
+          </div>
         </div>
-        <div class="stat-info">
-          <div class="stat-number">{{ stats.total || 0 }}</div>
-          <div class="stat-label">Всего событий</div>
+
+        <div class="stat-card upcoming">
+          <div class="stat-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="stat-info">
+            <div class="stat-number">{{ stats.upcoming || 0 }}</div>
+            <div class="stat-label">Предстоящих</div>
+          </div>
+          <div class="stat-progress">
+            <div class="progress-fill" :style="{ width: upcomingPercent + '%' }"></div>
+          </div>
+        </div>
+
+        <div class="stat-card completed">
+          <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-info">
+            <div class="stat-number">{{ stats.completed || 0 }}</div>
+            <div class="stat-label">Завершённых</div>
+          </div>
+          <div class="stat-progress">
+            <div class="progress-fill" :style="{ width: completedPercent + '%' }"></div>
+          </div>
+        </div>
+
+        <div class="stat-card featured">
+          <div class="stat-icon">
+            <i class="fas fa-star"></i>
+          </div>
+          <div class="stat-info">
+            <div class="stat-number">{{ stats.featured || 0 }}</div>
+            <div class="stat-label">Избранных</div>
+          </div>
         </div>
       </div>
-      
-      <div class="stat-card upcoming">
-        <div class="stat-icon">
-          <i class="fas fa-clock"></i>
+
+      <!-- Визуальная диаграмма распределения -->
+      <div class="chart-section">
+        <h3 class="chart-title">
+          <i class="fas fa-chart-pie"></i>
+          Распределение мероприятий
+        </h3>
+        <div class="donut-chart">
+          <svg viewBox="0 0 100 100" class="chart-svg">
+            <circle
+              cx="50" cy="50" r="40"
+              fill="none"
+              stroke="rgba(255, 123, 37, 0.8)"
+              stroke-width="8"
+              :stroke-dasharray="upcomingArc + ' ' + (251.2 - upcomingArc)"
+              stroke-dashoffset="0"
+              transform="rotate(-90 50 50)"
+            />
+            <circle
+              cx="50" cy="50" r="40"
+              fill="none"
+              stroke="rgba(76, 175, 80, 0.8)"
+              stroke-width="8"
+              :stroke-dasharray="completedArc + ' ' + (251.2 - completedArc)"
+              :stroke-dashoffset="-upcomingArc"
+              transform="rotate(-90 50 50)"
+            />
+          </svg>
+          <div class="chart-center">
+            <span class="chart-total">{{ stats.total || 0 }}</span>
+            <span class="chart-label">всего</span>
+          </div>
         </div>
-        <div class="stat-info">
-          <div class="stat-number">{{ stats.upcoming || 0 }}</div>
-          <div class="stat-label">Предстоящих</div>
-        </div>
-      </div>
-      
-      <div class="stat-card completed">
-        <div class="stat-icon">
-          <i class="fas fa-check-circle"></i>
-        </div>
-        <div class="stat-info">
-          <div class="stat-number">{{ stats.completed || 0 }}</div>
-          <div class="stat-label">Завершённых</div>
-        </div>
-      </div>
-      
-      <div class="stat-card featured">
-        <div class="stat-icon">
-          <i class="fas fa-star"></i>
-        </div>
-        <div class="stat-info">
-          <div class="stat-number">{{ stats.featured || 0 }}</div>
-          <div class="stat-label">Избранных</div>
+        <div class="chart-legend">
+          <div class="legend-item">
+            <span class="legend-dot upcoming"></span>
+            <span>Предстоящие ({{ stats.upcoming || 0 }})</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot completed"></span>
+            <span>Завершённые ({{ stats.completed || 0 }})</span>
+          </div>
         </div>
       </div>
     </div>
@@ -118,8 +194,6 @@
           <option value="name_desc">По названию Я-А</option>
           <option value="rating_desc">По рейтингу ⬇</option>
           <option value="rating_asc">По рейтингу ⬆</option>
-          <option value="spent_desc">По тратам ⬇</option>
-          <option value="spent_asc">По тратам ⬆</option>
         </select>
       </div>
     </div>
@@ -219,16 +293,11 @@
           
           <!-- Дополнительная информация -->
           <div class="event-extras">
-            <div v-if="event.total_spent" class="event-spent">
-              <i class="fas fa-ruble-sign"></i>
-              <span>{{ formatMoney(event.total_spent) }}</span>
-            </div>
-            
             <div v-if="event.attendees_count || event.expected_visitors" class="event-attendees">
               <i class="fas fa-users"></i>
               <span>{{ event.attendees_count || event.expected_visitors }} участников</span>
             </div>
-            
+
             <div v-if="event.photos_count" class="event-photos">
               <i class="fas fa-images"></i>
               <span>{{ event.photos_count }} фото</span>
@@ -284,320 +353,573 @@
 
     <!-- Модальное окно создания/редактирования мероприятия -->
     <div v-if="showCreateModal" class="modal-overlay" @click="closeCreateModal">
-      <div class="modal create-modal" @click.stop>
+      <div class="modal create-modal wizard-modal" @click.stop>
         <div class="modal-header">
           <h3 class="modal-title">
-            <i class="fas fa-plus"></i>
-            {{ isEditing ? 'Редактировать мероприятие' : 'Создать новое мероприятие' }}
+            <i class="fas fa-magic"></i>
+            {{ isEditing ? 'Редактировать мероприятие' : 'Создать мероприятие' }}
           </h3>
           <button @click="closeCreateModal" class="modal-close">
             <i class="fas fa-times"></i>
           </button>
         </div>
-        
-        <div class="modal-body">
-          <form @submit.prevent="saveEvent" class="event-form">
-            <!-- Основная информация -->
-            <div class="form-section">
-              <h4 class="section-title">
-                <i class="fas fa-info-circle"></i>
-                Основная информация
-              </h4>
-              
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label required">Название мероприятия</label>
-                  <input 
-                    v-model="eventForm.name" 
-                    type="text" 
-                    class="form-input"
-                    placeholder="Например: Any Furry Fest VII"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label">Подзаголовок</label>
-                  <input 
-                    v-model="eventForm.subtitle" 
-                    type="text" 
-                    class="form-input"
-                    placeholder="Краткое описание мероприятия"
-                  />
-                </div>
-              </div>
-              
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label">Описание</label>
-                  <textarea 
-                    v-model="eventForm.description" 
-                    class="form-textarea"
-                    placeholder="Подробное описание мероприятия..."
-                    rows="4"
-                  ></textarea>
-                </div>
-              </div>
-            </div>
 
-            <!-- Дата и место -->
-            <div class="form-section">
-              <h4 class="section-title">
-                <i class="fas fa-calendar-alt"></i>
-                Дата и место проведения
-              </h4>
-              
-              <div class="form-row two-columns">
-                <div class="form-group">
-                  <label class="form-label required">Дата проведения</label>
-                  <input 
-                    v-model="eventForm.event_date" 
-                    type="date" 
-                    class="form-input"
-                    required
-                  />
-                </div>
-                
-                <div class="form-group">
-                  <label class="form-label">Дата анонса</label>
-                  <input 
-                    v-model="eventForm.announced_date" 
-                    type="date" 
-                    class="form-input"
-                  />
-                </div>
-              </div>
-              
-              <div class="form-row two-columns">
-                <div class="form-group">
-                  <label class="form-label">Город</label>
-                  <input 
-                    v-model="eventForm.city" 
-                    type="text" 
-                    class="form-input"
-                    placeholder="Москва"
-                  />
-                </div>
-                
-                <div class="form-group">
-                  <label class="form-label">Страна</label>
-                  <input 
-                    v-model="eventForm.country" 
-                    type="text" 
-                    class="form-input"
-                    placeholder="Россия"
-                  />
-                </div>
-              </div>
-              
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label">Место проведения</label>
-                  <input 
-                    v-model="eventForm.location" 
-                    type="text" 
-                    class="form-input"
-                    placeholder="Название площадки, адрес"
-                  />
-                </div>
-              </div>
+        <!-- Wizard Steps Indicator -->
+        <div class="wizard-steps">
+          <div
+            v-for="(step, index) in wizardSteps"
+            :key="index"
+            class="wizard-step"
+            :class="{
+              'active': currentStep === index,
+              'completed': currentStep > index,
+              'clickable': index <= maxReachedStep
+            }"
+            @click="goToStep(index)"
+          >
+            <div class="step-number">
+              <i v-if="currentStep > index" class="fas fa-check"></i>
+              <span v-else>{{ index + 1 }}</span>
             </div>
-
-            <!-- Тип и статус -->
-            <div class="form-section">
-              <h4 class="section-title">
-                <i class="fas fa-tags"></i>
-                Категории и статус
-              </h4>
-              
-              <div class="form-row two-columns">
-                <div class="form-group">
-                  <label class="form-label">Тип мероприятия</label>
-                  <select v-model="eventForm.event_type" class="form-select">
-                    <option value="convention">Конвент</option>
-                    <option value="market">Маркет</option>
-                    <option value="festival">Фестиваль</option>
-                    <option value="meetup">Встреча</option>
-                    <option value="party">Вечеринка</option>
-                    <option value="workshop">Мастер-класс</option>
-                    <option value="other">Другое</option>
-                  </select>
-                </div>
-                
-                <div class="form-group">
-                  <label class="form-label">Статус участия</label>
-                  <select v-model="eventForm.attendance_status" class="form-select">
-                    <option value="planning">Планирую</option>
-                    <option value="registered">Зарегистрирован</option>
-                    <option value="attended">Посетил</option>
-                    <option value="missed">Пропустил</option>
-                    <option value="cancelled">Отменено</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <!-- Оценка и статистика -->
-            <div class="form-section">
-              <h4 class="section-title">
-                <i class="fas fa-chart-bar"></i>
-                Оценка и статистика
-              </h4>
-              
-              <div class="form-row two-columns">
-                <div class="form-group">
-                  <label class="form-label">Моя оценка</label>
-                  <select v-model="eventForm.my_rating" class="form-select">
-                    <option value="">Не оценено</option>
-                    <option value="1">⭐ 1 - Очень плохо</option>
-                    <option value="2">⭐⭐ 2 - Плохо</option>
-                    <option value="3">⭐⭐⭐ 3 - Нормально</option>
-                    <option value="4">⭐⭐⭐⭐ 4 - Хорошо</option>
-                    <option value="5">⭐⭐⭐⭐⭐ 5 - Отлично</option>
-                  </select>
-                </div>
-                
-                <div class="form-group">
-                  <label class="form-label">Потрачено денег</label>
-                  <input 
-                    v-model="eventForm.total_spent" 
-                    type="number" 
-                    class="form-input"
-                    placeholder="0"
-                    min="0"
-                  />
-                </div>
-              </div>
-              
-              <div class="form-row two-columns">
-                <div class="form-group">
-                  <label class="form-label">Количество участников</label>
-                  <input 
-                    v-model="eventForm.attendees_count" 
-                    type="number" 
-                    class="form-input"
-                    placeholder="0"
-                    min="0"
-                  />
-                </div>
-                
-                <div class="form-group">
-                  <label class="form-label">Ожидаемых посетителей</label>
-                  <input 
-                    v-model="eventForm.expected_visitors" 
-                    type="number" 
-                    class="form-input"
-                    placeholder="0"
-                    min="0"
-                  />
-                </div>
-              </div>
-              
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label">Стоимость входа</label>
-                  <input 
-                    v-model="eventForm.entrance_fee" 
-                    type="number" 
-                    class="form-input"
-                    placeholder="0"
-                    min="0"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- Ссылки и изображения -->
-            <div class="form-section">
-              <h4 class="section-title">
-                <i class="fas fa-link"></i>
-                Ссылки и изображения
-              </h4>
-              
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label">Официальный сайт</label>
-                  <input 
-                    v-model="eventForm.official_website" 
-                    type="url" 
-                    class="form-input"
-                    placeholder="https://example.com"
-                  />
-                </div>
-              </div>
-              
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label">Баннер (URL изображения)</label>
-                  <input 
-                    v-model="eventForm.meta_image" 
-                    type="url" 
-                    class="form-input"
-                    placeholder="https://example.com/banner.jpg"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- Дополнительные опции -->
-            <div class="form-section">
-              <h4 class="section-title">
-                <i class="fas fa-cog"></i>
-                Дополнительные опции
-              </h4>
-              
-              <div class="form-checkboxes">
-                <label class="checkbox-label">
-                  <input v-model="eventForm.is_featured" type="checkbox" class="form-checkbox" />
-                  <span class="checkbox-custom"></span>
-                  <span class="checkbox-text">
-                    <i class="fas fa-star"></i>
-                    Избранное мероприятие
-                  </span>
-                </label>
-                
-                <label class="checkbox-label">
-                  <input v-model="eventForm.has_dealers_den" type="checkbox" class="form-checkbox" />
-                  <span class="checkbox-custom"></span>
-                  <span class="checkbox-text">
-                    <i class="fas fa-store"></i>
-                    Есть торговая зона
-                  </span>
-                </label>
-                
-                <label class="checkbox-label">
-                  <input v-model="eventForm.has_art_show" type="checkbox" class="form-checkbox" />
-                  <span class="checkbox-custom"></span>
-                  <span class="checkbox-text">
-                    <i class="fas fa-palette"></i>
-                    Есть арт-шоу
-                  </span>
-                </label>
-                
-                <label class="checkbox-label">
-                  <input v-model="eventForm.has_fursuit_parade" type="checkbox" class="form-checkbox" />
-                  <span class="checkbox-custom"></span>
-                  <span class="checkbox-text">
-                    <i class="fas fa-mask"></i>
-                    Есть фурсьют-парад
-                  </span>
-                </label>
-              </div>
-            </div>
-          </form>
+            <div class="step-label">{{ step.title }}</div>
+          </div>
         </div>
-        
-        <div class="modal-footer">
+
+        <div class="modal-body wizard-body">
+          <!-- Шаг 1: Основная информация -->
+          <div v-show="currentStep === 0" class="wizard-step-content">
+            <div class="step-header">
+              <div class="step-icon">
+                <i class="fas fa-info-circle"></i>
+              </div>
+              <div class="step-info">
+                <h4>Основная информация</h4>
+                <p>Название, тип и дата мероприятия</p>
+              </div>
+            </div>
+
+            <div class="form-group large">
+              <label class="form-label required">Название мероприятия</label>
+              <input
+                v-model="eventForm.name"
+                type="text"
+                class="form-input large"
+                placeholder="Например: Any Furry Fest VII"
+                required
+              />
+            </div>
+
+            <div class="form-row two-columns">
+              <div class="form-group">
+                <label class="form-label required">Тип мероприятия</label>
+                <div class="event-type-grid">
+                  <label
+                    v-for="type in eventTypes"
+                    :key="type.value"
+                    class="type-card"
+                    :class="{ 'selected': eventForm.event_type === type.value }"
+                  >
+                    <input
+                      type="radio"
+                      v-model="eventForm.event_type"
+                      :value="type.value"
+                      class="hidden-radio"
+                    />
+                    <i :class="type.icon"></i>
+                    <span>{{ type.label }}</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label required">Дата и время</label>
+                <div class="datetime-inputs">
+                  <input
+                    v-model="eventForm.event_date"
+                    type="date"
+                    class="form-input"
+                    required
+                  />
+                  <input
+                    v-model="eventForm.event_time"
+                    type="time"
+                    class="form-input time-input"
+                    placeholder="10:00"
+                  />
+                </div>
+                <div class="form-hint">
+                  <i class="fas fa-info-circle"></i>
+                  Дата и время начала
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Шаг 2: Место и медиа -->
+          <div v-show="currentStep === 1" class="wizard-step-content">
+            <div class="step-header">
+              <div class="step-icon">
+                <i class="fas fa-map-marker-alt"></i>
+              </div>
+              <div class="step-info">
+                <h4>Место и описание</h4>
+                <p>Где будет проходить и как выглядит</p>
+              </div>
+            </div>
+
+            <div class="form-row two-columns">
+              <div class="form-group">
+                <label class="form-label">Город</label>
+                <input
+                  v-model="eventForm.city"
+                  type="text"
+                  class="form-input"
+                  placeholder="Москва"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Страна</label>
+                <input
+                  v-model="eventForm.country"
+                  type="text"
+                  class="form-input"
+                  placeholder="Россия"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Место проведения</label>
+              <input
+                v-model="eventForm.location"
+                type="text"
+                class="form-input"
+                placeholder="Название площадки, адрес"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Лого/Аватар для карточки</label>
+              <div class="upload-tabs">
+                <button
+                  type="button"
+                  @click="avatarUploadMethod = 's3'"
+                  class="upload-tab"
+                  :class="{ active: avatarUploadMethod === 's3' }"
+                >
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  Загрузить файл
+                </button>
+                <button
+                  type="button"
+                  @click="avatarUploadMethod = 'url'"
+                  class="upload-tab"
+                  :class="{ active: avatarUploadMethod === 'url' }"
+                >
+                  <i class="fas fa-link"></i>
+                  URL
+                </button>
+              </div>
+              <div v-if="avatarUploadMethod === 's3'" class="upload-area">
+                <FileUploader
+                  v-model="eventForm.avatar_url"
+                  folder="events/avatars"
+                  :show-info="false"
+                  @file-uploaded="onAvatarUploaded"
+                />
+              </div>
+              <div v-else class="url-input-area">
+                <input
+                  v-model="eventForm.avatar_url"
+                  type="url"
+                  class="form-input"
+                  placeholder="https://example.com/logo.jpg"
+                />
+                <div v-if="eventForm.avatar_url" class="avatar-preview">
+                  <img :src="eventForm.avatar_url" alt="Avatar" @error="eventForm.avatar_url = ''" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Баннер (широкий)</label>
+              <div class="upload-tabs">
+                <button
+                  type="button"
+                  @click="bannerUploadMethod = 's3'"
+                  class="upload-tab"
+                  :class="{ active: bannerUploadMethod === 's3' }"
+                >
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  Загрузить файл
+                </button>
+                <button
+                  type="button"
+                  @click="bannerUploadMethod = 'url'"
+                  class="upload-tab"
+                  :class="{ active: bannerUploadMethod === 'url' }"
+                >
+                  <i class="fas fa-link"></i>
+                  URL
+                </button>
+              </div>
+              <div v-if="bannerUploadMethod === 's3'" class="upload-area">
+                <FileUploader
+                  v-model="eventForm.meta_image"
+                  folder="events/banners"
+                  :show-info="false"
+                  @file-uploaded="onBannerUploaded"
+                />
+              </div>
+              <div v-else class="url-input-area">
+                <input
+                  v-model="eventForm.meta_image"
+                  type="url"
+                  class="form-input"
+                  placeholder="https://example.com/banner.jpg"
+                />
+                <div v-if="eventForm.meta_image" class="banner-preview">
+                  <img :src="eventForm.meta_image" alt="Banner" @error="eventForm.meta_image = ''" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Описание</label>
+              <textarea
+                v-model="eventForm.description"
+                class="form-textarea"
+                placeholder="Расскажите о мероприятии..."
+                rows="4"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Шаг 3: Статистика -->
+          <div v-show="currentStep === 2" class="wizard-step-content">
+            <div class="step-header">
+              <div class="step-icon">
+                <i class="fas fa-users"></i>
+              </div>
+              <div class="step-info">
+                <h4>Статистика</h4>
+                <p>Информация об участниках</p>
+              </div>
+            </div>
+
+            <div class="form-row two-columns">
+              <div class="form-group">
+                <label class="form-label">Ожидаемых посетителей</label>
+                <input
+                  v-model="eventForm.expected_visitors"
+                  type="number"
+                  class="form-input"
+                  placeholder="500"
+                  min="0"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Фактическое количество</label>
+                <input
+                  v-model="eventForm.attendees_count"
+                  type="number"
+                  class="form-input"
+                  placeholder="Заполните после мероприятия"
+                  min="0"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Официальный сайт</label>
+              <input
+                v-model="eventForm.official_website"
+                type="url"
+                class="form-input"
+                placeholder="https://example.com"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Особенности мероприятия</label>
+              <div class="features-grid">
+                <label class="feature-checkbox" :class="{ 'checked': eventForm.has_dealers_den }">
+                  <input v-model="eventForm.has_dealers_den" type="checkbox" />
+                  <i class="fas fa-store"></i>
+                  <span>Торговая зона</span>
+                </label>
+                <label class="feature-checkbox" :class="{ 'checked': eventForm.has_art_show }">
+                  <input v-model="eventForm.has_art_show" type="checkbox" />
+                  <i class="fas fa-palette"></i>
+                  <span>Арт-выставка</span>
+                </label>
+                <label class="feature-checkbox" :class="{ 'checked': eventForm.has_fursuit_parade }">
+                  <input v-model="eventForm.has_fursuit_parade" type="checkbox" />
+                  <i class="fas fa-paw"></i>
+                  <span>Фурсьют-парад</span>
+                </label>
+                <label class="feature-checkbox" :class="{ 'checked': eventForm.is_featured }">
+                  <input v-model="eventForm.is_featured" type="checkbox" />
+                  <i class="fas fa-star"></i>
+                  <span>Избранное</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Шаг 4: Отзыв (после мероприятия) -->
+          <div v-show="currentStep === 3" class="wizard-step-content">
+            <div class="step-header">
+              <div class="step-icon review-icon">
+                <i class="fas fa-comment-alt"></i>
+              </div>
+              <div class="step-info">
+                <h4>Отзыв и оценка</h4>
+                <p>Заполняется после посещения</p>
+              </div>
+            </div>
+
+            <!-- Множественные оценки по категориям -->
+            <div class="form-group">
+              <label class="form-label">Оценки по категориям</label>
+              <div class="multi-rating-grid">
+                <div v-for="category in ratingCategories" :key="category.key" class="rating-category">
+                  <span class="category-name">{{ category.label }}</span>
+                  <div class="category-stars">
+                    <button
+                      v-for="n in 5"
+                      :key="n"
+                      type="button"
+                      class="rating-star small"
+                      :class="{ 'active': eventForm[category.key] >= n }"
+                      @click="eventForm[category.key] = n"
+                    >
+                      <i class="fas fa-star"></i>
+                    </button>
+                  </div>
+                  <span class="category-value">{{ eventForm[category.key] || 0 }}/5</span>
+                </div>
+              </div>
+              <div class="overall-rating">
+                <span>Общая оценка:</span>
+                <strong>{{ calculatedOverallRating }}/5</strong>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Статус участия</label>
+              <div class="status-selector">
+                <label
+                  v-for="status in filteredStatuses"
+                  :key="status.value"
+                  class="status-option"
+                  :class="{ 'selected': eventForm.attendance_status === status.value }"
+                >
+                  <input
+                    type="radio"
+                    v-model="eventForm.attendance_status"
+                    :value="status.value"
+                    class="hidden-radio"
+                  />
+                  <i :class="status.icon"></i>
+                  <span>{{ status.label }}</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Плюсы как список -->
+            <div class="form-row two-columns">
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fas fa-thumbs-up" style="color: var(--accent-green)"></i>
+                  Плюсы
+                </label>
+                <div class="list-input-container">
+                  <div v-for="(item, index) in eventForm.pros" :key="'pro-' + index" class="list-item pro-item">
+                    <i class="fas fa-check"></i>
+                    <input
+                      v-model="eventForm.pros[index]"
+                      type="text"
+                      class="form-input small"
+                      placeholder="Плюс..."
+                    />
+                    <button type="button" class="remove-list-item" @click="removeProItem(index)">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <button type="button" class="add-list-item pro" @click="addProItem">
+                    <i class="fas fa-plus"></i>
+                    Добавить плюс
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <i class="fas fa-thumbs-down" style="color: var(--accent-red)"></i>
+                  Минусы
+                </label>
+                <div class="list-input-container">
+                  <div v-for="(item, index) in eventForm.cons_text" :key="'con-' + index" class="list-item con-item">
+                    <i class="fas fa-times"></i>
+                    <input
+                      v-model="eventForm.cons_text[index]"
+                      type="text"
+                      class="form-input small"
+                      placeholder="Минус..."
+                    />
+                    <button type="button" class="remove-list-item" @click="removeConItem(index)">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <button type="button" class="add-list-item con" @click="addConItem">
+                    <i class="fas fa-plus"></i>
+                    Добавить минус
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Общее впечатление</label>
+              <textarea
+                v-model="eventForm.my_review"
+                class="form-textarea"
+                placeholder="Общий отзыв о мероприятии..."
+                rows="3"
+              ></textarea>
+            </div>
+
+            <!-- Отметка о завершении обзора -->
+            <div class="form-group review-completed-group">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  v-model="eventForm.review_completed"
+                  class="form-checkbox"
+                />
+                <span class="checkbox-text">
+                  <i class="fas fa-check-circle"></i>
+                  Обзор завершён
+                </span>
+              </label>
+              <div class="form-hint">
+                <i class="fas fa-info-circle"></i>
+                Отметьте, когда полностью заполните отзыв. Мероприятие исчезнет из уведомлений.
+              </div>
+            </div>
+
+            <!-- Папка фотографий S3 -->
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fas fa-folder-open"></i>
+                Папка фотографий (S3)
+              </label>
+              <input
+                v-model="eventForm.photos_folder"
+                type="text"
+                class="form-input"
+                placeholder="https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/SFB/"
+              />
+              <div class="form-hint">
+                <i class="fas fa-info-circle"></i>
+                URL папки в S3 с фотографиями мероприятия
+              </div>
+            </div>
+
+            <!-- Покупки для маркетов/фестивалей -->
+            <div v-if="eventForm.event_type === 'festival' || eventForm.event_type === 'market'" class="purchases-block">
+              <h5 class="block-title">
+                <i class="fas fa-shopping-bag"></i>
+                Покупки
+              </h5>
+
+              <!-- Список покупок -->
+              <div class="form-group">
+                <label class="form-label">Список покупок</label>
+                <div class="purchase-items">
+                  <div
+                    v-for="(item, index) in eventForm.purchase_items"
+                    :key="index"
+                    class="purchase-item-card"
+                  >
+                    <div class="purchase-item-image">
+                      <img v-if="item.image" :src="item.image" alt="" />
+                      <i v-else class="fas fa-image"></i>
+                    </div>
+                    <div class="purchase-item-info">
+                      <input
+                        v-model="item.name"
+                        type="text"
+                        class="form-input small"
+                        placeholder="Название"
+                      />
+                      <input
+                        v-model="item.price"
+                        type="number"
+                        class="form-input small"
+                        placeholder="Цена"
+                        min="0"
+                      />
+                      <input
+                        v-model="item.image"
+                        type="url"
+                        class="form-input small"
+                        placeholder="URL фото"
+                      />
+                    </div>
+                    <button type="button" class="remove-item-btn" @click="removePurchaseItem(index)">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <button type="button" class="add-item-btn" @click="addPurchaseItem">
+                    <i class="fas fa-plus"></i>
+                    Добавить покупку
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer wizard-footer">
+          <button
+            v-if="currentStep > 0"
+            @click="prevStep"
+            class="nav-btn prev-btn"
+            :disabled="saving"
+          >
+            <i class="fas fa-arrow-left"></i>
+            <span>Назад</span>
+          </button>
+
+          <div class="footer-spacer"></div>
+
           <button @click="closeCreateModal" class="cancel-btn" :disabled="saving">
-            <i class="fas fa-times"></i>
             <span>Отменить</span>
           </button>
-          <button @click="saveEvent" class="save-btn" :disabled="saving || !isFormValid">
+
+          <button
+            v-if="currentStep < wizardSteps.length - 1"
+            @click="nextStep"
+            class="nav-btn next-btn"
+            :disabled="!canProceed"
+          >
+            <span>Далее</span>
+            <i class="fas fa-arrow-right"></i>
+          </button>
+
+          <button
+            v-else
+            @click="saveEvent"
+            class="save-btn"
+            :disabled="saving || !isFormValid"
+          >
             <i class="fas fa-spinner fa-spin" v-if="saving"></i>
-            <i class="fas fa-save" v-else></i>
-            <span>{{ saving ? 'Сохранение...' : (isEditing ? 'Сохранить изменения' : 'Создать мероприятие') }}</span>
+            <i class="fas fa-check" v-else></i>
+            <span>{{ saving ? 'Сохранение...' : (isEditing ? 'Сохранить' : 'Создать') }}</span>
           </button>
         </div>
       </div>
@@ -642,10 +964,15 @@
 
 <script>
 import { furryApi } from '@/config/supabase.js'
+import FileUploader from '@/FileUploader.vue'
 
 export default {
   name: 'AdminEventsPanel',
-  
+
+  components: {
+    FileUploader
+  },
+
   emits: ['notification'],
   
   data() {
@@ -680,10 +1007,47 @@ export default {
       
       // Удаление
       eventToDelete: null,
-      deleting: false
+      deleting: false,
+
+      // Upload методы
+      avatarUploadMethod: 's3',
+      bannerUploadMethod: 's3',
+
+      // Wizard
+      currentStep: 0,
+      maxReachedStep: 0,
+      wizardSteps: [
+        { title: 'Основное', icon: 'fas fa-info-circle' },
+        { title: 'Место', icon: 'fas fa-map-marker-alt' },
+        { title: 'Статистика', icon: 'fas fa-users' },
+        { title: 'Отзыв', icon: 'fas fa-comment-alt' }
+      ],
+      eventTypes: [
+        { value: 'convention', label: 'Конвент', icon: 'fas fa-calendar-star' },
+        { value: 'market', label: 'Маркет', icon: 'fas fa-store' },
+        { value: 'festival', label: 'Фестиваль', icon: 'fas fa-music' },
+        { value: 'meetup', label: 'Встреча', icon: 'fas fa-users' },
+        { value: 'party', label: 'Вечеринка', icon: 'fas fa-glass-cheers' },
+        { value: 'other', label: 'Другое', icon: 'fas fa-calendar' }
+      ],
+      attendanceStatuses: [
+        { value: 'planning', label: 'Планирую', icon: 'fas fa-clock' },
+        { value: 'registered', label: 'Зарегистрирован', icon: 'fas fa-check-circle' },
+        { value: 'attended', label: 'Посетил', icon: 'fas fa-star' },
+        { value: 'missed', label: 'Пропустил', icon: 'fas fa-times-circle' },
+        { value: 'cancelled', label: 'Отменено', icon: 'fas fa-ban' }
+      ],
+      ratingCategories: [
+        { key: 'rating_organization', label: 'Организация' },
+        { key: 'rating_program', label: 'Программа' },
+        { key: 'rating_atmosphere', label: 'Атмосфера' },
+        { key: 'rating_location', label: 'Локация' },
+        { key: 'rating_participants', label: 'Участники' },
+        { key: 'rating_food', label: 'Питание' }
+      ]
     }
   },
-  
+
   computed: {
     statusFilters() {
       return [
@@ -715,9 +1079,85 @@ export default {
     },
     
     isFormValid() {
-      return this.eventForm.name && 
+      return this.eventForm.name &&
              this.eventForm.name.trim().length > 0 &&
              this.eventForm.event_date
+    },
+
+    canProceed() {
+      switch (this.currentStep) {
+        case 0:
+          return this.eventForm.name && this.eventForm.name.trim().length > 0 && this.eventForm.event_date
+        case 1:
+        case 2:
+        case 3:
+          return true
+        default:
+          return false
+      }
+    },
+
+    isEventInPast() {
+      if (!this.eventForm.event_date) return false
+      return new Date(this.eventForm.event_date) < new Date()
+    },
+
+    upcomingPercent() {
+      if (!this.stats.total) return 0
+      return Math.round((this.stats.upcoming / this.stats.total) * 100)
+    },
+
+    completedPercent() {
+      if (!this.stats.total) return 0
+      return Math.round((this.stats.completed / this.stats.total) * 100)
+    },
+
+    upcomingArc() {
+      if (!this.stats.total) return 0
+      return (this.stats.upcoming / this.stats.total) * 251.2
+    },
+
+    completedArc() {
+      if (!this.stats.total) return 0
+      return (this.stats.completed / this.stats.total) * 251.2
+    },
+
+    calculatedOverallRating() {
+      const ratings = [
+        this.eventForm.rating_organization,
+        this.eventForm.rating_program,
+        this.eventForm.rating_atmosphere,
+        this.eventForm.rating_location,
+        this.eventForm.rating_participants,
+        this.eventForm.rating_food
+      ].filter(r => r !== null && r > 0)
+
+      if (ratings.length === 0) return '0.0'
+      const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+      return avg.toFixed(1)
+    },
+
+    eventsNeedingReview() {
+      return this.events.filter(e => {
+        const isPast = new Date(e.event_date) < new Date()
+        return isPast && !e.review_completed
+      })
+    },
+
+    filteredStatuses() {
+      if (this.isEventInPast) {
+        return [
+          { value: 'attended', label: 'Посетил', icon: 'fas fa-star' },
+          { value: 'missed', label: 'Пропустил', icon: 'fas fa-times-circle' },
+          { value: 'cancelled', label: 'Отменено', icon: 'fas fa-ban' }
+        ]
+      } else {
+        return [
+          { value: 'planning', label: 'Планирую', icon: 'fas fa-clock' },
+          { value: 'registered', label: 'Зарегистрирован', icon: 'fas fa-check-circle' },
+          { value: 'cancelled', label: 'Отменено', icon: 'fas fa-ban' }
+        ]
+      }
     }
   },
   
@@ -823,6 +1263,7 @@ export default {
         subtitle: '',
         description: '',
         event_date: '',
+        event_time: '',
         announced_date: '',
         location: '',
         city: '',
@@ -830,16 +1271,28 @@ export default {
         event_type: 'convention',
         attendance_status: 'planning',
         my_rating: null,
-        total_spent: null,
         attendees_count: null,
         expected_visitors: null,
-        entrance_fee: null,
+        purchases_summary: '',
         official_website: '',
         meta_image: '',
+        avatar_url: '',
         is_featured: false,
         has_dealers_den: false,
         has_art_show: false,
-        has_fursuit_parade: false
+        has_fursuit_parade: false,
+        my_review: '',
+        pros: [],
+        cons_text: [],
+        purchase_items: [],
+        rating_organization: null,
+        rating_program: null,
+        rating_atmosphere: null,
+        rating_location: null,
+        rating_participants: null,
+        rating_food: null,
+        review_completed: false,
+        photos_folder: ''
       }
     },
     
@@ -853,11 +1306,107 @@ export default {
       this.showCreateModal = false
       this.isEditing = false
       this.eventForm = this.getEmptyForm()
+      this.currentStep = 0
+      this.maxReachedStep = 0
     },
-    
+
+    nextStep() {
+      if (this.currentStep < this.wizardSteps.length - 1 && this.canProceed) {
+        this.currentStep++
+        if (this.currentStep > this.maxReachedStep) {
+          this.maxReachedStep = this.currentStep
+        }
+      }
+    },
+
+    prevStep() {
+      if (this.currentStep > 0) {
+        this.currentStep--
+      }
+    },
+
+    goToStep(index) {
+      if (index <= this.maxReachedStep) {
+        this.currentStep = index
+      }
+    },
+
+    getRatingLabel(rating) {
+      const labels = {
+        1: 'Очень плохо',
+        2: 'Плохо',
+        3: 'Нормально',
+        4: 'Хорошо',
+        5: 'Отлично'
+      }
+      return labels[rating] || ''
+    },
+
+    addPurchaseItem() {
+      if (!this.eventForm.purchase_items) {
+        this.eventForm.purchase_items = []
+      }
+      this.eventForm.purchase_items.push({
+        name: '',
+        price: null,
+        image: ''
+      })
+    },
+
+    removePurchaseItem(index) {
+      this.eventForm.purchase_items.splice(index, 1)
+    },
+
+    onAvatarUploaded(fileData) {
+      this.eventForm.avatar_url = fileData.url
+      this.$emit('notification', 'Аватар загружен', 'success')
+    },
+
+    onBannerUploaded(fileData) {
+      this.eventForm.meta_image = fileData.url
+      this.$emit('notification', 'Баннер загружен', 'success')
+    },
+
+    addProItem() {
+      if (!this.eventForm.pros) {
+        this.eventForm.pros = []
+      }
+      this.eventForm.pros.push('')
+    },
+
+    removeProItem(index) {
+      this.eventForm.pros.splice(index, 1)
+    },
+
+    addConItem() {
+      if (!this.eventForm.cons_text) {
+        this.eventForm.cons_text = []
+      }
+      this.eventForm.cons_text.push('')
+    },
+
+    removeConItem(index) {
+      this.eventForm.cons_text.splice(index, 1)
+    },
+
     editEvent(event) {
       this.isEditing = true
       this.eventForm = { ...event }
+
+      // Конвертируем дату из ISO формата в YYYY-MM-DD для input[type="date"]
+      if (this.eventForm.event_date) {
+        this.eventForm.event_date = this.eventForm.event_date.split('T')[0]
+      }
+      if (this.eventForm.announced_date) {
+        this.eventForm.announced_date = this.eventForm.announced_date.split('T')[0]
+      }
+
+      // Инициализируем массивы если они null
+      if (!this.eventForm.pros) this.eventForm.pros = []
+      if (!this.eventForm.cons_text) this.eventForm.cons_text = []
+
+      this.currentStep = 0
+      this.maxReachedStep = 3 // Allow access to all steps when editing
       this.showCreateModal = true
     },
     
@@ -1200,6 +1749,73 @@ export default {
 }
 
 /* ===============================================
+   🔔 УВЕДОМЛЕНИЕ ОБ ОБЗОРАХ
+   =============================================== */
+
+.review-alert {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), rgba(255, 152, 0, 0.1));
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: var(--border-radius-large);
+  margin-bottom: 2rem;
+}
+
+.alert-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 193, 7, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #ffc107;
+  flex-shrink: 0;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-content h4 {
+  margin: 0 0 0.25rem 0;
+  color: var(--text-light);
+  font-size: 1.1rem;
+}
+
+.alert-content p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.alert-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.alert-event-btn {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 193, 7, 0.2);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: var(--border-radius-small);
+  color: #ffc107;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.alert-event-btn:hover {
+  background: rgba(255, 193, 7, 0.3);
+  transform: translateY(-2px);
+}
+
+/* ===============================================
    📊 СТАТИСТИЧЕСКИЕ КАРТОЧКИ
    =============================================== */
 
@@ -1219,6 +1835,8 @@ export default {
   border-radius: var(--border-radius-large);
   padding: 1.5rem;
   transition: all 0.3s ease;
+  position: relative;
+  flex-wrap: wrap;
 }
 
 .stat-card:hover {
@@ -1269,6 +1887,148 @@ export default {
   font-size: 0.9rem;
   color: var(--text-muted);
   margin-top: 0.25rem;
+}
+
+.stat-trend {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+}
+
+.stat-trend.up {
+  background: rgba(76, 175, 80, 0.2);
+  color: var(--accent-green);
+}
+
+.stat-progress {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  margin-top: 0.75rem;
+  overflow: hidden;
+}
+
+.stat-progress .progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+.stat-card.upcoming .progress-fill {
+  background: var(--accent-orange);
+}
+
+.stat-card.completed .progress-fill {
+  background: var(--accent-green);
+}
+
+/* Stats section layout */
+.stats-section {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Chart section */
+.chart-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-large);
+  padding: 1.5rem;
+}
+
+.chart-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin: 0 0 1.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chart-title i {
+  color: var(--accent-orange);
+}
+
+.donut-chart {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 1.5rem;
+}
+
+.chart-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.chart-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.chart-total {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-light);
+  line-height: 1;
+}
+
+.chart-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-dot.upcoming {
+  background: var(--accent-orange);
+}
+
+.legend-dot.completed {
+  background: var(--accent-green);
+}
+
+@media (max-width: 1024px) {
+  .stats-section {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-section {
+    order: -1;
+  }
 }
 
 /* ===============================================
@@ -1499,49 +2259,66 @@ export default {
    =============================================== */
 
 .events-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 1.5rem;
 }
 
 .event-card {
   display: flex;
+  flex-direction: column;
   background: var(--bg-card);
   border-radius: var(--border-radius-large);
   overflow: hidden;
   border: 1px solid var(--border-light);
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .event-card:hover {
   background: var(--bg-card-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-soft);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
 }
 
 .event-card.featured {
   border-color: var(--accent-purple);
-  box-shadow: 0 0 0 1px rgba(156, 39, 176, 0.3);
+  box-shadow: 0 0 20px rgba(156, 39, 176, 0.2);
+}
+
+.event-card.featured::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-purple), var(--accent-orange));
 }
 
 .event-card.high-rating {
   border-color: var(--accent-green);
 }
 
+.event-card.upcoming {
+  border-color: var(--accent-orange);
+}
+
 .event-preview {
-  width: 200px;
+  width: 100%;
   flex-shrink: 0;
 }
 
 .event-banner {
   width: 100%;
-  height: 180px;
+  height: 160px;
   background-size: cover;
   background-position: center;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .no-image-placeholder {
@@ -1683,7 +2460,6 @@ export default {
   margin-bottom: 1rem;
 }
 
-.event-spent,
 .event-attendees,
 .event-photos {
   display: flex;
@@ -1691,10 +2467,6 @@ export default {
   gap: 0.5rem;
   color: var(--text-muted);
   font-size: 0.9rem;
-}
-
-.event-spent i {
-  color: var(--accent-green);
 }
 
 .event-attendees i {
@@ -1940,6 +2712,15 @@ export default {
   background: rgba(255, 255, 255, 0.02);
 }
 
+.form-section.purchases-section {
+  border-color: var(--accent-green);
+  background: rgba(76, 175, 80, 0.05);
+}
+
+.form-section.purchases-section .section-title i {
+  color: var(--accent-green);
+}
+
 .section-title {
   font-size: 1.1rem;
   font-weight: 700;
@@ -2151,24 +2932,822 @@ export default {
   .panel-title {
     font-size: 2rem !important;
   }
-  
+
   .event-actions {
     flex-direction: column;
   }
-  
+
   .action-btn {
     justify-content: center;
   }
-  
+
   .modal-footer {
     flex-direction: column-reverse;
   }
-  
+
   .cancel-btn,
   .save-btn,
   .delete-btn {
     width: 100%;
     justify-content: center;
+  }
+}
+
+/* ===============================================
+   WIZARD STYLES
+   =============================================== */
+
+.wizard-modal {
+  max-width: 700px;
+}
+
+.wizard-steps {
+  display: flex;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border-light);
+  position: relative;
+}
+
+.wizard-steps::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 15%;
+  right: 15%;
+  height: 2px;
+  background: var(--border-light);
+  transform: translateY(-50%);
+  z-index: 0;
+}
+
+.wizard-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 1;
+  cursor: default;
+  transition: all 0.3s ease;
+}
+
+.wizard-step.clickable {
+  cursor: pointer;
+}
+
+.wizard-step.clickable:hover .step-number {
+  transform: scale(1.1);
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--text-muted);
+  transition: all 0.3s ease;
+}
+
+.wizard-step.active .step-number {
+  background: var(--accent-orange);
+  border-color: var(--accent-orange);
+  color: white;
+  box-shadow: 0 0 20px rgba(255, 123, 37, 0.4);
+}
+
+.wizard-step.completed .step-number {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+  color: white;
+}
+
+.step-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-align: center;
+}
+
+.wizard-step.active .step-label {
+  color: var(--accent-orange);
+}
+
+.wizard-step.completed .step-label {
+  color: var(--accent-green);
+}
+
+.wizard-body {
+  padding: 2rem;
+  min-height: 400px;
+}
+
+.wizard-step-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.step-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-green));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.step-icon.review-icon {
+  background: linear-gradient(135deg, #9c27b0, #e91e63);
+}
+
+.step-info h4 {
+  font-size: 1.3rem;
+  color: var(--text-light);
+  margin: 0 0 0.25rem 0;
+}
+
+.step-info p {
+  color: var(--text-muted);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.form-group.large .form-input.large {
+  font-size: 1.2rem;
+  padding: 1rem;
+}
+
+.event-type-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 0.5rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-small);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+
+.type-card:hover {
+  border-color: var(--border-medium);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.type-card.selected {
+  border-color: var(--accent-orange);
+  background: rgba(255, 123, 37, 0.1);
+}
+
+.type-card i {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+}
+
+.type-card.selected i {
+  color: var(--accent-orange);
+}
+
+.type-card span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.type-card.selected span {
+  color: var(--text-light);
+}
+
+.hidden-radio {
+  display: none;
+}
+
+.form-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.banner-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.banner-preview {
+  width: 100%;
+  height: 150px;
+  border-radius: var(--border-radius-medium);
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+}
+
+.banner-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banner-placeholder {
+  width: 100%;
+  height: 150px;
+  border-radius: var(--border-radius-medium);
+  border: 2px dashed var(--border-light);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--text-dim);
+}
+
+.banner-placeholder i {
+  font-size: 2rem;
+}
+
+.banner-placeholder span {
+  font-size: 0.85rem;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.feature-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-small);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.feature-checkbox:hover {
+  border-color: var(--border-medium);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.feature-checkbox.checked {
+  border-color: var(--accent-green);
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.feature-checkbox input {
+  display: none;
+}
+
+.feature-checkbox i {
+  color: var(--text-muted);
+}
+
+.feature-checkbox.checked i {
+  color: var(--accent-green);
+}
+
+.feature-checkbox span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.feature-checkbox.checked span {
+  color: var(--text-light);
+}
+
+.rating-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rating-star {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0.25rem;
+}
+
+.rating-star:hover,
+.rating-star.active {
+  color: #ffc107;
+  transform: scale(1.1);
+}
+
+.rating-label {
+  margin-left: 1rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Multi-rating grid */
+.multi-rating-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.rating-category {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-small);
+  padding: 1rem;
+  text-align: center;
+}
+
+.category-name {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.category-stars {
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.rating-star.small {
+  padding: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.category-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent-orange);
+}
+
+.overall-rating {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-light);
+  color: var(--text-muted);
+}
+
+.overall-rating strong {
+  font-size: 1.2rem;
+  color: var(--accent-orange);
+}
+
+/* List input container */
+.list-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.list-item > i {
+  width: 20px;
+  text-align: center;
+}
+
+.pro-item > i {
+  color: var(--accent-green);
+}
+
+.con-item > i {
+  color: var(--accent-red);
+}
+
+.list-item .form-input.small {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.remove-list-item {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(244, 67, 54, 0.2);
+  color: var(--accent-red);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  transition: all 0.3s ease;
+}
+
+.remove-list-item:hover {
+  background: rgba(244, 67, 54, 0.4);
+}
+
+.add-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px dashed var(--border-light);
+  border-radius: var(--border-radius-small);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+}
+
+.add-list-item.pro:hover {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+.add-list-item.con:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+
+/* Review completed checkbox */
+.review-completed-group {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.form-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent-green);
+  cursor: pointer;
+}
+
+.checkbox-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.checkbox-text i {
+  color: var(--accent-green);
+}
+
+.form-checkbox:checked + .checkbox-text {
+  color: var(--accent-green);
+}
+
+.status-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.status-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-small);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+}
+
+.status-option:hover {
+  border-color: var(--border-medium);
+}
+
+.status-option.selected {
+  border-color: var(--accent-blue);
+  background: rgba(33, 150, 243, 0.1);
+  color: var(--accent-blue);
+}
+
+.status-option i {
+  color: var(--text-muted);
+}
+
+.status-option.selected i {
+  color: var(--accent-blue);
+}
+
+.purchases-block {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(76, 175, 80, 0.05);
+  border: 1px solid var(--accent-green);
+  border-radius: var(--border-radius-medium);
+}
+
+.block-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--accent-green);
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+}
+
+.wizard-footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.footer-spacer {
+  flex: 1;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-medium);
+  background: transparent;
+  color: var(--text-light);
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-medium);
+}
+
+.nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.next-btn {
+  background: var(--accent-orange);
+  border-color: var(--accent-orange);
+  color: white;
+}
+
+.next-btn:hover:not(:disabled) {
+  background: #ff8f42;
+  border-color: #ff8f42;
+}
+
+/* Datetime inputs */
+.datetime-inputs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.time-input {
+  max-width: 120px;
+}
+
+/* Upload tabs */
+.upload-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.upload-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-small);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.upload-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-light);
+}
+
+.upload-tab.active {
+  background: var(--accent-orange);
+  border-color: var(--accent-orange);
+  color: white;
+}
+
+.upload-area {
+  margin-bottom: 1rem;
+}
+
+.url-input-area {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Avatar upload */
+.avatar-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--border-light);
+}
+
+.avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banner-preview {
+  width: 100%;
+  height: 120px;
+  border-radius: var(--border-radius-small);
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+}
+
+.banner-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Purchase items */
+.purchase-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.purchase-item-card {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-small);
+  align-items: flex-start;
+}
+
+.purchase-item-image {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--border-radius-small);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.purchase-item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.purchase-item-image i {
+  color: var(--text-dim);
+  font-size: 1.2rem;
+}
+
+.purchase-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-input.small {
+  padding: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.remove-item-btn {
+  background: none;
+  border: none;
+  color: var(--accent-red);
+  cursor: pointer;
+  padding: 0.5rem;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.remove-item-btn:hover {
+  opacity: 1;
+}
+
+.add-item-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px dashed var(--accent-green);
+  border-radius: var(--border-radius-small);
+  color: var(--accent-green);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.add-item-btn:hover {
+  background: rgba(76, 175, 80, 0.2);
+}
+
+@media (max-width: 768px) {
+  .wizard-steps {
+    padding: 1rem;
+  }
+
+  .step-label {
+    display: none;
+  }
+
+  .wizard-body {
+    padding: 1.5rem;
+  }
+
+  .event-type-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .status-selector {
+    flex-direction: column;
+  }
+
+  .wizard-footer {
+    flex-wrap: wrap;
+  }
+
+  .footer-spacer {
+    display: none;
   }
 }
 </style>

@@ -357,10 +357,106 @@ export const furryApi = {
 
       if (error) throw error
       return !!data
-      
+
     } catch (error) {
       console.error('❌ checkEventSlugExists: Ошибка проверки slug:', error)
       return false
+    }
+  },
+
+  /**
+   * Получить ссылки мероприятия
+   */
+  async getEventLinks(eventId) {
+    try {
+      console.log('🔗 getEventLinks: Загружаем ссылки для мероприятия:', eventId)
+
+      const { data, error } = await supabase
+        .from('con_links')
+        .select('*')
+        .eq('con_id', eventId)
+        .order('sort_order', { ascending: true })
+
+      if (error) throw error
+
+      console.log('✅ getEventLinks: Ссылки загружены:', data?.length || 0)
+      return data || []
+
+    } catch (error) {
+      console.error('❌ getEventLinks: Ошибка загрузки ссылок:', error)
+      return []
+    }
+  },
+
+  /**
+   * Получить особенности мероприятия
+   */
+  async getEventFeatures(eventId) {
+    try {
+      console.log('⭐ getEventFeatures: Загружаем особенности для мероприятия:', eventId)
+
+      const { data, error } = await supabase
+        .from('con_features')
+        .select('*')
+        .eq('con_id', eventId)
+        .order('sort_order', { ascending: true })
+
+      if (error) throw error
+
+      console.log('✅ getEventFeatures: Особенности загружены:', data?.length || 0)
+      return data || []
+
+    } catch (error) {
+      console.error('❌ getEventFeatures: Ошибка загрузки особенностей:', error)
+      return []
+    }
+  },
+
+  /**
+   * Получить фотографии мероприятия
+   */
+  async getEventPhotos(eventId) {
+    try {
+      console.log('📸 getEventPhotos: Загружаем фотографии для мероприятия:', eventId)
+
+      const { data, error } = await supabase
+        .from('con_photos')
+        .select('*')
+        .eq('con_id', eventId)
+        .order('sort_order', { ascending: true })
+
+      if (error) throw error
+
+      console.log('✅ getEventPhotos: Фотографии загружены:', data?.length || 0)
+      return data || []
+
+    } catch (error) {
+      console.error('❌ getEventPhotos: Ошибка загрузки фотографий:', error)
+      return []
+    }
+  },
+
+  /**
+   * Получить покупки на мероприятии
+   */
+  async getEventPurchases(eventId) {
+    try {
+      console.log('🛍️ getEventPurchases: Загружаем покупки для мероприятия:', eventId)
+
+      const { data, error } = await supabase
+        .from('con_purchases')
+        .select('*')
+        .eq('con_id', eventId)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      console.log('✅ getEventPurchases: Покупки загружены:', data?.length || 0)
+      return data || []
+
+    } catch (error) {
+      console.error('❌ getEventPurchases: Ошибка загрузки покупок:', error)
+      return []
     }
   },
 
