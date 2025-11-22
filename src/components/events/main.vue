@@ -1520,8 +1520,9 @@ export default {
 /* Заблокированные карточки (без обзора) */
 .event-card.blocked-card {
   cursor: not-allowed;
-  opacity: 0.7;
+  opacity: 0.6;
   border-color: rgba(128, 128, 128, 0.3);
+  filter: grayscale(70%);
 }
 
 .event-card.blocked-card:hover {
@@ -1530,7 +1531,7 @@ export default {
 }
 
 .event-card.blocked-card .event-image img {
-  filter: grayscale(50%);
+  filter: grayscale(100%);
 }
 
 .event-card.blocked-card::before {
