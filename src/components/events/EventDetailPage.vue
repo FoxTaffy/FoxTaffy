@@ -116,10 +116,10 @@
                     <i class="fas fa-search-plus"></i>
                   </div>
                 </div>
-                <!-- Кнопка "Ещё" если больше 4 фото -->
-                <div v-if="photos.length > 4" class="photo-item more-photos" @click="openPhotoAtIndex(4)">
+                <!-- Кнопка "Ещё" если больше 3 фото -->
+                <div v-if="photos.length > 3" class="photo-item more-photos" @click="openPhotoAtIndex(3)">
                   <div class="more-overlay">
-                    <span class="more-count">+{{ photos.length - 4 }}</span>
+                    <span class="more-count">+{{ photos.length - 3 }}</span>
                     <span class="more-text">ещё</span>
                   </div>
                 </div>
@@ -326,7 +326,7 @@ export default {
       return this.event && (this.event.event_type === 'festival' || this.event.event_type === 'market')
     },
     displayedPhotos() {
-      return this.photos.slice(0, 4)
+      return this.photos.slice(0, 3)
     },
     hasMultiRatings() {
       return this.event && (
@@ -879,7 +879,7 @@ export default {
 
 .photos-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.75rem;
 }
 
