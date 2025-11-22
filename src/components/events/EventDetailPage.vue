@@ -35,7 +35,7 @@
       <!-- Баннер -->
       <div class="event-hero">
         <div class="hero-overlay"></div>
-        <div class="hero-image" :style="{ backgroundImage: getBannerImage(event.banner_url) }"></div>
+        <div class="hero-image" :style="{ backgroundImage: `url(${event.banner_url})` }"></div>
         <div class="hero-content">
           <router-link to="/events" class="back-button">
             <i class="fas fa-arrow-left"></i>
@@ -106,14 +106,21 @@
               </h3>
               <div class="photos-grid">
                 <div
-                  v-for="(photo, index) in photos"
+                  v-for="(photo, index) in displayedPhotos"
                   :key="photo.id"
                   class="photo-item"
-                  @click="openPhotoModal(photo)"
+                  @click="openPhotoAtIndex(index)"
                 >
                   <img :src="photo.thumbnail_url || photo.image_url" :alt="photo.caption || 'Фото'" />
                   <div class="photo-overlay">
                     <i class="fas fa-search-plus"></i>
+                  </div>
+                </div>
+                <!-- Кнопка "Ещё" если больше 4 фото -->
+                <div v-if="photos.length > 4" class="photo-item more-photos" @click="openPhotoAtIndex(4)">
+                  <div class="more-overlay">
+                    <span class="more-count">+{{ photos.length - 4 }}</span>
+                    <span class="more-text">ещё</span>
                   </div>
                 </div>
               </div>
@@ -286,12 +293,19 @@
       </div>
     </div>
 
-    <!-- Модальное окно фото -->
-    <div v-if="selectedPhoto" class="photo-modal" @click="closePhotoModal">
+    <!-- Модальное окно фото с навигацией -->
+    <div v-if="selectedPhotoIndex !== null" class="photo-modal" @click="closePhotoModal">
       <button class="modal-close" @click="closePhotoModal">
         <i class="fas fa-times"></i>
       </button>
-      <img :src="selectedPhoto.image_url" :alt="selectedPhoto.caption" @click.stop />
+      <img :src="photos[selectedPhotoIndex].image_url" :alt="photos[selectedPhotoIndex].caption" @click.stop />
+      <button v-if="selectedPhotoIndex > 0" class="modal-nav prev" @click.stop="selectedPhotoIndex--">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <button v-if="selectedPhotoIndex < photos.length - 1" class="modal-nav next" @click.stop="selectedPhotoIndex++">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+      <div class="modal-counter">{{ selectedPhotoIndex + 1 }} / {{ photos.length }}</div>
     </div>
   </div>
 </template>
@@ -316,7 +330,7 @@ export default {
       loading: true,
       error: null,
       activeTab: 'overview',
-      selectedPhoto: null,
+      selectedPhotoIndex: null,
     }
   },
   
@@ -340,6 +354,9 @@ export default {
     },
     showPurchases() {
       return this.event && (this.event.event_type === 'festival' || this.event.event_type === 'market')
+    },
+    displayedPhotos() {
+      return this.photos.slice(0, 4)
     },
     hasBuiltInFeatures() {
       return this.event && (
@@ -562,13 +579,13 @@ export default {
     },
     
     // Работа с фотографиями
-    openPhotoModal(photo) {
-      this.selectedPhoto = photo
+    openPhotoAtIndex(index) {
+      this.selectedPhotoIndex = index
       document.body.style.overflow = 'hidden'
     },
-    
+
     closePhotoModal() {
-      this.selectedPhoto = null
+      this.selectedPhotoIndex = null
       document.body.style.overflow = ''
     }
   },
@@ -789,16 +806,16 @@ export default {
 .hero-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: rgba(255,255,255,0.9);
-  font-size: 0.9rem;
+  gap: 0.35rem;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.8rem;
 }
 
 .meta-item i {
@@ -990,8 +1007,8 @@ export default {
 
 /* Плюсы/Минусы */
 .pros-cons-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
 }
 
@@ -1207,6 +1224,71 @@ export default {
   border-radius: 50%;
   cursor: pointer;
   font-size: 1.25rem;
+}
+
+.modal-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.25rem;
+  transition: background 0.3s;
+}
+
+.modal-nav:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.modal-nav.prev {
+  left: 1rem;
+}
+
+.modal-nav.next {
+  right: 1rem;
+}
+
+.modal-counter {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.5);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.875rem;
+}
+
+/* Кнопка "ещё" для фото */
+.more-photos {
+  background: rgba(139, 92, 246, 0.3);
+}
+
+.more-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(139, 92, 246, 0.8);
+  color: white;
+}
+
+.more-count {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.more-text {
+  font-size: 0.75rem;
+  text-transform: uppercase;
 }
 
 /* Адаптив */
