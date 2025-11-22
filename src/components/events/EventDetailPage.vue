@@ -14,6 +14,22 @@
       <router-link to="/events" class="back-btn">Вернуться к мероприятиям</router-link>
     </div>
 
+    <!-- Блокировка доступа для событий без обзора -->
+    <div v-else-if="event && isBlockedWithoutReview" class="blocked-container">
+      <div class="blocked-content">
+        <div class="blocked-icon">
+          <i class="fas fa-lock"></i>
+        </div>
+        <h2>Обзор ещё не написан</h2>
+        <p>Мероприятие "{{ event.name }}" уже прошло, но обзор пока не готов.</p>
+        <p class="blocked-hint">Обзор появится в ближайшее время с фотографиями и впечатлениями!</p>
+        <router-link to="/events" class="back-btn">
+          <i class="fas fa-arrow-left"></i>
+          Вернуться к мероприятиям
+        </router-link>
+      </div>
+    </div>
+
     <!-- Основной контент -->
     <div v-else-if="event">
       <!-- Героическая секция с баннером -->
@@ -490,6 +506,13 @@ export default {
   },
   
   computed: {
+    // Проверка блокировки для прошедших событий без обзора
+    isBlockedWithoutReview() {
+      if (!this.event) return false
+      const isPast = new Date(this.event.event_date) < new Date()
+      return isPast && !this.event.review_completed
+    },
+
     totalSpent() {
       return this.purchases.reduce((sum, purchase) => sum + (purchase.price || 0), 0)
     },
@@ -753,6 +776,65 @@ export default {
 .back-btn:hover {
   background: #e6691f;
   transform: translateY(-2px);
+}
+
+/* ===== БЛОКИРОВАННАЯ СТРАНИЦА ===== */
+.blocked-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  padding: 2rem;
+  text-align: center;
+}
+
+.blocked-content {
+  max-width: 500px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 1.5rem;
+  padding: 3rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.blocked-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  background: rgba(128, 128, 128, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.blocked-icon i {
+  font-size: 2.5rem;
+  color: var(--text-muted);
+}
+
+.blocked-content h2 {
+  font-size: 1.8rem;
+  color: var(--text-light);
+  margin-bottom: 1rem;
+}
+
+.blocked-content p {
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.blocked-hint {
+  font-size: 0.9rem;
+  color: var(--accent-orange);
+  margin-bottom: 2rem !important;
+}
+
+.blocked-content .back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* ===== ГЕРОИЧЕСКАЯ СЕКЦИЯ ===== */

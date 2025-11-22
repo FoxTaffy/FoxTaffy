@@ -125,7 +125,8 @@
               :class="{
                 'upcoming-card': isUpcoming(event),
                 'completed-card': !isUpcoming(event),
-                'high-rating': getOverallRating(event) >= 4.5
+                'high-rating': getOverallRating(event) >= 4.5,
+                'blocked-card': isReviewMissing(event)
               }"
               @click="goToEvent(event)"
             >
@@ -134,8 +135,6 @@
                 <img
                   v-if="event.avatar_url || event.meta_image"
                   :src="event.avatar_url || event.meta_image"
-                  v-if="event.logo_url || event.avatar_url || event.meta_image"
-                  :src="event.logo_url || event.avatar_url || event.meta_image"
                   :alt="event.name"
                   @error="handleImageError"
                 >
@@ -622,6 +621,11 @@ export default {
     // ============================================
     
     goToEvent(event) {
+      // Блокируем переход для прошедших событий без обзора
+      if (this.isReviewMissing(event)) {
+        return
+      }
+
       if (event.slug) {
         this.$router.push(`/events/${event.slug}`)
       } else {
@@ -1510,6 +1514,26 @@ export default {
 .action-btn.disabled:hover {
   transform: none;
   box-shadow: none;
+}
+
+/* Заблокированные карточки (без обзора) */
+.event-card.blocked-card {
+  cursor: not-allowed;
+  opacity: 0.7;
+  border-color: rgba(128, 128, 128, 0.3);
+}
+
+.event-card.blocked-card:hover {
+  transform: none;
+  box-shadow: 0 0 20px rgba(128, 128, 128, 0.1);
+}
+
+.event-card.blocked-card .event-image img {
+  filter: grayscale(50%);
+}
+
+.event-card.blocked-card::before {
+  background: rgba(128, 128, 128, 0.5);
 }
 
 /* ===============================================
