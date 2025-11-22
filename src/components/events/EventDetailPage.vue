@@ -510,7 +510,14 @@ export default {
     isBlockedWithoutReview() {
       if (!this.event) return false
       const isPast = new Date(this.event.event_date) < new Date()
-      return isPast && !this.event.review_completed
+      if (!isPast) return false
+
+      // Обзор считается написанным если review_completed=true ИЛИ есть рейтинги
+      const hasRatings = this.event.rating_organization || this.event.rating_program ||
+                         this.event.rating_atmosphere || this.event.rating_location ||
+                         this.event.rating_participants || this.event.rating_food || this.event.my_rating
+
+      return !this.event.review_completed && !hasRatings
     },
 
     totalSpent() {
