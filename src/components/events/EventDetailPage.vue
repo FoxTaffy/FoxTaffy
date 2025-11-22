@@ -153,7 +153,7 @@
             </div>
 
             <!-- Плюсы и минусы -->
-            <div v-if="hasProsOrCons" class="event-card">
+            <div v-if="hasProsOrCons" class="event-card pros-cons-card">
               <h3 class="card-title">
                 <i class="fas fa-balance-scale"></i>
                 Мое мнение
@@ -219,35 +219,6 @@
               </div>
             </div>
 
-            <!-- Особенности мероприятия -->
-            <div v-if="hasBuiltInFeatures || features.length > 0" class="event-card compact">
-              <h3 class="card-title">
-                <i class="fas fa-star"></i>
-                Особенности
-              </h3>
-              <div class="features-list">
-                <div v-if="event.has_dealers_den" class="feature-item">
-                  <i class="fas fa-store"></i>
-                  <span>Dealers Den</span>
-                </div>
-                <div v-if="event.has_art_show" class="feature-item">
-                  <i class="fas fa-palette"></i>
-                  <span>Арт-выставка</span>
-                </div>
-                <div v-if="event.has_fursuit_parade" class="feature-item">
-                  <i class="fas fa-paw"></i>
-                  <span>Фурсьют-парад</span>
-                </div>
-                <div v-if="event.has_competitions" class="feature-item">
-                  <i class="fas fa-trophy"></i>
-                  <span>Конкурсы</span>
-                </div>
-                <div v-for="feature in features" :key="feature.id" class="feature-item">
-                  <i :class="feature.icon_class || 'fas fa-star'"></i>
-                  <span>{{ feature.title }}</span>
-                </div>
-              </div>
-            </div>
 
             <!-- Ссылки -->
             <div v-if="event.official_website || links.length > 0" class="event-card compact">
@@ -357,14 +328,6 @@ export default {
     },
     displayedPhotos() {
       return this.photos.slice(0, 4)
-    },
-    hasBuiltInFeatures() {
-      return this.event && (
-        this.event.has_dealers_den ||
-        this.event.has_art_show ||
-        this.event.has_fursuit_parade ||
-        this.event.has_competitions
-      )
     },
     hasMultiRatings() {
       return this.event && (
@@ -1006,10 +969,18 @@ export default {
 }
 
 /* Плюсы/Минусы */
+.pros-cons-card {
+  max-width: none;
+}
+
 .pros-cons-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
+}
+
+.pros-block, .cons-block {
+  min-height: 0;
 }
 
 .block-subtitle {
@@ -1042,18 +1013,21 @@ export default {
   padding: 0.4rem 0;
   font-size: 0.875rem;
   color: rgba(255,255,255,0.8);
+  line-height: 1.4;
 }
 
 .pros-block .opinion-list i {
   color: #4ade80;
   font-size: 0.75rem;
   margin-top: 0.2rem;
+  flex-shrink: 0;
 }
 
 .cons-block .opinion-list i {
   color: #f87171;
   font-size: 0.75rem;
   margin-top: 0.2rem;
+  flex-shrink: 0;
 }
 
 /* Рейтинги */
@@ -1114,28 +1088,6 @@ export default {
   font-size: 1rem;
 }
 
-/* Особенности */
-.features-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: rgba(255,255,255,0.05);
-  border-radius: 8px;
-  font-size: 0.8rem;
-  color: rgba(255,255,255,0.8);
-}
-
-.feature-item i {
-  color: #8b5cf6;
-  font-size: 0.75rem;
-}
 
 /* Ссылки */
 .links-list {
@@ -1323,16 +1275,13 @@ export default {
   }
 
   .pros-cons-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .content-right {
     grid-template-columns: 1fr;
   }
 
-  .features-list {
-    grid-template-columns: 1fr;
-  }
 
   .purchases-summary {
     flex-direction: column;
