@@ -679,7 +679,14 @@ export default {
     // Проверка отсутствия обзора для прошедших событий
     isReviewMissing(event) {
       const isPast = new Date(event.event_date) < new Date()
-      return isPast && !event.review_completed
+      if (!isPast) return false
+
+      // Обзор считается написанным если review_completed=true ИЛИ есть рейтинги
+      const hasRatings = event.rating_organization || event.rating_program ||
+                         event.rating_atmosphere || event.rating_location ||
+                         event.rating_participants || event.rating_food || event.my_rating
+
+      return !event.review_completed && !hasRatings
     },
     
     getStatusClass(event) {
