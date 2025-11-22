@@ -35,7 +35,7 @@
       <!-- Баннер -->
       <div class="event-hero">
         <div class="hero-overlay"></div>
-        <div class="hero-image" :style="{ backgroundImage: `url(${event.banner_url})` }"></div>
+        <div class="hero-image" :style="{ backgroundImage: `url(${event.meta_image})` }"></div>
         <div class="hero-content">
           <router-link to="/events" class="back-button">
             <i class="fas fa-arrow-left"></i>

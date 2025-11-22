@@ -423,7 +423,6 @@ export const furryApi = {
         .from('con_photos')
         .select('*')
         .eq('con_id', eventId)
-        .order('sort_order', { ascending: true })
 
       if (error) throw error
 
@@ -518,11 +517,10 @@ export const furryApi = {
 
       // Добавляем новые фотографии
       if (photoUrls && photoUrls.length > 0) {
-        const photosToInsert = photoUrls.map((url, index) => ({
+        const photosToInsert = photoUrls.map((url) => ({
           con_id: eventId,
           image_url: url,
-          thumbnail_url: url,
-          sort_order: index
+          thumbnail_url: url
         }))
 
         const { error: insertError } = await supabase
