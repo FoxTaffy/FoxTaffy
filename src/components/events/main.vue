@@ -641,15 +641,9 @@ export default {
     },
     
     openOfficialSite(event) {
-      // Открытие официального сайта мероприятия
-      const siteUrls = {
-        'any-furry-fest-7': 'https://anyfurryfest.ru',
-        'furmarket-5': 'https://furmarket.ru',
-        'summer-fest-2025': 'https://summerfest.ru'
-      }
-      
-      const url = siteUrls[event.slug] || '#'
-      if (url !== '#') {
+      // Открытие официального сайта мероприятия из БД
+      const url = event.official_website
+      if (url) {
         window.open(url, '_blank')
       } else {
         alert('Официальный сайт ещё не объявлен')

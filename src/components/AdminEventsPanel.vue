@@ -829,6 +829,46 @@
               </div>
             </div>
 
+            <!-- Мульти-загрузка фотографий -->
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fas fa-images"></i>
+                Загрузить фотографии
+              </label>
+              <div class="multi-upload-area">
+                <input
+                  type="file"
+                  ref="multiPhotoInput"
+                  multiple
+                  accept="image/*"
+                  @change="handleMultiPhotoUpload"
+                  class="hidden-input"
+                />
+                <button
+                  type="button"
+                  class="upload-photos-btn"
+                  @click="$refs.multiPhotoInput.click()"
+                  :disabled="uploadingPhotos"
+                >
+                  <i class="fas fa-cloud-upload-alt" v-if="!uploadingPhotos"></i>
+                  <i class="fas fa-spinner fa-spin" v-else></i>
+                  <span>{{ uploadingPhotos ? `Загрузка ${uploadProgress}/${uploadTotal}...` : 'Выбрать фотографии' }}</span>
+                </button>
+                <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-preview">
+                  <div v-for="(photo, index) in uploadedPhotos" :key="index" class="uploaded-photo">
+                    <img :src="photo" alt="" />
+                    <button type="button" class="remove-photo-btn" @click="removeUploadedPhoto(index)">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="form-hint">
+                <i class="fas fa-info-circle"></i>
+                Выберите несколько фотографий для загрузки в папку мероприятия
+              </div>
+            </div>
+
             <!-- Покупки для маркетов/фестивалей -->
             <div v-if="eventForm.event_type === 'festival' || eventForm.event_type === 'market'" class="purchases-block">
               <h5 class="block-title">
@@ -1012,6 +1052,12 @@ export default {
       // Upload методы
       avatarUploadMethod: 's3',
       bannerUploadMethod: 's3',
+
+      // Мульти-загрузка фотографий
+      uploadingPhotos: false,
+      uploadProgress: 0,
+      uploadTotal: 0,
+      uploadedPhotos: [],
 
       // Wizard
       currentStep: 0,
@@ -1387,6 +1433,56 @@ export default {
 
     removeConItem(index) {
       this.eventForm.cons_text.splice(index, 1)
+    },
+
+    // Мульти-загрузка фотографий
+    async handleMultiPhotoUpload(event) {
+      const files = Array.from(event.target.files)
+      if (!files.length) return
+
+      this.uploadingPhotos = true
+      this.uploadProgress = 0
+      this.uploadTotal = files.length
+
+      const folder = this.eventForm.slug
+        ? `events/${this.eventForm.slug}`
+        : `events/temp-${Date.now()}`
+
+      try {
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i]
+          this.uploadProgress = i + 1
+
+          // Используем s3Api для загрузки
+          const { s3Api } = await import('@/config/s3.js')
+          const result = await s3Api.uploadFile(file, folder)
+
+          if (result && result.url) {
+            this.uploadedPhotos.push(result.url)
+          }
+        }
+
+        this.$emit('notification', `Загружено ${files.length} фотографий`, 'success')
+
+        // Устанавливаем папку фотографий если ещё не установлена
+        if (!this.eventForm.photos_folder) {
+          const baseUrl = import.meta.env.VITE_SUPABASE_URL
+          this.eventForm.photos_folder = `${baseUrl}/storage/v1/object/public/gallery/${folder}/`
+        }
+
+      } catch (error) {
+        console.error('Ошибка загрузки фотографий:', error)
+        this.$emit('notification', 'Ошибка загрузки: ' + error.message, 'error')
+      } finally {
+        this.uploadingPhotos = false
+        this.uploadProgress = 0
+        this.uploadTotal = 0
+        event.target.value = ''
+      }
+    },
+
+    removeUploadedPhoto(index) {
+      this.uploadedPhotos.splice(index, 1)
     },
 
     editEvent(event) {
@@ -3629,6 +3725,83 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Multi-upload photos */
+.multi-upload-area {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.upload-photos-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 123, 37, 0.1);
+  border: 2px dashed var(--accent-orange);
+  border-radius: var(--border-radius);
+  color: var(--accent-orange);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.upload-photos-btn:hover:not(:disabled) {
+  background: rgba(255, 123, 37, 0.2);
+}
+
+.upload-photos-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.uploaded-photos-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.5rem;
+}
+
+.uploaded-photo {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--border-radius-small);
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+}
+
+.uploaded-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-photo-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.9);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+}
+
+.remove-photo-btn:hover {
+  background: rgb(239, 68, 68);
 }
 
 /* Purchase items */
