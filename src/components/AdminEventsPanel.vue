@@ -811,24 +811,6 @@
               </div>
             </div>
 
-            <!-- Папка фотографий S3 -->
-            <div class="form-group">
-              <label class="form-label">
-                <i class="fas fa-folder-open"></i>
-                Папка фотографий (S3)
-              </label>
-              <input
-                v-model="eventForm.photos_folder"
-                type="text"
-                class="form-input"
-                placeholder="https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/SFB/"
-              />
-              <div class="form-hint">
-                <i class="fas fa-info-circle"></i>
-                URL папки в S3 с фотографиями мероприятия
-              </div>
-            </div>
-
             <!-- Мульти-загрузка фотографий -->
             <div class="form-group">
               <label class="form-label">
@@ -1435,6 +1417,21 @@ export default {
       this.eventForm.cons_text.splice(index, 1)
     },
 
+    // Транслитерация для папок S3
+    transliterate(text) {
+      const map = {
+        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
+        'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+        'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+        'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+        'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
+        ' ': '-', '_': '-'
+      }
+      return text.toLowerCase().split('').map(char => map[char] || char).join('')
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/-+/g, '-')
+    },
+
     // Мульти-загрузка фотографий
     async handleMultiPhotoUpload(event) {
       const files = Array.from(event.target.files)
@@ -1444,17 +1441,20 @@ export default {
       this.uploadProgress = 0
       this.uploadTotal = files.length
 
-      const folder = this.eventForm.slug
-        ? `events/${this.eventForm.slug}`
-        : `events/temp-${Date.now()}`
+      // Используем транслитерацию для папки или ID события
+      let folderName = this.eventForm.id || `temp-${Date.now()}`
+      if (this.eventForm.name) {
+        folderName = this.transliterate(this.eventForm.name)
+      }
+      const folder = `events/${folderName}`
 
       try {
+        const { s3Api } = await import('@/config/s3.js')
+
         for (let i = 0; i < files.length; i++) {
           const file = files[i]
           this.uploadProgress = i + 1
 
-          // Используем s3Api для загрузки
-          const { s3Api } = await import('@/config/s3.js')
           const result = await s3Api.uploadFile(file, folder)
 
           if (result && result.url) {
@@ -1464,11 +1464,9 @@ export default {
 
         this.$emit('notification', `Загружено ${files.length} фотографий`, 'success')
 
-        // Устанавливаем папку фотографий если ещё не установлена
-        if (!this.eventForm.photos_folder) {
-          const baseUrl = import.meta.env.VITE_SUPABASE_URL
-          this.eventForm.photos_folder = `${baseUrl}/storage/v1/object/public/gallery/${folder}/`
-        }
+        // Устанавливаем папку фотографий
+        const baseUrl = import.meta.env.VITE_SUPABASE_URL
+        this.eventForm.photos_folder = `${baseUrl}/storage/v1/object/public/gallery/${folder}/`
 
       } catch (error) {
         console.error('Ошибка загрузки фотографий:', error)
