@@ -1051,7 +1051,7 @@ export default {
         { title: 'Отзыв', icon: 'fas fa-comment-alt' }
       ],
       eventTypes: [
-        { value: 'convention', label: 'Конвент', icon: 'fas fa-calendar-star' },
+        { value: 'convention', label: 'Конвент', icon: 'fas fa-crown' },
         { value: 'market', label: 'Маркет', icon: 'fas fa-store' },
         { value: 'festival', label: 'Фестиваль', icon: 'fas fa-music' },
         { value: 'meetup', label: 'Встреча', icon: 'fas fa-users' },
@@ -1062,6 +1062,8 @@ export default {
         { value: 'planning', label: 'Планирую', icon: 'fas fa-clock' },
         { value: 'registered', label: 'Зарегистрирован', icon: 'fas fa-check-circle' },
         { value: 'attended', label: 'Посетил', icon: 'fas fa-star' },
+        { value: 'vip', label: 'VIP', icon: 'fas fa-gem' },
+        { value: 'volunteer', label: 'Волонтёр', icon: 'fas fa-hands-helping' },
         { value: 'missed', label: 'Пропустил', icon: 'fas fa-times-circle' },
         { value: 'cancelled', label: 'Отменено', icon: 'fas fa-ban' }
       ],
@@ -1686,7 +1688,7 @@ export default {
     
     getEventTypeIcon(type) {
       const iconMap = {
-        convention: 'fas fa-calendar-star',
+        convention: 'fas fa-crown',
         market: 'fas fa-store',
         festival: 'fas fa-music',
         meetup: 'fas fa-users',

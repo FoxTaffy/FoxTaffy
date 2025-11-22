@@ -207,8 +207,8 @@
               <div class="ratings-list">
                 <div v-for="rating in visibleRatings" :key="rating.key" class="rating-row">
                   <span class="rating-label">{{ rating.label }}</span>
-                  <div class="rating-bar">
-                    <div class="rating-fill" :style="{ width: (rating.value / 5 * 100) + '%' }"></div>
+                  <div class="rating-stars">
+                    <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= rating.value }"></i>
                   </div>
                   <span class="rating-num">{{ rating.value }}</span>
                 </div>
@@ -498,7 +498,9 @@ export default {
         registered: 'Зарегистрирован',
         attended: 'Посетил',
         missed: 'Пропустил',
-        cancelled: 'Отменено'
+        cancelled: 'Отменено',
+        vip: 'VIP',
+        volunteer: 'Волонтёр'
       }
       return statusMap[event.attendance_status] || 'Неизвестно'
     },
@@ -715,8 +717,6 @@ export default {
   inset: 0;
   background-size: cover;
   background-position: center;
-  filter: blur(2px);
-  transform: scale(1.05);
 }
 
 .hero-content {
@@ -1075,18 +1075,19 @@ export default {
   color: rgba(255,255,255,0.6);
 }
 
-.rating-bar {
+.rating-stars {
   flex: 1;
-  height: 6px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 3px;
-  overflow: hidden;
+  display: flex;
+  gap: 0.25rem;
 }
 
-.rating-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #8b5cf6, #a78bfa);
-  border-radius: 3px;
+.rating-stars i {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.2);
+}
+
+.rating-stars i.active {
+  color: #fbbf24;
 }
 
 .rating-num {
