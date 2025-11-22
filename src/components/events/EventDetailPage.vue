@@ -360,50 +360,15 @@
               </div>
 
               <!-- Оценки по категориям -->
-              <div v-if="hasMultiRatings" class="multi-rating-section">
+              <div v-if="visibleRatings.length > 0" class="multi-rating-section">
                 <h3 class="rating-section-title">Моя оценка</h3>
                 <div class="rating-categories-grid">
-                  <div v-if="event.rating_organization" class="rating-cat-card">
-                    <span class="cat-label">Организация</span>
+                  <div v-for="rating in visibleRatings" :key="rating.key" class="rating-cat-card">
+                    <span class="cat-label">{{ rating.label }}</span>
                     <div class="cat-stars">
-                      <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= event.rating_organization }"></i>
+                      <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= rating.value }"></i>
                     </div>
-                    <span class="cat-value">{{ event.rating_organization }}/5</span>
-                  </div>
-                  <div v-if="event.rating_program" class="rating-cat-card">
-                    <span class="cat-label">Программа</span>
-                    <div class="cat-stars">
-                      <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= event.rating_program }"></i>
-                    </div>
-                    <span class="cat-value">{{ event.rating_program }}/5</span>
-                  </div>
-                  <div v-if="event.rating_atmosphere" class="rating-cat-card">
-                    <span class="cat-label">Атмосфера</span>
-                    <div class="cat-stars">
-                      <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= event.rating_atmosphere }"></i>
-                    </div>
-                    <span class="cat-value">{{ event.rating_atmosphere }}/5</span>
-                  </div>
-                  <div v-if="event.rating_location" class="rating-cat-card">
-                    <span class="cat-label">Локация</span>
-                    <div class="cat-stars">
-                      <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= event.rating_location }"></i>
-                    </div>
-                    <span class="cat-value">{{ event.rating_location }}/5</span>
-                  </div>
-                  <div v-if="event.rating_participants" class="rating-cat-card">
-                    <span class="cat-label">Участники</span>
-                    <div class="cat-stars">
-                      <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= event.rating_participants }"></i>
-                    </div>
-                    <span class="cat-value">{{ event.rating_participants }}/5</span>
-                  </div>
-                  <div v-if="event.rating_food" class="rating-cat-card">
-                    <span class="cat-label">Питание</span>
-                    <div class="cat-stars">
-                      <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= event.rating_food }"></i>
-                    </div>
-                    <span class="cat-value">{{ event.rating_food }}/5</span>
+                    <span class="cat-value">{{ rating.value }}/5</span>
                   </div>
                 </div>
                 <div class="overall-rating-display">
@@ -549,18 +514,35 @@ export default {
     },
     calculatedOverallRating() {
       if (!this.event) return '0.0'
-      const ratings = [
-        this.event.rating_organization,
-        this.event.rating_program,
-        this.event.rating_atmosphere,
-        this.event.rating_location,
-        this.event.rating_participants,
-        this.event.rating_food
-      ].filter(r => r !== null && r > 0)
+      const ratings = this.visibleRatings.map(r => r.value).filter(v => v !== null && v > 0)
 
       if (ratings.length === 0) return '0.0'
       const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length
       return avg.toFixed(1)
+    },
+    // Категории рейтинга в зависимости от типа мероприятия
+    visibleRatings() {
+      if (!this.event) return []
+
+      const type = this.event.event_type
+      const allRatings = [
+        { key: 'organization', label: 'Организация', value: this.event.rating_organization },
+        { key: 'program', label: 'Программа', value: this.event.rating_program },
+        { key: 'atmosphere', label: 'Атмосфера', value: this.event.rating_atmosphere },
+        { key: 'location', label: 'Локация', value: this.event.rating_location },
+        { key: 'participants', label: 'Участники', value: this.event.rating_participants },
+        { key: 'food', label: 'Питание', value: this.event.rating_food }
+      ]
+
+      // Фильтруем по типу мероприятия
+      let excludeKeys = []
+      if (type === 'market') {
+        excludeKeys = ['program', 'food'] // На маркетах нет программы и питания
+      } else if (type === 'party') {
+        excludeKeys = ['program'] // На вечеринках нет программы
+      }
+
+      return allRatings.filter(r => !excludeKeys.includes(r.key) && r.value)
     }
   },
   

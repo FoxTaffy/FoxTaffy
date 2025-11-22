@@ -374,7 +374,7 @@ export default {
         { key: 'all', label: 'Все', icon: 'fas fa-calendar-alt', count: this.stats.total },
         { key: 'upcoming', label: 'Предстоящие', icon: 'fas fa-clock', count: this.stats.upcoming },
         { key: 'completed', label: 'Посещённые', icon: 'fas fa-check-circle', count: this.stats.completed },
-        { key: 'convention', label: 'Конвенты', icon: 'fas fa-calendar-star', count: this.getTypeCount('convention') },
+        { key: 'convention', label: 'Конвенты', icon: 'fas fa-crown', count: this.getTypeCount('convention') },
         { key: 'market', label: 'Маркеты', icon: 'fas fa-store', count: this.getTypeCount('market') },
         { key: 'festival', label: 'Фестивали', icon: 'fas fa-music', count: this.getTypeCount('festival') },
         { key: 'meetup', label: 'Встречи', icon: 'fas fa-users', count: this.getTypeCount('meetup') }

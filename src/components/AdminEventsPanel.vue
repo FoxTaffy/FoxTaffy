@@ -1483,7 +1483,7 @@ export default {
       this.uploadedPhotos.splice(index, 1)
     },
 
-    editEvent(event) {
+    async editEvent(event) {
       this.isEditing = true
       this.eventForm = { ...event }
 
@@ -1498,6 +1498,19 @@ export default {
       // Инициализируем массивы если они null
       if (!this.eventForm.pros) this.eventForm.pros = []
       if (!this.eventForm.cons_text) this.eventForm.cons_text = []
+
+      // Загружаем покупки
+      try {
+        const purchases = await furryApi.getEventPurchases(event.id)
+        this.eventForm.purchase_items = purchases.map(p => ({
+          name: p.name,
+          price: p.price,
+          image: p.image_url
+        }))
+      } catch (error) {
+        console.error('Ошибка загрузки покупок:', error)
+        this.eventForm.purchase_items = []
+      }
 
       this.currentStep = 0
       this.maxReachedStep = 3 // Allow access to all steps when editing
@@ -1526,7 +1539,13 @@ export default {
         }
         
         console.log('✅ AdminEvents: Мероприятие сохранено:', savedEvent)
-        
+
+        // Сохраняем покупки
+        if (this.eventForm.purchase_items && this.eventForm.purchase_items.length > 0) {
+          await furryApi.saveEventPurchases(savedEvent.id, this.eventForm.purchase_items)
+          console.log('✅ AdminEvents: Покупки сохранены')
+        }
+
         // Обновляем локальные данные
         if (this.isEditing) {
           const index = this.events.findIndex(e => e.id === savedEvent.id)

@@ -460,6 +460,50 @@ export const furryApi = {
     }
   },
 
+  /**
+   * Сохранить покупки мероприятия
+   */
+  async saveEventPurchases(eventId, purchases) {
+    try {
+      console.log('🛍️ saveEventPurchases: Сохраняем покупки для мероприятия:', eventId)
+
+      // Удаляем старые покупки
+      const { error: deleteError } = await supabase
+        .from('con_purchases')
+        .delete()
+        .eq('con_id', eventId)
+
+      if (deleteError) throw deleteError
+
+      // Добавляем новые покупки
+      if (purchases && purchases.length > 0) {
+        const purchasesToInsert = purchases
+          .filter(p => p.name && p.name.trim())
+          .map(p => ({
+            con_id: eventId,
+            name: p.name.trim(),
+            price: p.price || 0,
+            image_url: p.image || null
+          }))
+
+        if (purchasesToInsert.length > 0) {
+          const { error: insertError } = await supabase
+            .from('con_purchases')
+            .insert(purchasesToInsert)
+
+          if (insertError) throw insertError
+        }
+      }
+
+      console.log('✅ saveEventPurchases: Покупки сохранены:', purchases?.length || 0)
+      return true
+
+    } catch (error) {
+      console.error('❌ saveEventPurchases: Ошибка сохранения покупок:', error)
+      throw error
+    }
+  },
+
   // ============================================
   // 🎨 МЕТОДЫ ДЛЯ ГАЛЕРЕИ ИСКУССТВА
   // ============================================
