@@ -32,274 +32,100 @@
 
     <!-- Основной контент -->
     <div v-else-if="event">
-      <!-- Героическая секция с баннером -->
+      <!-- Баннер -->
       <div class="event-hero">
         <div class="hero-overlay"></div>
         <div class="hero-image" :style="{ backgroundImage: getBannerImage(event.banner_url) }"></div>
         <div class="hero-content">
           <router-link to="/events" class="back-button">
             <i class="fas fa-arrow-left"></i>
-            <span>Назад к мероприятиям</span>
+            <span>Назад</span>
           </router-link>
-          
-          <div class="event-badges">
-            <span class="event-status" :class="getStatusClass(event)">
-              {{ getStatusText(event) }}
-            </span>
-            <span v-if="event.my_rating" class="event-rating">
-              <i class="fas fa-star"></i>
-              {{ event.my_rating }}/5
-            </span>
+
+          <div class="hero-info">
+            <div class="event-badges">
+              <span class="event-status" :class="getStatusClass(event)">
+                <i class="fas fa-check"></i>
+                {{ getStatusText(event) }}
+              </span>
+              <span v-if="event.event_type" class="event-type-badge">
+                <i :class="getEventTypeIcon(event.event_type)"></i>
+                {{ getEventTypeName(event.event_type) }}
+              </span>
+            </div>
+
+            <h1 class="event-title">{{ event.name }}</h1>
+            <p v-if="event.subtitle" class="event-subtitle">{{ event.subtitle }}</p>
+
+            <div class="hero-meta">
+              <span class="meta-item">
+                <i class="fas fa-calendar-alt"></i>
+                {{ formatEventDate(event.event_date) }}
+              </span>
+              <span v-if="event.location" class="meta-item">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ event.location }}
+              </span>
+              <span v-if="event.attendees_count" class="meta-item">
+                <i class="fas fa-users"></i>
+                {{ event.attendees_count }}+ участников
+              </span>
+            </div>
+
+            <div v-if="event.my_rating" class="hero-rating">
+              <div class="rating-stars-large">
+                <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= event.my_rating }"></i>
+              </div>
+              <span class="rating-value">{{ event.my_rating }}/5</span>
+            </div>
           </div>
-          
-          <h1 class="event-title">{{ event.name }}</h1>
-          <div v-if="event.subtitle" class="event-subtitle">{{ event.subtitle }}</div>
         </div>
       </div>
-      
+
       <div class="container">
-        <!-- Краткая информация о мероприятии -->
-        <div class="event-info-grid">
-          <div class="event-info-card">
-            <div class="info-icon"><i class="fas fa-calendar-alt"></i></div>
-            <div class="info-content">
-              <div class="info-label">Дата проведения</div>
-              <div class="info-value">{{ formatEventDate(event.event_date) }}</div>
-            </div>
-          </div>
-
-          <div v-if="getEventTime(event.event_date)" class="event-info-card">
-            <div class="info-icon"><i class="fas fa-clock"></i></div>
-            <div class="info-content">
-              <div class="info-label">Время</div>
-              <div class="info-value">{{ getEventTime(event.event_date) }}</div>
-            </div>
-          </div>
-
-          <div class="event-info-card">
-            <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
-            <div class="info-content">
-              <div class="info-label">Место проведения</div>
-              <div class="info-value">{{ event.location }}</div>
-              <div v-if="event.city" class="info-extra">{{ event.city }}<span v-if="event.country">, {{ event.country }}</span></div>
-            </div>
-          </div>
-
-          <div v-if="event.attendees_count" class="event-info-card">
-            <div class="info-icon"><i class="fas fa-users"></i></div>
-            <div class="info-content">
-              <div class="info-label">Участников</div>
-              <div class="info-value">{{ event.attendees_count }}+</div>
-              <div v-if="event.expected_visitors" class="info-extra">Ожидалось: {{ event.expected_visitors }}</div>
-            </div>
-          </div>
-
-          <div v-if="event.event_type" class="event-info-card">
-            <div class="info-icon"><i class="fas fa-tag"></i></div>
-            <div class="info-content">
-              <div class="info-label">Тип мероприятия</div>
-              <div class="info-value">{{ getEventTypeName(event.event_type) }}</div>
-            </div>
-          </div>
-
-          <div v-if="event.announced_date" class="event-info-card">
-            <div class="info-icon"><i class="fas fa-bullhorn"></i></div>
-            <div class="info-content">
-              <div class="info-label">Дата анонса</div>
-              <div class="info-value">{{ formatEventDate(event.announced_date) }}</div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Вкладки для навигации по секциям мероприятия -->
-        <div class="event-navigation">
-          <div class="nav-tabs">
-            <a 
-              href="#overview" 
-              class="nav-tab" 
-              :class="{ 'active': activeTab === 'overview' }" 
-              @click.prevent="activeTab = 'overview'"
-            >
-              <i class="fas fa-info-circle"></i>
-              <span>Обзор</span>
-            </a>
-            
-            <a 
-              v-if="photos.length > 0"
-              href="#gallery" 
-              class="nav-tab" 
-              :class="{ 'active': activeTab === 'gallery' }" 
-              @click.prevent="activeTab = 'gallery'"
-            >
-              <i class="fas fa-images"></i>
-              <span>Фотографии</span>
-              <span class="tab-count">({{ photos.length }})</span>
-            </a>
-            
-            <a
-              v-if="purchases.length > 0 || event.purchases_summary"
-              href="#purchases"
-              class="nav-tab"
-              :class="{ 'active': activeTab === 'purchases' }"
-              @click.prevent="activeTab = 'purchases'"
-            >
-              <i class="fas fa-shopping-bag"></i>
-              <span>Покупки</span>
-              <span v-if="purchases.length > 0" class="tab-count">({{ purchases.length }})</span>
-            </a>
-            
-            <a
-              v-if="event.my_review || event.my_rating || event.conclusion || event.pros || event.cons_text"
-              href="#impressions"
-              class="nav-tab"
-              :class="{ 'active': activeTab === 'impressions' }"
-              @click.prevent="activeTab = 'impressions'"
-            >
-              <i class="fas fa-heart"></i>
-              <span>Впечатления</span>
-            </a>
-          </div>
-        </div>
-        
-        <!-- Контент для вкладок -->
-        <div class="event-content-container">
-          <!-- Обзор -->
-          <div class="event-section" v-show="activeTab === 'overview'">
-            <h2 class="section-title">О мероприятии</h2>
-            <div class="section-content">
-              <div v-if="event.description" class="event-description" v-html="event.description"></div>
-              <div v-else class="no-description">
+        <!-- Двухколоночная сетка -->
+        <div class="content-grid">
+          <!-- Левая колонка -->
+          <div class="content-left">
+            <!-- О мероприятии -->
+            <div class="event-card">
+              <h3 class="card-title">
                 <i class="fas fa-info-circle"></i>
-                <p>Описание мероприятия пока не добавлено</p>
-              </div>
-
-              <!-- Официальный сайт -->
-              <div v-if="event.official_website" class="event-links">
-                <h3 class="links-title">Официальный сайт:</h3>
-                <div class="links-container">
-                  <a
-                    :href="event.official_website"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="event-link"
-                  >
-                    <i class="fas fa-globe"></i>
-                    <span>{{ getWebsiteDomain(event.official_website) }}</span>
-                  </a>
-                </div>
-              </div>
-
-              <!-- Официальные ресурсы из базы -->
-              <div v-if="links.length > 0" class="event-links">
-                <h3 class="links-title">Ссылки:</h3>
-                <div class="links-container">
-                  <a
-                    v-for="link in links"
-                    :key="link.id"
-                    :href="link.url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="event-link"
-                  >
-                    <i :class="link.icon_class || 'fas fa-external-link-alt'"></i>
-                    <span>{{ link.title }}</span>
-                  </a>
-                </div>
-              </div>
-
-              <!-- Встроенные особенности мероприятия -->
-              <div v-if="hasBuiltInFeatures" class="features-container">
-                <h3 class="features-title">Что было на мероприятии</h3>
-                <div class="features-grid">
-                  <div v-if="event.has_dealers_den" class="feature-card">
-                    <div class="feature-icon">
-                      <i class="fas fa-store"></i>
-                    </div>
-                    <div class="feature-content">
-                      <h4 class="feature-title">Dealers Den</h4>
-                      <p class="feature-description">Торговая зона с мерчем и артами</p>
-                    </div>
-                  </div>
-                  <div v-if="event.has_art_show" class="feature-card">
-                    <div class="feature-icon">
-                      <i class="fas fa-palette"></i>
-                    </div>
-                    <div class="feature-content">
-                      <h4 class="feature-title">Арт-выставка</h4>
-                      <p class="feature-description">Выставка работ художников</p>
-                    </div>
-                  </div>
-                  <div v-if="event.has_fursuit_parade" class="feature-card">
-                    <div class="feature-icon">
-                      <i class="fas fa-paw"></i>
-                    </div>
-                    <div class="feature-content">
-                      <h4 class="feature-title">Фурсьют-парад</h4>
-                      <p class="feature-description">Парад участников в костюмах</p>
-                    </div>
-                  </div>
-                  <div v-if="event.has_competitions" class="feature-card">
-                    <div class="feature-icon">
-                      <i class="fas fa-trophy"></i>
-                    </div>
-                    <div class="feature-content">
-                      <h4 class="feature-title">Конкурсы</h4>
-                      <p class="feature-description">Различные соревнования и конкурсы</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Дополнительные особенности из базы -->
-              <div v-if="features.length > 0" class="features-container">
-                <h3 class="features-title">Дополнительные особенности</h3>
-                <div class="features-grid">
-                  <div v-for="feature in features" :key="feature.id" class="feature-card">
-                    <div class="feature-icon">
-                      <i :class="feature.icon_class || 'fas fa-star'"></i>
-                    </div>
-                    <div class="feature-content">
-                      <h4 class="feature-title">{{ feature.title }}</h4>
-                      <p v-if="feature.description" class="feature-description">{{ feature.description }}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                О мероприятии
+              </h3>
+              <div v-if="event.description" class="card-text" v-html="event.description"></div>
+              <p v-else class="card-text muted">Описание мероприятия пока не добавлено</p>
             </div>
-          </div>
-          
-          <!-- Фотографии -->
-          <div class="event-section" v-show="activeTab === 'gallery'">
-            <h2 class="section-title">
-              Фотографии
-              <span class="section-count">({{ photos.length }})</span>
-            </h2>
-            <div v-if="photos.length > 0" class="photos-grid">
-              <div 
-                v-for="photo in photos" 
-                :key="photo.id" 
-                class="photo-item"
-                @click="openPhotoModal(photo)"
-              >
-                <img 
-                  :src="photo.thumbnail_url || photo.image_url" 
-                  :alt="photo.caption || 'Фото с мероприятия'"
-                  class="photo-image"
-                  loading="lazy"
+
+            <!-- Фотографии -->
+            <div v-if="photos.length > 0" class="event-card">
+              <h3 class="card-title">
+                <i class="fas fa-images"></i>
+                Фотографии
+                <span class="photos-count">{{ photos.length }}</span>
+              </h3>
+              <div class="photos-grid">
+                <div
+                  v-for="(photo, index) in photos"
+                  :key="photo.id"
+                  class="photo-item"
+                  @click="openPhotoModal(photo)"
                 >
-                <div v-if="photo.caption" class="photo-caption">{{ photo.caption }}</div>
+                  <img :src="photo.thumbnail_url || photo.image_url" :alt="photo.caption || 'Фото'" />
+                  <div class="photo-overlay">
+                    <i class="fas fa-search-plus"></i>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          
-          <!-- Покупки -->
-          <div class="event-section" v-show="activeTab === 'purchases'">
-            <h2 class="section-title">
-              Покупки
-              <span class="section-count">({{ purchases.length }})</span>
-            </h2>
-            <div v-if="purchases.length > 0 || event.purchases_summary">
-              <!-- Сводка покупок -->
+
+            <!-- Покупки (только для фестивалей и маркетов) -->
+            <div v-if="showPurchases && (purchases.length > 0 || event.purchases_summary)" class="event-card">
+              <h3 class="card-title">
+                <i class="fas fa-shopping-bag"></i>
+                Покупки
+                <span v-if="purchases.length > 0" class="photos-count">{{ purchases.length }}</span>
+              </h3>
               <div class="purchases-summary">
                 <div class="purchase-stat">
                   <i class="fas fa-shopping-bag"></i>
@@ -307,141 +133,165 @@
                 </div>
                 <div class="purchase-stat">
                   <i class="fas fa-ruble-sign"></i>
-                  <span>{{ formatMoney(totalSpent) }} потрачено</span>
+                  <span>{{ formatMoney(totalSpent) }}</span>
                 </div>
               </div>
-
-              <!-- Текстовая сводка покупок -->
-              <div v-if="event.purchases_summary" class="purchases-text-summary">
-                <h3 class="summary-title">Что было куплено:</h3>
-                <p class="summary-text">{{ event.purchases_summary }}</p>
+              <div v-if="event.purchases_summary" class="card-text">{{ event.purchases_summary }}</div>
+              <div v-if="purchases.length > 0" class="purchases-list">
+                <div v-for="purchase in purchases" :key="purchase.id" class="purchase-item">
+                  <span class="purchase-name">{{ purchase.name }}</span>
+                  <span class="purchase-price">{{ formatMoney(purchase.price) }}</span>
+                </div>
               </div>
-              
-              <!-- Список покупок -->
-              <div class="purchases-list">
-                <div v-for="purchase in purchases" :key="purchase.id" class="purchase-card">
-                  <div v-if="purchase.image_url" class="purchase-image">
-                    <img :src="purchase.image_url" :alt="purchase.item_name" loading="lazy">
+            </div>
+
+            <!-- Плюсы и минусы -->
+            <div v-if="hasProsOrCons" class="event-card">
+              <h3 class="card-title">
+                <i class="fas fa-balance-scale"></i>
+                Мое мнение
+              </h3>
+              <div class="pros-cons-grid">
+                <div v-if="event.pros && event.pros.length > 0" class="pros-block">
+                  <h4 class="block-subtitle pros">
+                    <i class="fas fa-thumbs-up"></i>
+                    Плюсы
+                  </h4>
+                  <ul class="opinion-list">
+                    <li v-for="(pro, i) in event.pros" :key="i">
+                      <i class="fas fa-check"></i>
+                      {{ pro }}
+                    </li>
+                  </ul>
+                </div>
+                <div v-if="event.cons_text && event.cons_text.length > 0" class="cons-block">
+                  <h4 class="block-subtitle cons">
+                    <i class="fas fa-thumbs-down"></i>
+                    Минусы
+                  </h4>
+                  <ul class="opinion-list">
+                    <li v-for="(con, i) in event.cons_text" :key="i">
+                      <i class="fas fa-times"></i>
+                      {{ con }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Заключение -->
+            <div v-if="event.conclusion" class="event-card">
+              <h3 class="card-title">
+                <i class="fas fa-flag-checkered"></i>
+                Итоги
+              </h3>
+              <div class="card-text" v-html="event.conclusion"></div>
+            </div>
+          </div>
+
+          <!-- Правая колонка -->
+          <div class="content-right">
+            <!-- Рейтинг по категориям -->
+            <div v-if="visibleRatings.length > 0" class="event-card compact">
+              <h3 class="card-title">
+                <i class="fas fa-star"></i>
+                Оценки
+              </h3>
+              <div class="ratings-list">
+                <div v-for="rating in visibleRatings" :key="rating.key" class="rating-row">
+                  <span class="rating-label">{{ rating.label }}</span>
+                  <div class="rating-bar">
+                    <div class="rating-fill" :style="{ width: (rating.value / 5 * 100) + '%' }"></div>
                   </div>
-                  <div class="purchase-info">
-                    <h4 class="purchase-name">{{ purchase.item_name }}</h4>
-                    <p v-if="purchase.description" class="purchase-description">{{ purchase.description }}</p>
-                    <div class="purchase-details">
-                      <span v-if="purchase.vendor_name" class="purchase-vendor">
-                        <i class="fas fa-store"></i>
-                        {{ purchase.vendor_name }}
-                      </span>
-                      <span v-if="purchase.category" class="purchase-category">
-                        <i class="fas fa-tag"></i>
-                        {{ getCategoryName(purchase.category) }}
-                      </span>
-                    </div>
-                    <div class="purchase-price">{{ formatMoney(purchase.price) }}</div>
-                  </div>
+                  <span class="rating-num">{{ rating.value }}</span>
+                </div>
+              </div>
+              <div class="overall-score">
+                <span>Общая оценка</span>
+                <strong>{{ calculatedOverallRating }}/5</strong>
+              </div>
+            </div>
+
+            <!-- Особенности мероприятия -->
+            <div v-if="hasBuiltInFeatures || features.length > 0" class="event-card compact">
+              <h3 class="card-title">
+                <i class="fas fa-star"></i>
+                Особенности
+              </h3>
+              <div class="features-list">
+                <div v-if="event.has_dealers_den" class="feature-item">
+                  <i class="fas fa-store"></i>
+                  <span>Dealers Den</span>
+                </div>
+                <div v-if="event.has_art_show" class="feature-item">
+                  <i class="fas fa-palette"></i>
+                  <span>Арт-выставка</span>
+                </div>
+                <div v-if="event.has_fursuit_parade" class="feature-item">
+                  <i class="fas fa-paw"></i>
+                  <span>Фурсьют-парад</span>
+                </div>
+                <div v-if="event.has_competitions" class="feature-item">
+                  <i class="fas fa-trophy"></i>
+                  <span>Конкурсы</span>
+                </div>
+                <div v-for="feature in features" :key="feature.id" class="feature-item">
+                  <i :class="feature.icon_class || 'fas fa-star'"></i>
+                  <span>{{ feature.title }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ссылки -->
+            <div v-if="event.official_website || links.length > 0" class="event-card compact">
+              <h3 class="card-title">
+                <i class="fas fa-link"></i>
+                Ссылки
+              </h3>
+              <div class="links-list">
+                <a v-if="event.official_website" :href="event.official_website" class="link-item" target="_blank">
+                  <i class="fas fa-globe"></i>
+                  <span>{{ getWebsiteDomain(event.official_website) }}</span>
+                </a>
+                <a v-for="link in links" :key="link.id" :href="link.url" class="link-item" target="_blank">
+                  <i :class="link.icon_class || 'fas fa-external-link-alt'"></i>
+                  <span>{{ link.title }}</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Информация -->
+            <div class="event-card compact">
+              <h3 class="card-title">
+                <i class="fas fa-info"></i>
+                Информация
+              </h3>
+              <div class="info-list">
+                <div v-if="event.city" class="info-row">
+                  <span class="info-label">Город</span>
+                  <span class="info-value">{{ event.city }}</span>
+                </div>
+                <div v-if="event.announced_date" class="info-row">
+                  <span class="info-label">Анонс</span>
+                  <span class="info-value">{{ formatEventDate(event.announced_date) }}</span>
+                </div>
+                <div v-if="event.expected_visitors" class="info-row">
+                  <span class="info-label">Ожидалось</span>
+                  <span class="info-value">{{ event.expected_visitors }} чел.</span>
                 </div>
               </div>
             </div>
           </div>
-          
-          <!-- Впечатления -->
-          <div class="event-section" v-show="activeTab === 'impressions'">
-            <h2 class="section-title">Мои впечатления</h2>
-            <div class="impressions-content">
-              <div v-if="event.my_rating" class="review-rating">
-                <div class="rating-stars">
-                  <i
-                    v-for="n in 5"
-                    :key="n"
-                    class="fas fa-star"
-                    :class="{ 'active': n <= event.my_rating }"
-                  ></i>
-                </div>
-                <span class="rating-text">{{ event.my_rating }}/5</span>
-              </div>
-
-              <!-- Оценки по категориям -->
-              <div v-if="visibleRatings.length > 0" class="multi-rating-section">
-                <h3 class="rating-section-title">Моя оценка</h3>
-                <div class="rating-categories-grid">
-                  <div v-for="rating in visibleRatings" :key="rating.key" class="rating-cat-card">
-                    <span class="cat-label">{{ rating.label }}</span>
-                    <div class="cat-stars">
-                      <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= rating.value }"></i>
-                    </div>
-                    <span class="cat-value">{{ rating.value }}/5</span>
-                  </div>
-                </div>
-                <div class="overall-rating-display">
-                  Общая оценка: <strong>{{ calculatedOverallRating }}/5</strong>
-                </div>
-              </div>
-
-              <!-- Плюсы и минусы как списки -->
-              <div v-if="hasProsOrCons" class="pros-cons-section">
-                <h3 class="opinion-title">Мое мнение</h3>
-                <div class="pros-cons-columns">
-                  <div v-if="event.pros && event.pros.length > 0" class="pros-block">
-                    <h4 class="pros-title">
-                      <i class="fas fa-thumbs-up"></i>
-                      Плюсы
-                    </h4>
-                    <ul class="pros-list">
-                      <li v-for="(pro, index) in event.pros" :key="index">
-                        <i class="fas fa-check"></i>
-                        <span>{{ pro }}</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div v-if="event.cons_text && event.cons_text.length > 0" class="cons-block">
-                    <h4 class="cons-title">
-                      <i class="fas fa-thumbs-down"></i>
-                      Минусы
-                    </h4>
-                    <ul class="cons-list">
-                      <li v-for="(con, index) in event.cons_text" :key="index">
-                        <i class="fas fa-times"></i>
-                        <span>{{ con }}</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div v-if="event.my_review" class="review-text" v-html="event.my_review"></div>
-              <div v-else-if="!event.conclusion && !event.pros && !event.cons_text" class="no-review">
-                <i class="fas fa-pen"></i>
-                <p>Отзыв о мероприятии пока не написан</p>
-              </div>
-
-              <!-- Заключение -->
-              <div v-if="event.conclusion" class="conclusion-section">
-                <h3 class="conclusion-title">Итоги</h3>
-                <div class="conclusion-text" v-html="event.conclusion"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Навигация к другим мероприятиям -->
-        <div class="navigation-section">
-          <router-link to="/events" class="all-events-btn">
-            <i class="fas fa-calendar-alt"></i>
-            <span>Посмотреть все мероприятия</span>
-            <i class="fas fa-arrow-right"></i>
-          </router-link>
         </div>
       </div>
     </div>
 
     <!-- Модальное окно фото -->
     <div v-if="selectedPhoto" class="photo-modal" @click="closePhotoModal">
-      <div class="photo-modal-content" @click.stop>
-        <button class="photo-modal-close" @click="closePhotoModal">
-          <i class="fas fa-times"></i>
-        </button>
-        <img :src="selectedPhoto.image_url" :alt="selectedPhoto.caption" class="modal-photo">
-        <div v-if="selectedPhoto.caption" class="modal-photo-caption">{{ selectedPhoto.caption }}</div>
-      </div>
+      <button class="modal-close" @click="closePhotoModal">
+        <i class="fas fa-times"></i>
+      </button>
+      <img :src="selectedPhoto.image_url" :alt="selectedPhoto.caption" @click.stop />
     </div>
   </div>
 </template>
@@ -487,6 +337,9 @@ export default {
 
     totalSpent() {
       return this.purchases.reduce((sum, purchase) => sum + (purchase.price || 0), 0)
+    },
+    showPurchases() {
+      return this.event && (this.event.event_type === 'festival' || this.event.event_type === 'market')
     },
     hasBuiltInFeatures() {
       return this.event && (
@@ -647,6 +500,20 @@ export default {
       return typeMap[eventType] || eventType
     },
 
+    getEventTypeIcon(eventType) {
+      const iconMap = {
+        convention: 'fas fa-crown',
+        market: 'fas fa-store',
+        festival: 'fas fa-music',
+        meetup: 'fas fa-users',
+        exhibition: 'fas fa-image',
+        party: 'fas fa-glass-cheers',
+        online: 'fas fa-laptop',
+        other: 'fas fa-calendar'
+      }
+      return iconMap[eventType] || 'fas fa-calendar'
+    },
+
     getWebsiteDomain(url) {
       try {
         const domain = new URL(url).hostname
@@ -713,20 +580,14 @@ export default {
 }
 </script>
 
+
 <style scoped>
-/* ===== ОСНОВНЫЕ СТИЛИ ===== */
 .event-details-page {
   min-height: 100vh;
-  background: var(--bg-primary);
+  background: var(--bg-primary, #0a0a0f);
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-}
-
-/* ===== СОСТОЯНИЯ ЗАГРУЗКИ ===== */
+/* Загрузка и ошибки */
 .loading-container, .error-container {
   display: flex;
   flex-direction: column;
@@ -735,14 +596,14 @@ export default {
   min-height: 50vh;
   gap: 1rem;
   text-align: center;
-  color: var(--text-muted);
+  color: rgba(255,255,255,0.6);
 }
 
 .loading-spinner {
   width: 50px;
   height: 50px;
-  border: 3px solid rgba(255, 123, 37, 0.2);
-  border-top: 3px solid var(--accent-orange);
+  border: 3px solid rgba(139, 92, 246, 0.2);
+  border-top: 3px solid #8b5cf6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -753,44 +614,44 @@ export default {
 }
 
 .back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: var(--accent-orange);
+  background: #8b5cf6;
   color: white;
   text-decoration: none;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s;
 }
 
 .back-btn:hover {
-  background: #e6691f;
-  transform: translateY(-2px);
+  background: #7c3aed;
 }
 
-/* ===== БЛОКИРОВАННАЯ СТРАНИЦА ===== */
+/* Блокировка */
 .blocked-container {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 70vh;
   padding: 2rem;
-  text-align: center;
 }
 
 .blocked-content {
   max-width: 500px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 1.5rem;
+  text-align: center;
+  background: rgba(255,255,255,0.05);
+  border-radius: 16px;
   padding: 3rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .blocked-icon {
   width: 80px;
   height: 80px;
   margin: 0 auto 1.5rem;
-  background: rgba(128, 128, 128, 0.2);
+  background: rgba(128,128,128,0.2);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -799,860 +660,600 @@ export default {
 
 .blocked-icon i {
   font-size: 2.5rem;
-  color: var(--text-muted);
+  color: rgba(255,255,255,0.5);
 }
 
 .blocked-content h2 {
-  font-size: 1.8rem;
-  color: var(--text-light);
+  color: white;
   margin-bottom: 1rem;
 }
 
 .blocked-content p {
-  color: var(--text-muted);
-  line-height: 1.6;
+  color: rgba(255,255,255,0.7);
   margin-bottom: 0.5rem;
 }
 
 .blocked-hint {
-  font-size: 0.9rem;
-  color: var(--accent-orange);
-  margin-bottom: 2rem !important;
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 1.5rem;
 }
 
-.blocked-content .back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* ===== ГЕРОИЧЕСКАЯ СЕКЦИЯ ===== */
+/* Баннер */
 .event-hero {
   position: relative;
-  height: 60vh;
-  min-height: 400px;
-  display: flex;
-  align-items: flex-end;
-  color: white;
+  height: 500px;
   overflow: hidden;
-}
-
-.hero-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
 }
 
 .hero-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.3) 0%,
-    rgba(0, 0, 0, 0.7) 100%
-  );
+  inset: 0;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(0, 0, 0, 0.8) 100%);
+  z-index: 1;
+}
+
+.hero-image {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(2px);
+  transform: scale(1.05);
 }
 
 .hero-content {
   position: relative;
   z-index: 2;
-  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.back-button {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  background: rgba(255,255,255,0.15);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  font-size: 0.875rem;
+  transition: all 0.3s;
+}
+
+.back-button:hover {
+  background: rgba(255,255,255,0.25);
+  transform: translateX(-4px);
+}
+
+.hero-info {
+  max-width: 600px;
+}
+
+.event-badges {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.event-status, .event-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+}
+
+.event-status.completed {
+  background: rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+}
+
+.event-status.upcoming {
+  background: rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+}
+
+.event-type-badge {
+  background: rgba(139, 92, 246, 0.3);
+  color: #a78bfa;
+}
+
+.event-title {
+  font-size: 3rem;
+  font-weight: 800;
+  color: white;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.event-subtitle {
+  font-size: 1.125rem;
+  color: rgba(255,255,255,0.8);
+  margin: 0 0 1.5rem 0;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255,255,255,0.9);
+  font-size: 0.9rem;
+}
+
+.meta-item i {
+  color: #a78bfa;
+}
+
+.hero-rating {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.rating-stars-large i {
+  font-size: 1.5rem;
+  color: rgba(255,255,255,0.3);
+}
+
+.rating-stars-large i.active {
+  color: #fbbf24;
+}
+
+.rating-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+/* Контейнер */
+.container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
 }
 
-.back-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 0.5rem;
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  margin-bottom: 2rem;
-  backdrop-filter: blur(10px);
-}
-
-.back-button:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-}
-
-.event-badges {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.event-status, .event-rating {
-  padding: 0.5rem 1rem;
-  border-radius: 2rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  backdrop-filter: blur(10px);
-}
-
-.event-status.upcoming {
-  background: rgba(76, 175, 80, 0.8);
-}
-
-.event-status.completed {
-  background: rgba(255, 123, 37, 0.8);
-}
-
-.event-rating {
-  background: rgba(255, 193, 7, 0.8);
-  color: white;
-}
-
-.event-title {
-  font-size: 3.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.event-subtitle {
-  font-size: 1.3rem;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 400;
-}
-
-/* ===== ИНФОРМАЦИОННЫЕ КАРТОЧКИ ===== */
-.event-info-grid {
+/* Сетка контента */
+.content-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: 1fr 350px;
   gap: 1.5rem;
-  margin: 3rem 0;
 }
 
-.event-info-card {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 1rem;
+.content-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.content-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Карточки */
+.event-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 16px;
   padding: 1.5rem;
+}
+
+.event-card.compact {
+  padding: 1.25rem;
+}
+
+.card-title {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.event-info-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  transform: translateY(-2px);
-}
-
-.info-icon {
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(135deg, var(--accent-orange), #e6691f);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  color: white;
-  flex-shrink: 0;
-}
-
-.info-content {
-  flex: 1;
-}
-
-.info-label {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  margin-bottom: 0.25rem;
-}
-
-.info-value {
-  font-size: 1.1rem;
+  gap: 0.75rem;
+  font-size: 1.125rem;
   font-weight: 600;
-  color: var(--text-light);
-}
-
-.info-extra {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  margin-top: 0.25rem;
-}
-
-/* ===== НАВИГАЦИЯ ПО ВКЛАДКАМ ===== */
-.event-navigation {
-  margin-bottom: 3rem;
-}
-
-.nav-tabs {
-  display: flex;
-  gap: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 1rem;
-  overflow-x: auto;
-}
-
-.nav-tab {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.8rem 1.2rem;
-  border-radius: 0.5rem;
-  text-decoration: none;
-  color: var(--text-muted);
-  transition: all 0.3s ease;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.nav-tab:hover:not(.active) {
-  color: var(--text-light);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.nav-tab.active {
-  background: linear-gradient(45deg, var(--accent-orange), var(--accent-green));
   color: white;
-  box-shadow: 0 5px 15px rgba(255, 123, 37, 0.2);
+  margin: 0 0 1rem 0;
 }
 
-.tab-count {
-  font-size: 0.8rem;
-  opacity: 0.8;
+.card-title i {
+  color: #8b5cf6;
 }
 
-/* ===== СЕКЦИИ КОНТЕНТА ===== */
-.event-section {
-  margin-bottom: 3rem;
-  animation: fadeIn 0.5s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.section-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-light);
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.section-count {
-  font-size: 1rem;
-  color: var(--text-muted);
-  font-weight: 400;
-}
-
-.section-content {
-  color: var(--text-light);
-}
-
-.event-description {
-  font-size: 1.1rem;
+.card-text {
+  color: rgba(255,255,255,0.7);
   line-height: 1.7;
-  margin-bottom: 2rem;
 }
 
-.no-description, .no-review {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 1rem;
-  color: var(--text-muted);
-  text-align: center;
-  justify-content: center;
+.card-text.muted {
+  color: rgba(255,255,255,0.4);
+  font-style: italic;
 }
 
-/* ===== ССЫЛКИ И ОСОБЕННОСТИ ===== */
-.event-links {
-  margin: 2rem 0;
+/* Фотографии */
+.photos-count {
+  margin-left: auto;
+  background: rgba(139, 92, 246, 0.2);
+  color: #a78bfa;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
 }
 
-.links-title, .features-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--text-light);
-  margin-bottom: 1rem;
-}
-
-.links-container {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.event-link {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 0.75rem;
-  color: var(--text-light);
-  text-decoration: none;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.event-link:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px);
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.feature-card {
-  display: flex;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
-}
-
-.feature-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  transform: translateY(-2px);
-}
-
-.feature-icon {
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(135deg, var(--accent-green), #45a049);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  color: white;
-  flex-shrink: 0;
-}
-
-.feature-content {
-  flex: 1;
-}
-
-.feature-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-light);
-  margin-bottom: 0.5rem;
-}
-
-.feature-description {
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
-/* ===== ФОТОГРАФИИ ===== */
 .photos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
 }
 
 .photo-item {
   position: relative;
   aspect-ratio: 1;
-  border-radius: 0.75rem;
+  border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.05);
 }
 
-.photo-item:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-}
-
-.photo-image {
+.photo-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s;
 }
 
-.photo-caption {
+.photo-item:hover img {
+  transform: scale(1.1);
+}
+
+.photo-overlay {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-  color: white;
-  padding: 1rem;
-  font-size: 0.9rem;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
 }
 
-/* ===== ПОКУПКИ ===== */
+.photo-item:hover .photo-overlay {
+  opacity: 1;
+}
+
+.photo-overlay i {
+  color: white;
+  font-size: 1.25rem;
+}
+
+/* Покупки */
 .purchases-summary {
   display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
-  margin-bottom: 2rem;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .purchase-stat {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 1rem 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 0.75rem;
-  font-weight: 600;
-  color: var(--text-light);
+  color: rgba(255,255,255,0.7);
+  font-size: 0.875rem;
 }
 
 .purchase-stat i {
-  color: var(--accent-orange);
+  color: #8b5cf6;
 }
 
 .purchases-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
+  margin-top: 1rem;
 }
 
-.purchase-card {
+.purchase-item {
   display: flex;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-.purchase-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  transform: translateY(-2px);
-}
-
-.purchase-image {
-  width: 80px;
-  height: 80px;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.purchase-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.purchase-info {
-  flex: 1;
+.purchase-item:last-child {
+  border-bottom: none;
 }
 
 .purchase-name {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-light);
-  margin-bottom: 0.5rem;
-}
-
-.purchase-description {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  margin-bottom: 0.75rem;
-  line-height: 1.4;
-}
-
-.purchase-details {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-  font-size: 0.85rem;
-}
-
-.purchase-vendor, .purchase-category {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  color: var(--text-muted);
+  color: rgba(255,255,255,0.8);
+  font-size: 0.875rem;
 }
 
 .purchase-price {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--accent-orange);
-}
-
-/* ===== ВПЕЧАТЛЕНИЯ ===== */
-.impressions-content {
-  max-width: 800px;
-}
-
-.review-rating {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 1rem;
-}
-
-.rating-stars {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.rating-stars i {
-  font-size: 1.5rem;
-  color: rgba(255, 193, 7, 0.3);
-  transition: color 0.3s ease;
-}
-
-.rating-stars i.active {
-  color: #ffc107;
-}
-
-.rating-text {
-  font-size: 1.2rem;
+  color: #fbbf24;
   font-weight: 600;
-  color: var(--text-light);
+  font-size: 0.875rem;
 }
 
-.review-text {
-  font-size: 1.1rem;
-  line-height: 1.7;
-  color: var(--text-light);
-}
-
-/* ===== МНОЖЕСТВЕННЫЕ ОЦЕНКИ ===== */
-.multi-rating-section {
-  margin-bottom: 2rem;
-}
-
-.rating-section-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--text-light);
-  margin: 0 0 1.5rem 0;
-}
-
-.rating-categories-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.rating-cat-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.75rem;
-  padding: 1rem;
-  text-align: center;
-}
-
-.cat-label {
-  display: block;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  margin-bottom: 0.5rem;
-}
-
-.cat-stars {
-  display: flex;
-  justify-content: center;
-  gap: 0.15rem;
-  margin-bottom: 0.5rem;
-}
-
-.cat-stars i {
-  font-size: 0.9rem;
-  color: rgba(255, 193, 7, 0.3);
-}
-
-.cat-stars i.active {
-  color: #ffc107;
-}
-
-.cat-value {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--accent-orange);
-}
-
-.overall-rating-display {
-  text-align: right;
-  color: var(--text-muted);
-  font-size: 0.95rem;
-}
-
-.overall-rating-display strong {
-  font-size: 1.1rem;
-  color: var(--accent-orange);
-}
-
-/* ===== ПЛЮСЫ И МИНУСЫ ===== */
-.pros-cons-section {
-  margin-bottom: 2rem;
-}
-
-.opinion-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--text-light);
-  margin: 0 0 1.5rem 0;
-}
-
-.pros-cons-columns {
+/* Плюсы/Минусы */
+.pros-cons-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
 }
 
-.pros-block,
-.cons-block {
-  padding: 1.5rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.pros-block {
-  background: rgba(76, 175, 80, 0.1);
-  border-color: rgba(76, 175, 80, 0.3);
-}
-
-.cons-block {
-  background: rgba(244, 67, 54, 0.1);
-  border-color: rgba(244, 67, 54, 0.3);
-}
-
-.pros-title,
-.cons-title {
+.block-subtitle {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.75rem 0;
 }
 
-.pros-title {
-  color: #4caf50;
+.block-subtitle.pros {
+  color: #4ade80;
 }
 
-.cons-title {
-  color: #f44336;
+.block-subtitle.cons {
+  color: #f87171;
 }
 
-.pros-list,
-.cons-list {
+.opinion-list {
   list-style: none;
-  margin: 0;
   padding: 0;
+  margin: 0;
 }
 
-.pros-list li,
-.cons-list li {
+.opinion-list li {
   display: flex;
   align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.8);
+}
+
+.pros-block .opinion-list i {
+  color: #4ade80;
+  font-size: 0.75rem;
+  margin-top: 0.2rem;
+}
+
+.cons-block .opinion-list i {
+  color: #f87171;
+  font-size: 0.75rem;
+  margin-top: 0.2rem;
+}
+
+/* Рейтинги */
+.ratings-list {
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
-  margin-bottom: 0.75rem;
-  color: var(--text-light);
-  line-height: 1.5;
 }
 
-.pros-list li:last-child,
-.cons-list li:last-child {
-  margin-bottom: 0;
-}
-
-.pros-list li i {
-  color: #4caf50;
-  margin-top: 0.2rem;
-}
-
-.cons-list li i {
-  color: #f44336;
-  margin-top: 0.2rem;
-}
-
-@media (max-width: 768px) {
-  .pros-cons-columns {
-    grid-template-columns: 1fr;
-  }
-
-  .rating-categories-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* ===== ЗАКЛЮЧЕНИЕ ===== */
-.conclusion-section {
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.conclusion-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--text-light);
-  margin-bottom: 1rem;
-}
-
-.conclusion-text {
-  font-size: 1.1rem;
-  line-height: 1.7;
-  color: var(--text-light);
-}
-
-/* ===== СВОДКА ПОКУПОК ===== */
-.purchases-text-summary {
-  margin: 1.5rem 0;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.summary-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-light);
-  margin-bottom: 0.75rem;
-}
-
-.summary-text {
-  color: var(--text-muted);
-  line-height: 1.6;
-}
-
-/* ===== НАВИГАЦИЯ ===== */
-.navigation-section {
-  margin-top: 4rem;
-  text-align: center;
-}
-
-.all-events-btn {
-  display: inline-flex;
+.rating-row {
+  display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, var(--accent-orange), var(--accent-green));
-  color: white;
-  text-decoration: none;
-  border-radius: 0.75rem;
+}
+
+.rating-label {
+  flex: 0 0 90px;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.6);
+}
+
+.rating-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.rating-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+  border-radius: 3px;
+}
+
+.rating-num {
+  flex: 0 0 20px;
+  font-size: 0.875rem;
   font-weight: 600;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(255, 123, 37, 0.3);
+  color: white;
+  text-align: right;
 }
 
-.all-events-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(255, 123, 37, 0.4);
+.overall-score {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.7);
 }
 
-/* ===== МОДАЛЬНОЕ ОКНО ФОТО ===== */
+.overall-score strong {
+  color: #fbbf24;
+  font-size: 1rem;
+}
+
+/* Особенности */
+.features-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.8);
+}
+
+.feature-item i {
+  color: #8b5cf6;
+  font-size: 0.75rem;
+}
+
+/* Ссылки */
+.links-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.link-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: all 0.3s;
+}
+
+.link-item:hover {
+  background: rgba(139, 92, 246, 0.2);
+  color: white;
+}
+
+.link-item i {
+  font-size: 1rem;
+  color: #8b5cf6;
+}
+
+/* Информация */
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-row .info-label {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.5);
+}
+
+.info-row .info-value {
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.8);
+}
+
+/* Модальное окно */
 .photo-modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
+  inset: 0;
+  background: rgba(0,0,0,0.95);
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
   padding: 2rem;
 }
 
-.photo-modal-content {
-  position: relative;
-  max-width: 90vw;
+.photo-modal img {
+  max-width: 90%;
   max-height: 90vh;
-  text-align: center;
+  border-radius: 8px;
 }
 
-.photo-modal-close {
+.modal-close {
   position: absolute;
-  top: -50px;
-  right: 0;
-  background: rgba(255, 255, 255, 0.1);
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255,255,255,0.1);
   border: none;
   color: white;
   width: 40px;
   height: 40px;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 1.2rem;
-  transition: all 0.3s ease;
+  font-size: 1.25rem;
 }
 
-.photo-modal-close:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.modal-photo {
-  max-width: 100%;
-  max-height: 80vh;
-  object-fit: contain;
-  border-radius: 0.5rem;
-}
-
-.modal-photo-caption {
-  color: white;
-  margin-top: 1rem;
-  font-size: 1.1rem;
-}
-
-/* ===== АДАПТИВНОСТЬ ===== */
-@media (max-width: 768px) {
-  .event-title {
-    font-size: 2.5rem;
-  }
-  
-  .event-subtitle {
-    font-size: 1.1rem;
-  }
-  
-  .nav-tabs {
-    justify-content: flex-start;
-  }
-  
-  .features-grid,
-  .purchases-list {
+/* Адаптив */
+@media (max-width: 1024px) {
+  .content-grid {
     grid-template-columns: 1fr;
   }
-  
-  .photos-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+
+  .content-right {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
   }
-  
+}
+
+@media (max-width: 768px) {
+  .event-hero {
+    height: 400px;
+  }
+
+  .event-title {
+    font-size: 2rem;
+  }
+
+  .hero-meta {
+    gap: 1rem;
+  }
+
+  .photos-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pros-cons-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .content-right {
+    grid-template-columns: 1fr;
+  }
+
+  .features-list {
+    grid-template-columns: 1fr;
+  }
+
   .purchases-summary {
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.5rem;
   }
 }
 </style>
