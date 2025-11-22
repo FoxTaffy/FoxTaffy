@@ -184,15 +184,14 @@
                   </ul>
                 </div>
               </div>
-            </div>
-
-            <!-- Заключение -->
-            <div v-if="event.conclusion" class="event-card">
-              <h3 class="card-title">
-                <i class="fas fa-flag-checkered"></i>
-                Итоги
-              </h3>
-              <div class="card-text" v-html="event.conclusion"></div>
+              <!-- Общее впечатление -->
+              <div v-if="event.conclusion" class="general-impression">
+                <h4 class="block-subtitle">
+                  <i class="fas fa-comment-alt"></i>
+                  Общее впечатление
+                </h4>
+                <div class="impression-text" v-html="event.conclusion"></div>
+              </div>
             </div>
           </div>
 
@@ -1028,6 +1027,22 @@ export default {
   font-size: 0.75rem;
   margin-top: 0.2rem;
   flex-shrink: 0;
+}
+
+.general-impression {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.general-impression .block-subtitle {
+  color: #a78bfa;
+}
+
+.impression-text {
+  color: rgba(255,255,255,0.8);
+  line-height: 1.6;
+  font-size: 0.9rem;
 }
 
 /* Рейтинги */

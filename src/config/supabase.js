@@ -504,6 +504,43 @@ export const furryApi = {
     }
   },
 
+  async saveEventPhotos(eventId, photoUrls) {
+    try {
+      console.log('📸 saveEventPhotos: Сохраняем фотографии для мероприятия:', eventId)
+
+      // Удаляем старые фотографии
+      const { error: deleteError } = await supabase
+        .from('con_photos')
+        .delete()
+        .eq('con_id', eventId)
+
+      if (deleteError) throw deleteError
+
+      // Добавляем новые фотографии
+      if (photoUrls && photoUrls.length > 0) {
+        const photosToInsert = photoUrls.map((url, index) => ({
+          con_id: eventId,
+          image_url: url,
+          thumbnail_url: url,
+          sort_order: index
+        }))
+
+        const { error: insertError } = await supabase
+          .from('con_photos')
+          .insert(photosToInsert)
+
+        if (insertError) throw insertError
+      }
+
+      console.log('✅ saveEventPhotos: Фотографии сохранены:', photoUrls?.length || 0)
+      return true
+
+    } catch (error) {
+      console.error('❌ saveEventPhotos: Ошибка сохранения фотографий:', error)
+      throw error
+    }
+  },
+
   // ============================================
   // 🎨 МЕТОДЫ ДЛЯ ГАЛЕРЕИ ИСКУССТВА
   // ============================================

@@ -1501,17 +1501,24 @@ export default {
       if (!this.eventForm.pros) this.eventForm.pros = []
       if (!this.eventForm.cons_text) this.eventForm.cons_text = []
 
-      // Загружаем покупки
+      // Загружаем покупки и фотографии
       try {
-        const purchases = await furryApi.getEventPurchases(event.id)
+        const [purchases, photos] = await Promise.all([
+          furryApi.getEventPurchases(event.id),
+          furryApi.getEventPhotos(event.id)
+        ])
+
         this.eventForm.purchase_items = purchases.map(p => ({
           name: p.name,
           price: p.price,
           image: p.image_url
         }))
+
+        this.uploadedPhotos = photos.map(p => p.image_url)
       } catch (error) {
-        console.error('Ошибка загрузки покупок:', error)
+        console.error('Ошибка загрузки данных:', error)
         this.eventForm.purchase_items = []
+        this.uploadedPhotos = []
       }
 
       this.currentStep = 0
@@ -1546,6 +1553,12 @@ export default {
         if (this.eventForm.purchase_items && this.eventForm.purchase_items.length > 0) {
           await furryApi.saveEventPurchases(savedEvent.id, this.eventForm.purchase_items)
           console.log('✅ AdminEvents: Покупки сохранены')
+        }
+
+        // Сохраняем фотографии
+        if (this.uploadedPhotos && this.uploadedPhotos.length > 0) {
+          await furryApi.saveEventPhotos(savedEvent.id, this.uploadedPhotos)
+          console.log('✅ AdminEvents: Фотографии сохранены')
         }
 
         // Обновляем локальные данные
