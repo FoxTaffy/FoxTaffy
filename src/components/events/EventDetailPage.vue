@@ -546,17 +546,32 @@ export default {
     openPhotoAtIndex(index) {
       this.selectedPhotoIndex = index
       document.body.style.overflow = 'hidden'
+      window.addEventListener('keydown', this.handleKeydown)
     },
 
     closePhotoModal() {
       this.selectedPhotoIndex = null
       document.body.style.overflow = ''
+      window.removeEventListener('keydown', this.handleKeydown)
+    },
+
+    handleKeydown(e) {
+      if (this.selectedPhotoIndex === null) return
+
+      if (e.key === 'ArrowLeft' && this.selectedPhotoIndex > 0) {
+        this.selectedPhotoIndex--
+      } else if (e.key === 'ArrowRight' && this.selectedPhotoIndex < this.photos.length - 1) {
+        this.selectedPhotoIndex++
+      } else if (e.key === 'Escape') {
+        this.closePhotoModal()
+      }
     }
   },
-  
+
   beforeUnmount() {
     // Возвращаем скролл при выходе со страницы
     document.body.style.overflow = ''
+    window.removeEventListener('keydown', this.handleKeydown)
   }
 }
 </script>
