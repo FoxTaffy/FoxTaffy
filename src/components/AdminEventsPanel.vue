@@ -1329,13 +1329,15 @@ export default {
     openCreateModal() {
       this.isEditing = false
       this.eventForm = this.getEmptyForm()
+      this.uploadedPhotos = []
       this.showCreateModal = true
     },
-    
+
     closeCreateModal() {
       this.showCreateModal = false
       this.isEditing = false
       this.eventForm = this.getEmptyForm()
+      this.uploadedPhotos = []
       this.currentStep = 0
       this.maxReachedStep = 0
     },
