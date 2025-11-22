@@ -219,6 +219,9 @@ export const furryApi = {
       console.log('➕ createEvent: Создаём новое мероприятие:', eventData.name)
       
       const cleanData = this._cleanEventData(eventData)
+      if (cleanData.event_date === '') {
+        cleanData.event_date = null
+      }
       
       // Проверяем уникальность slug
       if (cleanData.slug) {
@@ -259,6 +262,10 @@ export const furryApi = {
       const cleanData = this._cleanEventData(updateData)
       cleanData.updated_at = new Date().toISOString()
       
+      if (cleanData.event_date === '') {
+        cleanData.event_date = null
+      }
+
       // Проверяем уникальность slug если он изменился
       if (cleanData.slug) {
         const existingEvent = await this.getEventById(eventId)
@@ -1224,16 +1231,24 @@ export const furryApi = {
       }
     })
     
-    // Валидация дат
+    // Валидация дат - ИСПРАВЛЕНИЕ: обрабатываем пустые строки
     const dateFields = ['event_date', 'announced_date']
     
     dateFields.forEach(field => {
       if (cleaned[field]) {
-        const date = new Date(cleaned[field])
-        if (isNaN(date.getTime())) {
-          throw new Error(`Неверный формат даты в поле ${field}`)
+        // Если поле содержит только пустую строку, устанавливаем null
+        if (cleaned[field].trim() === '') {
+          cleaned[field] = null
+        } else {
+          const date = new Date(cleaned[field])
+          if (isNaN(date.getTime())) {
+            throw new Error(`Неверный формат даты в поле ${field}`)
+          }
+          cleaned[field] = date.toISOString().split('T')[0] // Только дата, без времени
         }
-        cleaned[field] = date.toISOString().split('T')[0] // Только дата, без времени
+      } else if (cleaned[field] === '') {
+        // Обрабатываем явно пустые строки
+        cleaned[field] = null
       }
     })
     
