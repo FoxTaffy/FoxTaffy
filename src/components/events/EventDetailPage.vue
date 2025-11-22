@@ -185,12 +185,12 @@
                 </div>
               </div>
               <!-- Общее впечатление -->
-              <div v-if="event.conclusion" class="general-impression">
+              <div v-if="event.my_review" class="general-impression">
                 <h4 class="block-subtitle">
                   <i class="fas fa-comment-alt"></i>
                   Общее впечатление
                 </h4>
-                <div class="impression-text" v-html="event.conclusion"></div>
+                <div class="impression-text" v-html="event.my_review"></div>
               </div>
             </div>
           </div>
@@ -670,7 +670,7 @@ export default {
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(0, 0, 0, 0.8) 100%);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.4) 0%, rgba(0, 0, 0, 0.85) 100%);
   z-index: 1;
 }
 
