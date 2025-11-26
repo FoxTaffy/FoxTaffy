@@ -132,8 +132,6 @@
               <!-- Изображение мероприятия (логотип/аватар) -->
               <div class="event-image">
                 <img
-                  v-if="event.avatar_url || event.meta_image"
-                  :src="event.avatar_url || event.meta_image"
                   v-if="event.logo_url || event.avatar_url || event.meta_image"
                   :src="event.logo_url || event.avatar_url || event.meta_image"
                   :alt="event.name"
