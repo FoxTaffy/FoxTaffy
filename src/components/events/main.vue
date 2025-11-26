@@ -831,8 +831,8 @@ export default {
 
     // Проверка, нужно ли показывать рейтинг для данного типа мероприятия
     shouldShowRating(event) {
-      const typesWithoutRatings = ['market', 'festival', 'party']
-      return event && !typesWithoutRatings.includes(event.event_type)
+      // Показываем рейтинг если есть хоть какая-то оценка
+      return event && this.getOverallRating(event) > 0
     },
 
     // Форматирование диапазона дат для КОНов

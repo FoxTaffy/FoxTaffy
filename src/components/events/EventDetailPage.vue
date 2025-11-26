@@ -369,8 +369,8 @@ export default {
 
     // Проверка, нужно ли показывать рейтинги для данного типа мероприятия
     shouldShowRatings() {
-      const typesWithoutRatings = ['market', 'festival', 'party']
-      return this.event && !typesWithoutRatings.includes(this.event.event_type)
+      // Показываем рейтинги для всех типов (но фильтруем категории в visibleRatings)
+      return this.event && this.visibleRatings.length > 0
     },
 
     // Категории рейтинга в зависимости от типа мероприятия
@@ -389,10 +389,19 @@ export default {
 
       // Фильтруем по типу мероприятия
       let excludeKeys = []
+
       if (type === 'market') {
-        excludeKeys = ['program', 'food'] // На маркетах нет программы и питания
+        // На маркетах нет программы и питания
+        excludeKeys = ['program', 'food']
+      } else if (type === 'festival') {
+        // На фестивалях обычно нет организованного питания
+        excludeKeys = ['food']
       } else if (type === 'party') {
-        excludeKeys = ['program'] // На вечеринках нет программы
+        // На вечеринках нет программы (только музыка/танцы)
+        excludeKeys = ['program']
+      } else if (type === 'meetup') {
+        // На встречах нет программы и питания
+        excludeKeys = ['program', 'food']
       }
 
       return allRatings.filter(r => !excludeKeys.includes(r.key) && r.value)

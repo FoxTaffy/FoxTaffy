@@ -277,17 +277,17 @@
               </div>
             </div>
             
-            <!-- Рейтинг -->
-            <div v-if="event.my_rating" class="event-rating">
+            <!-- Рейтинг (только если тип поддерживает рейтинги) -->
+            <div v-if="shouldShowEventRating(event) && getEventOverallRating(event) > 0" class="event-rating">
               <div class="rating-stars">
-                <i 
-                  v-for="star in 5" 
+                <i
+                  v-for="star in 5"
                   :key="star"
                   class="fas fa-star"
-                  :class="{ 'active': star <= event.my_rating }"
+                  :class="{ 'active': star <= Math.round(getEventOverallRating(event)) }"
                 ></i>
               </div>
-              <span class="rating-text">{{ event.my_rating }}/5</span>
+              <span class="rating-text">{{ getEventOverallRating(event) }}/5</span>
             </div>
           </div>
           
@@ -1190,17 +1190,33 @@ export default {
     filteredRatingCategories() {
       if (!this.shouldShowRatings) return []
 
-      // Для market убираем программу и питание
-      if (this.eventForm.event_type === 'market') {
-        return this.ratingCategories.filter(c => !['rating_program', 'rating_food'].includes(c.key))
+      const type = this.eventForm.event_type
+
+      // Для маркета - убираем программу и питание (там нет программы и общепита)
+      if (type === 'market') {
+        return this.ratingCategories.filter(c =>
+          !['rating_program', 'rating_food'].includes(c.key)
+        )
       }
 
-      // Для party убираем программу
-      if (this.eventForm.event_type === 'party') {
+      // Для фестиваля - убираем питание (обычно нет общепита)
+      if (type === 'festival') {
+        return this.ratingCategories.filter(c => c.key !== 'rating_food')
+      }
+
+      // Для вечеринки - убираем программу (обычно нет программы, только музыка/танцы)
+      if (type === 'party') {
         return this.ratingCategories.filter(c => c.key !== 'rating_program')
       }
 
-      // Для остальных типов показываем все рейтинги
+      // Для встречи (meetup) - убираем программу и питание
+      if (type === 'meetup') {
+        return this.ratingCategories.filter(c =>
+          !['rating_program', 'rating_food'].includes(c.key)
+        )
+      }
+
+      // Для конвента и других типов показываем все рейтинги
       return this.ratingCategories
     },
 
@@ -1769,6 +1785,34 @@ export default {
     formatMoney(amount) {
       if (!amount) return '0 ₽'
       return `${Number(amount).toLocaleString('ru-RU')} ₽`
+    },
+
+    // Проверка, нужно ли показывать рейтинг для данного типа мероприятия
+    shouldShowEventRating(event) {
+      const typesWithoutRatings = ['market', 'festival', 'party']
+      return event && !typesWithoutRatings.includes(event.event_type)
+    },
+
+    // Вычисление общего рейтинга из 6 категорий
+    getEventOverallRating(event) {
+      if (!event) return 0
+
+      const ratings = [
+        event.rating_organization,
+        event.rating_program,
+        event.rating_atmosphere,
+        event.rating_location,
+        event.rating_participants,
+        event.rating_food
+      ].filter(r => r !== null && r !== undefined && r > 0)
+
+      // Если есть старый my_rating, используем его как fallback
+      if (ratings.length === 0) {
+        return event.my_rating || 0
+      }
+
+      const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+      return parseFloat(avg.toFixed(1))
     }
   },
   
