@@ -432,24 +432,30 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label required">Дата и время</label>
-                <div class="datetime-inputs">
-                  <input
-                    v-model="eventForm.event_date"
-                    type="date"
-                    class="form-input"
-                    required
-                  />
-                  <input
-                    v-model="eventForm.event_time"
-                    type="time"
-                    class="form-input time-input"
-                    placeholder="10:00"
-                  />
-                </div>
+                <label class="form-label required">Дата начала</label>
+                <input
+                  v-model="eventForm.event_date"
+                  type="date"
+                  class="form-input"
+                  required
+                />
                 <div class="form-hint">
                   <i class="fas fa-info-circle"></i>
-                  Дата и время начала
+                  Дата начала мероприятия
+                </div>
+              </div>
+
+              <!-- Дата окончания для конвентов -->
+              <div v-if="eventForm.event_type === 'convention'" class="form-group">
+                <label class="form-label">Дата окончания (для КОНов)</label>
+                <input
+                  v-model="eventForm.event_end_date"
+                  type="date"
+                  class="form-input"
+                />
+                <div class="form-hint">
+                  <i class="fas fa-info-circle"></i>
+                  Для многодневных мероприятий (отображение: ДД.ММ – ДД.ММ)
                 </div>
               </div>
             </div>
@@ -682,10 +688,10 @@
             </div>
 
             <!-- Множественные оценки по категориям -->
-            <div class="form-group">
+            <div v-if="shouldShowRatings" class="form-group">
               <label class="form-label">Оценки по категориям</label>
               <div class="multi-rating-grid">
-                <div v-for="category in ratingCategories" :key="category.key" class="rating-category">
+                <div v-for="category in filteredRatingCategories" :key="category.key" class="rating-category">
                   <span class="category-name">{{ category.label }}</span>
                   <div class="category-stars">
                     <button
@@ -1174,6 +1180,30 @@ export default {
       })
     },
 
+    // Проверка, нужно ли показывать рейтинги для данного типа мероприятия
+    shouldShowRatings() {
+      const typesWithoutRatings = ['market', 'festival', 'party']
+      return !typesWithoutRatings.includes(this.eventForm.event_type)
+    },
+
+    // Фильтрация категорий рейтинга в зависимости от типа мероприятия
+    filteredRatingCategories() {
+      if (!this.shouldShowRatings) return []
+
+      // Для market убираем программу и питание
+      if (this.eventForm.event_type === 'market') {
+        return this.ratingCategories.filter(c => !['rating_program', 'rating_food'].includes(c.key))
+      }
+
+      // Для party убираем программу
+      if (this.eventForm.event_type === 'party') {
+        return this.ratingCategories.filter(c => c.key !== 'rating_program')
+      }
+
+      // Для остальных типов показываем все рейтинги
+      return this.ratingCategories
+    },
+
     filteredStatuses() {
       if (this.isEventInPast) {
         return [
@@ -1293,7 +1323,7 @@ export default {
         subtitle: '',
         description: '',
         event_date: '',
-        event_time: '',
+        event_end_date: '',
         announced_date: '',
         location: '',
         city: '',
