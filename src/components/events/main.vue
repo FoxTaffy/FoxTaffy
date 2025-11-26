@@ -125,7 +125,8 @@
               :class="{
                 'upcoming-card': isUpcoming(event),
                 'completed-card': !isUpcoming(event),
-                'high-rating': getOverallRating(event) >= 4.5
+                'high-rating': getOverallRating(event) >= 4.5,
+                'blocked-card': isReviewMissing(event)
               }"
               @click="goToEvent(event)"
             >
@@ -134,8 +135,6 @@
                 <img
                   v-if="event.avatar_url || event.meta_image"
                   :src="event.avatar_url || event.meta_image"
-                  v-if="event.logo_url || event.avatar_url || event.meta_image"
-                  :src="event.logo_url || event.avatar_url || event.meta_image"
                   :alt="event.name"
                   @error="handleImageError"
                 >
@@ -375,7 +374,7 @@ export default {
         { key: 'all', label: 'Все', icon: 'fas fa-calendar-alt', count: this.stats.total },
         { key: 'upcoming', label: 'Предстоящие', icon: 'fas fa-clock', count: this.stats.upcoming },
         { key: 'completed', label: 'Посещённые', icon: 'fas fa-check-circle', count: this.stats.completed },
-        { key: 'convention', label: 'Конвенты', icon: 'fas fa-calendar-star', count: this.getTypeCount('convention') },
+        { key: 'convention', label: 'Конвенты', icon: 'fas fa-crown', count: this.getTypeCount('convention') },
         { key: 'market', label: 'Маркеты', icon: 'fas fa-store', count: this.getTypeCount('market') },
         { key: 'festival', label: 'Фестивали', icon: 'fas fa-music', count: this.getTypeCount('festival') },
         { key: 'meetup', label: 'Встречи', icon: 'fas fa-users', count: this.getTypeCount('meetup') }
@@ -622,6 +621,11 @@ export default {
     // ============================================
     
     goToEvent(event) {
+      // Блокируем переход для прошедших событий без обзора
+      if (this.isReviewMissing(event)) {
+        return
+      }
+
       if (event.slug) {
         this.$router.push(`/events/${event.slug}`)
       } else {
@@ -637,15 +641,9 @@ export default {
     },
     
     openOfficialSite(event) {
-      // Открытие официального сайта мероприятия
-      const siteUrls = {
-        'any-furry-fest-7': 'https://anyfurryfest.ru',
-        'furmarket-5': 'https://furmarket.ru',
-        'summer-fest-2025': 'https://summerfest.ru'
-      }
-      
-      const url = siteUrls[event.slug] || '#'
-      if (url !== '#') {
+      // Открытие официального сайта мероприятия из БД
+      const url = event.official_website
+      if (url) {
         window.open(url, '_blank')
       } else {
         alert('Официальный сайт ещё не объявлен')
@@ -681,7 +679,14 @@ export default {
     // Проверка отсутствия обзора для прошедших событий
     isReviewMissing(event) {
       const isPast = new Date(event.event_date) < new Date()
-      return isPast && !event.review_completed
+      if (!isPast) return false
+
+      // Обзор считается написанным если review_completed=true ИЛИ есть рейтинги
+      const hasRatings = event.rating_organization || event.rating_program ||
+                         event.rating_atmosphere || event.rating_location ||
+                         event.rating_participants || event.rating_food || event.my_rating
+
+      return !event.review_completed && !hasRatings
     },
     
     getStatusClass(event) {
@@ -1510,6 +1515,27 @@ export default {
 .action-btn.disabled:hover {
   transform: none;
   box-shadow: none;
+}
+
+/* Заблокированные карточки (без обзора) */
+.event-card.blocked-card {
+  cursor: not-allowed;
+  opacity: 0.6;
+  border-color: rgba(128, 128, 128, 0.3);
+  filter: grayscale(70%);
+}
+
+.event-card.blocked-card:hover {
+  transform: none;
+  box-shadow: 0 0 20px rgba(128, 128, 128, 0.1);
+}
+
+.event-card.blocked-card .event-image img {
+  filter: grayscale(100%);
+}
+
+.event-card.blocked-card::before {
+  background: rgba(128, 128, 128, 0.5);
 }
 
 /* ===============================================

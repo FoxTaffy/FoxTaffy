@@ -811,21 +811,43 @@
               </div>
             </div>
 
-            <!-- Папка фотографий S3 -->
+            <!-- Мульти-загрузка фотографий -->
             <div class="form-group">
               <label class="form-label">
-                <i class="fas fa-folder-open"></i>
-                Папка фотографий (S3)
+                <i class="fas fa-images"></i>
+                Загрузить фотографии
               </label>
-              <input
-                v-model="eventForm.photos_folder"
-                type="text"
-                class="form-input"
-                placeholder="https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/SFB/"
-              />
+              <div class="multi-upload-area">
+                <input
+                  type="file"
+                  ref="multiPhotoInput"
+                  multiple
+                  accept="image/*"
+                  @change="handleMultiPhotoUpload"
+                  class="hidden-input"
+                />
+                <button
+                  type="button"
+                  class="upload-photos-btn"
+                  @click="$refs.multiPhotoInput.click()"
+                  :disabled="uploadingPhotos"
+                >
+                  <i class="fas fa-cloud-upload-alt" v-if="!uploadingPhotos"></i>
+                  <i class="fas fa-spinner fa-spin" v-else></i>
+                  <span>{{ uploadingPhotos ? `Загрузка ${uploadProgress}/${uploadTotal}...` : 'Выбрать фотографии' }}</span>
+                </button>
+                <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-preview">
+                  <div v-for="(photo, index) in uploadedPhotos" :key="index" class="uploaded-photo">
+                    <img :src="photo" alt="" />
+                    <button type="button" class="remove-photo-btn" @click="removeUploadedPhoto(index)">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
               <div class="form-hint">
                 <i class="fas fa-info-circle"></i>
-                URL папки в S3 с фотографиями мероприятия
+                Выберите несколько фотографий для загрузки в папку мероприятия
               </div>
             </div>
 
@@ -1013,6 +1035,12 @@ export default {
       avatarUploadMethod: 's3',
       bannerUploadMethod: 's3',
 
+      // Мульти-загрузка фотографий
+      uploadingPhotos: false,
+      uploadProgress: 0,
+      uploadTotal: 0,
+      uploadedPhotos: [],
+
       // Wizard
       currentStep: 0,
       maxReachedStep: 0,
@@ -1023,7 +1051,7 @@ export default {
         { title: 'Отзыв', icon: 'fas fa-comment-alt' }
       ],
       eventTypes: [
-        { value: 'convention', label: 'Конвент', icon: 'fas fa-calendar-star' },
+        { value: 'convention', label: 'Конвент', icon: 'fas fa-crown' },
         { value: 'market', label: 'Маркет', icon: 'fas fa-store' },
         { value: 'festival', label: 'Фестиваль', icon: 'fas fa-music' },
         { value: 'meetup', label: 'Встреча', icon: 'fas fa-users' },
@@ -1034,6 +1062,8 @@ export default {
         { value: 'planning', label: 'Планирую', icon: 'fas fa-clock' },
         { value: 'registered', label: 'Зарегистрирован', icon: 'fas fa-check-circle' },
         { value: 'attended', label: 'Посетил', icon: 'fas fa-star' },
+        { value: 'vip', label: 'VIP', icon: 'fas fa-gem' },
+        { value: 'volunteer', label: 'Волонтёр', icon: 'fas fa-hands-helping' },
         { value: 'missed', label: 'Пропустил', icon: 'fas fa-times-circle' },
         { value: 'cancelled', label: 'Отменено', icon: 'fas fa-ban' }
       ],
@@ -1299,13 +1329,15 @@ export default {
     openCreateModal() {
       this.isEditing = false
       this.eventForm = this.getEmptyForm()
+      this.uploadedPhotos = []
       this.showCreateModal = true
     },
-    
+
     closeCreateModal() {
       this.showCreateModal = false
       this.isEditing = false
       this.eventForm = this.getEmptyForm()
+      this.uploadedPhotos = []
       this.currentStep = 0
       this.maxReachedStep = 0
     },
@@ -1389,7 +1421,73 @@ export default {
       this.eventForm.cons_text.splice(index, 1)
     },
 
-    editEvent(event) {
+    // Транслитерация для папок S3
+    transliterate(text) {
+      const map = {
+        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
+        'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+        'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+        'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+        'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
+        ' ': '-', '_': '-'
+      }
+      return text.toLowerCase().split('').map(char => map[char] || char).join('')
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/-+/g, '-')
+    },
+
+    // Мульти-загрузка фотографий
+    async handleMultiPhotoUpload(event) {
+      const files = Array.from(event.target.files)
+      if (!files.length) return
+
+      this.uploadingPhotos = true
+      this.uploadProgress = 0
+      this.uploadTotal = files.length
+
+      // Используем транслитерацию для папки или ID события
+      let folderName = this.eventForm.id || `temp-${Date.now()}`
+      if (this.eventForm.name) {
+        folderName = this.transliterate(this.eventForm.name)
+      }
+      const folder = `events/${folderName}`
+
+      try {
+        const { s3Api } = await import('@/config/s3.js')
+
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i]
+          this.uploadProgress = i + 1
+
+          const result = await s3Api.uploadFile(file, folder)
+
+          if (result && result.url) {
+            this.uploadedPhotos.push(result.url)
+          }
+        }
+
+        this.$emit('notification', `Загружено ${files.length} фотографий`, 'success')
+
+        // Устанавливаем папку фотографий
+        const baseUrl = import.meta.env.VITE_SUPABASE_URL
+        this.eventForm.photos_folder = `${baseUrl}/storage/v1/object/public/gallery/${folder}/`
+
+      } catch (error) {
+        console.error('Ошибка загрузки фотографий:', error)
+        this.$emit('notification', 'Ошибка загрузки: ' + error.message, 'error')
+      } finally {
+        this.uploadingPhotos = false
+        this.uploadProgress = 0
+        this.uploadTotal = 0
+        event.target.value = ''
+      }
+    },
+
+    removeUploadedPhoto(index) {
+      this.uploadedPhotos.splice(index, 1)
+    },
+
+    async editEvent(event) {
       this.isEditing = true
       this.eventForm = { ...event }
 
@@ -1404,6 +1502,26 @@ export default {
       // Инициализируем массивы если они null
       if (!this.eventForm.pros) this.eventForm.pros = []
       if (!this.eventForm.cons_text) this.eventForm.cons_text = []
+
+      // Загружаем покупки и фотографии
+      try {
+        const [purchases, photos] = await Promise.all([
+          furryApi.getEventPurchases(event.id),
+          furryApi.getEventPhotos(event.id)
+        ])
+
+        this.eventForm.purchase_items = purchases.map(p => ({
+          name: p.name,
+          price: p.price,
+          image: p.image_url
+        }))
+
+        this.uploadedPhotos = photos.map(p => p.image_url)
+      } catch (error) {
+        console.error('Ошибка загрузки данных:', error)
+        this.eventForm.purchase_items = []
+        this.uploadedPhotos = []
+      }
 
       this.currentStep = 0
       this.maxReachedStep = 3 // Allow access to all steps when editing
@@ -1432,7 +1550,19 @@ export default {
         }
         
         console.log('✅ AdminEvents: Мероприятие сохранено:', savedEvent)
-        
+
+        // Сохраняем покупки
+        if (this.eventForm.purchase_items && this.eventForm.purchase_items.length > 0) {
+          await furryApi.saveEventPurchases(savedEvent.id, this.eventForm.purchase_items)
+          console.log('✅ AdminEvents: Покупки сохранены')
+        }
+
+        // Сохраняем фотографии
+        if (this.uploadedPhotos && this.uploadedPhotos.length > 0) {
+          await furryApi.saveEventPhotos(savedEvent.id, this.uploadedPhotos)
+          console.log('✅ AdminEvents: Фотографии сохранены')
+        }
+
         // Обновляем локальные данные
         if (this.isEditing) {
           const index = this.events.findIndex(e => e.id === savedEvent.id)
@@ -1573,7 +1703,7 @@ export default {
     
     getEventTypeIcon(type) {
       const iconMap = {
-        convention: 'fas fa-calendar-star',
+        convention: 'fas fa-crown',
         market: 'fas fa-store',
         festival: 'fas fa-music',
         meetup: 'fas fa-users',
@@ -3629,6 +3759,83 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Multi-upload photos */
+.multi-upload-area {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.upload-photos-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 123, 37, 0.1);
+  border: 2px dashed var(--accent-orange);
+  border-radius: var(--border-radius);
+  color: var(--accent-orange);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.upload-photos-btn:hover:not(:disabled) {
+  background: rgba(255, 123, 37, 0.2);
+}
+
+.upload-photos-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.uploaded-photos-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.5rem;
+}
+
+.uploaded-photo {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--border-radius-small);
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+}
+
+.uploaded-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-photo-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.9);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+}
+
+.remove-photo-btn:hover {
+  background: rgb(239, 68, 68);
 }
 
 /* Purchase items */

@@ -472,8 +472,9 @@ export default {
     
     // =================== ИЗОБРАЖЕНИЯ ===================
     getImageUrl(event) {
-      const urls = [event.banner_url, event.image_url, event.meta_image, event.logo_url]
-      
+      // Приоритет: avatar_url (логотип) -> banner_url -> остальные
+      const urls = [event.avatar_url, event.banner_url, event.image_url, event.meta_image, event.logo_url]
+
       for (const url of urls) {
         if (url && this.isValidUrl(url)) {
           return url

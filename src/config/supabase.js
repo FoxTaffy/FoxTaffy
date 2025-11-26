@@ -423,7 +423,7 @@ export const furryApi = {
         .from('con_photos')
         .select('*')
         .eq('con_id', eventId)
-        .order('sort_order', { ascending: true })
+        .order('display_order', { ascending: true })
 
       if (error) throw error
 
@@ -457,6 +457,87 @@ export const furryApi = {
     } catch (error) {
       console.error('❌ getEventPurchases: Ошибка загрузки покупок:', error)
       return []
+    }
+  },
+
+  /**
+   * Сохранить покупки мероприятия
+   */
+  async saveEventPurchases(eventId, purchases) {
+    try {
+      console.log('🛍️ saveEventPurchases: Сохраняем покупки для мероприятия:', eventId)
+
+      // Удаляем старые покупки
+      const { error: deleteError } = await supabase
+        .from('con_purchases')
+        .delete()
+        .eq('con_id', eventId)
+
+      if (deleteError) throw deleteError
+
+      // Добавляем новые покупки
+      if (purchases && purchases.length > 0) {
+        const purchasesToInsert = purchases
+          .filter(p => p.name && p.name.trim())
+          .map(p => ({
+            con_id: eventId,
+            name: p.name.trim(),
+            price: p.price || 0,
+            image_url: p.image || null
+          }))
+
+        if (purchasesToInsert.length > 0) {
+          const { error: insertError } = await supabase
+            .from('con_purchases')
+            .insert(purchasesToInsert)
+
+          if (insertError) throw insertError
+        }
+      }
+
+      console.log('✅ saveEventPurchases: Покупки сохранены:', purchases?.length || 0)
+      return true
+
+    } catch (error) {
+      console.error('❌ saveEventPurchases: Ошибка сохранения покупок:', error)
+      throw error
+    }
+  },
+
+  async saveEventPhotos(eventId, photoUrls) {
+    try {
+      console.log('📸 saveEventPhotos: Сохраняем фотографии для мероприятия:', eventId)
+
+      // Удаляем старые фотографии
+      const { error: deleteError } = await supabase
+        .from('con_photos')
+        .delete()
+        .eq('con_id', eventId)
+
+      if (deleteError) throw deleteError
+
+      // Добавляем новые фотографии
+      if (photoUrls && photoUrls.length > 0) {
+        const photosToInsert = photoUrls.map((url, index) => ({
+          con_id: eventId,
+          image_url: url,
+          thumbnail_url: url,
+          display_order: index
+        }))
+
+        const { error: insertError } = await supabase
+          .from('con_photos')
+          .insert(photosToInsert)
+
+        if (insertError) throw insertError
+      }
+
+      console.log('✅ saveEventPhotos: Фотографии сохранены:', photoUrls?.length || 0)
+      return true
+
+    } catch (error) {
+      console.error('❌ saveEventPhotos: Ошибка сохранения фотографий:', error)
+      throw error
     }
   },
 
