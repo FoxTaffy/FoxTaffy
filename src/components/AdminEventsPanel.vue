@@ -432,24 +432,28 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label required">Дата и время</label>
+                <label class="form-label required">
+                  {{ eventForm.event_type === 'convention' ? 'Даты проведения' : 'Дата проведения' }}
+                </label>
                 <div class="datetime-inputs">
                   <input
                     v-model="eventForm.event_date"
                     type="date"
                     class="form-input"
                     required
+                    :placeholder="eventForm.event_type === 'convention' ? 'Дата начала' : 'Дата'"
                   />
                   <input
-                    v-model="eventForm.event_time"
-                    type="time"
-                    class="form-input time-input"
-                    placeholder="10:00"
+                    v-if="eventForm.event_type === 'convention'"
+                    v-model="eventForm.event_end_date"
+                    type="date"
+                    class="form-input"
+                    placeholder="Дата окончания"
                   />
                 </div>
                 <div class="form-hint">
                   <i class="fas fa-info-circle"></i>
-                  Дата и время начала
+                  {{ eventForm.event_type === 'convention' ? 'Для КОНов укажите дату начала и окончания' : 'Дата проведения мероприятия' }}
                 </div>
               </div>
             </div>
@@ -685,7 +689,11 @@
             <div class="form-group">
               <label class="form-label">Оценки по категориям</label>
               <div class="multi-rating-grid">
-                <div v-for="category in ratingCategories" :key="category.key" class="rating-category">
+                <div
+                  v-for="category in filteredRatingCategories"
+                  :key="category.key"
+                  class="rating-category"
+                >
                   <span class="category-name">{{ category.label }}</span>
                   <div class="category-stars">
                     <button
@@ -1123,13 +1131,17 @@ export default {
     },
 
     calculatedOverallRating() {
+      // Типы мероприятий без питания
+      const typesWithoutFood = ['market', 'festival', 'party']
+      const shouldIncludeFood = !typesWithoutFood.includes(this.eventForm.event_type)
+
       const ratings = [
         this.eventForm.rating_organization,
         this.eventForm.rating_program,
         this.eventForm.rating_atmosphere,
         this.eventForm.rating_location,
         this.eventForm.rating_participants,
-        this.eventForm.rating_food
+        shouldIncludeFood ? this.eventForm.rating_food : null
       ].filter(r => r !== null && r > 0)
 
       if (ratings.length === 0) return '0.0'
@@ -1158,6 +1170,18 @@ export default {
           { value: 'cancelled', label: 'Отменено', icon: 'fas fa-ban' }
         ]
       }
+    },
+
+    filteredRatingCategories() {
+      // Типы мероприятий без питания
+      const typesWithoutFood = ['market', 'festival', 'party']
+
+      if (typesWithoutFood.includes(this.eventForm.event_type)) {
+        // Убираем категорию "Питание" для маркетов, фестивалей и вечеринок
+        return this.ratingCategories.filter(cat => cat.key !== 'rating_food')
+      }
+
+      return this.ratingCategories
     }
   },
   
@@ -1263,7 +1287,7 @@ export default {
         subtitle: '',
         description: '',
         event_date: '',
-        event_time: '',
+        event_end_date: '',
         announced_date: '',
         location: '',
         city: '',

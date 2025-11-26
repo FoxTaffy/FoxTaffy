@@ -52,13 +52,6 @@
             </div>
           </div>
 
-          <div v-if="getEventTime(event.event_date)" class="event-info-card">
-            <div class="info-icon"><i class="fas fa-clock"></i></div>
-            <div class="info-content">
-              <div class="info-label">Время</div>
-              <div class="info-value">{{ getEventTime(event.event_date) }}</div>
-            </div>
-          </div>
 
           <div class="event-info-card">
             <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
@@ -382,7 +375,7 @@
                     </div>
                     <span class="cat-value">{{ event.rating_participants }}/5</span>
                   </div>
-                  <div v-if="event.rating_food" class="rating-cat-card">
+                  <div v-if="event.rating_food && shouldShowFoodRating" class="rating-cat-card">
                     <span class="cat-label">Питание</span>
                     <div class="cat-stars">
                       <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= event.rating_food }"></i>
@@ -519,18 +512,31 @@ export default {
     },
     calculatedOverallRating() {
       if (!this.event) return '0.0'
+
+      // Типы мероприятий без питания
+      const typesWithoutFood = ['market', 'festival', 'party']
+      const shouldIncludeFood = !typesWithoutFood.includes(this.event.event_type)
+
       const ratings = [
         this.event.rating_organization,
         this.event.rating_program,
         this.event.rating_atmosphere,
         this.event.rating_location,
         this.event.rating_participants,
-        this.event.rating_food
+        shouldIncludeFood ? this.event.rating_food : null
       ].filter(r => r !== null && r > 0)
 
       if (ratings.length === 0) return '0.0'
       const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length
       return avg.toFixed(1)
+    },
+
+    shouldShowFoodRating() {
+      if (!this.event) return false
+
+      // Типы мероприятий без питания
+      const typesWithoutFood = ['market', 'festival', 'party']
+      return !typesWithoutFood.includes(this.event.event_type)
     }
   },
   
@@ -645,6 +651,22 @@ export default {
     },
     
     formatEventDate(dateString) {
+      // Для КОНов отображаем диапазон дат
+      if (this.event && this.event.event_type === 'convention' && this.event.event_end_date) {
+        const startDate = new Date(dateString)
+        const endDate = new Date(this.event.event_end_date)
+
+        const startDay = startDate.getDate().toString().padStart(2, '0')
+        const startMonth = (startDate.getMonth() + 1).toString().padStart(2, '0')
+        const endDay = endDate.getDate().toString().padStart(2, '0')
+        const endMonth = (endDate.getMonth() + 1).toString().padStart(2, '0')
+        const year = startDate.getFullYear()
+
+        // Формат ДД.ММ – ДД.ММ ГГГГ
+        return `${startDay}.${startMonth} – ${endDay}.${endMonth} ${year}`
+      }
+
+      // Для остальных типов — обычный формат
       const date = new Date(dateString)
       return date.toLocaleDateString('ru-RU', {
         year: 'numeric',
