@@ -198,7 +198,7 @@
           <!-- Правая колонка -->
           <div class="content-right">
             <!-- Рейтинг по категориям -->
-            <div v-if="visibleRatings.length > 0" class="event-card compact">
+            <div v-if="shouldShowRatings && visibleRatings.length > 0" class="event-card compact">
               <h3 class="card-title">
                 <i class="fas fa-star"></i>
                 Оценки
@@ -216,6 +216,20 @@
                 <span>Общая оценка</span>
                 <strong>{{ calculatedOverallRating }}/5</strong>
               </div>
+            </div>
+
+            <!-- Особенности мероприятия -->
+            <div v-if="features.length > 0" class="event-card compact">
+              <h3 class="card-title">
+                <i class="fas fa-sparkles"></i>
+                Особенности
+              </h3>
+              <ul class="features-list">
+                <li v-for="feature in features" :key="feature.id" class="feature-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>{{ feature.title }}</span>
+                </li>
+              </ul>
             </div>
 
 
@@ -352,6 +366,13 @@ export default {
       const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length
       return avg.toFixed(1)
     },
+
+    // Проверка, нужно ли показывать рейтинги для данного типа мероприятия
+    shouldShowRatings() {
+      // Показываем рейтинги для всех типов (но фильтруем категории в visibleRatings)
+      return this.event && this.visibleRatings.length > 0
+    },
+
     // Категории рейтинга в зависимости от типа мероприятия
     visibleRatings() {
       if (!this.event) return []
@@ -368,10 +389,19 @@ export default {
 
       // Фильтруем по типу мероприятия
       let excludeKeys = []
+
       if (type === 'market') {
-        excludeKeys = ['program', 'food'] // На маркетах нет программы и питания
+        // На маркетах нет программы и питания
+        excludeKeys = ['program', 'food']
+      } else if (type === 'festival') {
+        // На фестивалях обычно нет организованного питания
+        excludeKeys = ['food']
       } else if (type === 'party') {
-        excludeKeys = ['program'] // На вечеринках нет программы
+        // На вечеринках нет программы (только музыка/танцы)
+        excludeKeys = ['program']
+      } else if (type === 'meetup') {
+        // На встречах нет программы и питания
+        excludeKeys = ['program', 'food']
       }
 
       return allRatings.filter(r => !excludeKeys.includes(r.key) && r.value)
@@ -505,6 +535,19 @@ export default {
     },
     
     formatEventDate(dateString) {
+      // Особый формат для КОНов с диапазоном дат
+      if (this.event && this.event.event_type === 'convention' && this.event.event_end_date) {
+        const startDate = new Date(dateString)
+        const endDate = new Date(this.event.event_end_date)
+
+        const startDay = startDate.getDate().toString().padStart(2, '0')
+        const startMonth = (startDate.getMonth() + 1).toString().padStart(2, '0')
+        const endDay = endDate.getDate().toString().padStart(2, '0')
+        const endMonth = (endDate.getMonth() + 1).toString().padStart(2, '0')
+
+        return `${startDay}.${startMonth} – ${endDay}.${endMonth}`
+      }
+
       const date = new Date(dateString)
       return date.toLocaleDateString('ru-RU', {
         year: 'numeric',
@@ -1147,6 +1190,36 @@ export default {
 .link-item i {
   font-size: 1rem;
   color: #8b5cf6;
+}
+
+/* Особенности мероприятия */
+.features-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.8);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.feature-item:last-child {
+  border-bottom: none;
+}
+
+.feature-item i {
+  color: #4ade80;
+  font-size: 0.875rem;
+  flex-shrink: 0;
 }
 
 /* Информация */

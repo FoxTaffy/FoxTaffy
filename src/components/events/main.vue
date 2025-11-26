@@ -147,14 +147,19 @@
                 <div class="image-overlay"></div>
                 
                 <!-- Дата в углу для предстоящих -->
-                <div v-if="isUpcoming(event)" class="event-date-badge">
-                  <div class="date-month">{{ getMonthShort(event.event_date) }}</div>
-                  <div class="date-day">{{ getDay(event.event_date) }}</div>
-                  <div class="date-year">{{ getYear(event.event_date) }}</div>
+                <div v-if="isUpcoming(event)" class="event-date-badge" :class="{ 'date-range': event.event_type === 'convention' && event.event_end_date }">
+                  <template v-if="event.event_type === 'convention' && event.event_end_date">
+                    <div class="date-range-text">{{ formatDateRange(event.event_date, event.event_end_date) }}</div>
+                  </template>
+                  <template v-else>
+                    <div class="date-month">{{ getMonthShort(event.event_date) }}</div>
+                    <div class="date-day">{{ getDay(event.event_date) }}</div>
+                    <div class="date-year">{{ getYear(event.event_date) }}</div>
+                  </template>
                 </div>
 
-                <!-- Рейтинг для завершённых (только если обзор написан) -->
-                <div v-else-if="getOverallRating(event) > 0 && !isReviewMissing(event)" class="event-rating-badge">
+                <!-- Рейтинг для завершённых (только если обзор написан и тип поддерживает рейтинги) -->
+                <div v-else-if="shouldShowRating(event) && getOverallRating(event) > 0 && !isReviewMissing(event)" class="event-rating-badge">
                   <div class="rating-stars">
                     <i
                       v-for="n in 5"
@@ -730,7 +735,20 @@ export default {
       return typeMap[type] || type
     },
     
-    formatEventDate(dateString) {
+    formatEventDate(dateString, event) {
+      // Особый формат для КОНов с диапазоном дат
+      if (event && event.event_type === 'convention' && event.event_end_date) {
+        const startDate = new Date(dateString)
+        const endDate = new Date(event.event_end_date)
+
+        const startDay = startDate.getDate().toString().padStart(2, '0')
+        const startMonth = (startDate.getMonth() + 1).toString().padStart(2, '0')
+        const endDay = endDate.getDate().toString().padStart(2, '0')
+        const endMonth = (endDate.getMonth() + 1).toString().padStart(2, '0')
+
+        return `${startDay}.${startMonth} – ${endDay}.${endMonth}`
+      }
+
       const date = new Date(dateString)
       return date.toLocaleDateString('ru-RU', {
         year: 'numeric',
@@ -809,6 +827,25 @@ export default {
     handleImageError(event) {
       // Скрываем сломанное изображение
       event.target.style.display = 'none'
+    },
+
+    // Проверка, нужно ли показывать рейтинг для данного типа мероприятия
+    shouldShowRating(event) {
+      // Показываем рейтинг если есть хоть какая-то оценка
+      return event && this.getOverallRating(event) > 0
+    },
+
+    // Форматирование диапазона дат для КОНов
+    formatDateRange(startDateString, endDateString) {
+      const startDate = new Date(startDateString)
+      const endDate = new Date(endDateString)
+
+      const startDay = startDate.getDate().toString().padStart(2, '0')
+      const startMonth = (startDate.getMonth() + 1).toString().padStart(2, '0')
+      const endDay = endDate.getDate().toString().padStart(2, '0')
+      const endMonth = (endDate.getMonth() + 1).toString().padStart(2, '0')
+
+      return `${startDay}.${startMonth} – ${endDay}.${endMonth}`
     },
 
     // Вычисление общего рейтинга из 6 категорий
@@ -1277,6 +1314,17 @@ export default {
   backdrop-filter: blur(10px);
   z-index: 3;
   min-width: 60px;
+}
+
+.event-date-badge.date-range {
+  padding: 0.75rem 1rem;
+  min-width: auto;
+}
+
+.date-range-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .date-month {
