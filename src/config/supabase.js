@@ -1408,20 +1408,19 @@ export const furryApi = {
       }
     })
     
-    // Валидация дат - ИСПРАВЛЕНИЕ: обрабатываем пустые строки
-    const dateFields = ['event_date', 'announced_date']
-    
+    // Валидация дат
+    const dateFields = ['event_date', 'event_end_date', 'announced_date']
+
     dateFields.forEach(field => {
-      if (cleaned[field]) {
-        // Если поле содержит только пустую строку, устанавливаем null
-        if (cleaned[field].trim() === '') {
-          cleaned[field] = null
-        } else {
-          const date = new Date(cleaned[field])
-          if (isNaN(date.getTime())) {
-            throw new Error(`Неверный формат даты в поле ${field}`)
-          }
-          cleaned[field] = date.toISOString().split('T')[0] // Только дата, без времени
+      // Конвертируем пустые строки в null
+      if (cleaned[field] === '' || cleaned[field] === undefined) {
+        cleaned[field] = null
+      }
+      // Валидируем и форматируем непустые даты
+      else if (cleaned[field]) {
+        const date = new Date(cleaned[field])
+        if (isNaN(date.getTime())) {
+          throw new Error(`Неверный формат даты в поле ${field}`)
         }
       } else if (cleaned[field] === '') {
         // Обрабатываем явно пустые строки
