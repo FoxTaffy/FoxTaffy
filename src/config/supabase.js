@@ -219,6 +219,9 @@ export const furryApi = {
       console.log('➕ createEvent: Создаём новое мероприятие:', eventData.name)
       
       const cleanData = this._cleanEventData(eventData)
+      if (cleanData.event_date === '') {
+        cleanData.event_date = null
+      }
       
       // Проверяем уникальность slug
       if (cleanData.slug) {
@@ -259,6 +262,10 @@ export const furryApi = {
       const cleanData = this._cleanEventData(updateData)
       cleanData.updated_at = new Date().toISOString()
       
+      if (cleanData.event_date === '') {
+        cleanData.event_date = null
+      }
+
       // Проверяем уникальность slug если он изменился
       if (cleanData.slug) {
         const existingEvent = await this.getEventById(eventId)
@@ -1415,7 +1422,9 @@ export const furryApi = {
         if (isNaN(date.getTime())) {
           throw new Error(`Неверный формат даты в поле ${field}`)
         }
-        cleaned[field] = date.toISOString().split('T')[0] // Только дата, без времени
+      } else if (cleaned[field] === '') {
+        // Обрабатываем явно пустые строки
+        cleaned[field] = null
       }
     })
     
