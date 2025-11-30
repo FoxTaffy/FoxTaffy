@@ -488,7 +488,8 @@ export const furryApi = {
           .map(p => ({
             con_id: eventId,
             item_name: p.name.trim(),
-            price: p.price || 0,
+            title: p.name.trim(),
+            price: String(p.price || 0),
             image_url: p.image || null
           }))
 
