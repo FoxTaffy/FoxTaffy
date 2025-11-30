@@ -583,6 +583,9 @@ export default {
     openEvent(event) {
       if (event.slug) {
         this.$router.push(`/events/${event.slug}`)
+      } else if (event.id) {
+        // Fallback на ID если нет slug
+        this.$router.push(`/events/${event.id}`)
       } else {
         this.showAllEvents()
       }

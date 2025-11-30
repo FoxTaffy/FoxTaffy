@@ -67,9 +67,11 @@ export const furryApi = {
 
     try {
       console.log('🎪 getEvents: Загружаем мероприятия с опциями:', options)
-      
-      // Сначала пробуем использовать представление с полной статистикой
-      let query = supabase.from('cons').select('*')
+
+      // Загружаем мероприятия с подсчетом фотографий
+      let query = supabase
+        .from('cons')
+        .select('*, con_photos(count)')
 
       // Фильтрация по статусу
       if (status === 'upcoming') {
@@ -128,8 +130,18 @@ export const furryApi = {
 
       if (error) throw error
 
-      console.log('✅ getEvents: Мероприятия загружены:', data?.length || 0)
-      return data || []
+      // Обработка данных: добавляем photos_count из агрегации
+      const eventsWithPhotos = (data || []).map(event => {
+        const photosCount = event.con_photos?.[0]?.count || 0
+        const { con_photos, ...eventData } = event
+        return {
+          ...eventData,
+          photos_count: photosCount
+        }
+      })
+
+      console.log('✅ getEvents: Мероприятия загружены:', eventsWithPhotos.length)
+      return eventsWithPhotos
 
     } catch (error) {
       console.error('❌ getEvents: Ошибка загрузки мероприятий:', error)
@@ -163,6 +175,36 @@ export const furryApi = {
 
     } catch (error) {
       console.error('❌ getEventBySlug: Ошибка поиска мероприятия:', error)
+      throw new Error(`Ошибка поиска мероприятия: ${error.message}`)
+    }
+  },
+
+  /**
+   * Получить мероприятие по ID
+   */
+  async getEventById(id) {
+    try {
+      console.log('🔍 getEventById: Ищем мероприятие по ID:', id)
+
+      const { data, error } = await supabase
+        .from('cons')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          console.log('⚠️ getEventById: Мероприятие не найдено')
+          return null
+        }
+        throw error
+      }
+
+      console.log('✅ getEventById: Мероприятие найдено:', data.name)
+      return data
+
+    } catch (error) {
+      console.error('❌ getEventById: Ошибка поиска мероприятия:', error)
       throw new Error(`Ошибка поиска мероприятия: ${error.message}`)
     }
   },
