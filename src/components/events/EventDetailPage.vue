@@ -436,13 +436,22 @@ export default {
       try {
         this.loading = true
         this.error = null
-        
-        const slug = this.$route.params.slug
-        console.log('🔍 Загружаем данные для мероприятия:', slug)
-        
+
+        const slugOrId = this.$route.params.slug
+        console.log('🔍 Загружаем данные для мероприятия:', slugOrId)
+
+        // Проверяем, является ли параметр UUID (ID) или slug
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId)
+
         // Загружаем основные данные мероприятия
-        this.event = await furryApi.getEventBySlug(slug)
-        
+        if (isUUID) {
+          // Загружаем по ID
+          this.event = await furryApi.getEventById(slugOrId)
+        } else {
+          // Загружаем по slug
+          this.event = await furryApi.getEventBySlug(slugOrId)
+        }
+
         if (!this.event) {
           throw new Error('Мероприятие не найдено')
         }

@@ -5,53 +5,66 @@
 
 import { supabase } from '@/config/supabase.js'
 
-const BUCKET_NAME = 'gallery' // Название bucket в Supabase Storage
+// ============================================
+// ОПРЕДЕЛЕНИЕ БАКЕТА ПО ТИПУ КОНТЕНТА
+// ============================================
+const getBucketName = (folder) => {
+  // Для событий (мероприятий) используем бакет Convent
+  if (folder.startsWith('events/')) {
+    return 'Convent'
+  }
+  // Для остальных - gallery
+  return 'gallery'
+}
 
 // ============================================
 // SUPABASE STORAGE API МЕТОДЫ
 // ============================================
 export const s3Api = {
-  
+
   /**
    * Загрузка файла в Supabase Storage
    * @param {File} file - Файл для загрузки
-   * @param {string} folder - Папка в bucket (например: 'arts', 'avatars')
+   * @param {string} folder - Папка в bucket (например: 'events/avatars', 'arts')
    * @param {Function} onProgress - Callback для прогресса (опционально)
    * @returns {Promise<string>} URL загруженного файла
    */
   async uploadFile(file, folder = 'arts', onProgress = null) {
     try {
+      // Определяем бакет на основе папки
+      const bucketName = getBucketName(folder)
+
       // Генерируем уникальное имя файла
       const fileExtension = file.name.split('.').pop().toLowerCase()
       const timestamp = Date.now()
       const randomString = Math.random().toString(36).substring(2, 15)
       const fileName = `${folder}/${timestamp}_${randomString}.${fileExtension}`
-      
-      console.log('📤 Загружаем файл в Supabase Storage:', fileName)
-      
+
+      console.log(`📤 Загружаем файл в Supabase Storage [${bucketName}]:`, fileName)
+
       // Проверяем размер файла (максимум 10MB)
       const maxSize = 10 * 1024 * 1024 // 10MB
       if (file.size > maxSize) {
         throw new Error(`Файл слишком большой. Максимальный размер: ${Math.round(maxSize / 1024 / 1024)}MB`)
       }
-      
+
       // Проверяем тип файла
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
       if (!allowedTypes.includes(file.type)) {
         throw new Error('Неподдерживаемый тип файла. Разрешены: JPG, PNG, GIF, WebP')
       }
-      
+
       // Симуляция прогресса для UI
       if (onProgress) {
         onProgress(10) // Начало загрузки
       }
-      
+
       // ✅ ИСПРАВЛЕНО: Убеждаемся что bucket и политики настроены
-      await this.ensureBucketAndPolicies()
-      
+      await this.ensureBucketAndPolicies(bucketName)
+
       // Загружаем файл в Supabase Storage
       const { data, error } = await supabase.storage
-        .from(BUCKET_NAME)
+        .from(bucketName)
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false,
@@ -73,20 +86,20 @@ export const s3Api = {
       if (onProgress) {
         onProgress(70)
       }
-      
+
       // Получаем публичный URL
       const { data: urlData } = supabase.storage
-        .from(BUCKET_NAME)
+        .from(bucketName)
         .getPublicUrl(fileName)
-      
+
       const publicUrl = urlData.publicUrl
-      
+
       // Завершение прогресса
       if (onProgress) {
         onProgress(100)
       }
-      
-      console.log('✅ Файл успешно загружен в Supabase Storage:', publicUrl)
+
+      console.log(`✅ Файл успешно загружен в Supabase Storage [${bucketName}]:`, publicUrl)
       
       return {
         url: publicUrl,
@@ -105,20 +118,20 @@ export const s3Api = {
   /**
    * ✅ НОВЫЙ МЕТОД: Убеждаемся что bucket и политики настроены правильно
    */
-  async ensureBucketAndPolicies() {
+  async ensureBucketAndPolicies(bucketName = 'gallery') {
     try {
-      console.log('🔧 Проверяем настройки bucket и политик...')
-      
+      console.log(`🔧 Проверяем настройки bucket [${bucketName}] и политик...`)
+
       // Проверяем существование bucket
-      const bucketExists = await this.checkBucketExists()
-      
+      const bucketExists = await this.checkBucketExists(bucketName)
+
       if (!bucketExists) {
-        console.log('🪣 Создаем bucket...')
-        await this.createBucketWithPolicies()
+        console.log(`🪣 Bucket ${bucketName} не существует...`)
+        console.log('💡 Создайте bucket вручную в Supabase Dashboard')
       } else {
-        console.log('✅ Bucket существует')
+        console.log(`✅ Bucket ${bucketName} существует`)
       }
-      
+
       return true
     } catch (error) {
       console.warn('⚠️ Ошибка настройки bucket:', error)
@@ -352,18 +365,18 @@ export const s3Api = {
    * Проверка существования bucket
    * @returns {Promise<boolean>} Существует ли bucket
    */
-  async checkBucketExists() {
+  async checkBucketExists(bucketName = 'gallery') {
     try {
       const { data, error } = await supabase.storage.listBuckets()
-      
+
       if (error) {
         console.error('❌ Ошибка проверки bucket:', error)
         return false
       }
-      
-      const bucketExists = data.some(bucket => bucket.name === BUCKET_NAME)
-      console.log(`🪣 Bucket "${BUCKET_NAME}" ${bucketExists ? 'существует' : 'не найден'}`)
-      
+
+      const bucketExists = data.some(bucket => bucket.name === bucketName)
+      console.log(`🪣 Bucket "${bucketName}" ${bucketExists ? 'существует' : 'не найден'}`)
+
       return bucketExists
     } catch (error) {
       console.error('❌ Ошибка проверки bucket:', error)
