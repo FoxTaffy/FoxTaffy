@@ -454,7 +454,6 @@ export const furryApi = {
         .from('con_purchases')
         .select('*')
         .eq('con_id', eventId)
-        .order('created_at', { ascending: false })
 
       if (error) throw error
 
