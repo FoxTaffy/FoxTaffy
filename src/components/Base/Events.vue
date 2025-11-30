@@ -22,11 +22,11 @@
     <!-- Карточки мероприятий -->
     <div v-else class="events-grid">
       <!-- Две основные карточки -->
-      <div 
-        v-for="event in mainEvents" 
+      <div
+        v-for="event in mainEvents"
         :key="event.id"
         class="event-card"
-        :class="getCardClass(event)"
+        :class="[getCardClass(event), { 'no-review': !hasReview(event) && !isUpcoming(event) }]"
         @click="openEvent(event)"
       >
         <!-- Изображение -->
@@ -68,8 +68,8 @@
           
           <!-- Описание -->
           <p class="event-description">{{ getDescription(event) }}</p>
-          
-          <!-- Прогресс или рейтинг -->
+
+          <!-- Прогресс для предстоящих или блок для прошедших -->
           <div v-if="isUpcoming(event)" class="countdown-block">
             <div class="countdown-text">
               <i class="fas fa-clock"></i>
@@ -79,19 +79,36 @@
               <div class="progress-fill" :style="{ width: getProgress(event.event_date) + '%' }"></div>
             </div>
           </div>
-          
-          <div v-else-if="event.my_rating" class="rating-block">
-            <div class="rating-text">
-              <i class="fas fa-star"></i>
-              <span>Моя оценка: {{ event.my_rating }}/5</span>
+
+          <!-- Для прошедших событий - показываем рейтинг и/или фотогаллерею -->
+          <div v-else class="completed-info-block">
+            <!-- Рейтинг (если есть) -->
+            <div v-if="getOverallRating(event) > 0" class="rating-block">
+              <div class="rating-text">
+                <i class="fas fa-star"></i>
+                <span>Оценка: {{ getOverallRating(event) }}/5</span>
+              </div>
+              <div class="stars">
+                <i
+                  v-for="star in 5"
+                  :key="star"
+                  class="fas fa-star"
+                  :class="{ filled: star <= Math.round(getOverallRating(event)) }"
+                ></i>
+              </div>
             </div>
-            <div class="stars">
-              <i 
-                v-for="star in 5" 
-                :key="star"
-                class="fas fa-star"
-                :class="{ filled: star <= event.my_rating }"
-              ></i>
+
+            <!-- Фотогаллерея (показываем всегда для прошедших, даже без обзора) -->
+            <div class="gallery-block">
+              <div class="gallery-text">
+                <i class="fas fa-images"></i>
+                <span v-if="event.photos_count">{{ event.photos_count }} {{ pluralizePhotos(event.photos_count) }}</span>
+                <span v-else>Фотогаллерея</span>
+              </div>
+              <div class="gallery-hint">
+                <i class="fas fa-arrow-right"></i>
+                <span>{{ hasReview(event) ? 'Смотреть обзор' : 'Подробнее' }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -358,11 +375,73 @@ export default {
     isUpcoming(event) {
       return new Date(event.event_date) > new Date()
     },
-    
+
+    // Проверка наличия обзора (хотя бы один рейтинг или my_rating)
+    hasReview(event) {
+      if (!event) return false
+
+      // Проверяем наличие хотя бы одной оценки в новой системе рейтингов
+      const hasDetailedRatings = [
+        event.rating_organization,
+        event.rating_program,
+        event.rating_atmosphere,
+        event.rating_location,
+        event.rating_participants,
+        event.rating_food
+      ].some(r => r !== null && r !== undefined && r > 0)
+
+      // Или есть старый my_rating
+      const hasMyRating = event.my_rating && event.my_rating > 0
+
+      // Или есть текст обзора
+      const hasReviewText = event.review || event.review_text
+
+      return hasDetailedRatings || hasMyRating || hasReviewText
+    },
+
+    // Вычисление общего рейтинга
+    getOverallRating(event) {
+      if (!event) return 0
+
+      // Проверяем новую систему рейтингов (6 категорий)
+      const ratings = [
+        event.rating_organization,
+        event.rating_program,
+        event.rating_atmosphere,
+        event.rating_location,
+        event.rating_participants,
+        event.rating_food
+      ].filter(r => r !== null && r !== undefined && r > 0)
+
+      if (ratings.length > 0) {
+        const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+        return parseFloat(avg.toFixed(1))
+      }
+
+      // Fallback на старый my_rating
+      return event.my_rating || 0
+    },
+
+    // Плюрализация для количества фотографий
+    pluralizePhotos(count) {
+      const lastDigit = count % 10
+      const lastTwoDigits = count % 100
+
+      if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+        return 'фотографий'
+      } else if (lastDigit === 1) {
+        return 'фотография'
+      } else if (lastDigit >= 2 && lastDigit <= 4) {
+        return 'фотографии'
+      } else {
+        return 'фотографий'
+      }
+    },
+
     getCardClass(event) {
       return this.isUpcoming(event) ? 'upcoming' : 'completed'
     },
-    
+
     getStatusClass(event) {
       return this.isUpcoming(event) ? 'upcoming' : 'completed'
     },
@@ -612,6 +691,32 @@ export default {
   box-shadow: 0 12px 25px rgba(255, 123, 37, 0.2);
 }
 
+/* ===== КАРТОЧКИ БЕЗ ОБЗОРА (СЕРЫЕ) ===== */
+.event-card.no-review {
+  background: rgba(100, 100, 100, 0.15);
+  border-left-color: rgba(150, 150, 150, 0.5);
+  opacity: 0.75;
+}
+
+.event-card.no-review .card-image {
+  filter: grayscale(0.6);
+}
+
+.event-card.no-review:hover {
+  opacity: 0.9;
+  box-shadow: 0 12px 25px rgba(100, 100, 100, 0.2);
+}
+
+.event-card.no-review .event-name,
+.event-card.no-review .event-description,
+.event-card.no-review .meta-item {
+  color: rgba(200, 200, 200, 0.8);
+}
+
+.event-card.no-review .status-badge {
+  background: rgba(150, 150, 150, 0.7);
+}
+
 /* ===== ИЗОБРАЖЕНИЯ ===== */
 .card-image {
   position: relative;
@@ -835,6 +940,67 @@ export default {
 
 .stars i.filled {
   color: #ffc107;
+}
+
+/* ===== БЛОК ИНФОРМАЦИИ ДЛЯ ПРОШЕДШИХ СОБЫТИЙ ===== */
+.completed-info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Рейтинг в блоке прошедших событий */
+.completed-info-block .rating-block {
+  background: rgba(255, 123, 37, 0.1);
+  padding: 0.75rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(255, 123, 37, 0.2);
+}
+
+/* ===== ФОТОГАЛЛЕРЕЯ ===== */
+.gallery-block {
+  background: rgba(139, 92, 246, 0.1);
+  padding: 0.75rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  transition: all 0.3s ease;
+}
+
+.event-card:hover .gallery-block {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.gallery-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.gallery-text i {
+  color: #8b5cf6;
+}
+
+.gallery-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: rgba(139, 92, 246, 0.8);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.gallery-hint i {
+  font-size: 0.7rem;
+  transition: transform 0.3s ease;
+}
+
+.event-card:hover .gallery-hint i {
+  transform: translateX(3px);
 }
 
 /* ===== КАРТОЧКА "ПОКАЗАТЬ ЕЩЁ" (ПОЛНОСТЬЮ ЗАБЛЮРЕННАЯ) ===== */
