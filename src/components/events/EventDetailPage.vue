@@ -14,8 +14,8 @@
       <router-link to="/events" class="back-btn">Вернуться к мероприятиям</router-link>
     </div>
 
-    <!-- Блокировка доступа для событий без обзора -->
-    <div v-else-if="event && isBlockedWithoutReview" class="blocked-container">
+    <!-- Блокировка доступа для событий без обзора (УБРАНА - теперь показываем страницу) -->
+    <!-- <div v-else-if="event && isBlockedWithoutReview" class="blocked-container">
       <div class="blocked-content">
         <div class="blocked-icon">
           <i class="fas fa-lock"></i>
@@ -28,7 +28,7 @@
           Вернуться к мероприятиям
         </router-link>
       </div>
-    </div>
+    </div> -->
 
     <!-- Основной контент -->
     <div v-else-if="event">
@@ -83,6 +83,17 @@
       </div>
 
       <div class="container">
+        <!-- Уведомление для событий без обзора -->
+        <div v-if="isEventWithoutReview" class="no-review-alert">
+          <div class="alert-icon">
+            <i class="fas fa-pencil-alt"></i>
+          </div>
+          <div class="alert-content">
+            <h4>Обзор ещё не написан</h4>
+            <p>Мероприятие уже прошло, но подробный обзор с впечатлениями и фотографиями пока готовится.</p>
+          </div>
+        </div>
+
         <!-- Двухколоночная сетка -->
         <div class="content-grid">
           <!-- Левая колонка -->
@@ -319,8 +330,8 @@ export default {
   },
   
   computed: {
-    // Проверка блокировки для прошедших событий без обзора
-    isBlockedWithoutReview() {
+    // Проверка событий без обзора (показываем предупреждение, но не блокируем доступ)
+    isEventWithoutReview() {
       if (!this.event) return false
       const isPast = new Date(this.event.event_date) < new Date()
       if (!isPast) return false
@@ -716,6 +727,50 @@ export default {
   font-size: 0.875rem;
   color: rgba(255,255,255,0.5);
   margin-bottom: 1.5rem;
+}
+
+/* Уведомление о событии без обзора */
+.no-review-alert {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-left: 4px solid #ffc107;
+  border-radius: 0.75rem;
+  backdrop-filter: blur(10px);
+}
+
+.no-review-alert .alert-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 193, 7, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.no-review-alert .alert-icon i {
+  font-size: 1.5rem;
+  color: #ffc107;
+}
+
+.no-review-alert .alert-content h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffc107;
+}
+
+.no-review-alert .alert-content p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
 }
 
 /* Баннер */
