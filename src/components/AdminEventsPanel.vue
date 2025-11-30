@@ -688,7 +688,7 @@
             </div>
 
             <!-- Множественные оценки по категориям -->
-            <div v-if="shouldShowRatings" class="form-group">
+            <div v-if="filteredRatingCategories.length > 0" class="form-group">
               <label class="form-label">Оценки по категориям</label>
               <div class="multi-rating-grid">
                 <div v-for="category in filteredRatingCategories" :key="category.key" class="rating-category">
@@ -1180,16 +1180,8 @@ export default {
       })
     },
 
-    // Проверка, нужно ли показывать рейтинги для данного типа мероприятия
-    shouldShowRatings() {
-      const typesWithoutRatings = ['market', 'festival', 'party']
-      return !typesWithoutRatings.includes(this.eventForm.event_type)
-    },
-
-    // Фильтрация категорий рейтинга в зависимости от типа мероприятия
+    // Фильтрация категорий рейтинга в зависимости от типа мероприятия (согласно таблице event_type_rating_config)
     filteredRatingCategories() {
-      if (!this.shouldShowRatings) return []
-
       const type = this.eventForm.event_type
 
       // Для маркета - убираем программу и питание (там нет программы и общепита)
