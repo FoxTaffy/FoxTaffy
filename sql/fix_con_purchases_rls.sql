@@ -5,7 +5,7 @@
 
 -- 1. Проверяем текущий статус RLS
 SELECT
-  '=== ТЕКУЩИЙ СТАТУС RLS ===' as info;
+  '=== ШАГ 1: ТЕКУЩИЙ СТАТУС RLS ===' as info;
 
 SELECT
   schemaname,
@@ -14,29 +14,30 @@ SELECT
 FROM pg_tables
 WHERE tablename = 'con_purchases';
 
--- 2. Показываем существующие политики
+-- 2. Показываем существующие политики (ДО изменений)
 SELECT
-  '=== СУЩЕСТВУЮЩИЕ ПОЛИТИКИ ===' as info;
+  '=== ШАГ 2: СУЩЕСТВУЮЩИЕ ПОЛИТИКИ (ДО) ===' as info;
 
 SELECT
-  schemaname,
-  tablename,
   policyname,
-  permissive,
-  roles,
-  cmd,
-  qual,
-  with_check
+  cmd as operation
 FROM pg_policies
-WHERE tablename = 'con_purchases';
+WHERE tablename = 'con_purchases'
+ORDER BY cmd;
 
--- 3. Удаляем старые ограничительные политики (если есть)
+-- 3. Удаляем ВСЕ существующие политики (безопасно с IF EXISTS)
 DROP POLICY IF EXISTS "Public read access" ON con_purchases;
+DROP POLICY IF EXISTS "Allow public read access" ON con_purchases;
+DROP POLICY IF EXISTS "Allow public insert access" ON con_purchases;
+DROP POLICY IF EXISTS "Allow public update access" ON con_purchases;
+DROP POLICY IF EXISTS "Allow public delete access" ON con_purchases;
 DROP POLICY IF EXISTS "Admin full access" ON con_purchases;
 DROP POLICY IF EXISTS "Enable read access for all users" ON con_purchases;
 DROP POLICY IF EXISTS "Enable insert for authenticated users only" ON con_purchases;
 DROP POLICY IF EXISTS "Enable update for authenticated users only" ON con_purchases;
 DROP POLICY IF EXISTS "Enable delete for authenticated users only" ON con_purchases;
+
+SELECT '=== ШАГ 3: СТАРЫЕ ПОЛИТИКИ УДАЛЕНЫ ===' as info;
 
 -- 4. Создаём новые разрешающие политики
 
@@ -65,12 +66,19 @@ ON con_purchases
 FOR DELETE
 USING (true);
 
+SELECT '=== ШАГ 4: НОВЫЕ ПОЛИТИКИ СОЗДАНЫ ===' as info;
+
 -- 5. Убеждаемся что RLS включен
 ALTER TABLE con_purchases ENABLE ROW LEVEL SECURITY;
 
--- 6. Показываем новые политики
+-- 6. Очищаем кэш схемы Supabase (PostgREST)
+NOTIFY pgrst, 'reload schema';
+
+SELECT '=== ШАГ 5: КЭШ POSTGREST ОЧИЩЕН ===' as info;
+
+-- 7. Показываем новые политики (ПОСЛЕ изменений)
 SELECT
-  '=== НОВЫЕ ПОЛИТИКИ ===' as info;
+  '=== ШАГ 6: ФИНАЛЬНЫЕ ПОЛИТИКИ ===' as info;
 
 SELECT
   policyname,
@@ -78,14 +86,14 @@ SELECT
   CASE
     WHEN qual = 'true' OR qual IS NULL THEN '✅ Разрешено всем'
     ELSE qual
-  END as policy
+  END as policy_rule
 FROM pg_policies
 WHERE tablename = 'con_purchases'
 ORDER BY cmd;
 
--- 7. Проверяем что всё работает
+-- 8. Проверяем что всё работает
 SELECT
-  '=== ПРОВЕРКА ===' as info;
+  '=== ШАГ 7: ПРОВЕРКА ===' as info;
 
 SELECT
   'RLS включен:' as check_name,
@@ -99,27 +107,29 @@ SELECT
 FROM pg_policies
 WHERE tablename = 'con_purchases';
 
--- 8. Итог
+-- 9. Итог
 SELECT
   '=== ИТОГ ===' as info;
 
 SELECT
-  '✅✅✅ ПОЛИТИКИ RLS НАСТРОЕНЫ! ✅✅✅' as status
+  '✅✅✅ ПОЛИТИКИ RLS НАСТРОЕНЫ УСПЕШНО! ✅✅✅' as status
 UNION ALL SELECT
-  'Теперь покупки можно:'
+  ''
 UNION ALL SELECT
-  '  ✅ Читать (SELECT)'
+  'Операции с покупками разрешены:'
 UNION ALL SELECT
-  '  ✅ Добавлять (INSERT)'
+  '  ✅ SELECT (чтение)'
 UNION ALL SELECT
-  '  ✅ Обновлять (UPDATE)'
+  '  ✅ INSERT (вставка) ← ТЕПЕРЬ РАБОТАЕТ!'
 UNION ALL SELECT
-  '  ✅ Удалять (DELETE)'
+  '  ✅ UPDATE (обновление)'
+UNION ALL SELECT
+  '  ✅ DELETE (удаление)'
 UNION ALL SELECT
   ''
 UNION ALL SELECT
   '⚠️  ВАЖНО: Это открытые политики для разработки!'
 UNION ALL SELECT
-  'В продакшене настройте аутентификацию и ограничьте доступ.';
+  'В продакшене настройте аутентификацию через auth.uid()';
 
-SELECT 'Обновите страницу и попробуйте сохранить покупки!' as next_step;
+SELECT 'Обновите страницу админ-панели и попробуйте сохранить покупки!' as next_step;
