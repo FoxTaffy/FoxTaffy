@@ -80,9 +80,9 @@
             </div>
           </div>
 
-          <!-- Для прошедших событий с обзором - показываем рейтинг и фотогаллерею -->
-          <div v-else-if="hasReview(event)" class="completed-info-block">
-            <!-- Рейтинг -->
+          <!-- Для прошедших событий - показываем рейтинг и/или фотогаллерею -->
+          <div v-else class="completed-info-block">
+            <!-- Рейтинг (если есть) -->
             <div v-if="getOverallRating(event) > 0" class="rating-block">
               <div class="rating-text">
                 <i class="fas fa-star"></i>
@@ -98,8 +98,8 @@
               </div>
             </div>
 
-            <!-- Фотогаллерея -->
-            <div v-if="event.photos_count || hasReview(event)" class="gallery-block">
+            <!-- Фотогаллерея (показываем всегда для прошедших, даже без обзора) -->
+            <div class="gallery-block">
               <div class="gallery-text">
                 <i class="fas fa-images"></i>
                 <span v-if="event.photos_count">{{ event.photos_count }} {{ pluralizePhotos(event.photos_count) }}</span>
@@ -107,7 +107,7 @@
               </div>
               <div class="gallery-hint">
                 <i class="fas fa-arrow-right"></i>
-                <span>Смотреть обзор</span>
+                <span>{{ hasReview(event) ? 'Смотреть обзор' : 'Подробнее' }}</span>
               </div>
             </div>
           </div>
