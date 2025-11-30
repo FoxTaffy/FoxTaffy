@@ -1787,10 +1787,22 @@ export default {
       return `${Number(amount).toLocaleString('ru-RU')} ₽`
     },
 
-    // Проверка, нужно ли показывать рейтинг для данного типа мероприятия
+    // Проверка, нужно ли показывать рейтинг (проверяет наличие оценок)
     shouldShowEventRating(event) {
-      const typesWithoutRatings = ['market', 'festival', 'party']
-      return event && !typesWithoutRatings.includes(event.event_type)
+      if (!event) return false
+
+      // Проверяем наличие хотя бы одной оценки
+      const hasRatings = [
+        event.rating_organization,
+        event.rating_program,
+        event.rating_atmosphere,
+        event.rating_location,
+        event.rating_participants,
+        event.rating_food
+      ].some(r => r !== null && r !== undefined && r > 0)
+
+      // Если есть оценки в новой системе или старый my_rating - показываем
+      return hasRatings || (event.my_rating && event.my_rating > 0)
     },
 
     // Вычисление общего рейтинга из 6 категорий
