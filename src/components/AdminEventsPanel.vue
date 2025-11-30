@@ -1557,7 +1557,7 @@ export default {
         ])
 
         this.eventForm.purchase_items = purchases.map(p => ({
-          name: p.name,
+          name: p.item_name,
           price: p.price,
           image: p.image_url
         }))
