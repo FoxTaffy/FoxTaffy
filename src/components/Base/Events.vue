@@ -68,8 +68,8 @@
           
           <!-- Описание -->
           <p class="event-description">{{ getDescription(event) }}</p>
-          
-          <!-- Прогресс или рейтинг -->
+
+          <!-- Прогресс для предстоящих или блок для прошедших -->
           <div v-if="isUpcoming(event)" class="countdown-block">
             <div class="countdown-text">
               <i class="fas fa-clock"></i>
@@ -79,19 +79,36 @@
               <div class="progress-fill" :style="{ width: getProgress(event.event_date) + '%' }"></div>
             </div>
           </div>
-          
-          <div v-else-if="event.my_rating" class="rating-block">
-            <div class="rating-text">
-              <i class="fas fa-star"></i>
-              <span>Моя оценка: {{ event.my_rating }}/5</span>
+
+          <!-- Для прошедших событий с обзором - показываем рейтинг и фотогаллерею -->
+          <div v-else-if="hasReview(event)" class="completed-info-block">
+            <!-- Рейтинг -->
+            <div v-if="getOverallRating(event) > 0" class="rating-block">
+              <div class="rating-text">
+                <i class="fas fa-star"></i>
+                <span>Оценка: {{ getOverallRating(event) }}/5</span>
+              </div>
+              <div class="stars">
+                <i
+                  v-for="star in 5"
+                  :key="star"
+                  class="fas fa-star"
+                  :class="{ filled: star <= Math.round(getOverallRating(event)) }"
+                ></i>
+              </div>
             </div>
-            <div class="stars">
-              <i 
-                v-for="star in 5" 
-                :key="star"
-                class="fas fa-star"
-                :class="{ filled: star <= event.my_rating }"
-              ></i>
+
+            <!-- Фотогаллерея -->
+            <div v-if="event.photos_count || hasReview(event)" class="gallery-block">
+              <div class="gallery-text">
+                <i class="fas fa-images"></i>
+                <span v-if="event.photos_count">{{ event.photos_count }} {{ pluralizePhotos(event.photos_count) }}</span>
+                <span v-else>Фотогаллерея</span>
+              </div>
+              <div class="gallery-hint">
+                <i class="fas fa-arrow-right"></i>
+                <span>Смотреть обзор</span>
+              </div>
             </div>
           </div>
         </div>
@@ -382,10 +399,49 @@ export default {
       return hasDetailedRatings || hasMyRating || hasReviewText
     },
 
+    // Вычисление общего рейтинга
+    getOverallRating(event) {
+      if (!event) return 0
+
+      // Проверяем новую систему рейтингов (6 категорий)
+      const ratings = [
+        event.rating_organization,
+        event.rating_program,
+        event.rating_atmosphere,
+        event.rating_location,
+        event.rating_participants,
+        event.rating_food
+      ].filter(r => r !== null && r !== undefined && r > 0)
+
+      if (ratings.length > 0) {
+        const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+        return parseFloat(avg.toFixed(1))
+      }
+
+      // Fallback на старый my_rating
+      return event.my_rating || 0
+    },
+
+    // Плюрализация для количества фотографий
+    pluralizePhotos(count) {
+      const lastDigit = count % 10
+      const lastTwoDigits = count % 100
+
+      if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+        return 'фотографий'
+      } else if (lastDigit === 1) {
+        return 'фотография'
+      } else if (lastDigit >= 2 && lastDigit <= 4) {
+        return 'фотографии'
+      } else {
+        return 'фотографий'
+      }
+    },
+
     getCardClass(event) {
       return this.isUpcoming(event) ? 'upcoming' : 'completed'
     },
-    
+
     getStatusClass(event) {
       return this.isUpcoming(event) ? 'upcoming' : 'completed'
     },
@@ -884,6 +940,67 @@ export default {
 
 .stars i.filled {
   color: #ffc107;
+}
+
+/* ===== БЛОК ИНФОРМАЦИИ ДЛЯ ПРОШЕДШИХ СОБЫТИЙ ===== */
+.completed-info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Рейтинг в блоке прошедших событий */
+.completed-info-block .rating-block {
+  background: rgba(255, 123, 37, 0.1);
+  padding: 0.75rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(255, 123, 37, 0.2);
+}
+
+/* ===== ФОТОГАЛЛЕРЕЯ ===== */
+.gallery-block {
+  background: rgba(139, 92, 246, 0.1);
+  padding: 0.75rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  transition: all 0.3s ease;
+}
+
+.event-card:hover .gallery-block {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.gallery-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.gallery-text i {
+  color: #8b5cf6;
+}
+
+.gallery-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: rgba(139, 92, 246, 0.8);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.gallery-hint i {
+  font-size: 0.7rem;
+  transition: transform 0.3s ease;
+}
+
+.event-card:hover .gallery-hint i {
+  transform: translateX(3px);
 }
 
 /* ===== КАРТОЧКА "ПОКАЗАТЬ ЕЩЁ" (ПОЛНОСТЬЮ ЗАБЛЮРЕННАЯ) ===== */
