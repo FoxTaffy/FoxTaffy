@@ -454,7 +454,6 @@ export const furryApi = {
         .from('con_purchases')
         .select('*')
         .eq('con_id', eventId)
-        .order('created_at', { ascending: false })
 
       if (error) throw error
 
@@ -488,12 +487,13 @@ export const furryApi = {
           .filter(p => p.name && p.name.trim())
           .map(p => ({
             con_id: eventId,
-            name: p.name.trim(),
+            item_name: p.name.trim(),
             price: p.price || 0,
             image_url: p.image || null
           }))
 
         if (purchasesToInsert.length > 0) {
+          console.log('📦 Данные для вставки в con_purchases:', JSON.stringify(purchasesToInsert, null, 2))
           const { error: insertError } = await supabase
             .from('con_purchases')
             .insert(purchasesToInsert)
