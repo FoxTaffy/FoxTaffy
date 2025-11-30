@@ -199,9 +199,9 @@
 
                 <!-- Дополнительная информация для завершённых -->
                 <div v-else class="event-stats">
-                  <div v-if="event.photos_count" class="stat-item">
-                    <i class="fas fa-camera"></i>
-                    <span>{{ event.photos_count }} фото</span>
+                  <div class="stat-item photo-count">
+                    <i class="fas fa-images"></i>
+                    <span>{{ event.photos_count || 0 }} {{ pluralizePhotos(event.photos_count || 0) }}</span>
                   </div>
                 </div>
 
@@ -867,7 +867,23 @@ export default {
       const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length
       return avg.toFixed(1)
     },
-    
+
+    // Плюрализация для количества фотографий
+    pluralizePhotos(count) {
+      const lastDigit = count % 10
+      const lastTwoDigits = count % 100
+
+      if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+        return 'фотографий'
+      } else if (lastDigit === 1) {
+        return 'фотография'
+      } else if (lastDigit >= 2 && lastDigit <= 4) {
+        return 'фотографии'
+      } else {
+        return 'фотографий'
+      }
+    },
+
     updateMetaTags() {
       document.title = 'Все мероприятия | FoxTaffy.fun'
       
