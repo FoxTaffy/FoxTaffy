@@ -494,6 +494,7 @@ export const furryApi = {
           }))
 
         if (purchasesToInsert.length > 0) {
+          console.log('📦 Данные для вставки в con_purchases:', JSON.stringify(purchasesToInsert, null, 2))
           const { error: insertError } = await supabase
             .from('con_purchases')
             .insert(purchasesToInsert)
