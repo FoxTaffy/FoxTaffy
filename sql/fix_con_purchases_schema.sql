@@ -5,6 +5,9 @@
 
 -- 1. Проверяем текущую структуру таблицы
 SELECT
+  '=== ШАГ 1: ТЕКУЩАЯ СТРУКТУРА ===' as info;
+
+SELECT
   column_name,
   data_type,
   is_nullable,
@@ -85,9 +88,11 @@ END $$;
 -- 4. Очищаем кэш схемы Supabase (PostgREST)
 NOTIFY pgrst, 'reload schema';
 
+SELECT '=== ШАГ 2: ОБНОВЛЕНИЕ ЗАВЕРШЕНО ===' as info;
+
 -- 5. Показываем финальную структуру
 SELECT
-  '=== ФИНАЛЬНАЯ СТРУКТУРА ТАБЛИЦЫ CON_PURCHASES ===' as info;
+  '=== ШАГ 3: ФИНАЛЬНАЯ СТРУКТУРА ===' as info;
 
 SELECT
   column_name,
@@ -100,26 +105,14 @@ ORDER BY ordinal_position;
 
 -- 6. Показываем количество записей
 SELECT
-  'Всего записей в таблице:' as info,
-  COUNT(*) as count
+  '=== ШАГ 4: СТАТИСТИКА ===' as info;
+
+SELECT
+  'Всего записей в таблице:' as metric,
+  COUNT(*)::text as value
 FROM con_purchases;
 
--- 7. Показываем пример данных (первые 3 записи)
-SELECT
-  '=== ПРИМЕРЫ ДАННЫХ ===' as info;
-
-SELECT
-  id,
-  con_id,
-  item_name,
-  price,
-  image_url,
-  created_at
-FROM con_purchases
-ORDER BY created_at DESC
-LIMIT 3;
-
--- 8. Показываем пример правильной вставки
+-- 7. Показываем пример правильной вставки
 SELECT
   '=== ПРИМЕР КОРРЕКТНОЙ ВСТАВКИ ===' as info;
 
@@ -133,4 +126,5 @@ UNION ALL SELECT '  ✅ item_name - TEXT NOT NULL (название товара
 UNION ALL SELECT '  ✅ price - DECIMAL(10,2) NOT NULL (цена)'
 UNION ALL SELECT '  ⚪ image_url - TEXT (опционально - фото товара)';
 
-SELECT '✅ Схема таблицы con_purchases проверена и обновлена!' as status;
+SELECT '✅✅✅ СХЕМА ТАБЛИЦЫ CON_PURCHASES ОБНОВЛЕНА! ✅✅✅' as status;
+SELECT 'Обновите страницу и попробуйте сохранить покупки снова!' as next_step;

@@ -65,16 +65,7 @@ SELECT
     WHERE table_name = 'con_purchases' AND column_name = 'image_url'
   ) THEN '✅ Существует' ELSE '❌ Отсутствует' END;
 
--- 4. Показываем примеры данных (если есть)
-SELECT
-  '=== ПРИМЕРЫ ДАННЫХ (первые 5 записей) ===' as info;
-
-SELECT *
-FROM con_purchases
-ORDER BY created_at DESC
-LIMIT 5;
-
--- 5. Итоговая рекомендация
+-- 4. Итоговая рекомендация
 SELECT
   '=== РЕКОМЕНДАЦИЯ ===' as info;
 
