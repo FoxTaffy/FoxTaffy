@@ -486,6 +486,31 @@ export const furryApi = {
   },
 
   /**
+   * Получить фотографии для нескольких событий (для превью)
+   */
+  async getPhotosForEvents(eventIds, limit = 5) {
+    try {
+      console.log(`📸 getPhotosForEvents: Загружаем фотографии для ${eventIds.length} событий (по ${limit} шт.)`)
+
+      const { data, error } = await supabase
+        .from('con_photos')
+        .select('id, con_id, image_url, thumbnail_url, caption')
+        .in('con_id', eventIds)
+        .order('display_order', { ascending: true })
+        .limit(limit * eventIds.length) // Загружаем максимум limit*N фотографий
+
+      if (error) throw error
+
+      console.log('✅ getPhotosForEvents: Фотографии загружены:', data?.length || 0)
+      return data || []
+
+    } catch (error) {
+      console.error('❌ getPhotosForEvents: Ошибка загрузки фотографий:', error)
+      return []
+    }
+  },
+
+  /**
    * Получить покупки на мероприятии
    */
   async getEventPurchases(eventId) {

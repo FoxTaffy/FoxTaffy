@@ -100,11 +100,28 @@
 
             <!-- Фотогаллерея (показываем всегда для прошедших, даже без обзора) -->
             <div class="gallery-block">
-              <div class="gallery-text">
+              <!-- Миниатюры фотографий -->
+              <div v-if="event.photoPreviews && event.photoPreviews.length > 0" class="gallery-previews">
+                <div
+                  v-for="(photo, index) in event.photoPreviews.slice(0, 5)"
+                  :key="photo.id"
+                  class="gallery-preview-item"
+                >
+                  <img :src="photo.thumbnail_url || photo.image_url" :alt="photo.caption || 'Фото'">
+                </div>
+                <!-- Показываем "+N" если фотографий больше 5 -->
+                <div v-if="event.photos_count > 5" class="gallery-more">
+                  +{{ event.photos_count - 5 }}
+                </div>
+              </div>
+
+              <!-- Fallback если нет превью -->
+              <div v-else class="gallery-text">
                 <i class="fas fa-images"></i>
                 <span v-if="event.photos_count">{{ event.photos_count }} {{ pluralizePhotos(event.photos_count) }}</span>
                 <span v-else>Фотогаллерея</span>
               </div>
+
               <div class="gallery-hint">
                 <i class="fas fa-arrow-right"></i>
                 <span>{{ hasReview(event) ? 'Смотреть обзор' : 'Подробнее' }}</span>
@@ -272,11 +289,14 @@ export default {
         if (eventsData.status === 'fulfilled') {
           this.events = eventsData.value || []
           console.log(`✅ Загружено ${this.events.length} событий`)
+
+          // Загружаем превью фотографий для событий
+          await this.loadEventPhotoPreviews()
         } else {
           console.warn('⚠️ События не загружены:', eventsData.reason)
           this.events = []
         }
-        
+
         // Обработка статистики
         if (statsData.status === 'fulfilled') {
           this.stats = {
@@ -306,7 +326,7 @@ export default {
     
     calculateStats() {
       if (this.events.length === 0) return
-      
+
       const now = new Date()
       this.stats = {
         total: this.events.length,
@@ -314,7 +334,42 @@ export default {
         completed: this.events.filter(e => new Date(e.event_date) <= now).length
       }
     },
-    
+
+    // Загрузка превью фотографий для событий
+    async loadEventPhotoPreviews() {
+      try {
+        // Получаем ID всех событий
+        const eventIds = this.events.map(e => e.id).filter(Boolean)
+        if (eventIds.length === 0) return
+
+        console.log('📸 Загружаем превью фотографий для событий...')
+
+        // Загружаем фотографии для всех событий одним запросом
+        const photos = await furryApi.getPhotosForEvents(eventIds, 5) // 5 фотографий на событие
+
+        // Группируем фотографии по событиям
+        const photosByEvent = {}
+        photos.forEach(photo => {
+          if (!photosByEvent[photo.con_id]) {
+            photosByEvent[photo.con_id] = []
+          }
+          if (photosByEvent[photo.con_id].length < 5) {
+            photosByEvent[photo.con_id].push(photo)
+          }
+        })
+
+        // Добавляем фотографии к событиям
+        this.events = this.events.map(event => ({
+          ...event,
+          photoPreviews: photosByEvent[event.id] || []
+        }))
+
+        console.log('✅ Превью фотографий загружены')
+      } catch (error) {
+        console.warn('⚠️ Не удалось загрузить превью фотографий:', error)
+      }
+    },
+
     // =================== FALLBACK ДАННЫЕ ===================
     getDefaultEvents() {
       return [
@@ -972,6 +1027,62 @@ export default {
 .event-card:hover .gallery-block {
   background: rgba(139, 92, 246, 0.15);
   border-color: rgba(139, 92, 246, 0.3);
+}
+
+/* Превью фотографий */
+.gallery-previews {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+  overflow: hidden;
+}
+
+.gallery-preview-item {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 0.4rem;
+  overflow: hidden;
+  border: 2px solid rgba(139, 92, 246, 0.3);
+  transition: all 0.3s ease;
+}
+
+.gallery-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.event-card:hover .gallery-preview-item img {
+  transform: scale(1.1);
+}
+
+.event-card:hover .gallery-preview-item {
+  border-color: rgba(139, 92, 246, 0.5);
+  transform: translateY(-2px);
+}
+
+.gallery-more {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 0.4rem;
+  background: rgba(139, 92, 246, 0.2);
+  border: 2px solid rgba(139, 92, 246, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #8b5cf6;
+  transition: all 0.3s ease;
+}
+
+.event-card:hover .gallery-more {
+  background: rgba(139, 92, 246, 0.3);
+  border-color: rgba(139, 92, 246, 0.5);
+  transform: translateY(-2px);
 }
 
 .gallery-text {
