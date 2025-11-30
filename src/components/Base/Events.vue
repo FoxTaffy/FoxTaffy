@@ -100,31 +100,21 @@
 
             <!-- Фотогаллерея (показываем всегда для прошедших, даже без обзора) -->
             <div class="gallery-block">
-              <!-- Миниатюры фотографий -->
-              <div v-if="event.photoPreviews && event.photoPreviews.length > 0" class="gallery-previews">
-                <div
-                  v-for="(photo, index) in event.photoPreviews.slice(0, 5)"
-                  :key="photo.id"
-                  class="gallery-preview-item"
-                >
-                  <img :src="photo.thumbnail_url || photo.image_url" :alt="photo.caption || 'Фото'">
+              <div class="gallery-header">
+                <div class="gallery-icon">
+                  <i class="fas fa-images"></i>
                 </div>
-                <!-- Показываем "+N" если фотографий больше 5 -->
-                <div v-if="event.photos_count > 5" class="gallery-more">
-                  +{{ event.photos_count - 5 }}
+                <div class="gallery-info">
+                  <div class="gallery-count">
+                    <span v-if="event.photos_count" class="count-number">{{ event.photos_count }}</span>
+                    <span v-else class="count-number">0</span>
+                    <span class="count-label">{{ pluralizePhotos(event.photos_count || 0) }}</span>
+                  </div>
+                  <div class="gallery-hint">
+                    <i class="fas fa-arrow-right"></i>
+                    <span>{{ hasReview(event) ? 'Смотреть обзор' : 'Подробнее' }}</span>
+                  </div>
                 </div>
-              </div>
-
-              <!-- Fallback если нет превью -->
-              <div v-else class="gallery-text">
-                <i class="fas fa-images"></i>
-                <span v-if="event.photos_count">{{ event.photos_count }} {{ pluralizePhotos(event.photos_count) }}</span>
-                <span v-else>Фотогаллерея</span>
-              </div>
-
-              <div class="gallery-hint">
-                <i class="fas fa-arrow-right"></i>
-                <span>{{ hasReview(event) ? 'Смотреть обзор' : 'Подробнее' }}</span>
               </div>
             </div>
           </div>
@@ -289,9 +279,6 @@ export default {
         if (eventsData.status === 'fulfilled') {
           this.events = eventsData.value || []
           console.log(`✅ Загружено ${this.events.length} событий`)
-
-          // Загружаем превью фотографий для событий
-          await this.loadEventPhotoPreviews()
         } else {
           console.warn('⚠️ События не загружены:', eventsData.reason)
           this.events = []
@@ -332,41 +319,6 @@ export default {
         total: this.events.length,
         upcoming: this.events.filter(e => new Date(e.event_date) > now).length,
         completed: this.events.filter(e => new Date(e.event_date) <= now).length
-      }
-    },
-
-    // Загрузка превью фотографий для событий
-    async loadEventPhotoPreviews() {
-      try {
-        // Получаем ID всех событий
-        const eventIds = this.events.map(e => e.id).filter(Boolean)
-        if (eventIds.length === 0) return
-
-        console.log('📸 Загружаем превью фотографий для событий...')
-
-        // Загружаем фотографии для всех событий одним запросом
-        const photos = await furryApi.getPhotosForEvents(eventIds, 5) // 5 фотографий на событие
-
-        // Группируем фотографии по событиям
-        const photosByEvent = {}
-        photos.forEach(photo => {
-          if (!photosByEvent[photo.con_id]) {
-            photosByEvent[photo.con_id] = []
-          }
-          if (photosByEvent[photo.con_id].length < 5) {
-            photosByEvent[photo.con_id].push(photo)
-          }
-        })
-
-        // Добавляем фотографии к событиям
-        this.events = this.events.map(event => ({
-          ...event,
-          photoPreviews: photosByEvent[event.id] || []
-        }))
-
-        console.log('✅ Превью фотографий загружены')
-      } catch (error) {
-        console.warn('⚠️ Не удалось загрузить превью фотографий:', error)
       }
     },
 
@@ -1029,74 +981,58 @@ export default {
   border-color: rgba(139, 92, 246, 0.3);
 }
 
-/* Превью фотографий */
-.gallery-previews {
+.gallery-header {
   display: flex;
-  gap: 0.4rem;
-  margin-bottom: 0.6rem;
-  overflow: hidden;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.gallery-preview-item {
+.gallery-icon {
   flex-shrink: 0;
   width: 48px;
   height: 48px;
-  border-radius: 0.4rem;
-  overflow: hidden;
-  border: 2px solid rgba(139, 92, 246, 0.3);
-  transition: all 0.3s ease;
-}
-
-.gallery-preview-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.event-card:hover .gallery-preview-item img {
-  transform: scale(1.1);
-}
-
-.event-card:hover .gallery-preview-item {
-  border-color: rgba(139, 92, 246, 0.5);
-  transform: translateY(-2px);
-}
-
-.gallery-more {
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  border-radius: 0.4rem;
   background: rgba(139, 92, 246, 0.2);
-  border: 2px solid rgba(139, 92, 246, 0.3);
+  border-radius: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #8b5cf6;
   transition: all 0.3s ease;
 }
 
-.event-card:hover .gallery-more {
-  background: rgba(139, 92, 246, 0.3);
-  border-color: rgba(139, 92, 246, 0.5);
-  transform: translateY(-2px);
-}
-
-.gallery-text {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  color: var(--text-light);
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.gallery-text i {
+.gallery-icon i {
+  font-size: 1.5rem;
   color: #8b5cf6;
+}
+
+.event-card:hover .gallery-icon {
+  background: rgba(139, 92, 246, 0.3);
+  transform: scale(1.05);
+}
+
+.gallery-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.gallery-count {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.count-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #8b5cf6;
+  line-height: 1;
+}
+
+.count-label {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  font-weight: 500;
 }
 
 .gallery-hint {
