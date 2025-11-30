@@ -22,11 +22,11 @@
     <!-- Карточки мероприятий -->
     <div v-else class="events-grid">
       <!-- Две основные карточки -->
-      <div 
-        v-for="event in mainEvents" 
+      <div
+        v-for="event in mainEvents"
         :key="event.id"
         class="event-card"
-        :class="getCardClass(event)"
+        :class="[getCardClass(event), { 'no-review': !hasReview(event) && !isUpcoming(event) }]"
         @click="openEvent(event)"
       >
         <!-- Изображение -->
@@ -358,7 +358,30 @@ export default {
     isUpcoming(event) {
       return new Date(event.event_date) > new Date()
     },
-    
+
+    // Проверка наличия обзора (хотя бы один рейтинг или my_rating)
+    hasReview(event) {
+      if (!event) return false
+
+      // Проверяем наличие хотя бы одной оценки в новой системе рейтингов
+      const hasDetailedRatings = [
+        event.rating_organization,
+        event.rating_program,
+        event.rating_atmosphere,
+        event.rating_location,
+        event.rating_participants,
+        event.rating_food
+      ].some(r => r !== null && r !== undefined && r > 0)
+
+      // Или есть старый my_rating
+      const hasMyRating = event.my_rating && event.my_rating > 0
+
+      // Или есть текст обзора
+      const hasReviewText = event.review || event.review_text
+
+      return hasDetailedRatings || hasMyRating || hasReviewText
+    },
+
     getCardClass(event) {
       return this.isUpcoming(event) ? 'upcoming' : 'completed'
     },
@@ -610,6 +633,32 @@ export default {
 
 .event-card.completed:hover {
   box-shadow: 0 12px 25px rgba(255, 123, 37, 0.2);
+}
+
+/* ===== КАРТОЧКИ БЕЗ ОБЗОРА (СЕРЫЕ) ===== */
+.event-card.no-review {
+  background: rgba(100, 100, 100, 0.15);
+  border-left-color: rgba(150, 150, 150, 0.5);
+  opacity: 0.75;
+}
+
+.event-card.no-review .card-image {
+  filter: grayscale(0.6);
+}
+
+.event-card.no-review:hover {
+  opacity: 0.9;
+  box-shadow: 0 12px 25px rgba(100, 100, 100, 0.2);
+}
+
+.event-card.no-review .event-name,
+.event-card.no-review .event-description,
+.event-card.no-review .meta-item {
+  color: rgba(200, 200, 200, 0.8);
+}
+
+.event-card.no-review .status-badge {
+  background: rgba(150, 150, 150, 0.7);
 }
 
 /* ===== ИЗОБРАЖЕНИЯ ===== */
