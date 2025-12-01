@@ -1432,11 +1432,24 @@ export const furryApi = {
    */
   _cleanEventData(data) {
     const cleaned = { ...data }
-    
+
     // Удаляем системные поля
     delete cleaned.id
     delete cleaned.created_at
     delete cleaned.updated_at
+
+    // Удаляем вычисляемые/агрегированные поля (не являются колонками в таблице cons)
+    delete cleaned.photos_count
+    delete cleaned.featured_photos_count
+    delete cleaned.purchases_count
+    delete cleaned.average_rating
+
+    // Удаляем связанные объекты из join запросов
+    delete cleaned.con_photos
+    delete cleaned.con_purchases
+    delete cleaned.con_links
+    delete cleaned.con_features
+    delete cleaned.purchase_items
     
     // Конвертируем числовые поля
     const numericFields = [
