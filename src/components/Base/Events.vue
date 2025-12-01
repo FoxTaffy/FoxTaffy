@@ -102,16 +102,25 @@
             <div class="gallery-block">
               <!-- Миниатюры фотографий -->
               <div v-if="event.photoPreviews && event.photoPreviews.length > 0" class="gallery-previews">
+                <!-- Показываем первые 4 фотографии -->
                 <div
-                  v-for="(photo, index) in event.photoPreviews.slice(0, 5)"
+                  v-for="(photo, index) in event.photoPreviews.slice(0, 4)"
                   :key="photo.id"
                   class="gallery-preview-item"
                 >
                   <img :src="photo.thumbnail_url || photo.image_url" :alt="photo.caption || 'Фото'">
                 </div>
-                <!-- Показываем "+N" если фотографий больше 5 -->
-                <div v-if="event.photos_count > 5" class="gallery-more">
-                  +{{ event.photos_count - 5 }}
+                <!-- Пятая фотография заблюрена с количеством оставшихся -->
+                <div v-if="event.photos_count > 4" class="gallery-preview-item gallery-more-overlay">
+                  <img
+                    v-if="event.photoPreviews[4]"
+                    :src="event.photoPreviews[4].thumbnail_url || event.photoPreviews[4].image_url"
+                    :alt="'Фото'"
+                    class="blurred-image"
+                  >
+                  <div class="gallery-more-count">
+                    +{{ event.photos_count - 4 }}
+                  </div>
                 </div>
               </div>
 
@@ -1080,6 +1089,36 @@ export default {
 
 .event-card:hover .gallery-more {
   background: rgba(139, 92, 246, 0.3);
+  border-color: rgba(139, 92, 246, 0.5);
+  transform: translateY(-2px);
+}
+
+.gallery-more-overlay {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gallery-more-overlay .blurred-image {
+  filter: blur(4px);
+  opacity: 0.5;
+}
+
+.gallery-more-count {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.event-card:hover .gallery-more-overlay {
   border-color: rgba(139, 92, 246, 0.5);
   transform: translateY(-2px);
 }
