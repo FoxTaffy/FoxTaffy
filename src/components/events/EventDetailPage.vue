@@ -122,20 +122,25 @@
                   class="photo-item"
                   @click="openPhotoAtIndex(index)"
                 >
-                  <!-- Используем оригинал в галерее для качественного отображения -->
-                  <img :src="photo.image_url" :alt="photo.caption || 'Фото'" />
+                  <!-- Используем миниатюры для превью -->
+                  <img :src="photo.thumbnail_url || photo.image_url" :alt="photo.caption || 'Фото'" />
                   <div class="photo-overlay">
                     <i class="fas fa-search-plus"></i>
                   </div>
                 </div>
-                <!-- Кнопка "Ещё" если больше 3 фото -->
-                <div v-if="photos.length > 3" class="photo-item more-photos" @click="openPhotoAtIndex(3)">
+                <!-- Кнопка "Показать все фото" если больше 3 фото -->
+                <div v-if="photos.length > 3" class="photo-item more-photos" @click="openPhotoGallery">
                   <div class="more-overlay">
                     <span class="more-count">+{{ photos.length - 3 }}</span>
                     <span class="more-text">ещё</span>
                   </div>
                 </div>
               </div>
+              <!-- Кнопка просмотра всего альбома -->
+              <button v-if="photos.length > 3" class="view-album-btn" @click="openPhotoGallery">
+                <i class="fas fa-images"></i>
+                Открыть фотоальбом ({{ photos.length }} фото)
+              </button>
             </div>
 
             <!-- Покупки (только для фестивалей и маркетов) -->
@@ -158,8 +163,30 @@
               <div v-if="event.purchases_summary" class="card-text">{{ event.purchases_summary }}</div>
               <div v-if="purchases.length > 0" class="purchases-list">
                 <div v-for="purchase in purchases" :key="purchase.id" class="purchase-item">
-                  <span class="purchase-name">{{ purchase.name }}</span>
-                  <span class="purchase-price">{{ formatMoney(purchase.price) }}</span>
+                  <div v-if="purchase.image_url" class="purchase-image">
+                    <img :src="purchase.image_url" :alt="purchase.item_name" />
+                  </div>
+                  <div class="purchase-details">
+                    <div class="purchase-header">
+                      <span class="purchase-name">{{ purchase.item_name }}</span>
+                      <span class="purchase-price">{{ formatMoney(purchase.price) }}</span>
+                    </div>
+                    <div v-if="purchase.vendor_name || purchase.category || purchase.purchased_at" class="purchase-meta">
+                      <span v-if="purchase.vendor_name" class="meta-vendor">
+                        <i class="fas fa-store"></i>
+                        {{ purchase.vendor_name }}
+                      </span>
+                      <span v-if="purchase.category" class="meta-category">
+                        <i class="fas fa-tag"></i>
+                        {{ getCategoryName(purchase.category) }}
+                      </span>
+                      <span v-if="purchase.purchased_at" class="meta-date">
+                        <i class="fas fa-calendar"></i>
+                        {{ formatPurchaseDate(purchase.purchased_at) }}
+                      </span>
+                    </div>
+                    <p v-if="purchase.description" class="purchase-description">{{ purchase.description }}</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -289,7 +316,36 @@
       </div>
     </div>
 
-    <!-- Модальное окно фото с навигацией -->
+    <!-- Модальное окно галереи с сеткой фото -->
+    <div v-if="showPhotoGallery" class="photo-gallery-modal" @click="closePhotoGallery">
+      <div class="gallery-modal-content" @click.stop>
+        <div class="gallery-modal-header">
+          <h2>
+            <i class="fas fa-images"></i>
+            Фотоальбом
+            <span class="gallery-count">{{ photos.length }} фото</span>
+          </h2>
+          <button class="gallery-close-btn" @click="closePhotoGallery">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="gallery-grid">
+          <div
+            v-for="(photo, index) in photos"
+            :key="photo.id"
+            class="gallery-grid-item"
+            @click="openPhotoAtIndex(index)"
+          >
+            <img :src="photo.thumbnail_url || photo.image_url" :alt="photo.caption || 'Фото'" />
+            <div class="gallery-grid-overlay">
+              <i class="fas fa-search-plus"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно просмотра одного фото с навигацией -->
     <div v-if="selectedPhotoIndex !== null" class="photo-modal" @click="closePhotoModal">
       <button class="modal-close" @click="closePhotoModal">
         <i class="fas fa-times"></i>
@@ -321,12 +377,13 @@ export default {
       features: [],
       photos: [],
       purchases: [],
-      
+
       // Состояние
       loading: true,
       error: null,
       activeTab: 'overview',
       selectedPhotoIndex: null,
+      showPhotoGallery: false,
     }
   },
   
@@ -590,25 +647,54 @@ export default {
       if (!amount) return '0 ₽'
       return `${amount.toLocaleString('ru-RU')} ₽`
     },
-    
+
+    formatPurchaseDate(dateString) {
+      const date = new Date(dateString)
+      return date.toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'short'
+      })
+    },
+
     getCategoryName(category) {
       const categories = {
         art: 'Арт',
         badge: 'Бейдж',
         fursuit: 'Фурсьют',
         accessory: 'Аксессуары',
-        book: 'Книги',
-        toy: 'Игрушки',
+        plushie: 'Плюшевая игрушка',
+        figurine: 'Фигурка',
+        book: 'Книга',
+        sticker: 'Наклейка',
+        pin: 'Значок',
+        clothing: 'Одежда',
+        jewelry: 'Украшение',
+        keychain: 'Брелок',
+        poster: 'Постер',
         food: 'Еда',
+        ticket: 'Билет',
         merch: 'Мерчандайз',
+        craft: 'Рукоделие',
+        tech: 'Техника',
         other: 'Другое'
       }
       return categories[category] || category
     },
     
     // Работа с фотографиями
+    openPhotoGallery() {
+      this.showPhotoGallery = true
+      document.body.style.overflow = 'hidden'
+    },
+
+    closePhotoGallery() {
+      this.showPhotoGallery = false
+      document.body.style.overflow = ''
+    },
+
     openPhotoAtIndex(index) {
       this.selectedPhotoIndex = index
+      this.showPhotoGallery = false
       document.body.style.overflow = 'hidden'
       window.addEventListener('keydown', this.handleKeydown)
     },
@@ -1066,28 +1152,97 @@ export default {
 
 .purchases-list {
   margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .purchase-item {
   display: flex;
-  justify-content: space-between;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
+  transition: all 0.3s;
 }
 
-.purchase-item:last-child {
-  border-bottom: none;
+.purchase-item:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.purchase-image {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.3);
+}
+
+.purchase-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.purchase-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.purchase-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
 }
 
 .purchase-name {
-  color: rgba(255,255,255,0.8);
-  font-size: 0.875rem;
+  color: white;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  flex: 1;
 }
 
 .purchase-price {
   color: #fbbf24;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
+  white-space: nowrap;
+}
+
+.purchase-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+}
+
+.meta-vendor,
+.meta-category,
+.meta-date {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: rgba(255,255,255,0.6);
+}
+
+.meta-vendor i,
+.meta-category i,
+.meta-date i {
+  color: #8b5cf6;
+  font-size: 0.7rem;
+}
+
+.purchase-description {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.5;
 }
 
 /* Плюсы/Минусы */
@@ -1315,12 +1470,175 @@ export default {
   color: rgba(255,255,255,0.8);
 }
 
-/* Модальное окно */
+/* Кнопка просмотра альбома */
+.view-album-btn {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: all 0.3s;
+}
+
+.view-album-btn:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(139, 92, 246, 0.3);
+}
+
+.view-album-btn i {
+  font-size: 1.125rem;
+}
+
+/* Модальное окно галереи */
+.photo-gallery-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.gallery-modal-content {
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  background: rgba(20, 20, 30, 0.95);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.gallery-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  background: rgba(139, 92, 246, 0.1);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.gallery-modal-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.gallery-modal-header h2 i {
+  color: #8b5cf6;
+  font-size: 1.75rem;
+}
+
+.gallery-count {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.6);
+  margin-left: 0.5rem;
+}
+
+.gallery-close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  font-size: 1.25rem;
+}
+
+.gallery-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+.gallery-grid {
+  padding: 2rem;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.gallery-grid-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.gallery-grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.gallery-grid-item:hover img {
+  transform: scale(1.1);
+}
+
+.gallery-grid-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.gallery-grid-item:hover .gallery-grid-overlay {
+  opacity: 1;
+}
+
+.gallery-grid-overlay i {
+  color: white;
+  font-size: 1.5rem;
+}
+
+/* Модальное окно одного фото */
 .photo-modal {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.95);
-  z-index: 1000;
+  z-index: 1001;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1450,10 +1768,40 @@ export default {
     grid-template-columns: 1fr;
   }
 
-
   .purchases-summary {
     flex-direction: column;
     gap: 0.5rem;
+  }
+
+  .purchase-item {
+    flex-direction: column;
+  }
+
+  .purchase-image {
+    width: 100%;
+    height: 200px;
+  }
+
+  .gallery-modal-content {
+    max-height: 95vh;
+  }
+
+  .gallery-modal-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .gallery-modal-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .gallery-grid {
+    padding: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .photo-gallery-modal {
+    padding: 1rem;
   }
 }
 </style>
