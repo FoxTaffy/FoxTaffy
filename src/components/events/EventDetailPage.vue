@@ -123,7 +123,7 @@
                   @click="openPhotoAtIndex(index)"
                 >
                   <!-- Используем миниатюры для превью -->
-                  <img :src="photo.thumbnail_url || photo.image_url" :alt="photo.caption || 'Фото'" />
+                  <img :src="photo.thumbnail_url || photo.image_url" :alt="photo.caption || 'Фото'" loading="lazy" />
                   <div class="photo-overlay">
                     <i class="fas fa-search-plus"></i>
                   </div>
@@ -336,7 +336,7 @@
             class="gallery-grid-item"
             @click="openPhotoAtIndex(index)"
           >
-            <img :src="photo.thumbnail_url || photo.image_url" :alt="photo.caption || 'Фото'" />
+            <img :src="photo.thumbnail_url || photo.image_url" :alt="photo.caption || 'Фото'" loading="lazy" />
             <div class="gallery-grid-overlay">
               <i class="fas fa-search-plus"></i>
             </div>
@@ -403,7 +403,7 @@ export default {
     },
 
     totalSpent() {
-      return this.purchases.reduce((sum, purchase) => sum + (purchase.price || 0), 0)
+      return this.purchases.reduce((sum, purchase) => sum + (parseFloat(purchase.price) || 0), 0)
     },
     showPurchases() {
       return this.event && (this.event.event_type === 'festival' || this.event.event_type === 'market')
@@ -645,7 +645,9 @@ export default {
     
     formatMoney(amount) {
       if (!amount) return '0 ₽'
-      return `${amount.toLocaleString('ru-RU')} ₽`
+      const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
+      if (isNaN(numAmount)) return '0 ₽'
+      return `${numAmount.toLocaleString('ru-RU')} ₽`
     },
 
     formatPurchaseDate(dateString) {
@@ -1590,7 +1592,9 @@ export default {
   overflow-y: auto;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-auto-rows: minmax(200px, auto);
   gap: 1rem;
+  align-items: start;
 }
 
 .gallery-grid-item {

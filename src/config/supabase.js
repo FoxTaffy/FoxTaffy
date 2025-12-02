@@ -68,10 +68,10 @@ export const furryApi = {
     try {
       console.log('🎪 getEvents: Загружаем мероприятия с опциями:', options)
 
-      // Загружаем мероприятия с подсчетом фотографий
+      // Загружаем мероприятия с подсчетом фотографий и особенностями
       let query = supabase
         .from('cons')
-        .select('*, con_photos(count)')
+        .select('*, con_photos(count), con_features(id, title, icon_class, feature_type)')
 
       // Фильтрация по статусу
       if (status === 'upcoming') {
