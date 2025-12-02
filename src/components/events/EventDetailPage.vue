@@ -122,7 +122,8 @@
                   class="photo-item"
                   @click="openPhotoAtIndex(index)"
                 >
-                  <img :src="photo.thumbnail_url || photo.image_url" :alt="photo.caption || 'Фото'" />
+                  <!-- Используем оригинал в галерее для качественного отображения -->
+                  <img :src="photo.image_url" :alt="photo.caption || 'Фото'" />
                   <div class="photo-overlay">
                     <i class="fas fa-search-plus"></i>
                   </div>
