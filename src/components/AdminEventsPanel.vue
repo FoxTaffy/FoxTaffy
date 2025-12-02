@@ -844,8 +844,8 @@
                 </button>
                 <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-preview">
                   <div v-for="(photo, index) in uploadedPhotos" :key="index" class="uploaded-photo">
-                    <img :src="photo" alt="" />
-                    <button type="button" class="remove-photo-btn" @click="removeUploadedPhoto(index)">
+                    <img :src="typeof photo === 'string' ? photo : photo.url" alt="" />
+                    <button type="button" class="remove-photo-btn" @click="removeUploadedPhoto(index)" :title="photo.id ? 'Удалить из БД и Storage' : 'Удалить из превью'">
                       <i class="fas fa-times"></i>
                     </button>
                   </div>
@@ -1505,15 +1505,21 @@ export default {
           }
         )
 
-        // Добавляем URL миниатюр в массив для превью
-        results.forEach(result => {
-          this.uploadedPhotos.push(result.thumbnail_url)
-        })
-
         // Сохраняем фотографии в базу данных
         if (results.length > 0) {
           await furryApi.saveEventPhotos(this.eventForm.id, results)
           console.log('✅ Фотографии сохранены в базу данных')
+
+          // Загружаем обновленный список фотографий из БД
+          const photos = await furryApi.getEventPhotos(this.eventForm.id)
+          // Добавляем фотографии в массив для превью (с полной информацией)
+          photos.forEach(photo => {
+            this.uploadedPhotos.push({
+              id: photo.id,
+              url: photo.thumbnail_url || photo.image_url,
+              isNew: false
+            })
+          })
         }
 
         this.$emit('notification', `✅ Загружено ${files.length} фотографий с миниатюрами`, 'success')
@@ -1529,8 +1535,36 @@ export default {
       }
     },
 
-    removeUploadedPhoto(index) {
-      this.uploadedPhotos.splice(index, 1)
+    async removeUploadedPhoto(index) {
+      const photo = this.uploadedPhotos[index]
+
+      // Если это не новая фотография (уже сохранена в БД)
+      if (photo && typeof photo === 'object' && photo.id) {
+        try {
+          // Подтверждение удаления
+          if (!confirm('Удалить эту фотографию? Файлы будут удалены из Storage и базы данных.')) {
+            return
+          }
+
+          console.log('🗑️ Удаляем фотографию из БД и Storage:', photo.id)
+
+          // Удаляем через API (удалит из БД и Storage)
+          await furryApi.deleteEventPhoto(photo.id)
+
+          // Удаляем из локального массива
+          this.uploadedPhotos.splice(index, 1)
+
+          this.$emit('notification', 'Фотография удалена', 'success')
+          console.log('✅ Фотография успешно удалена')
+
+        } catch (error) {
+          console.error('❌ Ошибка удаления фотографии:', error)
+          this.$emit('notification', 'Ошибка удаления: ' + error.message, 'error')
+        }
+      } else {
+        // Для новых фотографий (еще не сохранены в БД) - просто удаляем из превью
+        this.uploadedPhotos.splice(index, 1)
+      }
     },
 
     async editEvent(event) {

@@ -667,6 +667,64 @@ export const furryApi = {
     }
   },
 
+  /**
+   * Удалить одну конкретную фотографию
+   * @param {number} photoId - ID фотографии
+   * @returns {Promise<Object>} Данные удаленной фотографии (для удаления файлов из Storage)
+   */
+  async deleteEventPhoto(photoId) {
+    try {
+      console.log('🗑️ deleteEventPhoto: Удаляем фотографию:', photoId)
+
+      // Сначала получаем данные фотографии (нужны пути к файлам)
+      const { data: photo, error: selectError } = await supabase
+        .from('con_photos')
+        .select('*')
+        .eq('id', photoId)
+        .single()
+
+      if (selectError) throw selectError
+
+      // Удаляем запись из БД
+      const { error: deleteError } = await supabase
+        .from('con_photos')
+        .delete()
+        .eq('id', photoId)
+
+      if (deleteError) throw deleteError
+
+      console.log('✅ deleteEventPhoto: Фотография удалена из БД')
+
+      // Удаляем файлы из Storage если есть пути
+      if (photo.file_path || photo.thumbnail_path) {
+        try {
+          const { s3Api } = await import('./s3.js')
+
+          // Удаляем оригинал
+          if (photo.file_path) {
+            await s3Api.deleteFile(photo.file_path, 'Convent')
+            console.log('✅ Удален оригинал:', photo.file_path)
+          }
+
+          // Удаляем миниатюру
+          if (photo.thumbnail_path) {
+            await s3Api.deleteFile(photo.thumbnail_path, 'Convent')
+            console.log('✅ Удалена миниатюра:', photo.thumbnail_path)
+          }
+        } catch (storageError) {
+          console.warn('⚠️ Не удалось удалить файлы из Storage:', storageError)
+          // Не бросаем ошибку, т.к. запись из БД уже удалена
+        }
+      }
+
+      return photo
+
+    } catch (error) {
+      console.error('❌ deleteEventPhoto: Ошибка удаления фотографии:', error)
+      throw error
+    }
+  },
+
   // ============================================
   // 🎨 МЕТОДЫ ДЛЯ ГАЛЕРЕИ ИСКУССТВА
   // ============================================
