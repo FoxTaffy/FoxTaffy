@@ -844,8 +844,8 @@
                 </button>
                 <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-preview">
                   <div v-for="(photo, index) in uploadedPhotos" :key="index" class="uploaded-photo">
-                    <img :src="photo" alt="" />
-                    <button type="button" class="remove-photo-btn" @click="removeUploadedPhoto(index)">
+                    <img :src="typeof photo === 'string' ? photo : photo.url" alt="" />
+                    <button type="button" class="remove-photo-btn" @click="removeUploadedPhoto(index)" :title="photo.id ? 'Удалить из БД и Storage' : 'Удалить из превью'">
                       <i class="fas fa-times"></i>
                     </button>
                   </div>
@@ -1479,39 +1479,53 @@ export default {
       const files = Array.from(event.target.files)
       if (!files.length) return
 
+      // Проверяем, что мероприятие уже создано (есть ID)
+      if (!this.eventForm.id) {
+        this.$emit('notification', 'Сначала сохраните мероприятие, затем загружайте фотографии', 'warning')
+        event.target.value = ''
+        return
+      }
+
       this.uploadingPhotos = true
       this.uploadProgress = 0
       this.uploadTotal = files.length
 
-      // Используем транслитерацию для папки или ID события
-      let folderName = this.eventForm.id || `temp-${Date.now()}`
-      if (this.eventForm.name) {
-        folderName = this.transliterate(this.eventForm.name)
-      }
-      const folder = `events/${folderName}`
-
       try {
+        console.log(`📸 Загружаем ${files.length} фотографий для мероприятия ${this.eventForm.id}...`)
+
         const { s3Api } = await import('@/config/s3.js')
 
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i]
-          this.uploadProgress = i + 1
-
-          const result = await s3Api.uploadFile(file, folder)
-
-          if (result && result.url) {
-            this.uploadedPhotos.push(result.url)
+        // Используем новый метод uploadEventPhotos который автоматически создает миниатюры
+        const results = await s3Api.uploadEventPhotos(
+          files,
+          this.eventForm.id,
+          (totalProgress, currentFile, totalFiles) => {
+            this.uploadProgress = currentFile
+            this.uploadTotal = totalFiles
           }
+        )
+
+        // Сохраняем фотографии в базу данных
+        if (results.length > 0) {
+          await furryApi.saveEventPhotos(this.eventForm.id, results)
+          console.log('✅ Фотографии сохранены в базу данных')
+
+          // Загружаем обновленный список фотографий из БД
+          const photos = await furryApi.getEventPhotos(this.eventForm.id)
+          // Добавляем фотографии в массив для превью (с полной информацией)
+          photos.forEach(photo => {
+            this.uploadedPhotos.push({
+              id: photo.id,
+              url: photo.thumbnail_url || photo.image_url,
+              isNew: false
+            })
+          })
         }
 
-        this.$emit('notification', `Загружено ${files.length} фотографий`, 'success')
-
-        // Устанавливаем папку фотографий
-        const baseUrl = import.meta.env.VITE_SUPABASE_URL
-        this.eventForm.photos_folder = `${baseUrl}/storage/v1/object/public/gallery/${folder}/`
+        this.$emit('notification', `✅ Загружено ${files.length} фотографий с миниатюрами`, 'success')
 
       } catch (error) {
-        console.error('Ошибка загрузки фотографий:', error)
+        console.error('❌ Ошибка загрузки фотографий:', error)
         this.$emit('notification', 'Ошибка загрузки: ' + error.message, 'error')
       } finally {
         this.uploadingPhotos = false
@@ -1521,8 +1535,36 @@ export default {
       }
     },
 
-    removeUploadedPhoto(index) {
-      this.uploadedPhotos.splice(index, 1)
+    async removeUploadedPhoto(index) {
+      const photo = this.uploadedPhotos[index]
+
+      // Если это не новая фотография (уже сохранена в БД)
+      if (photo && typeof photo === 'object' && photo.id) {
+        try {
+          // Подтверждение удаления
+          if (!confirm('Удалить эту фотографию? Файлы будут удалены из Storage и базы данных.')) {
+            return
+          }
+
+          console.log('🗑️ Удаляем фотографию из БД и Storage:', photo.id)
+
+          // Удаляем через API (удалит из БД и Storage)
+          await furryApi.deleteEventPhoto(photo.id)
+
+          // Удаляем из локального массива
+          this.uploadedPhotos.splice(index, 1)
+
+          this.$emit('notification', 'Фотография удалена', 'success')
+          console.log('✅ Фотография успешно удалена')
+
+        } catch (error) {
+          console.error('❌ Ошибка удаления фотографии:', error)
+          this.$emit('notification', 'Ошибка удаления: ' + error.message, 'error')
+        }
+      } else {
+        // Для новых фотографий (еще не сохранены в БД) - просто удаляем из превью
+        this.uploadedPhotos.splice(index, 1)
+      }
     },
 
     async editEvent(event) {

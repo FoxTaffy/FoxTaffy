@@ -210,7 +210,12 @@
                       <img :src="photo.thumbnail_url || photo.image_url" :alt="photo.caption || 'Фото'">
                     </div>
                     <!-- Пятая фотография заблюрена с количеством оставшихся -->
-                    <div v-if="event.photos_count > 4" class="gallery-preview-item gallery-more-overlay">
+                    <div
+                      v-if="event.photos_count > 4"
+                      class="gallery-preview-item gallery-more-overlay clickable"
+                      @click.stop="openPhotoGallery(event)"
+                      title="Открыть галерею"
+                    >
                       <img
                         v-if="event.photoPreviews[4]"
                         :src="event.photoPreviews[4].thumbnail_url || event.photoPreviews[4].image_url"
@@ -353,6 +358,94 @@
         </div>
       </div>
     </div>
+
+    <!-- Модальное окно с фотогалереей -->
+    <div v-if="showGalleryModal" class="gallery-modal" @click="closeGalleryModal">
+      <div class="gallery-modal-content" @click.stop>
+        <!-- Заголовок -->
+        <div class="gallery-modal-header">
+          <h3 class="gallery-modal-title">
+            <i class="fas fa-images"></i>
+            Фотографии: {{ galleryEvent?.name }}
+          </h3>
+          <button @click="closeGalleryModal" class="gallery-close-btn">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Сетка фотографий -->
+        <div class="gallery-modal-body">
+          <div v-if="loadingGallery" class="gallery-loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Загрузка фотографий...</p>
+          </div>
+
+          <div v-else-if="galleryPhotos.length > 0" class="gallery-grid">
+            <div
+              v-for="(photo, index) in galleryPhotos"
+              :key="photo.id"
+              class="gallery-grid-item"
+              @click="openPhotoViewer(index)"
+            >
+              <img :src="photo.thumbnail_url || photo.image_url" :alt="photo.caption || 'Фото'" />
+              <div class="gallery-item-overlay">
+                <i class="fas fa-search-plus"></i>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="gallery-empty">
+            <i class="fas fa-images"></i>
+            <p>Нет фотографий для отображения</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно просмотра фото -->
+    <div v-if="showPhotoViewer" class="photo-viewer-modal" @click="closePhotoViewer">
+      <div class="photo-viewer-content">
+        <!-- Кнопки навигации -->
+        <button
+          v-if="currentPhotoIndex > 0"
+          @click.stop="prevPhoto"
+          class="photo-nav-btn prev"
+        >
+          <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <!-- Фото -->
+        <div class="photo-viewer-image-container" @click.stop>
+          <img
+            :src="galleryPhotos[currentPhotoIndex]?.image_url"
+            :alt="galleryPhotos[currentPhotoIndex]?.caption || 'Фото'"
+            class="photo-viewer-image"
+          />
+          <div v-if="galleryPhotos[currentPhotoIndex]?.caption" class="photo-caption">
+            {{ galleryPhotos[currentPhotoIndex].caption }}
+          </div>
+        </div>
+
+        <!-- Кнопки навигации -->
+        <button
+          v-if="currentPhotoIndex < galleryPhotos.length - 1"
+          @click.stop="nextPhoto"
+          class="photo-nav-btn next"
+        >
+          <i class="fas fa-chevron-right"></i>
+        </button>
+
+        <!-- Кнопка закрытия -->
+        <button @click="closePhotoViewer" class="photo-viewer-close">
+          <i class="fas fa-times"></i>
+        </button>
+
+        <!-- Счетчик -->
+        <div class="photo-counter">
+          {{ currentPhotoIndex + 1 }} / {{ galleryPhotos.length }}
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -391,9 +484,19 @@ export default {
       
       // Модальное окно превью
       previewEvent: null,
-      
+
       // Таймеры
       searchTimeout: null,
+
+      // Фотогалерея
+      showGalleryModal: false,
+      galleryEvent: null,
+      galleryPhotos: [],
+      loadingGallery: false,
+
+      // Просмотр фото
+      showPhotoViewer: false,
+      currentPhotoIndex: 0,
     }
   },
   
@@ -958,6 +1061,59 @@ export default {
           image: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/aff5.jpg',
           url: 'https://foxtaffy.fun/events'
         })
+      }
+    },
+
+    // ============================================
+    // ФОТОГАЛЕРЕЯ
+    // ============================================
+
+    async openPhotoGallery(event) {
+      console.log('📸 Открываем галерею для мероприятия:', event.name)
+
+      this.galleryEvent = event
+      this.showGalleryModal = true
+      this.loadingGallery = true
+      this.galleryPhotos = []
+
+      try {
+        // Загружаем все фотографии мероприятия
+        const photos = await furryApi.getEventPhotos(event.id)
+        this.galleryPhotos = photos
+        console.log(`✅ Загружено ${photos.length} фотографий`)
+      } catch (error) {
+        console.error('❌ Ошибка загрузки фотографий:', error)
+        this.galleryPhotos = []
+      } finally {
+        this.loadingGallery = false
+      }
+    },
+
+    closeGalleryModal() {
+      this.showGalleryModal = false
+      this.galleryEvent = null
+      this.galleryPhotos = []
+    },
+
+    openPhotoViewer(index) {
+      this.currentPhotoIndex = index
+      this.showPhotoViewer = true
+    },
+
+    closePhotoViewer() {
+      this.showPhotoViewer = false
+      this.currentPhotoIndex = 0
+    },
+
+    prevPhoto() {
+      if (this.currentPhotoIndex > 0) {
+        this.currentPhotoIndex--
+      }
+    },
+
+    nextPhoto() {
+      if (this.currentPhotoIndex < this.galleryPhotos.length - 1) {
+        this.currentPhotoIndex++
       }
     }
   },
@@ -2041,6 +2197,297 @@ export default {
 .preview-btn.primary:hover {
   background: #e6691f;
   transform: translateY(-1px);
+}
+
+/* ===============================================
+   📸 ФОТОГАЛЕРЕЯ
+   =============================================== */
+
+/* Курсор указателя для кликабельного элемента */
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+/* Модальное окно галереи */
+.gallery-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.gallery-modal-content {
+  background: var(--bg-tertiary, #1a1a1a);
+  border-radius: 1rem;
+  max-width: 1200px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.gallery-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gallery-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--text-light, #f2f2f2);
+}
+
+.gallery-modal-title i {
+  color: var(--accent-orange, #ff7b25);
+}
+
+.gallery-close-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-light, #f2f2f2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.gallery-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+.gallery-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.gallery-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 3rem;
+  color: var(--text-light, #f2f2f2);
+}
+
+.gallery-loading i {
+  font-size: 3rem;
+  color: var(--accent-orange, #ff7b25);
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.gallery-grid-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.gallery-grid-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(255, 123, 37, 0.3);
+}
+
+.gallery-grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery-item-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gallery-grid-item:hover .gallery-item-overlay {
+  opacity: 1;
+}
+
+.gallery-item-overlay i {
+  font-size: 2rem;
+  color: white;
+}
+
+.gallery-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 3rem;
+  color: var(--text-muted, #888);
+}
+
+.gallery-empty i {
+  font-size: 3rem;
+}
+
+/* Просмотр фото */
+.photo-viewer-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 11000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.photo-viewer-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-viewer-image-container {
+  max-width: 90%;
+  max-height: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.photo-viewer-image {
+  max-width: 100%;
+  max-height: calc(90vh - 100px);
+  object-fit: contain;
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.photo-caption {
+  background: rgba(0, 0, 0, 0.8);
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  color: white;
+  max-width: 600px;
+  text-align: center;
+}
+
+.photo-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.photo-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.photo-nav-btn.prev {
+  left: 2rem;
+}
+
+.photo-nav-btn.next {
+  right: 2rem;
+}
+
+.photo-viewer-close {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.photo-viewer-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+.photo-counter {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  padding: 0.75rem 1.5rem;
+  border-radius: 2rem;
+  color: white;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
 }
 
 /* ===============================================
