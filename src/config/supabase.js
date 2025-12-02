@@ -579,26 +579,52 @@ export const furryApi = {
     }
   },
 
-  async saveEventPhotos(eventId, photoUrls) {
+  async saveEventPhotos(eventId, photos) {
     try {
       console.log('📸 saveEventPhotos: Сохраняем фотографии для мероприятия:', eventId)
 
-      // Удаляем старые фотографии
-      const { error: deleteError } = await supabase
-        .from('con_photos')
-        .delete()
-        .eq('con_id', eventId)
-
-      if (deleteError) throw deleteError
+      // Не удаляем старые фотографии, только добавляем новые (append mode)
+      // Если нужно полностью заменить - вызовите deleteEventPhotos сначала
 
       // Добавляем новые фотографии
-      if (photoUrls && photoUrls.length > 0) {
-        const photosToInsert = photoUrls.map((url, index) => ({
-          con_id: eventId,
-          image_url: url,
-          thumbnail_url: url,
-          display_order: index
-        }))
+      if (photos && photos.length > 0) {
+        // Получаем текущий максимальный display_order
+        const { data: existingPhotos } = await supabase
+          .from('con_photos')
+          .select('display_order')
+          .eq('con_id', eventId)
+          .order('display_order', { ascending: false })
+          .limit(1)
+
+        const startOrder = existingPhotos && existingPhotos.length > 0
+          ? existingPhotos[0].display_order + 1
+          : 0
+
+        // Подготавливаем данные для вставки
+        const photosToInsert = photos.map((photo, index) => {
+          // Поддержка старого формата (простые URL) и нового (объекты)
+          if (typeof photo === 'string') {
+            return {
+              con_id: eventId,
+              image_url: photo,
+              thumbnail_url: photo,
+              display_order: startOrder + index
+            }
+          } else {
+            return {
+              con_id: eventId,
+              image_url: photo.image_url,
+              thumbnail_url: photo.thumbnail_url || photo.image_url,
+              file_path: photo.file_path || null,
+              thumbnail_path: photo.thumbnail_path || null,
+              file_size: photo.file_size || null,
+              file_name: photo.file_name || null,
+              caption: photo.caption || null,
+              is_featured: photo.is_featured || false,
+              display_order: startOrder + index
+            }
+          }
+        })
 
         const { error: insertError } = await supabase
           .from('con_photos')
@@ -607,11 +633,36 @@ export const furryApi = {
         if (insertError) throw insertError
       }
 
-      console.log('✅ saveEventPhotos: Фотографии сохранены:', photoUrls?.length || 0)
+      console.log('✅ saveEventPhotos: Фотографии сохранены:', photos?.length || 0)
       return true
 
     } catch (error) {
       console.error('❌ saveEventPhotos: Ошибка сохранения фотографий:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Удалить все фотографии мероприятия
+   * @param {number} eventId - ID мероприятия
+   * @returns {Promise<boolean>} Успешность удаления
+   */
+  async deleteEventPhotos(eventId) {
+    try {
+      console.log('🗑️ deleteEventPhotos: Удаляем фотографии мероприятия:', eventId)
+
+      const { error } = await supabase
+        .from('con_photos')
+        .delete()
+        .eq('con_id', eventId)
+
+      if (error) throw error
+
+      console.log('✅ deleteEventPhotos: Фотографии удалены')
+      return true
+
+    } catch (error) {
+      console.error('❌ deleteEventPhotos: Ошибка удаления фотографий:', error)
       throw error
     }
   },

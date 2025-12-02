@@ -1479,39 +1479,47 @@ export default {
       const files = Array.from(event.target.files)
       if (!files.length) return
 
+      // Проверяем, что мероприятие уже создано (есть ID)
+      if (!this.eventForm.id) {
+        this.$emit('notification', 'Сначала сохраните мероприятие, затем загружайте фотографии', 'warning')
+        event.target.value = ''
+        return
+      }
+
       this.uploadingPhotos = true
       this.uploadProgress = 0
       this.uploadTotal = files.length
 
-      // Используем транслитерацию для папки или ID события
-      let folderName = this.eventForm.id || `temp-${Date.now()}`
-      if (this.eventForm.name) {
-        folderName = this.transliterate(this.eventForm.name)
-      }
-      const folder = `events/${folderName}`
-
       try {
+        console.log(`📸 Загружаем ${files.length} фотографий для мероприятия ${this.eventForm.id}...`)
+
         const { s3Api } = await import('@/config/s3.js')
 
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i]
-          this.uploadProgress = i + 1
-
-          const result = await s3Api.uploadFile(file, folder)
-
-          if (result && result.url) {
-            this.uploadedPhotos.push(result.url)
+        // Используем новый метод uploadEventPhotos который автоматически создает миниатюры
+        const results = await s3Api.uploadEventPhotos(
+          files,
+          this.eventForm.id,
+          (totalProgress, currentFile, totalFiles) => {
+            this.uploadProgress = currentFile
+            this.uploadTotal = totalFiles
           }
+        )
+
+        // Добавляем URL миниатюр в массив для превью
+        results.forEach(result => {
+          this.uploadedPhotos.push(result.thumbnail_url)
+        })
+
+        // Сохраняем фотографии в базу данных
+        if (results.length > 0) {
+          await furryApi.saveEventPhotos(this.eventForm.id, results)
+          console.log('✅ Фотографии сохранены в базу данных')
         }
 
-        this.$emit('notification', `Загружено ${files.length} фотографий`, 'success')
-
-        // Устанавливаем папку фотографий
-        const baseUrl = import.meta.env.VITE_SUPABASE_URL
-        this.eventForm.photos_folder = `${baseUrl}/storage/v1/object/public/gallery/${folder}/`
+        this.$emit('notification', `✅ Загружено ${files.length} фотографий с миниатюрами`, 'success')
 
       } catch (error) {
-        console.error('Ошибка загрузки фотографий:', error)
+        console.error('❌ Ошибка загрузки фотографий:', error)
         this.$emit('notification', 'Ошибка загрузки: ' + error.message, 'error')
       } finally {
         this.uploadingPhotos = false
