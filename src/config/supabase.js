@@ -1653,6 +1653,16 @@ export const furryApi = {
         }
       }
 
+      // Обновляем теги если переданы
+      if (artData.tags !== undefined) {
+        await this.updateArtTags(artId, artData.tags)
+      }
+
+      // Обновляем персонажей если переданы
+      if (artData.characters !== undefined) {
+        await this.updateArtCharacters(artId, artData.characters)
+      }
+
       console.log('✅ updateArt: Арт обновлен:', data)
       return data
     } catch (error) {
@@ -1758,6 +1768,84 @@ export const furryApi = {
       console.log('✅ deleteArt: Арт удален')
     } catch (error) {
       console.error('❌ deleteArt: Ошибка удаления арта:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Получить теги арта
+   */
+  async getArtTags(artId) {
+    try {
+      const { data, error } = await supabase
+        .from('art_tags')
+        .select('tag_id, tags(name)')
+        .eq('art_id', artId)
+
+      if (error) throw error
+      return data.map(item => item.tags.name)
+    } catch (error) {
+      console.error('❌ getArtTags: Ошибка получения тегов арта:', error)
+      return []
+    }
+  },
+
+  /**
+   * Получить персонажей арта
+   */
+  async getArtCharacters(artId) {
+    try {
+      const { data, error } = await supabase
+        .from('art_fursonas')
+        .select('fursona_id, fursonas(name)')
+        .eq('art_id', artId)
+
+      if (error) throw error
+      return data.map(item => item.fursonas.name)
+    } catch (error) {
+      console.error('❌ getArtCharacters: Ошибка получения персонажей арта:', error)
+      return []
+    }
+  },
+
+  /**
+   * Обновить теги арта
+   */
+  async updateArtTags(artId, tagNames) {
+    try {
+      // Удаляем старые теги
+      await supabase
+        .from('art_tags')
+        .delete()
+        .eq('art_id', artId)
+
+      // Добавляем новые теги
+      if (tagNames && tagNames.length > 0) {
+        await this.addArtTags(artId, tagNames)
+      }
+    } catch (error) {
+      console.error('❌ updateArtTags: Ошибка обновления тегов:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Обновить персонажей арта
+   */
+  async updateArtCharacters(artId, characterNames) {
+    try {
+      // Удаляем старых персонажей
+      await supabase
+        .from('art_fursonas')
+        .delete()
+        .eq('art_id', artId)
+
+      // Добавляем новых персонажей
+      if (characterNames && characterNames.length > 0) {
+        await this.addArtCharacters(artId, characterNames)
+      }
+    } catch (error) {
+      console.error('❌ updateArtCharacters: Ошибка обновления персонажей:', error)
       throw error
     }
   },

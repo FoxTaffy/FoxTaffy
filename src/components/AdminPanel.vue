@@ -297,41 +297,43 @@
                   </div>
                 </div>
 
-                <div class="dashboard-card">
-                  <h3><i class="fas fa-crown"></i> Топ художники</h3>
-                  <div class="top-artists">
-                    <div 
-                      v-for="(artist, index) in topArtists.slice(0, 5)" 
-                      :key="artist.id"
-                      class="top-artist-item"
-                    >
-                      <div class="artist-rank">{{ index + 1 }}</div>
-                      <img 
-                        :src="artist.avatar_url || getDefaultAvatar(artist.name)"
-                        :alt="artist.name"
-                        class="artist-mini-avatar"
+                <div class="dashboard-row">
+                  <div class="dashboard-card">
+                    <h3><i class="fas fa-crown"></i> Топ художники</h3>
+                    <div class="top-artists">
+                      <div
+                        v-for="(artist, index) in topArtists.slice(0, 5)"
+                        :key="artist.id"
+                        class="top-artist-item"
                       >
-                      <div class="artist-details">
-                        <span class="artist-name">{{ artist.name }}</span>
-                        <span class="artist-count">{{ artist.count }} артов</span>
-                      </div>
-                      <div v-if="artist.is_friend" class="friend-mini-badge">
-                        <i class="fas fa-star"></i>
+                        <div class="artist-rank">{{ index + 1 }}</div>
+                        <img
+                          :src="artist.avatar_url || getDefaultAvatar(artist.name)"
+                          :alt="artist.name"
+                          class="artist-mini-avatar"
+                        >
+                        <div class="artist-details">
+                          <span class="artist-name">{{ artist.name }}</span>
+                          <span class="artist-count">{{ artist.count }} артов</span>
+                        </div>
+                        <div v-if="artist.is_friend" class="friend-mini-badge">
+                          <i class="fas fa-star"></i>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div class="dashboard-card">
-                  <h3><i class="fas fa-fire"></i> Популярные теги</h3>
-                  <div class="popular-tags">
-                    <div 
-                      v-for="tag in popularTags.slice(0, 10)" 
-                      :key="tag.id"
-                      class="popular-tag"
-                    >
-                      <span class="tag-name">{{ tag.name }}</span>
-                      <span class="tag-uses">{{ tag.count }}</span>
+                  <div class="dashboard-card">
+                    <h3><i class="fas fa-fire"></i> Популярные теги</h3>
+                    <div class="popular-tags">
+                      <div
+                        v-for="tag in popularTags.slice(0, 10)"
+                        :key="tag.id"
+                        class="popular-tag"
+                      >
+                        <span class="tag-name">{{ tag.name }}</span>
+                        <span class="tag-uses">{{ tag.count }}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1041,13 +1043,16 @@
 
                   <div class="form-group">
                     <label>Художник *</label>
-                    <input
+                    <select
                       v-model="modal.data.artist_nickname"
-                      type="text"
-                      placeholder="Никнейм художника..."
                       class="form-input"
                       required
                     >
+                      <option value="" disabled>Выберите художника...</option>
+                      <option v-for="artist in availableArtists" :key="artist.id" :value="artist.name">
+                        {{ artist.name }} {{ artist.is_friend ? '⭐' : '' }}
+                      </option>
+                    </select>
                   </div>
 
                   <div class="form-group">
@@ -1057,6 +1062,44 @@
                       type="date"
                       class="form-input"
                     >
+                  </div>
+
+                  <div class="form-group">
+                    <label>Теги</label>
+                    <div class="tags-selector">
+                      <label
+                        v-for="tag in availableTags"
+                        :key="tag.id"
+                        class="tag-checkbox"
+                        :class="{ selected: modal.data.tags?.includes(tag.name) }"
+                      >
+                        <input
+                          type="checkbox"
+                          :value="tag.name"
+                          v-model="modal.data.tags"
+                        >
+                        <span class="tag-label">{{ tag.name }}</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Персонажи</label>
+                    <div class="tags-selector">
+                      <label
+                        v-for="character in availableCharacters"
+                        :key="character.id"
+                        class="tag-checkbox"
+                        :class="{ selected: modal.data.characters?.includes(character.name) }"
+                      >
+                        <input
+                          type="checkbox"
+                          :value="character.name"
+                          v-model="modal.data.characters"
+                        >
+                        <span class="tag-label">{{ character.name }}</span>
+                      </label>
+                    </div>
                   </div>
 
                   <div class="form-group">
@@ -1729,7 +1772,7 @@ const resetForm = () => {
 }
 
 // Модальные окна
-const openModal = (type, item = null) => {
+const openModal = async (type, item = null) => {
   modal.type = type
   modal.editing = item
   modal.show = true
@@ -1748,7 +1791,7 @@ const openModal = (type, item = null) => {
         is_friend: false
       }
       break
-      
+
     case 'tag':
       modal.title = item ? 'Редактировать тег' : 'Добавить тег'
       modal.icon = 'fas fa-tags'
@@ -1758,7 +1801,7 @@ const openModal = (type, item = null) => {
         name: ''
       }
       break
-      
+
     case 'character':
       modal.title = item ? 'Редактировать персонажа' : 'Добавить персонажа'
       modal.icon = 'fas fa-paw'
@@ -1774,11 +1817,20 @@ const openModal = (type, item = null) => {
     case 'art':
       modal.title = 'Редактировать арт'
       modal.icon = 'fas fa-image'
+
+      // Загружаем теги и персонажей арта
+      const [artTags, artCharacters] = await Promise.all([
+        furryApi.getArtTags(item.id),
+        furryApi.getArtCharacters(item.id)
+      ])
+
       modal.data = {
         title: item.title || '',
         artist_nickname: item.artist_name || '',
         is_nsfw: item.is_nsfw || false,
-        created_date: item.created_date || ''
+        created_date: item.upload_date ? new Date(item.upload_date).toISOString().split('T')[0] : '',
+        tags: artTags || [],
+        characters: artCharacters || []
       }
       break
   }
@@ -2482,6 +2534,12 @@ watch(activeTab, () => {
   gap: 2rem;
 }
 
+.dashboard-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
 .dashboard-card {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 20px;
@@ -2910,6 +2968,53 @@ watch(activeTab, () => {
   font-size: 1rem;
   font-family: inherit;
   transition: all 0.3s ease;
+}
+
+.tags-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.tag-checkbox {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tag-checkbox input[type="checkbox"] {
+  display: none;
+}
+
+.tag-checkbox .tag-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+}
+
+.tag-checkbox:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 123, 37, 0.3);
+}
+
+.tag-checkbox.selected {
+  background: rgba(255, 123, 37, 0.2);
+  border-color: rgba(255, 123, 37, 0.5);
+}
+
+.tag-checkbox.selected .tag-label {
+  color: #ff7b25;
+  font-weight: 600;
 }
 
 .form-input:focus,
