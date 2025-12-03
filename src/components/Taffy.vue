@@ -758,42 +758,45 @@ const handleKeyDown = (e) => {
 }
 
 .stat-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 2rem 3rem;
   min-width: 160px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .stat-card:hover {
-  background: rgba(255, 255, 255, 1);
+  background: rgba(255, 255, 255, 0.15);
   transform: translateY(-8px);
   box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.2),
+    0 20px 40px rgba(0, 0, 0, 0.4),
     0 0 30px rgba(255, 123, 37, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .stat-icon {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
-  color: #ff7b25;
-  filter: drop-shadow(0 2px 4px rgba(255, 123, 37, 0.3));
+  color: #ffffff;
+  filter: drop-shadow(0 2px 8px rgba(255, 123, 37, 0.5));
 }
 
 .stat-value {
   font-size: 2.5rem;
   font-weight: 700;
   margin: 0.5rem 0;
-  color: #1a1a2e;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .stat-label {
   font-size: 0.95rem;
-  color: #666;
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* ============================================
