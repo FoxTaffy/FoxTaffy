@@ -610,6 +610,18 @@ const handleKeyDown = (e) => {
   overflow-x: hidden;
 }
 
+/* Отмена глобальных стилей для иконок */
+.character-evolution .fas,
+.character-evolution .fa {
+  background: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  line-height: 1 !important;
+  display: inline-block !important;
+}
+
 .container {
   max-width: 1400px;
   margin: 0 auto;
@@ -780,8 +792,13 @@ const handleKeyDown = (e) => {
 .stat-icon {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
-  color: #ffffff;
+  color: #ff7b25;
   filter: drop-shadow(0 2px 8px rgba(255, 123, 37, 0.5));
+  background: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  width: auto !important;
+  height: auto !important;
 }
 
 .stat-value {
@@ -832,7 +849,12 @@ const handleKeyDown = (e) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, #ff7b25 0%, #66ff66 50%, #66ccff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
 }
 
 .section-subtitle {
@@ -840,12 +862,19 @@ const handleKeyDown = (e) => {
   font-size: 1.25rem;
   opacity: 0.8;
   margin-bottom: 4rem;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .title-icon {
   font-size: 2.5rem;
   color: #ff7b25;
-  filter: drop-shadow(0 4px 8px rgba(255, 123, 37, 0.4));
+  filter: drop-shadow(0 4px 8px rgba(255, 123, 37, 0.6));
+  background: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  -webkit-text-fill-color: #ff7b25;
 }
 
 .timeline-wrapper {
