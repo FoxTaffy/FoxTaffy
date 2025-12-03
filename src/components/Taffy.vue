@@ -413,11 +413,20 @@ const loadTaffyArts = async () => {
 
     console.log(`📊 Всего загружено артов: ${allArts.length}`)
 
-    // Фильтруем арты с персонажем Taffy (без учета регистра)
+    // Выводим ВСЕ уникальные персонажи из базы данных для отладки
+    const allCharacters = [...new Set(allArts.flatMap(art =>
+      (art.characters || []).map(char => char.name).filter(Boolean)
+    ))]
+    console.log('🔍 ВСЕ персонажи в базе данных:', allCharacters)
+    console.log('🔍 Всего уникальных персонажей:', allCharacters.length)
+
+    // Фильтруем арты с персонажем Taffy или Fox Taffy (без учета регистра)
     const filteredArts = allArts.filter(art =>
-      art.characters && art.characters.some(char =>
-        char.name && char.name.toLowerCase().includes('taffy')
-      )
+      art.characters && art.characters.some(char => {
+        if (!char.name) return false
+        const charName = char.name.toLowerCase()
+        return charName.includes('taffy') || charName.includes('fox taffy') || charName === 'taffy'
+      })
     )
 
     taffyArts.value = filteredArts
@@ -428,7 +437,10 @@ const loadTaffyArts = async () => {
       const uniqueCharacters = [...new Set(filteredArts.flatMap(art =>
         art.characters.map(char => char.name)
       ))]
-      console.log('🦊 Найденные персонажи:', uniqueCharacters)
+      console.log('🦊 Найденные персонажи с Taffy:', uniqueCharacters)
+    } else {
+      console.warn('⚠️ Персонаж "Taffy" не найден в базе данных!')
+      console.warn('💡 Подсказка: Проверьте, есть ли в БД персонаж с именем "Taffy" или "Fox Taffy"')
     }
 
   } catch (error) {
