@@ -14,17 +14,17 @@
         <p class="character-tagline">Эволюция дизайна с 2019 по 2025</p>
         <div class="character-stats">
           <div class="stat-card">
-            <div class="stat-icon">📅</div>
+            <i class="fas fa-calendar-alt stat-icon"></i>
             <div class="stat-value">{{ character.createdYear }}</div>
             <div class="stat-label">Год создания</div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">🎨</div>
+            <i class="fas fa-palette stat-icon"></i>
             <div class="stat-value">{{ evolutionSteps.length }}</div>
             <div class="stat-label">Версий дизайна</div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">🦊</div>
+            <i class="fas fa-paw stat-icon"></i>
             <div class="stat-value">{{ character.species }}</div>
             <div class="stat-label">Вид</div>
           </div>
@@ -36,7 +36,7 @@
     <div class="about-section">
       <div class="container">
         <h2 class="section-title fade-in-up">
-          <span class="title-icon">✨</span>
+          <i class="fas fa-star title-icon"></i>
           История создания
         </h2>
         <p class="about-text fade-in-up">{{ character.description }}</p>
@@ -47,7 +47,7 @@
     <div class="timeline-section" ref="timelineSection">
       <div class="container">
         <h2 class="section-title fade-in-up">
-          <span class="title-icon">🎨</span>
+          <i class="fas fa-paint-brush title-icon"></i>
           Эволюция дизайна
         </h2>
 
@@ -78,18 +78,8 @@
                 <!-- Изображение -->
                 <div class="card-image-wrapper">
                   <div v-if="!step.artwork" class="card-image-placeholder">
-                    <div class="placeholder-icon">🖼️</div>
-                    <p class="placeholder-text">Добавьте фотографию</p>
-                    <label :for="`file-upload-${index}`" class="upload-btn">
-                      📤 Загрузить фото
-                    </label>
-                    <input
-                      :id="`file-upload-${index}`"
-                      type="file"
-                      accept="image/*"
-                      @change="handleFileUpload($event, index)"
-                      class="file-input"
-                    />
+                    <i class="fas fa-image placeholder-icon"></i>
+                    <p class="placeholder-text">Изображение скоро появится</p>
                   </div>
                   <div v-else class="card-image-container">
                     <img
@@ -99,23 +89,8 @@
                       @click="openLightbox(step)"
                       loading="lazy"
                     />
-                    <div class="image-actions">
-                      <label :for="`file-replace-${index}`" class="action-btn replace-btn">
-                        🔄
-                      </label>
-                      <button @click="removeImage(index)" class="action-btn remove-btn">
-                        🗑️
-                      </button>
-                      <input
-                        :id="`file-replace-${index}`"
-                        type="file"
-                        accept="image/*"
-                        @change="handleFileUpload($event, index)"
-                        class="file-input"
-                      />
-                    </div>
                     <div class="image-overlay" @click="openLightbox(step)">
-                      <div class="overlay-icon">🔍</div>
+                      <i class="fas fa-search-plus overlay-icon"></i>
                     </div>
                   </div>
                 </div>
@@ -129,7 +104,7 @@
 
                   <div class="card-changes">
                     <h4 class="changes-heading">
-                      <span class="heading-icon">⚡</span>
+                      <i class="fas fa-bolt heading-icon"></i>
                       Ключевые изменения
                     </h4>
                     <ul class="changes-list">
@@ -141,7 +116,7 @@
                   </div>
 
                   <div v-if="step.notes" class="card-notes">
-                    <div class="notes-icon">💡</div>
+                    <i class="fas fa-lightbulb notes-icon"></i>
                     <p class="notes-text">{{ step.notes }}</p>
                   </div>
                 </div>
@@ -156,7 +131,7 @@
     <div class="gallery-section" ref="gallerySection">
       <div class="container">
         <h2 class="section-title fade-in-up">
-          <span class="title-icon">🎨</span>
+          <i class="fas fa-images title-icon"></i>
           Галерея артов
         </h2>
         <p class="section-subtitle fade-in-up">Все арты персонажа Taffy</p>
@@ -169,7 +144,7 @@
 
         <!-- Ошибка -->
         <div v-else-if="artsError" class="gallery-error">
-          <div class="error-icon">😿</div>
+          <i class="fas fa-exclamation-triangle error-icon"></i>
           <p>{{ artsError }}</p>
         </div>
 
@@ -180,7 +155,7 @@
             @click="scrollCarousel('left')"
             :disabled="!canScrollLeft"
           >
-            <span class="nav-icon">◀</span>
+            <i class="fas fa-chevron-left"></i>
           </button>
 
           <div class="gallery-carousel" ref="carouselRef">
@@ -195,10 +170,11 @@
                   :src="art.thumbnail_url || art.image_url"
                   :alt="art.title"
                   class="carousel-image"
+                  loading="lazy"
                 />
                 <div class="carousel-overlay">
                   <div class="overlay-content">
-                    <div class="overlay-icon">🔍</div>
+                    <i class="fas fa-search-plus overlay-icon"></i>
                   </div>
                 </div>
               </div>
@@ -210,13 +186,13 @@
             @click="scrollCarousel('right')"
             :disabled="!canScrollRight"
           >
-            <span class="nav-icon">▶</span>
+            <i class="fas fa-chevron-right"></i>
           </button>
         </div>
 
         <!-- Пустая галерея -->
         <div v-else class="gallery-empty">
-          <div class="empty-icon">🎨</div>
+          <i class="fas fa-folder-open empty-icon"></i>
           <p>Пока нет артов с персонажем Taffy</p>
         </div>
       </div>
@@ -227,7 +203,7 @@
       <div v-if="lightboxImage" class="lightbox-overlay" @click="closeLightbox">
         <div class="lightbox-content" @click.stop>
           <button class="lightbox-close" @click="closeLightbox">
-            <span>✕</span>
+            <i class="fas fa-times"></i>
           </button>
 
           <div class="lightbox-image-wrapper">
@@ -242,7 +218,7 @@
             <h3 class="lightbox-title">{{ lightboxImage.version || lightboxImage.title }}</h3>
             <p v-if="lightboxImage.year" class="lightbox-year">{{ lightboxImage.year }}</p>
             <p v-if="lightboxImage.artist_name" class="lightbox-artist">
-              <span class="artist-icon">🎨</span> {{ lightboxImage.artist_name }}
+              <i class="fas fa-user-artist artist-icon"></i> {{ lightboxImage.artist_name }}
             </p>
           </div>
 
@@ -253,14 +229,14 @@
               @click="navigateLightbox(-1)"
               :disabled="lightboxIndex === 0"
             >
-              <span>◀</span>
+              <i class="fas fa-chevron-left"></i>
             </button>
             <button
               class="lightbox-nav-btn lightbox-next"
               @click="navigateLightbox(1)"
               :disabled="lightboxIndex === taffyArts.length - 1"
             >
-              <span>▶</span>
+              <i class="fas fa-chevron-right"></i>
             </button>
           </div>
         </div>
@@ -379,41 +355,6 @@ const evolutionSteps = reactive([
 ])
 
 // ============================================
-// ОБРАБОТКА ЗАГРУЗКИ ФАЙЛОВ
-// ============================================
-const handleFileUpload = (event, index) => {
-  const file = event.target.files[0]
-  if (!file) return
-
-  // Проверка типа файла
-  if (!file.type.startsWith('image/')) {
-    alert('Пожалуйста, выберите изображение')
-    return
-  }
-
-  // Проверка размера (макс 10MB)
-  if (file.size > 10 * 1024 * 1024) {
-    alert('Размер файла не должен превышать 10MB')
-    return
-  }
-
-  // Создаем локальный URL для предпросмотра
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    evolutionSteps[index].artwork = e.target.result
-    console.log(`✅ Изображение для ${evolutionSteps[index].year} загружено локально`)
-  }
-  reader.readAsDataURL(file)
-}
-
-const removeImage = (index) => {
-  if (confirm(`Удалить изображение для ${evolutionSteps[index].year}?`)) {
-    evolutionSteps[index].artwork = null
-    console.log(`🗑️ Изображение для ${evolutionSteps[index].year} удалено`)
-  }
-}
-
-// ============================================
 // ГАЛЕРЕЯ АРТОВ ИЗ БД
 // ============================================
 const taffyArts = ref([])
@@ -428,16 +369,32 @@ const loadTaffyArts = async () => {
 
     console.log('🎨 Загружаем арты персонажа Taffy...')
 
-    // Загружаем все арты с фильтром по персонажу "Taffy"
-    const arts = await furryApi.getFurryArts({
-      characters: ['Taffy'],
+    // Загружаем все арты и фильтруем локально
+    const allArts = await furryApi.getFurryArts({
       showNsfw: true, // Показываем все арты
-      limit: 100,
+      limit: 500, // Увеличиваем лимит для загрузки всех артов
       sort: 'newest'
     })
 
-    taffyArts.value = arts
-    console.log(`✅ Загружено ${arts.length} артов персонажа Taffy`)
+    console.log(`📊 Всего загружено артов: ${allArts.length}`)
+
+    // Фильтруем арты с персонажем Taffy (без учета регистра)
+    const filteredArts = allArts.filter(art =>
+      art.characters && art.characters.some(char =>
+        char.name && char.name.toLowerCase().includes('taffy')
+      )
+    )
+
+    taffyArts.value = filteredArts
+    console.log(`✅ Найдено ${filteredArts.length} артов с персонажем Taffy`)
+
+    // Выводим информацию о найденных персонажах для отладки
+    if (filteredArts.length > 0) {
+      const uniqueCharacters = [...new Set(filteredArts.flatMap(art =>
+        art.characters.map(char => char.name)
+      ))]
+      console.log('🦊 Найденные персонажи:', uniqueCharacters)
+    }
 
   } catch (error) {
     console.error('❌ Ошибка загрузки артов:', error)
@@ -697,6 +654,7 @@ const handleKeyDown = (e) => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
 }
 
 .character-name {
@@ -742,6 +700,7 @@ const handleKeyDown = (e) => {
 .stat-icon {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
+  color: #667eea;
 }
 
 .stat-value {
@@ -800,7 +759,8 @@ const handleKeyDown = (e) => {
 }
 
 .title-icon {
-  font-size: 3rem;
+  font-size: 2.5rem;
+  color: #667eea;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
@@ -954,6 +914,7 @@ const handleKeyDown = (e) => {
 
 .overlay-icon {
   font-size: 3rem;
+  color: white;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
 }
 
@@ -969,92 +930,21 @@ const handleKeyDown = (e) => {
 }
 
 .placeholder-icon {
-  font-size: 4rem;
+  font-size: 5rem;
   margin-bottom: 1rem;
   opacity: 0.5;
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .placeholder-text {
   font-size: 1.2rem;
   opacity: 0.6;
-  margin-bottom: 1.5rem;
-}
-
-/* Кнопки загрузки файлов */
-.upload-btn {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border-radius: 25px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-.upload-btn:hover {
-  background: linear-gradient(135deg, #764ba2, #f093fb);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
-
-.file-input {
-  display: none;
 }
 
 .card-image-container {
   position: relative;
   width: 100%;
   height: 100%;
-}
-
-.image-actions {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  display: flex;
-  gap: 10px;
-  z-index: 5;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.card-image-wrapper:hover .image-actions {
-  opacity: 1;
-}
-
-.action-btn {
-  width: 45px;
-  height: 45px;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: white;
-}
-
-.action-btn:hover {
-  background: rgba(0, 0, 0, 0.9);
-  transform: scale(1.1);
-  border-color: rgba(255, 255, 255, 0.5);
-}
-
-.replace-btn:hover {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border-color: #667eea;
-}
-
-.remove-btn:hover {
-  background: linear-gradient(135deg, #ff4757, #ff6348);
-  border-color: #ff4757;
 }
 
 .card-body {
@@ -1099,6 +989,7 @@ const handleKeyDown = (e) => {
 
 .heading-icon {
   font-size: 1.5rem;
+  color: #667eea;
 }
 
 .changes-list {
@@ -1143,6 +1034,7 @@ const handleKeyDown = (e) => {
 .notes-icon {
   font-size: 1.5rem;
   flex-shrink: 0;
+  color: #f093fb;
 }
 
 .notes-text {
@@ -1187,6 +1079,7 @@ const handleKeyDown = (e) => {
   font-size: 5rem;
   margin-bottom: 1.5rem;
   opacity: 0.6;
+  color: #9ca3af;
 }
 
 .gallery-carousel-wrapper {
@@ -1407,6 +1300,7 @@ const handleKeyDown = (e) => {
 
 .artist-icon {
   font-size: 1.25rem;
+  color: #667eea;
 }
 
 .lightbox-nav {
