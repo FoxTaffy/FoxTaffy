@@ -28,7 +28,7 @@ const getBucketName = (folder) => {
 /**
  * Генерация структуры папок для мероприятия
  * @param {string|number} eventId - ID мероприятия
- * @param {string} type - Тип файла: 'original', 'thumbnail', 'avatar', 'banner'
+ * @param {string} type - Тип файла: 'original', 'thumbnails', 'purchases', 'avatar', 'banner'
  * @returns {string} Путь к папке
  */
 const getEventFolderPath = (eventId, type = 'original') => {
@@ -36,7 +36,7 @@ const getEventFolderPath = (eventId, type = 'original') => {
     // Для файлов без привязки к мероприятию (временные)
     return `events/temp/${type}`
   }
-  // Структура: events/{event-id}/original/ или events/{event-id}/thumbnails/
+  // Структура: events/{event-id}/original/ или events/{event-id}/thumbnails/ или events/{event-id}/purchases/
   return `events/${eventId}/${type}`
 }
 
@@ -373,6 +373,47 @@ export const s3Api = {
 
     } catch (error) {
       console.error('❌ Ошибка загрузки фотографий мероприятия:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Загрузка фотографии покупки
+   * @param {File} file - Файл изображения
+   * @param {string} eventId - ID мероприятия
+   * @param {string} purchaseId - ID покупки (опционально)
+   * @returns {Promise<Object>} URL загруженного файла
+   */
+  async uploadPurchasePhoto(file, eventId, purchaseId = null) {
+    try {
+      console.log(`📸 Загружаем фото покупки для мероприятия ${eventId}...`)
+
+      // Генерируем имя файла
+      const timestamp = Date.now()
+      const randomStr = Math.random().toString(36).substring(2, 8)
+      const fileName = purchaseId
+        ? `purchase_${purchaseId}_${timestamp}_${randomStr}.jpg`
+        : `purchase_${timestamp}_${randomStr}.jpg`
+
+      // Путь к папке покупок
+      const purchasesFolder = getEventFolderPath(eventId, 'purchases')
+
+      // Оптимизируем изображение
+      const optimizedImage = await optimizeImage(file, 0.85)
+      const optimizedFile = new File([optimizedImage], fileName, { type: 'image/jpeg' })
+
+      // Загружаем файл
+      const result = await this.uploadFile(optimizedFile, purchasesFolder)
+
+      console.log('✅ Фото покупки успешно загружено')
+      return {
+        url: result.url,
+        path: result.path,
+        fileName: result.fileName
+      }
+
+    } catch (error) {
+      console.error('❌ Ошибка загрузки фото покупки:', error)
       throw error
     }
   },
