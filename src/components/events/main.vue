@@ -188,6 +188,22 @@
                 <!-- Описание -->
                 <p class="event-description">{{ truncateText(event.description || 'Описание мероприятия', 100) }}</p>
 
+                <!-- Особенности мероприятия -->
+                <div v-if="event.con_features && event.con_features.length > 0" class="event-features">
+                  <div
+                    v-for="feature in event.con_features.slice(0, 3)"
+                    :key="feature.id"
+                    class="feature-badge"
+                    :title="feature.title"
+                  >
+                    <i :class="feature.icon_class || 'fas fa-star'"></i>
+                    <span>{{ feature.title }}</span>
+                  </div>
+                  <div v-if="event.con_features.length > 3" class="feature-badge more-features">
+                    +{{ event.con_features.length - 3 }}
+                  </div>
+                </div>
+
                 <!-- Информация о времени до начала (для предстоящих) -->
                 <div v-if="isUpcoming(event)" class="event-countdown">
                   <div class="countdown-label">До начала</div>
@@ -1657,6 +1673,46 @@ export default {
   margin: 0;
   font-size: 0.95rem;
   flex: 1;
+}
+
+/* Особенности мероприятия */
+.event-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.feature-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: #a78bfa;
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+
+.feature-badge:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.5);
+  transform: translateY(-1px);
+}
+
+.feature-badge i {
+  font-size: 0.75rem;
+  color: #8b5cf6;
+}
+
+.feature-badge.more-features {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
 }
 
 /* Обратный отсчёт для предстоящих - улучшенный дизайн */

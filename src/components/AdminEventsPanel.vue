@@ -352,7 +352,7 @@
     </div>
 
     <!-- Модальное окно создания/редактирования мероприятия -->
-    <div v-if="showCreateModal" class="modal-overlay" @click="closeCreateModal">
+    <div v-if="showCreateModal" class="modal-overlay" @click="handleCloseModal">
       <div class="modal create-modal wizard-modal" @click.stop>
         <div class="modal-header">
           <h3 class="modal-title">
@@ -844,7 +844,7 @@
                 </button>
                 <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-preview">
                   <div v-for="(photo, index) in uploadedPhotos" :key="index" class="uploaded-photo">
-                    <img :src="typeof photo === 'string' ? photo : photo.url" alt="" />
+                    <img :src="typeof photo === 'string' ? photo : photo.url" alt="" loading="lazy" />
                     <button type="button" class="remove-photo-btn" @click="removeUploadedPhoto(index)" :title="photo.id ? 'Удалить из БД и Storage' : 'Удалить из превью'">
                       <i class="fas fa-times"></i>
                     </button>
@@ -874,8 +874,11 @@
                     class="purchase-item-card"
                   >
                     <div class="purchase-item-image">
-                      <img v-if="item.image" :src="item.image" alt="" />
+                      <img v-if="item.image" :src="item.image" alt="" loading="lazy" />
                       <i v-else class="fas fa-image"></i>
+                      <div v-if="item.image" class="purchase-photo-delete" @click="deletePurchasePhoto(index)">
+                        <i class="fas fa-trash"></i>
+                      </div>
                     </div>
                     <div class="purchase-item-info">
                       <input
@@ -891,12 +894,25 @@
                         placeholder="Цена"
                         min="0"
                       />
-                      <input
-                        v-model="item.image"
-                        type="url"
-                        class="form-input small"
-                        placeholder="URL фото"
-                      />
+                      <div class="purchase-photo-controls">
+                        <input
+                          type="file"
+                          :ref="'purchasePhoto' + index"
+                          accept="image/*"
+                          style="display: none"
+                          @change="uploadPurchasePhoto($event, index)"
+                        />
+                        <button
+                          type="button"
+                          class="upload-photo-btn"
+                          @click="$refs['purchasePhoto' + index][0].click()"
+                          :disabled="uploadingPurchasePhoto === index"
+                        >
+                          <i class="fas fa-spinner fa-spin" v-if="uploadingPurchasePhoto === index"></i>
+                          <i class="fas fa-upload" v-else></i>
+                          {{ item.image ? 'Заменить фото' : 'Загрузить фото' }}
+                        </button>
+                      </div>
                     </div>
                     <button type="button" class="remove-item-btn" @click="removePurchaseItem(index)">
                       <i class="fas fa-times"></i>
@@ -925,7 +941,7 @@
 
           <div class="footer-spacer"></div>
 
-          <button @click="closeCreateModal" class="cancel-btn" :disabled="saving">
+          <button @click="handleCloseModal" class="cancel-btn" :disabled="saving">
             <span>Отменить</span>
           </button>
 
@@ -1032,6 +1048,7 @@ export default {
       isEditing: false,
       saving: false,
       eventForm: this.getEmptyForm(),
+      originalFormData: null,
       
       // Удаление
       eventToDelete: null,
@@ -1046,6 +1063,7 @@ export default {
       uploadProgress: 0,
       uploadTotal: 0,
       uploadedPhotos: [],
+      uploadingPurchasePhoto: null,
 
       // Wizard
       currentStep: 0,
@@ -1178,6 +1196,19 @@ export default {
         const isPast = new Date(e.event_date) < new Date()
         return isPast && !e.review_completed
       })
+    },
+
+    hasUnsavedChanges() {
+      if (!this.originalFormData) return false
+
+      // Сравниваем текущую форму с исходной
+      const currentForm = JSON.stringify({
+        ...this.eventForm,
+        uploadedPhotos: this.uploadedPhotos
+      })
+      const originalForm = JSON.stringify(this.originalFormData)
+
+      return currentForm !== originalForm
     },
 
     // Фильтрация категорий рейтинга в зависимости от типа мероприятия (согласно таблице event_type_rating_config)
@@ -1368,7 +1399,23 @@ export default {
       this.isEditing = false
       this.eventForm = this.getEmptyForm()
       this.uploadedPhotos = []
+      // Сохраняем исходное состояние
+      this.originalFormData = {
+        ...this.eventForm,
+        uploadedPhotos: []
+      }
       this.showCreateModal = true
+    },
+
+    handleCloseModal() {
+      // Проверяем наличие несохраненных изменений
+      if (this.hasUnsavedChanges) {
+        if (confirm('У вас есть несохраненные изменения. Вы уверены, что хотите выйти?')) {
+          this.closeCreateModal()
+        }
+      } else {
+        this.closeCreateModal()
+      }
     },
 
     closeCreateModal() {
@@ -1376,6 +1423,7 @@ export default {
       this.isEditing = false
       this.eventForm = this.getEmptyForm()
       this.uploadedPhotos = []
+      this.originalFormData = null
       this.currentStep = 0
       this.maxReachedStep = 0
     },
@@ -1425,6 +1473,70 @@ export default {
 
     removePurchaseItem(index) {
       this.eventForm.purchase_items.splice(index, 1)
+    },
+
+    async uploadPurchasePhoto(event, index) {
+      const file = event.target.files[0]
+      if (!file) return
+
+      if (!this.eventForm.id) {
+        this.$emit('notification', 'Сначала сохраните мероприятие', 'warning')
+        return
+      }
+
+      this.uploadingPurchasePhoto = index
+
+      try {
+        console.log(`📸 Загружаем фото покупки для мероприятия ${this.eventForm.id}...`)
+
+        const { s3Api } = await import('@/config/s3.js')
+
+        // Загружаем фото покупки
+        const result = await s3Api.uploadPurchasePhoto(file, this.eventForm.id)
+
+        // Сохраняем URL в форме
+        this.eventForm.purchase_items[index].image = result.url
+
+        this.$emit('notification', '✅ Фото покупки загружено', 'success')
+        console.log('✅ Фото покупки загружено:', result.url)
+
+      } catch (error) {
+        console.error('❌ Ошибка загрузки фото покупки:', error)
+        this.$emit('notification', 'Ошибка загрузки: ' + error.message, 'error')
+      } finally {
+        this.uploadingPurchasePhoto = null
+        event.target.value = ''
+      }
+    },
+
+    async deletePurchasePhoto(index) {
+      const item = this.eventForm.purchase_items[index]
+      if (!item.image) return
+
+      try {
+        console.log('🗑️ Удаляем фото покупки:', item.image)
+
+        const { s3Api } = await import('@/config/s3.js')
+
+        // Извлекаем путь файла из URL
+        const url = new URL(item.image)
+        const pathParts = url.pathname.split('/')
+        const bucketIndex = pathParts.indexOf('foxtaffy')
+        if (bucketIndex !== -1) {
+          const filePath = pathParts.slice(bucketIndex + 1).join('/')
+          await s3Api.deleteFile(filePath)
+          console.log('✅ Фото покупки удалено из Storage')
+        }
+
+        // Удаляем URL из формы
+        this.eventForm.purchase_items[index].image = ''
+
+        this.$emit('notification', 'Фото покупки удалено', 'success')
+
+      } catch (error) {
+        console.error('❌ Ошибка удаления фото покупки:', error)
+        this.$emit('notification', 'Ошибка удаления: ' + error.message, 'error')
+      }
     },
 
     onAvatarUploaded(fileData) {
@@ -1541,11 +1653,6 @@ export default {
       // Если это не новая фотография (уже сохранена в БД)
       if (photo && typeof photo === 'object' && photo.id) {
         try {
-          // Подтверждение удаления
-          if (!confirm('Удалить эту фотографию? Файлы будут удалены из Storage и базы данных.')) {
-            return
-          }
-
           console.log('🗑️ Удаляем фотографию из БД и Storage:', photo.id)
 
           // Удаляем через API (удалит из БД и Storage)
@@ -1596,7 +1703,12 @@ export default {
           image: p.image_url
         }))
 
-        this.uploadedPhotos = photos.map(p => p.image_url)
+        // Используем миниатюры для превью вместо оригиналов
+        this.uploadedPhotos = photos.map(p => ({
+          id: p.id,
+          url: p.thumbnail_url || p.image_url,
+          isNew: false
+        }))
       } catch (error) {
         console.error('Ошибка загрузки данных:', error)
         this.eventForm.purchase_items = []
@@ -1605,6 +1717,13 @@ export default {
 
       this.currentStep = 0
       this.maxReachedStep = 3 // Allow access to all steps when editing
+
+      // Сохраняем исходное состояние после загрузки всех данных
+      this.originalFormData = {
+        ...this.eventForm,
+        uploadedPhotos: [...this.uploadedPhotos]
+      }
+
       this.showCreateModal = true
     },
     
@@ -1681,6 +1800,12 @@ export default {
         slug: '',
         created_at: undefined,
         updated_at: undefined
+      }
+      this.uploadedPhotos = []
+      // Сохраняем исходное состояние
+      this.originalFormData = {
+        ...this.eventForm,
+        uploadedPhotos: []
       }
       this.showCreateModal = true
     },
@@ -3985,6 +4110,7 @@ export default {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
 }
 
 .purchase-item-image img {
@@ -3998,11 +4124,74 @@ export default {
   font-size: 1.2rem;
 }
 
+.purchase-photo-delete {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  background: rgba(239, 68, 68, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.purchase-item-image:hover .purchase-photo-delete {
+  opacity: 1;
+}
+
+.purchase-photo-delete i {
+  font-size: 0.7rem;
+  color: white;
+}
+
+.purchase-photo-delete:hover {
+  background: rgba(220, 38, 38, 1);
+}
+
 .purchase-item-info {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.purchase-photo-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.upload-photo-btn {
+  padding: 0.5rem 0.75rem;
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: var(--border-radius-small);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.upload-photo-btn:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.upload-photo-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.upload-photo-btn i {
+  font-size: 0.85rem;
 }
 
 .form-input.small {
