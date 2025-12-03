@@ -714,7 +714,6 @@ export default {
           total_spent: 8500,
           attendees_count: 400,
           photos_count: 47,
-          is_featured: true,
           meta_image: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/events/aff5_banner.jpg',
           description: 'Невероятный фестиваль! Три дня полного погружения в фурри-культуру.'
         },
@@ -732,7 +731,6 @@ export default {
           total_spent: 7500,
           attendees_count: 160,
           photos_count: 32,
-          is_featured: true,
           meta_image: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/events/foxwood_banner.jpg',
           description: 'Совершенно потрясающая концепция! Лесная тематика смешанная с ностальгией по нулевым.'
         }

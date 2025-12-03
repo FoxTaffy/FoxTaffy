@@ -54,12 +54,11 @@ export const furryApi = {
    */
   async getEvents(options = {}) {
     const {
-      status = 'all', // 'upcoming', 'completed', 'all', 'featured'
+      status = 'all', // 'upcoming', 'completed', 'all'
       event_type,
       attendance_status,
       city,
       search,
-      featured = false,
       limit = 20,
       offset = 0,
       sort = 'date_desc' // 'date_desc', 'date_asc', 'name_asc', 'name_desc', 'rating_desc', 'created_desc'
@@ -78,8 +77,6 @@ export const furryApi = {
         query = query.gt('event_date', new Date().toISOString().split('T')[0])
       } else if (status === 'completed') {
         query = query.lt('event_date', new Date().toISOString().split('T')[0])
-      } else if (status === 'featured') {
-        query = query.eq('is_featured', true)
       }
 
       // Фильтрация по типу мероприятия
@@ -218,25 +215,23 @@ export const furryApi = {
       
       const { data, error } = await supabase
         .from('cons')
-        .select('id, event_date, my_rating, total_spent, attendees_count, is_featured')
+        .select('id, event_date, my_rating, total_spent, attendees_count')
 
       if (error) throw error
 
       const now = new Date()
       const todayISO = now.toISOString().split('T')[0]
-      
+
       const upcoming = data.filter(e => e.event_date > todayISO)
       const completed = data.filter(e => e.event_date <= todayISO)
-      const featured = data.filter(e => e.is_featured)
 
       const stats = {
         total: data.length,
         upcoming: upcoming.length,
         completed: completed.length,
-        featured: featured.length,
         totalSpent: data.reduce((sum, e) => sum + (e.total_spent || 0), 0),
-        averageRating: data.filter(e => e.my_rating).length > 0 
-          ? data.reduce((sum, e) => sum + (e.my_rating || 0), 0) / data.filter(e => e.my_rating).length 
+        averageRating: data.filter(e => e.my_rating).length > 0
+          ? data.reduce((sum, e) => sum + (e.my_rating || 0), 0) / data.filter(e => e.my_rating).length
           : 0,
         totalAttendees: data.reduce((sum, e) => sum + (e.attendees_count || 0), 0)
       }
@@ -247,7 +242,7 @@ export const furryApi = {
     } catch (error) {
       console.error('❌ getEventsStats: Ошибка получения статистики:', error)
       return {
-        total: 0, upcoming: 0, completed: 0, featured: 0,
+        total: 0, upcoming: 0, completed: 0,
         totalSpent: 0, averageRating: 0, totalAttendees: 0
       }
     }
@@ -1611,7 +1606,7 @@ export const furryApi = {
     
     // Конвертируем булевы поля
     const booleanFields = [
-      'is_featured', 'has_dealers_den', 
+      'has_dealers_den',
       'has_art_show', 'has_fursuit_parade'
     ]
     
