@@ -2,7 +2,11 @@
   <div class="character-evolution">
     <!-- Hero Section с градиентом -->
     <div class="hero-section" ref="heroSection">
-      <div class="hero-particles"></div>
+      <!-- Анимированный фон с пульсирующими кругами -->
+      <div class="hero-particles-animated">
+        <div class="particle-circle" v-for="i in 50" :key="i" :style="getParticleStyle(i)"></div>
+      </div>
+
       <div class="hero-content fade-in">
         <div class="character-avatar-container">
           <div class="avatar-ring"></div>
@@ -355,6 +359,37 @@ const evolutionSteps = reactive([
 ])
 
 // ============================================
+// АНИМАЦИЯ ЧАСТИЦ
+// ============================================
+const getParticleStyle = (index) => {
+  // Цвета персонажа Taffy: оранжевый, зеленый, голубой
+  const colors = [
+    'rgba(255, 123, 37, 0.6)',   // Оранжевый
+    'rgba(102, 255, 102, 0.6)',  // Зеленый
+    'rgba(102, 204, 255, 0.6)',  // Голубой
+    'rgba(255, 179, 102, 0.5)',  // Светло-оранжевый
+    'rgba(153, 255, 153, 0.5)'   // Светло-зеленый
+  ]
+
+  const size = Math.random() * 100 + 30 // 30-130px
+  const left = Math.random() * 100 // 0-100%
+  const top = Math.random() * 100 // 0-100%
+  const animationDuration = Math.random() * 4 + 3 // 3-7s
+  const animationDelay = Math.random() * 3 // 0-3s
+  const color = colors[Math.floor(Math.random() * colors.length)]
+
+  return {
+    width: `${size}px`,
+    height: `${size}px`,
+    left: `${left}%`,
+    top: `${top}%`,
+    background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
+    animationDuration: `${animationDuration}s`,
+    animationDelay: `${animationDelay}s`
+  }
+}
+
+// ============================================
 // ГАЛЕРЕЯ АРТОВ ИЗ БД
 // ============================================
 const taffyArts = ref([])
@@ -578,26 +613,47 @@ const handleKeyDown = (e) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0c29 100%);
   overflow: hidden;
 }
 
-.hero-particles {
+/* Анимированный фон с пульсирующими кругами */
+.hero-particles-animated {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background:
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 45%);
-  animation: float 20s ease-in-out infinite;
+  overflow: hidden;
+  z-index: 1;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-20px) scale(1.05); }
+.particle-circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  animation: particlePulse 5s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+@keyframes particlePulse {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+    opacity: 0.6;
+  }
+  25% {
+    transform: scale(1.2) translateY(-20px);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(0.8) translateY(20px);
+    opacity: 0.4;
+  }
+  75% {
+    transform: scale(1.1) translateY(-10px);
+    opacity: 0.7;
+  }
 }
 
 .hero-content {
@@ -609,7 +665,9 @@ const handleKeyDown = (e) => {
 
 .character-avatar-container {
   position: relative;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 3rem;
 }
 
@@ -621,11 +679,11 @@ const handleKeyDown = (e) => {
   width: 280px;
   height: 280px;
   border-radius: 50%;
-  background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #667eea);
+  background: linear-gradient(45deg, #ff7b25, #66ff66, #66ccff, #ff7b25);
   background-size: 300% 300%;
   animation: gradientRotate 8s ease infinite;
-  filter: blur(8px);
-  opacity: 0.6;
+  filter: blur(12px);
+  opacity: 0.7;
 }
 
 @keyframes gradientRotate {
@@ -640,9 +698,15 @@ const handleKeyDown = (e) => {
   height: 250px;
   border-radius: 50%;
   overflow: hidden;
-  border: 6px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  border: 6px solid rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 60px rgba(255, 123, 37, 0.3),
+    inset 0 0 20px rgba(255, 255, 255, 0.1);
   animation: avatarFloat 6s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @keyframes avatarFloat {
@@ -682,37 +746,42 @@ const handleKeyDown = (e) => {
 }
 
 .stat-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-radius: 20px;
   padding: 2rem 3rem;
   min-width: 160px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: none;
   transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 }
 
 .stat-card:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-5px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-8px);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.2),
+    0 0 30px rgba(255, 123, 37, 0.3);
 }
 
 .stat-icon {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
-  color: #667eea;
+  color: #ff7b25;
+  filter: drop-shadow(0 2px 4px rgba(255, 123, 37, 0.3));
 }
 
 .stat-value {
   font-size: 2.5rem;
   font-weight: 700;
   margin: 0.5rem 0;
+  color: #1a1a2e;
 }
 
 .stat-label {
   font-size: 0.95rem;
-  opacity: 0.9;
-  font-weight: 400;
+  color: #666;
+  font-weight: 500;
 }
 
 /* ============================================
@@ -760,8 +829,8 @@ const handleKeyDown = (e) => {
 
 .title-icon {
   font-size: 2.5rem;
-  color: #667eea;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  color: #ff7b25;
+  filter: drop-shadow(0 4px 8px rgba(255, 123, 37, 0.4));
 }
 
 .timeline-wrapper {
@@ -989,7 +1058,7 @@ const handleKeyDown = (e) => {
 
 .heading-icon {
   font-size: 1.5rem;
-  color: #667eea;
+  color: #ff7b25;
 }
 
 .changes-list {
@@ -1034,7 +1103,7 @@ const handleKeyDown = (e) => {
 .notes-icon {
   font-size: 1.5rem;
   flex-shrink: 0;
-  color: #f093fb;
+  color: #66ff66;
 }
 
 .notes-text {
@@ -1300,7 +1369,7 @@ const handleKeyDown = (e) => {
 
 .artist-icon {
   font-size: 1.25rem;
-  color: #667eea;
+  color: #ff7b25;
 }
 
 .lightbox-nav {
