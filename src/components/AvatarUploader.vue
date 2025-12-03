@@ -248,22 +248,26 @@ const removeAvatar = () => {
 
 .avatar-preview {
   position: relative;
-  width: 100px;
-  height: 100px;
-  border-radius: 12px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
   overflow: hidden;
-  border: 2px solid rgba(255, 123, 37, 0.3);
-  background: rgba(255, 255, 255, 0.05);
+  border: 3px solid rgba(255, 123, 37, 0.2);
+  background: linear-gradient(135deg, rgba(255, 123, 37, 0.1), rgba(255, 123, 37, 0.05));
   flex-shrink: 0;
-  transition: border-color 0.3s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(255, 123, 37, 0.15);
 }
 
 .avatar-preview:hover {
-  border-color: rgba(255, 123, 37, 0.6);
+  border-color: rgba(255, 123, 37, 0.5);
+  box-shadow: 0 8px 30px rgba(255, 123, 37, 0.25);
+  transform: scale(1.05);
 }
 
 .avatar-preview.is-uploading {
   border-color: #FF7B25;
+  box-shadow: 0 0 0 4px rgba(255, 123, 37, 0.2);
 }
 
 .avatar-image {

@@ -1042,17 +1042,72 @@
                   </div>
 
                   <div class="form-group">
-                    <label>Художник *</label>
-                    <select
-                      v-model="modal.data.artist_nickname"
-                      class="form-input"
-                      required
+                    <label>
+                      Художник *
+                      <span v-if="modal.data.artist_nickname" class="selected-count">
+                        (выбран)
+                      </span>
+                    </label>
+
+                    <button
+                      type="button"
+                      @click="modalArtistSelectorOpen = !modalArtistSelectorOpen"
+                      class="selector-btn"
+                      :class="{ active: modalArtistSelectorOpen }"
                     >
-                      <option value="" disabled>Выберите художника...</option>
-                      <option v-for="artist in availableArtists" :key="artist.id" :value="artist.name">
-                        {{ artist.name }} {{ artist.is_friend ? '⭐' : '' }}
-                      </option>
-                    </select>
+                      <div class="selector-btn-content">
+                        <i class="fas fa-palette"></i>
+                        <span v-if="modal.data.artist_nickname">{{ modal.data.artist_nickname }}</span>
+                        <span v-else>Выбрать художника</span>
+                      </div>
+                      <i class="fas fa-chevron-down" :class="{ rotated: modalArtistSelectorOpen }"></i>
+                    </button>
+
+                    <div v-if="modalArtistSelectorOpen" class="selector-dropdown">
+                      <div class="selector-header">
+                        <input
+                          v-model="modalArtistSearch"
+                          type="text"
+                          placeholder="Поиск художников..."
+                          class="search-input"
+                        >
+                        <div class="selector-actions">
+                          <button type="button" @click="modal.data.artist_nickname = ''; modalArtistSearch = ''">Очистить</button>
+                        </div>
+                      </div>
+
+                      <div class="selector-list">
+                        <label
+                          v-for="artist in filteredModalArtists"
+                          :key="artist.id"
+                          class="selector-item artist-item"
+                          :class="{ selected: modal.data.artist_nickname === artist.name }"
+                        >
+                          <input
+                            type="radio"
+                            :value="artist.name"
+                            v-model="modal.data.artist_nickname"
+                            name="modal-artist"
+                            @change="modalArtistSelectorOpen = false"
+                          >
+                          <img
+                            :src="artist.avatar_url || getDefaultAvatar(artist.name)"
+                            :alt="artist.name"
+                            class="item-avatar"
+                          >
+                          <div class="artist-info">
+                            <span class="item-name">{{ artist.name }}</span>
+                            <div class="artist-meta">
+                              <span class="item-count">{{ artist.count || 0 }} артов</span>
+                              <div v-if="artist.is_friend" class="friend-indicator">
+                                <i class="fas fa-star"></i>
+                                <span>Друг</span>
+                              </div>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
                   </div>
 
                   <div class="form-group">
@@ -1305,6 +1360,10 @@ const deleteModal = reactive({
   item: null
 })
 
+// Селектор художника в модальном окне
+const modalArtistSelectorOpen = ref(false)
+const modalArtistSearch = ref('')
+
 // Уведомления
 const notification = reactive({
   show: false,
@@ -1400,8 +1459,15 @@ const filteredCharacters = computed(() => {
 
 const filteredArtistsForSelector = computed(() => {
   if (!artistSearchQuery.value) return availableArtists.value
-  return availableArtists.value.filter(artist => 
+  return availableArtists.value.filter(artist =>
     artist.name.toLowerCase().includes(artistSearchQuery.value.toLowerCase())
+  )
+})
+
+const filteredModalArtists = computed(() => {
+  if (!modalArtistSearch.value) return availableArtists.value
+  return availableArtists.value.filter(artist =>
+    artist.name.toLowerCase().includes(modalArtistSearch.value.toLowerCase())
   )
 })
 
@@ -1841,6 +1907,8 @@ const closeModal = () => {
   modal.type = ''
   modal.editing = null
   modal.data = {}
+  modalArtistSelectorOpen.value = false
+  modalArtistSearch.value = ''
 }
 
 const editArtist = (artist) => openModal('artist', artist)
@@ -2138,11 +2206,12 @@ onMounted(() => {
   document.addEventListener('click', (event) => {
     const selectorElements = document.querySelectorAll('.selector-btn, .selector-dropdown')
     const clickedInside = Array.from(selectorElements).some(el => el.contains(event.target))
-    
+
     if (!clickedInside) {
       showTagSelector.value = false
       showCharacterSelector.value = false
       showArtistSelector.value = false
+      modalArtistSelectorOpen.value = false
     }
   })
 })
@@ -2941,6 +3010,7 @@ watch(activeTab, () => {
 }
 
 .form-group {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -3811,16 +3881,33 @@ watch(activeTab, () => {
 }
 
 .selector-dropdown {
-  margin-top: 0.75rem;
-  background: rgba(15, 15, 15, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.5rem;
+  background: rgba(15, 15, 15, 0.98);
+  border: 1px solid rgba(255, 123, 37, 0.3);
   border-radius: 12px;
   backdrop-filter: blur(20px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 123, 37, 0.1);
   max-height: 400px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  z-index: 1000;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .selector-header {
