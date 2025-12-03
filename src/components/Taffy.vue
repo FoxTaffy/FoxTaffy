@@ -7,12 +7,10 @@
         <div class="character-avatar-container">
           <div class="avatar-ring"></div>
           <div class="character-avatar">
-            <img src="/src/assets/Image/Avatar.jpg" alt="Fox Taffy" />
+            <img src="/src/assets/Image/Avatar.jpg" alt="Fox Taffy" loading="lazy" />
           </div>
         </div>
-        <h1 class="character-name">
-          <span class="name-gradient">Fox Taffy</span>
-        </h1>
+        <h1 class="character-name">Fox Taffy</h1>
         <p class="character-tagline">Эволюция дизайна с 2019 по 2025</p>
         <div class="character-stats">
           <div class="stat-card">
@@ -81,17 +79,44 @@
                 <div class="card-image-wrapper">
                   <div v-if="!step.artwork" class="card-image-placeholder">
                     <div class="placeholder-icon">🖼️</div>
-                    <p class="placeholder-text">Арт в разработке</p>
+                    <p class="placeholder-text">Добавьте фотографию</p>
+                    <label :for="`file-upload-${index}`" class="upload-btn">
+                      📤 Загрузить фото
+                    </label>
+                    <input
+                      :id="`file-upload-${index}`"
+                      type="file"
+                      accept="image/*"
+                      @change="handleFileUpload($event, index)"
+                      class="file-input"
+                    />
                   </div>
-                  <img
-                    v-else
-                    :src="step.artwork"
-                    :alt="`${character.name} - ${step.version}`"
-                    class="card-image"
-                    @click="openLightbox(step)"
-                  />
-                  <div class="image-overlay">
-                    <div class="overlay-icon">🔍</div>
+                  <div v-else class="card-image-container">
+                    <img
+                      :src="step.artwork"
+                      :alt="`${character.name} - ${step.version}`"
+                      class="card-image"
+                      @click="openLightbox(step)"
+                      loading="lazy"
+                    />
+                    <div class="image-actions">
+                      <label :for="`file-replace-${index}`" class="action-btn replace-btn">
+                        🔄
+                      </label>
+                      <button @click="removeImage(index)" class="action-btn remove-btn">
+                        🗑️
+                      </button>
+                      <input
+                        :id="`file-replace-${index}`"
+                        type="file"
+                        accept="image/*"
+                        @change="handleFileUpload($event, index)"
+                        class="file-input"
+                      />
+                    </div>
+                    <div class="image-overlay" @click="openLightbox(step)">
+                      <div class="overlay-icon">🔍</div>
+                    </div>
                   </div>
                 </div>
 
@@ -258,11 +283,14 @@ const character = reactive({
   createdYear: '2019'
 })
 
+// Base URL для изображений в Main бакете S3
+const MAIN_BUCKET_URL = 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Main/Taffy/'
+
 const evolutionSteps = reactive([
   {
     year: '2019',
     version: 'Первоначальный дизайн',
-    artwork: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/Taffy/1taffy.jpg',
+    artwork: `${MAIN_BUCKET_URL}2019-first-design.jpg`,
     changes: [
       'Лаймово-голубые лапы и волосы',
       'Очки и цветки на шее',
@@ -274,7 +302,7 @@ const evolutionSteps = reactive([
   {
     year: '2020',
     version: 'Доработка и первый арт',
-    artwork: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/Taffy/old.jpg',
+    artwork: `${MAIN_BUCKET_URL}2020-rework.jpg`,
     changes: [
       'Нос изменён с чёрного на голубой',
       'Волосы убраны для чистоты дизайна',
@@ -287,7 +315,7 @@ const evolutionSteps = reactive([
   {
     year: '2021',
     version: 'Упрощение палитры',
-    artwork: null, // Шаблон для добавления
+    artwork: null, // Шаблон для добавления через загрузку
     changes: [
       'Упрощена цветовая палитра',
       'Улучшена читаемость персонажа',
@@ -299,7 +327,7 @@ const evolutionSteps = reactive([
   {
     year: '2022',
     version: 'Новый художественный стиль',
-    artwork: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/Taffy/2022_new_style.jpg',
+    artwork: `${MAIN_BUCKET_URL}2022-new-style.jpg`,
     changes: [
       'Кардинально изменен художественный стиль',
       'Добавлены уникальные особенности меха',
@@ -312,7 +340,7 @@ const evolutionSteps = reactive([
   {
     year: '2023',
     version: 'Детализация и проработка',
-    artwork: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/Taffy/2023_detailed.jpg',
+    artwork: `${MAIN_BUCKET_URL}2023-detailed.jpg`,
     changes: [
       'Добавлено множество мелких деталей',
       'Проработана текстура и градиенты меха',
@@ -325,7 +353,7 @@ const evolutionSteps = reactive([
   {
     year: '2024',
     version: 'Современная версия',
-    artwork: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/Taffy/2024_current.jpg',
+    artwork: `${MAIN_BUCKET_URL}2024-current.jpg`,
     changes: [
       'Финальные штрихи в дизайне',
       'Создание альтернативных образов и аутфитов',
@@ -338,7 +366,7 @@ const evolutionSteps = reactive([
   {
     year: '2025',
     version: 'Планы на будущее',
-    artwork: null, // Шаблон для добавления
+    artwork: null, // Шаблон для добавления через загрузку
     changes: [
       'Работа над 3D моделью',
       'Создание анимированных эмоций',
@@ -349,6 +377,41 @@ const evolutionSteps = reactive([
     notes: 'Taffy продолжает развиваться! Впереди много интересных проектов и новых воплощений персонажа.'
   }
 ])
+
+// ============================================
+// ОБРАБОТКА ЗАГРУЗКИ ФАЙЛОВ
+// ============================================
+const handleFileUpload = (event, index) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  // Проверка типа файла
+  if (!file.type.startsWith('image/')) {
+    alert('Пожалуйста, выберите изображение')
+    return
+  }
+
+  // Проверка размера (макс 10MB)
+  if (file.size > 10 * 1024 * 1024) {
+    alert('Размер файла не должен превышать 10MB')
+    return
+  }
+
+  // Создаем локальный URL для предпросмотра
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    evolutionSteps[index].artwork = e.target.result
+    console.log(`✅ Изображение для ${evolutionSteps[index].year} загружено локально`)
+  }
+  reader.readAsDataURL(file)
+}
+
+const removeImage = (index) => {
+  if (confirm(`Удалить изображение для ${evolutionSteps[index].year}?`)) {
+    evolutionSteps[index].artwork = null
+    console.log(`🗑️ Изображение для ${evolutionSteps[index].year} удалено`)
+  }
+}
 
 // ============================================
 // ГАЛЕРЕЯ АРТОВ ИЗ БД
@@ -641,14 +704,8 @@ const handleKeyDown = (e) => {
   font-weight: 900;
   margin: 0 0 1rem 0;
   letter-spacing: -2px;
-}
-
-.name-gradient {
-  background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+  color: #ffffff;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .character-tagline {
@@ -920,6 +977,84 @@ const handleKeyDown = (e) => {
 .placeholder-text {
   font-size: 1.2rem;
   opacity: 0.6;
+  margin-bottom: 1.5rem;
+}
+
+/* Кнопки загрузки файлов */
+.upload-btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.upload-btn:hover {
+  background: linear-gradient(135deg, #764ba2, #f093fb);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.file-input {
+  display: none;
+}
+
+.card-image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.image-actions {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  display: flex;
+  gap: 10px;
+  z-index: 5;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-image-wrapper:hover .image-actions {
+  opacity: 1;
+}
+
+.action-btn {
+  width: 45px;
+  height: 45px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.action-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.replace-btn:hover {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: #667eea;
+}
+
+.remove-btn:hover {
+  background: linear-gradient(135deg, #ff4757, #ff6348);
+  border-color: #ff4757;
 }
 
 .card-body {
