@@ -352,7 +352,7 @@
     </div>
 
     <!-- Модальное окно создания/редактирования мероприятия -->
-    <div v-if="showCreateModal" class="modal-overlay" @click="closeCreateModal">
+    <div v-if="showCreateModal" class="modal-overlay" @click="handleCloseModal">
       <div class="modal create-modal wizard-modal" @click.stop>
         <div class="modal-header">
           <h3 class="modal-title">
@@ -844,7 +844,7 @@
                 </button>
                 <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-preview">
                   <div v-for="(photo, index) in uploadedPhotos" :key="index" class="uploaded-photo">
-                    <img :src="typeof photo === 'string' ? photo : photo.url" alt="" />
+                    <img :src="typeof photo === 'string' ? photo : photo.url" alt="" loading="lazy" />
                     <button type="button" class="remove-photo-btn" @click="removeUploadedPhoto(index)" :title="photo.id ? 'Удалить из БД и Storage' : 'Удалить из превью'">
                       <i class="fas fa-times"></i>
                     </button>
@@ -874,7 +874,7 @@
                     class="purchase-item-card"
                   >
                     <div class="purchase-item-image">
-                      <img v-if="item.image" :src="item.image" alt="" />
+                      <img v-if="item.image" :src="item.image" alt="" loading="lazy" />
                       <i v-else class="fas fa-image"></i>
                       <div v-if="item.image" class="purchase-photo-delete" @click="deletePurchasePhoto(index)">
                         <i class="fas fa-trash"></i>
@@ -941,7 +941,7 @@
 
           <div class="footer-spacer"></div>
 
-          <button @click="closeCreateModal" class="cancel-btn" :disabled="saving">
+          <button @click="handleCloseModal" class="cancel-btn" :disabled="saving">
             <span>Отменить</span>
           </button>
 
@@ -1048,6 +1048,7 @@ export default {
       isEditing: false,
       saving: false,
       eventForm: this.getEmptyForm(),
+      originalFormData: null,
       
       // Удаление
       eventToDelete: null,
@@ -1195,6 +1196,19 @@ export default {
         const isPast = new Date(e.event_date) < new Date()
         return isPast && !e.review_completed
       })
+    },
+
+    hasUnsavedChanges() {
+      if (!this.originalFormData) return false
+
+      // Сравниваем текущую форму с исходной
+      const currentForm = JSON.stringify({
+        ...this.eventForm,
+        uploadedPhotos: this.uploadedPhotos
+      })
+      const originalForm = JSON.stringify(this.originalFormData)
+
+      return currentForm !== originalForm
     },
 
     // Фильтрация категорий рейтинга в зависимости от типа мероприятия (согласно таблице event_type_rating_config)
@@ -1385,7 +1399,23 @@ export default {
       this.isEditing = false
       this.eventForm = this.getEmptyForm()
       this.uploadedPhotos = []
+      // Сохраняем исходное состояние
+      this.originalFormData = {
+        ...this.eventForm,
+        uploadedPhotos: []
+      }
       this.showCreateModal = true
+    },
+
+    handleCloseModal() {
+      // Проверяем наличие несохраненных изменений
+      if (this.hasUnsavedChanges) {
+        if (confirm('У вас есть несохраненные изменения. Вы уверены, что хотите выйти?')) {
+          this.closeCreateModal()
+        }
+      } else {
+        this.closeCreateModal()
+      }
     },
 
     closeCreateModal() {
@@ -1393,6 +1423,7 @@ export default {
       this.isEditing = false
       this.eventForm = this.getEmptyForm()
       this.uploadedPhotos = []
+      this.originalFormData = null
       this.currentStep = 0
       this.maxReachedStep = 0
     },
@@ -1672,7 +1703,12 @@ export default {
           image: p.image_url
         }))
 
-        this.uploadedPhotos = photos.map(p => p.image_url)
+        // Используем миниатюры для превью вместо оригиналов
+        this.uploadedPhotos = photos.map(p => ({
+          id: p.id,
+          url: p.thumbnail_url || p.image_url,
+          isNew: false
+        }))
       } catch (error) {
         console.error('Ошибка загрузки данных:', error)
         this.eventForm.purchase_items = []
@@ -1681,6 +1717,13 @@ export default {
 
       this.currentStep = 0
       this.maxReachedStep = 3 // Allow access to all steps when editing
+
+      // Сохраняем исходное состояние после загрузки всех данных
+      this.originalFormData = {
+        ...this.eventForm,
+        uploadedPhotos: [...this.uploadedPhotos]
+      }
+
       this.showCreateModal = true
     },
     
@@ -1757,6 +1800,12 @@ export default {
         slug: '',
         created_at: undefined,
         updated_at: undefined
+      }
+      this.uploadedPhotos = []
+      // Сохраняем исходное состояние
+      this.originalFormData = {
+        ...this.eventForm,
+        uploadedPhotos: []
       }
       this.showCreateModal = true
     },
