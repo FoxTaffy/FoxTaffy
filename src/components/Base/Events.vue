@@ -31,9 +31,10 @@
       >
         <!-- Изображение -->
         <div class="card-image">
-          <img 
-            :src="getImageUrl(event)" 
+          <img
+            :src="getImageUrl(event)"
             :alt="event.name"
+            loading="lazy"
             @error="onImageError"
           >
           
@@ -159,9 +160,10 @@
       <div class="event-card show-more-card" @click="showAllEvents">
         <!-- Заблюренное изображение -->
         <div class="card-image blurred">
-          <img 
-            :src="getImageUrl(thirdEvent)" 
+          <img
+            :src="getImageUrl(thirdEvent)"
             :alt="thirdEvent.name"
+            loading="lazy"
             @error="onImageError"
           >
           
