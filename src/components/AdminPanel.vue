@@ -274,9 +274,9 @@
                     </button>
                   </div>
                   <div class="recent-arts">
-                    <div 
-                      v-for="art in recentArts.slice(0, 8)" 
-                      :key="art.id" 
+                    <div
+                      v-for="art in recentArts.slice(0, 6)"
+                      :key="art.id"
                       class="recent-art"
                       @click="viewArt(art)"
                     >
@@ -302,7 +302,7 @@
                     <h3><i class="fas fa-crown"></i> Топ художники</h3>
                     <div class="top-artists">
                       <div
-                        v-for="(artist, index) in topArtists.slice(0, 5)"
+                        v-for="(artist, index) in topArtists.slice(0, 4)"
                         :key="artist.id"
                         class="top-artist-item"
                       >
@@ -327,7 +327,7 @@
                     <h3><i class="fas fa-fire"></i> Популярные теги</h3>
                     <div class="popular-tags">
                       <div
-                        v-for="tag in popularTags.slice(0, 10)"
+                        v-for="tag in popularTags.slice(0, 6)"
                         :key="tag.id"
                         class="popular-tag"
                       >
@@ -1139,21 +1139,67 @@
                   </div>
 
                   <div class="form-group">
-                    <label>Персонажи</label>
-                    <div class="tags-selector">
-                      <label
-                        v-for="character in availableCharacters"
-                        :key="character.id"
-                        class="tag-checkbox"
-                        :class="{ selected: modal.data.characters?.includes(character.name) }"
-                      >
+                    <label>
+                      Персонажи
+                      <span v-if="modal.data.characters?.length" class="selected-count">
+                        ({{ modal.data.characters.length }} выбрано)
+                      </span>
+                    </label>
+
+                    <button
+                      type="button"
+                      @click="modalCharacterSelectorOpen = !modalCharacterSelectorOpen"
+                      class="selector-btn"
+                      :class="{ active: modalCharacterSelectorOpen }"
+                    >
+                      <div class="selector-btn-content">
+                        <i class="fas fa-paw"></i>
+                        <span v-if="modal.data.characters?.length">
+                          {{ modal.data.characters.length }} персонаж{{ modal.data.characters.length === 1 ? '' : (modal.data.characters.length < 5 ? 'а' : 'ей') }}
+                        </span>
+                        <span v-else>Выбрать персонажей</span>
+                      </div>
+                      <i class="fas fa-chevron-down" :class="{ rotated: modalCharacterSelectorOpen }"></i>
+                    </button>
+
+                    <div v-if="modalCharacterSelectorOpen" class="selector-dropdown">
+                      <div class="selector-header">
                         <input
-                          type="checkbox"
-                          :value="character.name"
-                          v-model="modal.data.characters"
+                          v-model="modalCharacterSearch"
+                          type="text"
+                          placeholder="Поиск персонажей..."
+                          class="search-input"
                         >
-                        <span class="tag-label">{{ character.name }}</span>
-                      </label>
+                        <div class="selector-actions">
+                          <button type="button" @click="modal.data.characters = []; modalCharacterSearch = ''">Очистить</button>
+                        </div>
+                      </div>
+
+                      <div class="selector-list">
+                        <label
+                          v-for="character in filteredModalCharacters"
+                          :key="character.id"
+                          class="selector-item character-item"
+                          :class="{ selected: modal.data.characters?.includes(character.name) }"
+                        >
+                          <input
+                            type="checkbox"
+                            :value="character.name"
+                            v-model="modal.data.characters"
+                          >
+                          <img
+                            :src="character.avatar_url || getDefaultCharacterAvatar(character.name)"
+                            :alt="character.name"
+                            class="item-avatar"
+                          >
+                          <div class="character-info">
+                            <span class="item-name">{{ character.name }}</span>
+                            <div class="character-meta">
+                              <span class="item-count">{{ character.count || 0 }} появлений</span>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
                     </div>
                   </div>
 
@@ -1360,9 +1406,11 @@ const deleteModal = reactive({
   item: null
 })
 
-// Селектор художника в модальном окне
+// Селекторы в модальном окне
 const modalArtistSelectorOpen = ref(false)
 const modalArtistSearch = ref('')
+const modalCharacterSelectorOpen = ref(false)
+const modalCharacterSearch = ref('')
 
 // Уведомления
 const notification = reactive({
@@ -1468,6 +1516,13 @@ const filteredModalArtists = computed(() => {
   if (!modalArtistSearch.value) return availableArtists.value
   return availableArtists.value.filter(artist =>
     artist.name.toLowerCase().includes(modalArtistSearch.value.toLowerCase())
+  )
+})
+
+const filteredModalCharacters = computed(() => {
+  if (!modalCharacterSearch.value) return availableCharacters.value
+  return availableCharacters.value.filter(character =>
+    character.name.toLowerCase().includes(modalCharacterSearch.value.toLowerCase())
   )
 })
 
@@ -1909,6 +1964,8 @@ const closeModal = () => {
   modal.data = {}
   modalArtistSelectorOpen.value = false
   modalArtistSearch.value = ''
+  modalCharacterSelectorOpen.value = false
+  modalCharacterSearch.value = ''
 }
 
 const editArtist = (artist) => openModal('artist', artist)
@@ -2212,6 +2269,7 @@ onMounted(() => {
       showCharacterSelector.value = false
       showArtistSelector.value = false
       modalArtistSelectorOpen.value = false
+      modalCharacterSelectorOpen.value = false
     }
   })
 })
@@ -2593,26 +2651,30 @@ watch(activeTab, () => {
 
 /* Контент вкладок */
 .tab-content {
-  padding: 2rem;
+  padding: 1.25rem;
+  overflow-y: auto;
+  max-height: calc(100vh - 160px);
 }
 
 /* Dashboard */
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2rem;
+  gap: 1rem;
+  max-height: calc(100vh - 200px);
+  overflow: hidden;
 }
 
 .dashboard-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 .dashboard-card {
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
-  padding: 2rem;
+  border-radius: 16px;
+  padding: 1.25rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -2623,9 +2685,9 @@ watch(activeTab, () => {
 .dashboard-card h3 {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin: 0 0 1.5rem 0;
-  font-size: 1.3rem;
+  gap: 0.5rem;
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
   font-weight: 600;
 }
 
@@ -2949,12 +3011,12 @@ watch(activeTab, () => {
 }
 
 .art-info {
-  padding: 1rem;
+  padding: 0.65rem;
 }
 
 .art-info h4 {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.9rem;
+  margin: 0 0 0.35rem 0;
+  font-size: 0.85rem;
   font-weight: 600;
 }
 
@@ -3603,15 +3665,15 @@ watch(activeTab, () => {
 .content-stats {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.75rem;
 }
 
 .content-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  border-radius: 12px;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 10px;
   border: 1px solid;
 }
 
@@ -3626,9 +3688,9 @@ watch(activeTab, () => {
 }
 
 .content-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3654,14 +3716,14 @@ watch(activeTab, () => {
 }
 
 .content-number {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: white;
   line-height: 1;
 }
 
 .content-label {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #888;
 }
 
@@ -3687,13 +3749,13 @@ watch(activeTab, () => {
 /* Последние арты */
 .recent-arts {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
 }
 
 .recent-art {
   background: rgba(255, 255, 255, 0.03);
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
@@ -3701,9 +3763,9 @@ watch(activeTab, () => {
 }
 
 .recent-art:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 .art-image-container {
@@ -3753,32 +3815,32 @@ watch(activeTab, () => {
 .top-artists {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .top-artist-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
+  gap: 0.65rem;
+  padding: 0.5rem;
   background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
 }
 
 .top-artist-item:hover {
   background: rgba(255, 255, 255, 0.08);
-  transform: translateX(4px);
+  transform: translateX(2px);
 }
 
 .artist-rank {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: linear-gradient(135deg, #ff6b35, #f7931e);
   color: white;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -3787,8 +3849,8 @@ watch(activeTab, () => {
 }
 
 .artist-mini-avatar {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid rgba(255, 255, 255, 0.1);
@@ -3805,11 +3867,11 @@ watch(activeTab, () => {
 .artist-name {
   font-weight: 600;
   color: white;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .artist-count {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #888;
 }
 
@@ -3825,20 +3887,20 @@ watch(activeTab, () => {
 .popular-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .popular-tag {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 0.75rem;
+  padding: 0.35rem 0.6rem;
   background: rgba(59, 130, 246, 0.1);
   border: 1px solid rgba(59, 130, 246, 0.2);
-  border-radius: 20px;
+  border-radius: 16px;
   color: #3b82f6;
-  font-size: 0.8rem;
-  min-width: 80px;
+  font-size: 0.75rem;
+  min-width: 70px;
   transition: all 0.3s ease;
 }
 
