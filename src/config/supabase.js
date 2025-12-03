@@ -476,8 +476,26 @@ export const furryApi = {
 
       if (error) throw error
 
-      console.log('✅ getEventPhotos: Фотографии загружены:', data?.length || 0)
-      return data || []
+      // Фильтруем дубликаты: оставляем только записи где есть разница между image_url и thumbnail_url
+      // Или где image_url не содержит 'thumb_' (не является миниатюрой)
+      const uniquePhotos = (data || []).filter((photo, index, self) => {
+        // Пропускаем если image_url указывает на миниатюру (содержит thumb_ или /thumbnails/)
+        if (photo.image_url && (photo.image_url.includes('thumb_') || photo.image_url.includes('/thumbnails/'))) {
+          return false
+        }
+
+        // Проверяем что нет дубликата с таким же файлом
+        const fileName = photo.image_url ? photo.image_url.split('/').pop().replace('thumb_', '') : ''
+        const isDuplicate = self.slice(0, index).some(p => {
+          const pFileName = p.image_url ? p.image_url.split('/').pop().replace('thumb_', '') : ''
+          return pFileName === fileName && pFileName !== ''
+        })
+
+        return !isDuplicate
+      })
+
+      console.log(`✅ getEventPhotos: Фотографии загружены: ${data?.length || 0} (уникальных: ${uniquePhotos.length})`)
+      return uniquePhotos
 
     } catch (error) {
       console.error('❌ getEventPhotos: Ошибка загрузки фотографий:', error)
@@ -501,8 +519,26 @@ export const furryApi = {
 
       if (error) throw error
 
-      console.log('✅ getPhotosForEvents: Фотографии загружены:', data?.length || 0)
-      return data || []
+      // Фильтруем дубликаты для каждого мероприятия
+      const uniquePhotos = (data || []).filter((photo, index, self) => {
+        // Пропускаем если image_url указывает на миниатюру
+        if (photo.image_url && (photo.image_url.includes('thumb_') || photo.image_url.includes('/thumbnails/'))) {
+          return false
+        }
+
+        // Проверяем дубликаты в рамках одного мероприятия
+        const fileName = photo.image_url ? photo.image_url.split('/').pop().replace('thumb_', '') : ''
+        const isDuplicate = self.slice(0, index).some(p => {
+          if (p.con_id !== photo.con_id) return false // Сравниваем только в рамках одного события
+          const pFileName = p.image_url ? p.image_url.split('/').pop().replace('thumb_', '') : ''
+          return pFileName === fileName && pFileName !== ''
+        })
+
+        return !isDuplicate
+      })
+
+      console.log(`✅ getPhotosForEvents: Фотографии загружены: ${data?.length || 0} (уникальных: ${uniquePhotos.length})`)
+      return uniquePhotos
 
     } catch (error) {
       console.error('❌ getPhotosForEvents: Ошибка загрузки фотографий:', error)
