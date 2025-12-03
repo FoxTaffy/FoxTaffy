@@ -103,29 +103,6 @@
               <h1>{{ currentTabInfo.title }}</h1>
               <p>{{ currentTabInfo.subtitle }}</p>
             </div>
-            <div class="header-stats">
-              <div class="stat-card">
-                <i class="fas fa-images"></i>
-                <div>
-                  <span class="stat-number">{{ stats.arts }}</span>
-                  <span class="stat-label">Артов</span>
-                </div>
-              </div>
-              <div class="stat-card">
-                <i class="fas fa-palette"></i>
-                <div>
-                  <span class="stat-number">{{ stats.artists }}</span>
-                  <span class="stat-label">Художников</span>
-                </div>
-              </div>
-              <div class="stat-card">
-                <i class="fas fa-cloud"></i>
-                <div>
-                  <span class="stat-number">{{ uploadedFilesCount }}</span>
-                  <span class="stat-label">S3 файлов</span>
-                </div>
-              </div>
-            </div>
           </header>
 
           <!-- Контент вкладок -->
@@ -420,11 +397,12 @@
                             class="selector-item artist-item"
                             :class="{ selected: selectedArtist === artist.name }"
                           >
-                            <input 
+                            <input
                               type="radio"
                               :value="artist.name"
                               v-model="selectedArtist"
                               name="artist"
+                              @change="showArtistSelector = false"
                             >
                             <img 
                               :src="artist.avatar_url || getDefaultAvatar(artist.name)"
@@ -933,6 +911,9 @@
                       <button @click="viewArt(art)" class="overlay-btn">
                         <i class="fas fa-eye"></i>
                       </button>
+                      <button @click="editArt(art)" class="overlay-btn edit">
+                        <i class="fas fa-edit"></i>
+                      </button>
                       <button @click="confirmDelete('art', art)" class="overlay-btn danger">
                         <i class="fas fa-trash"></i>
                       </button>
@@ -1027,21 +1008,70 @@
                 <div v-if="modal.type === 'character'">
                   <div class="form-group">
                     <label>Имя персонажа *</label>
-                    <input 
+                    <input
                       v-model="modal.data.name"
-                      type="text" 
+                      type="text"
                       placeholder="Введите имя персонажа..."
                       class="form-input"
                       required
                     >
                   </div>
-                  
+
                   <div class="form-group">
                     <AvatarUploader
                       v-model="modal.data.avatar_url"
                       label="Аватар персонажа"
                       folder="avatars"
                     />
+                  </div>
+                </div>
+
+                <!-- Поля для арта -->
+                <div v-if="modal.type === 'art'">
+                  <div class="form-group">
+                    <label>Название арта *</label>
+                    <input
+                      v-model="modal.data.title"
+                      type="text"
+                      placeholder="Введите название арта..."
+                      class="form-input"
+                      required
+                    >
+                  </div>
+
+                  <div class="form-group">
+                    <label>Художник *</label>
+                    <input
+                      v-model="modal.data.artist_nickname"
+                      type="text"
+                      placeholder="Никнейм художника..."
+                      class="form-input"
+                      required
+                    >
+                  </div>
+
+                  <div class="form-group">
+                    <label>Дата создания</label>
+                    <input
+                      v-model="modal.data.created_date"
+                      type="date"
+                      class="form-input"
+                    >
+                  </div>
+
+                  <div class="form-group">
+                    <label class="checkbox-label">
+                      <input
+                        v-model="modal.data.is_nsfw"
+                        type="checkbox"
+                        class="checkbox"
+                      >
+                      <span class="checkmark"></span>
+                      <span class="checkbox-text">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        NSFW контент
+                      </span>
+                    </label>
                   </div>
                 </div>
               </div>
@@ -1740,6 +1770,17 @@ const openModal = (type, item = null) => {
         avatar_url: ''
       }
       break
+
+    case 'art':
+      modal.title = 'Редактировать арт'
+      modal.icon = 'fas fa-image'
+      modal.data = {
+        title: item.title || '',
+        artist_nickname: item.artist_name || '',
+        is_nsfw: item.is_nsfw || false,
+        created_date: item.created_date || ''
+      }
+      break
   }
 }
 
@@ -1753,6 +1794,7 @@ const closeModal = () => {
 const editArtist = (artist) => openModal('artist', artist)
 const editTag = (tag) => openModal('tag', tag)
 const editCharacter = (character) => openModal('character', character)
+const editArt = (art) => openModal('art', art)
 
 const saveData = async () => {
   submitting.value = true
@@ -1835,8 +1877,24 @@ const saveData = async () => {
           stats.characters = availableCharacters.value.length
         }
         break
+
+      case 'art':
+        result = await furryApi.updateArt(modal.editing.id, modal.data)
+        showNotification('Арт обновлен! 🎨', 'success')
+        const artIndex = recentArts.value.findIndex(item => item.id === modal.editing.id)
+        if (artIndex !== -1) {
+          recentArts.value[artIndex] = {
+            ...recentArts.value[artIndex],
+            title: modal.data.title,
+            artist_name: modal.data.artist_nickname,
+            is_nsfw: modal.data.is_nsfw,
+            created_date: modal.data.created_date || recentArts.value[artIndex].created_date
+          }
+        }
+        await loadRecentArts()
+        break
     }
-    
+
     closeModal()
   } catch (error) {
     console.error('❌ Ошибка сохранения:', error)
@@ -2420,7 +2478,7 @@ watch(activeTab, () => {
 /* Dashboard */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 2rem;
 }
 
@@ -3190,13 +3248,6 @@ watch(activeTab, () => {
 .clear-artist-btn:hover {
   background: rgba(255, 107, 53, 0.2);
   transform: scale(1.1);
-}
-
-/* Dashboard - улучшенные стили */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 2rem;
 }
 
 .dashboard-card.full-width {
@@ -4279,6 +4330,15 @@ watch(activeTab, () => {
 
 .overlay-btn.danger:hover {
   background: #ef4444;
+}
+
+.overlay-btn.edit {
+  background: rgba(59, 130, 246, 0.9);
+  color: white;
+}
+
+.overlay-btn.edit:hover {
+  background: #3b82f6;
 }
 
 .art-meta {

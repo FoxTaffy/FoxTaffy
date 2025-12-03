@@ -248,8 +248,8 @@ const removeAvatar = () => {
 
 .avatar-preview {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
   border-radius: 12px;
   overflow: hidden;
   border: 2px solid rgba(255, 123, 37, 0.3);
@@ -278,7 +278,7 @@ const removeAvatar = () => {
   justify-content: center;
   width: 100%;
   height: 100%;
-  font-size: 2.5rem;
+  font-size: 2rem;
   color: rgba(255, 123, 37, 0.4);
 }
 
