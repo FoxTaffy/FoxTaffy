@@ -1,8 +1,12 @@
 <template>
   <div v-if="isHolidaySeason" class="new-year-countdown">
-    <h2 class="countdown-title">
-      {{ countdownTitle }}
-    </h2>
+    <div class="countdown-header">
+      <span class="countdown-decoration">✨</span>
+      <h2 class="countdown-title">
+        {{ countdownTitle }}
+      </h2>
+      <span class="countdown-decoration">✨</span>
+    </div>
 
     <div v-if="!isNewYear" class="countdown-timer">
       <div class="countdown-block">

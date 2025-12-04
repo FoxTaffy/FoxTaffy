@@ -109,6 +109,75 @@ export function createSnowflakes(count = 20) {
 }
 
 /**
+ * Создает мерцающие гирлянды
+ */
+export function createChristmasLights() {
+  if (typeof document === 'undefined' || !isHolidaySeason()) {
+    return
+  }
+
+  // Удаляем существующие гирлянды, если они есть
+  const existingLights = document.querySelector('.christmas-lights')
+  if (existingLights) {
+    existingLights.remove()
+  }
+
+  // Создаем контейнер для гирлянд
+  const container = document.createElement('div')
+  container.className = 'christmas-lights'
+  container.setAttribute('aria-hidden', 'true')
+
+  // Создаем провод гирлянды
+  const string = document.createElement('div')
+  string.className = 'lights-string'
+  container.appendChild(string)
+
+  // Создаем лампочки
+  const colors = ['#ff0000', '#00ff00', '#ffd700', '#4169e1', '#ff69b4']
+  for (let i = 0; i < 10; i++) {
+    const light = document.createElement('div')
+    light.className = 'light'
+    light.style.color = colors[i % colors.length]
+    container.appendChild(light)
+  }
+
+  // Добавляем контейнер в body
+  document.body.appendChild(container)
+}
+
+/**
+ * Создает висящие новогодние украшения
+ */
+export function createOrnaments() {
+  if (typeof document === 'undefined' || !isHolidaySeason()) {
+    return
+  }
+
+  // Удаляем существующие украшения, если они есть
+  const existingOrnaments = document.querySelector('.hanging-ornaments')
+  if (existingOrnaments) {
+    existingOrnaments.remove()
+  }
+
+  // Создаем контейнер для украшений
+  const container = document.createElement('div')
+  container.className = 'hanging-ornaments'
+  container.setAttribute('aria-hidden', 'true')
+
+  // Создаем украшения
+  const ornamentIcons = ['🎄', '⭐', '🎁', '🔔', '🎀']
+  for (let i = 0; i < 5; i++) {
+    const ornament = document.createElement('div')
+    ornament.className = 'ornament'
+    ornament.textContent = ornamentIcons[i]
+    container.appendChild(ornament)
+  }
+
+  // Добавляем контейнер в body
+  document.body.appendChild(container)
+}
+
+/**
  * Удаляет снежинки
  */
 export function removeSnowflakes() {
@@ -128,9 +197,11 @@ export function initHolidayTheme() {
   applyHolidayTheme()
 
   if (isHolidaySeason()) {
-    // Добавляем снежинки с небольшой задержкой для лучшей производительности
+    // Добавляем праздничные элементы с задержкой для лучшей производительности
     setTimeout(() => {
       createSnowflakes(20)
+      createChristmasLights()
+      createOrnaments()
     }, 500)
   }
 }
@@ -145,6 +216,8 @@ export function useHolidayTheme() {
     enableTheme: enableHolidayTheme,
     disableTheme: disableHolidayTheme,
     createSnowflakes,
-    removeSnowflakes
+    removeSnowflakes,
+    createChristmasLights,
+    createOrnaments
   }
 }

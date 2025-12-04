@@ -13,6 +13,7 @@ body.holiday-theme {
   --accent-gold: #ffd700;
   --accent-silver: #c0c0c0;
   --accent-red: #c41e3a;
+  --accent-blue: #4169e1;
   --shadow: rgba(0, 0, 0, 0.3);
   --card-bg: #132238;
   --card-hover: #1a2f47;
@@ -22,7 +23,38 @@ body.holiday-theme {
   --snow-color: rgba(255, 255, 255, 0.9);
   --sparkle-color: #ffd700;
 
-  background: linear-gradient(180deg, #0a1628 0%, #132238 100%);
+  background: linear-gradient(180deg, #0a1628 0%, #132238 50%, #0a1628 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Анимированный фон с северным сиянием */
+body.holiday-theme::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse at top,
+    rgba(42, 157, 79, 0.15) 0%,
+    transparent 50%,
+    rgba(230, 57, 70, 0.1) 100%
+  );
+  animation: aurora 15s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes aurora {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1) translateY(-20px);
+  }
 }
 
 /* ===============================================
@@ -93,8 +125,42 @@ body.holiday-theme .navbar {
     rgba(255, 215, 0, 0.15) 75%,
     rgba(10, 22, 40, 0.98) 100%
   );
-  border-bottom: 2px solid var(--accent-gold);
-  box-shadow: 0 5px 20px rgba(255, 215, 0, 0.2);
+  border-bottom: 3px solid transparent;
+  background-image:
+    linear-gradient(rgba(10, 22, 40, 0.98), rgba(10, 22, 40, 0.98)),
+    linear-gradient(90deg,
+      var(--accent-red) 0%,
+      var(--accent-gold) 33%,
+      var(--accent-green) 66%,
+      var(--accent-red) 100%
+    );
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3),
+              0 0 40px rgba(255, 215, 0, 0.1);
+  position: relative;
+}
+
+body.holiday-theme .navbar::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg,
+    var(--accent-red) 0%,
+    var(--accent-gold) 33%,
+    var(--accent-green) 66%,
+    var(--accent-red) 100%
+  );
+  background-size: 200% 100%;
+  animation: border-flow 3s linear infinite;
+}
+
+@keyframes border-flow {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
 }
 
 body.holiday-theme .navbar.scrolled {
@@ -138,37 +204,79 @@ body.holiday-theme .nav-link:hover {
 body.holiday-theme .section {
   background: linear-gradient(135deg,
     var(--card-bg) 0%,
-    rgba(197, 30, 58, 0.1) 50%,
+    rgba(197, 30, 58, 0.1) 25%,
+    rgba(42, 157, 79, 0.1) 50%,
+    rgba(255, 215, 0, 0.05) 75%,
     var(--card-bg) 100%
   );
-  border: 1px solid rgba(255, 215, 0, 0.2);
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3),
-              0 0 20px rgba(255, 215, 0, 0.1);
+  border: 2px solid transparent;
+  background-image:
+    linear-gradient(var(--card-bg), var(--card-bg)),
+    linear-gradient(135deg,
+      var(--accent-red) 0%,
+      var(--accent-gold) 50%,
+      var(--accent-green) 100%
+    );
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3),
+              0 0 30px rgba(255, 215, 0, 0.1),
+              inset 0 0 40px rgba(255, 215, 0, 0.05);
+  position: relative;
+  overflow: hidden;
 }
 
 body.holiday-theme .section::before {
   background: linear-gradient(90deg,
     var(--accent-red) 0%,
-    var(--accent-gold) 50%,
-    var(--accent-green) 100%
+    var(--accent-gold) 33%,
+    var(--accent-green) 66%,
+    var(--accent-red) 100%
   );
+  background-size: 200% 100%;
   height: 4px;
-  animation: shimmer 3s ease-in-out infinite;
+  animation: shimmer 3s linear infinite;
 }
 
 @keyframes shimmer {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0% {
+    background-position: 0% 0%;
+    opacity: 1;
+  }
+  50% {
+    background-position: 100% 0%;
+    opacity: 0.8;
+  }
+  100% {
+    background-position: 200% 0%;
+    opacity: 1;
+  }
+}
+
+body.holiday-theme .section::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 215, 0, 0.1) 50%,
+    transparent 100%
+  );
+  transition: left 0.8s ease;
+}
+
+body.holiday-theme .section:hover::after {
+  left: 100%;
 }
 
 body.holiday-theme .section:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4),
-              0 0 30px rgba(255, 215, 0, 0.2);
-  background: linear-gradient(135deg,
-    var(--card-hover) 0%,
-    rgba(197, 30, 58, 0.15) 50%,
-    var(--card-hover) 100%
-  );
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4),
+              0 0 50px rgba(255, 215, 0, 0.2),
+              inset 0 0 60px rgba(255, 215, 0, 0.1);
+  transform: translateY(-5px);
 }
 
 /* ===============================================
@@ -235,24 +343,64 @@ body.holiday-theme .social-link:hover {
   50% { transform: rotate(5deg); }
 }
 
+.countdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.countdown-decoration {
+  font-size: 2.5rem;
+  animation: sparkle-rotate 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+}
+
+@keyframes sparkle-rotate {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+  }
+  25% {
+    transform: rotate(-15deg) scale(1.1);
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.9));
+  }
+  50% {
+    transform: rotate(0deg) scale(1);
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+  }
+  75% {
+    transform: rotate(15deg) scale(1.1);
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.9));
+  }
+}
+
 .countdown-title {
   font-size: 2rem;
   font-weight: 700;
-  background: linear-gradient(45deg,
-    var(--accent-red),
-    var(--accent-gold),
-    var(--accent-green)
+  background: linear-gradient(135deg,
+    var(--accent-red) 0%,
+    var(--accent-gold) 25%,
+    var(--accent-green) 50%,
+    var(--accent-blue) 75%,
+    var(--accent-red) 100%
   );
+  background-size: 200% 200%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 1.5rem;
-  animation: glow 2s ease-in-out infinite;
+  animation: gradient-shift 4s ease infinite, text-glow 2s ease-in-out infinite;
+  position: relative;
 }
 
-@keyframes glow {
-  0%, 100% { text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
-  50% { text-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+@keyframes text-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9));
+  }
 }
 
 .countdown-timer {
@@ -264,34 +412,118 @@ body.holiday-theme .social-link:hover {
 }
 
 .countdown-block {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 2px solid var(--accent-gold);
-  border-radius: 0.75rem;
+  background: linear-gradient(135deg,
+    rgba(197, 30, 58, 0.2) 0%,
+    rgba(255, 215, 0, 0.15) 50%,
+    rgba(42, 157, 79, 0.2) 100%
+  );
+  backdrop-filter: blur(15px);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 1rem;
   padding: 1.5rem 2rem;
   min-width: 120px;
   transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3),
+              inset 0 0 20px rgba(255, 215, 0, 0.1);
+}
+
+.countdown-block::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg,
+    var(--accent-red) 0%,
+    var(--accent-gold) 25%,
+    var(--accent-green) 50%,
+    var(--accent-blue) 75%,
+    var(--accent-red) 100%
+  );
+  border-radius: 1rem;
+  z-index: -1;
+  animation: rainbow-border 3s linear infinite;
+  background-size: 200% 200%;
+}
+
+@keyframes rainbow-border {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.countdown-block::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle,
+    rgba(255, 215, 0, 0.4) 0%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.5s ease;
 }
 
 .countdown-block:hover {
-  transform: translateY(-5px) scale(1.05);
-  box-shadow: 0 10px 25px rgba(255, 215, 0, 0.3);
-  background: rgba(255, 215, 0, 0.1);
+  transform: translateY(-10px) scale(1.08);
+  box-shadow: 0 15px 40px rgba(255, 215, 0, 0.4),
+              0 0 60px rgba(255, 215, 0, 0.2),
+              inset 0 0 30px rgba(255, 215, 0, 0.2);
+}
+
+.countdown-block:hover::after {
+  width: 200%;
+  height: 200%;
 }
 
 .countdown-number {
   display: block;
   font-size: 3rem;
   font-weight: 700;
-  background: linear-gradient(45deg,
-    var(--accent-red),
-    var(--accent-gold)
+  background: linear-gradient(135deg,
+    var(--accent-red) 0%,
+    var(--accent-gold) 25%,
+    var(--accent-green) 50%,
+    var(--accent-blue) 75%,
+    var(--accent-red) 100%
   );
+  background-size: 200% 200%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   line-height: 1;
   margin-bottom: 0.5rem;
+  animation: gradient-shift 4s ease infinite;
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+  position: relative;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.countdown-block:hover .countdown-number {
+  animation: gradient-shift 2s ease infinite, pulse-glow 1s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+  }
 }
 
 .countdown-label {
@@ -337,6 +569,103 @@ body.holiday-theme .social-link:hover {
   50% {
     opacity: 1;
     transform: translateY(-100px) scale(1);
+  }
+}
+
+/* ===============================================
+   💡 МЕРЦАЮЩИЕ ГИРЛЯНДЫ
+   =============================================== */
+.christmas-lights {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 150px;
+  pointer-events: none;
+  z-index: 9997;
+  overflow: hidden;
+}
+
+.lights-string {
+  position: absolute;
+  top: 0;
+  left: -50px;
+  right: -50px;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 50px,
+    rgba(255, 255, 255, 0.1) 50px,
+    rgba(255, 255, 255, 0.1) 52px
+  );
+}
+
+.light {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  top: 0;
+  box-shadow: 0 0 20px currentColor;
+  animation: twinkle 2s infinite;
+}
+
+.light:nth-child(1) { left: 5%; color: #ff0000; animation-delay: 0s; }
+.light:nth-child(2) { left: 15%; color: #00ff00; animation-delay: 0.2s; }
+.light:nth-child(3) { left: 25%; color: #ffd700; animation-delay: 0.4s; }
+.light:nth-child(4) { left: 35%; color: #4169e1; animation-delay: 0.6s; }
+.light:nth-child(5) { left: 45%; color: #ff69b4; animation-delay: 0.8s; }
+.light:nth-child(6) { left: 55%; color: #ffd700; animation-delay: 1s; }
+.light:nth-child(7) { left: 65%; color: #ff0000; animation-delay: 1.2s; }
+.light:nth-child(8) { left: 75%; color: #00ff00; animation-delay: 1.4s; }
+.light:nth-child(9) { left: 85%; color: #4169e1; animation-delay: 1.6s; }
+.light:nth-child(10) { left: 95%; color: #ff69b4; animation-delay: 1.8s; }
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.8);
+    filter: brightness(0.6);
+  }
+}
+
+/* Висящие украшения */
+.hanging-ornaments {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 200px;
+  pointer-events: none;
+  z-index: 9996;
+}
+
+.ornament {
+  position: absolute;
+  font-size: 2rem;
+  animation: swing 3s ease-in-out infinite;
+  transform-origin: top center;
+  filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
+}
+
+.ornament:nth-child(1) { left: 10%; top: 80px; animation-delay: 0s; }
+.ornament:nth-child(2) { left: 30%; top: 100px; animation-delay: 0.5s; }
+.ornament:nth-child(3) { left: 50%; top: 90px; animation-delay: 1s; }
+.ornament:nth-child(4) { left: 70%; top: 85px; animation-delay: 1.5s; }
+.ornament:nth-child(5) { left: 90%; top: 95px; animation-delay: 2s; }
+
+@keyframes swing {
+  0%, 100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
   }
 }
 
