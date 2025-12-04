@@ -1282,7 +1282,18 @@ const modal = reactive({
   type: '',
   title: '',
   icon: '',
-  data: {},
+  data: {
+    nickname: '',
+    avatar_url: '',
+    is_friend: false,
+    name: '',
+    title: '',
+    artist_nickname: '',
+    is_nsfw: false,
+    created_date: '',
+    tags: [],
+    characters: []
+  },
   editing: null
 })
 
@@ -1783,8 +1794,17 @@ const openModal = async (type, item = null) => {
   modal.type = type
   modal.editing = item
 
-  // Сбрасываем modal.data перед заполнением
-  modal.data = {}
+  // Сбрасываем свойства перед заполнением (не заменяя весь объект!)
+  modal.data.nickname = ''
+  modal.data.avatar_url = ''
+  modal.data.is_friend = false
+  modal.data.name = ''
+  modal.data.title = ''
+  modal.data.artist_nickname = ''
+  modal.data.is_nsfw = false
+  modal.data.created_date = ''
+  modal.data.tags = []
+  modal.data.characters = []
 
   switch (type) {
     case 'artist':
@@ -1836,7 +1856,17 @@ const closeModal = () => {
   modal.show = false
   modal.type = ''
   modal.editing = null
-  modal.data = {}
+  // Сбрасываем свойства, не заменяя весь объект (для сохранения реактивности)
+  modal.data.nickname = ''
+  modal.data.avatar_url = ''
+  modal.data.is_friend = false
+  modal.data.name = ''
+  modal.data.title = ''
+  modal.data.artist_nickname = ''
+  modal.data.is_nsfw = false
+  modal.data.created_date = ''
+  modal.data.tags = []
+  modal.data.characters = []
   modalArtistSelectorOpen.value = false
   modalArtistSearch.value = ''
   modalCharacterSelectorOpen.value = false
