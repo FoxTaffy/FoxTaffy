@@ -2545,69 +2545,120 @@ watch(activeTab, () => {
 .dashboard-compact {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
   height: 100%;
 }
 
 .stats-compact-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .stat-compact {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 0.75rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border-radius: 16px;
+  padding: 1.25rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  transition: all 0.3s ease;
+  gap: 1rem;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-compact::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .stat-compact:hover {
-  background: rgba(255, 255, 255, 0.08);
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(255, 107, 53, 0.15);
+  border-color: rgba(255, 107, 53, 0.3);
+}
+
+.stat-compact:hover::before {
+  opacity: 1;
 }
 
 .stat-compact i {
-  font-size: 1.5rem;
+  font-size: 2rem;
   color: #ff6b35;
-  width: 40px;
-  height: 40px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 107, 53, 0.1);
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(247, 147, 30, 0.2) 100%);
+  border-radius: 14px;
+  flex-shrink: 0;
+  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.15);
 }
 
 .stat-num {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: white;
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   line-height: 1;
+  letter-spacing: -0.02em;
 }
 
 .stat-lbl {
-  font-size: 0.75rem;
-  color: #888;
-  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 0.35rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .dashboard-middle,
 .dashboard-bottom {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .dashboard-card-mini {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 0.75rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border-radius: 16px;
+  padding: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-card-mini::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.05), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.dashboard-card-mini:hover::before {
+  opacity: 1;
+}
+
+.dashboard-card-mini:hover {
+  border-color: rgba(255, 107, 53, 0.2);
+  box-shadow: 0 8px 32px rgba(255, 107, 53, 0.1);
 }
 
 .dashboard-card-mini h3 {
@@ -2659,14 +2710,16 @@ watch(activeTab, () => {
 .art-mini {
   position: relative;
   aspect-ratio: 1;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .art-mini:hover {
-  transform: scale(1.05);
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 12px 32px rgba(255, 107, 53, 0.25);
 }
 
 .art-mini img {
@@ -2690,14 +2743,15 @@ watch(activeTab, () => {
 .art-overlay-mini {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.9), rgba(247, 147, 30, 0.9));
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   transition: opacity 0.3s ease;
   color: white;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
+  backdrop-filter: blur(4px);
 }
 
 .art-mini:hover .art-overlay-mini {
@@ -2713,24 +2767,39 @@ watch(activeTab, () => {
 .content-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border-radius: 10px;
   font-size: 0.85rem;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.content-row:hover {
+  background: linear-gradient(90deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
+  border-color: rgba(255, 107, 53, 0.2);
 }
 
 .content-row i {
-  font-size: 1rem;
+  font-size: 1.1rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 107, 53, 0.1);
+  border-radius: 8px;
 }
 
 .percent-mini {
   margin-left: auto;
-  font-weight: 600;
-  font-size: 0.8rem;
-  padding: 0.15rem 0.4rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.5rem;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(247, 147, 30, 0.2));
+  border-radius: 6px;
+  border: 1px solid rgba(255, 107, 53, 0.3);
 }
 
 .top-list-mini {
@@ -2742,36 +2811,41 @@ watch(activeTab, () => {
 .list-item-mini {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
-  transition: all 0.3s ease;
+  gap: 0.65rem;
+  padding: 0.6rem;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border-radius: 10px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .list-item-mini:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(90deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
+  border-color: rgba(255, 107, 53, 0.2);
+  transform: translateX(4px);
 }
 
 .rank-mini {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: linear-gradient(135deg, #ff6b35, #f7931e);
   color: white;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
 
 .avatar-mini {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 107, 53, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .info-mini {
@@ -2780,17 +2854,18 @@ watch(activeTab, () => {
 }
 
 .name-mini {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: white;
+  color: rgba(255, 255, 255, 0.95);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .count-mini {
-  font-size: 0.7rem;
-  color: #888;
+  font-size: 0.75rem;
+  color: rgba(255, 107, 53, 0.8);
+  font-weight: 500;
 }
 
 .star-mini {
@@ -2801,29 +2876,32 @@ watch(activeTab, () => {
 .tags-mini-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.35rem;
+  gap: 0.5rem;
 }
 
 .tag-mini {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.35rem 0.5rem;
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  border-radius: 12px;
-  color: #3b82f6;
-  font-size: 0.7rem;
-  transition: all 0.3s ease;
+  padding: 0.5rem 0.65rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 10px;
+  color: #818cf8;
+  font-size: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
 }
 
 .tag-mini:hover {
-  background: rgba(59, 130, 246, 0.2);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(59, 130, 246, 0.25) 100%);
+  border-color: rgba(99, 102, 241, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
 }
 
 .tag-mini span:first-child {
-  font-weight: 500;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2831,8 +2909,11 @@ watch(activeTab, () => {
 
 .tag-mini span:last-child {
   font-weight: 700;
-  font-size: 0.65rem;
-  margin-left: 0.25rem;
+  font-size: 0.7rem;
+  margin-left: 0.35rem;
+  padding: 0.15rem 0.35rem;
+  background: rgba(99, 102, 241, 0.2);
+  border-radius: 6px;
 }
 .quick-actions-card {
   background: rgba(255, 255, 255, 0.05);
