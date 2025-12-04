@@ -1518,6 +1518,339 @@ export const furryApi = {
   },
 
   // ============================================
+  // ✏️ ОБНОВЛЕНИЕ ДАННЫХ
+  // ============================================
+
+  /**
+   * Обновить художника
+   */
+  async updateArtist(artistId, artistData) {
+    try {
+      console.log('📝 updateArtist: Обновляем художника:', artistId)
+
+      const { data, error } = await supabase
+        .from('persons')
+        .update({
+          nickname: artistData.nickname.trim(),
+          avatar_url: artistData.avatar_url || null,
+          is_friend: artistData.is_friend || false
+        })
+        .eq('id', artistId)
+        .select()
+        .single()
+
+      if (error) throw error
+      console.log('✅ updateArtist: Художник обновлен:', data)
+      return data
+    } catch (error) {
+      console.error('❌ updateArtist: Ошибка обновления художника:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Обновить тег
+   */
+  async updateTag(tagId, tagData) {
+    try {
+      console.log('📝 updateTag: Обновляем тег:', tagId)
+
+      const { data, error } = await supabase
+        .from('tags')
+        .update({
+          name: tagData.name.trim()
+        })
+        .eq('id', tagId)
+        .select()
+        .single()
+
+      if (error) throw error
+      console.log('✅ updateTag: Тег обновлен:', data)
+      return data
+    } catch (error) {
+      console.error('❌ updateTag: Ошибка обновления тега:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Обновить персонажа
+   */
+  async updateCharacter(characterId, characterData) {
+    try {
+      console.log('📝 updateCharacter: Обновляем персонажа:', characterId)
+
+      const { data, error } = await supabase
+        .from('fursonas')
+        .update({
+          name: characterData.name.trim(),
+          avatar_url: characterData.avatar_url || null
+        })
+        .eq('id', characterId)
+        .select()
+        .single()
+
+      if (error) throw error
+      console.log('✅ updateCharacter: Персонаж обновлен:', data)
+      return data
+    } catch (error) {
+      console.error('❌ updateCharacter: Ошибка обновления персонажа:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Обновить арт
+   */
+  async updateArt(artId, artData) {
+    try {
+      console.log('📝 updateArt: Обновляем арт:', artId)
+
+      const updateData = {
+        title: artData.title.trim(),
+        is_nsfw: artData.is_nsfw || false
+      }
+
+      if (artData.created_date) {
+        updateData.upload_date = artData.created_date
+      }
+
+      const { data, error } = await supabase
+        .from('arts')
+        .update(updateData)
+        .eq('id', artId)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      // Обновляем художника если изменился
+      if (artData.artist_nickname) {
+        // Находим artist_id
+        const { data: artist, error: artistError } = await supabase
+          .from('persons')
+          .select('id')
+          .eq('nickname', artData.artist_nickname)
+          .maybeSingle()
+
+        if (artistError) throw artistError
+
+        if (artist) {
+          // Обновляем связь с художником
+          await supabase
+            .from('art_collaborators')
+            .delete()
+            .eq('art_id', artId)
+            .eq('role', 'main_artist')
+
+          await supabase
+            .from('art_collaborators')
+            .insert({
+              art_id: artId,
+              person_id: artist.id,
+              role: 'main_artist'
+            })
+        }
+      }
+
+      // Обновляем теги если переданы
+      if (artData.tags !== undefined) {
+        await this.updateArtTags(artId, artData.tags)
+      }
+
+      // Обновляем персонажей если переданы
+      if (artData.characters !== undefined) {
+        await this.updateArtCharacters(artId, artData.characters)
+      }
+
+      console.log('✅ updateArt: Арт обновлен:', data)
+      return data
+    } catch (error) {
+      console.error('❌ updateArt: Ошибка обновления арта:', error)
+      throw error
+    }
+  },
+
+  // ============================================
+  // 🗑️ УДАЛЕНИЕ ДАННЫХ
+  // ============================================
+
+  /**
+   * Удалить художника
+   */
+  async deleteArtist(artistId) {
+    try {
+      console.log('🗑️ deleteArtist: Удаляем художника:', artistId)
+
+      const { error } = await supabase
+        .from('persons')
+        .delete()
+        .eq('id', artistId)
+
+      if (error) throw error
+      console.log('✅ deleteArtist: Художник удален')
+    } catch (error) {
+      console.error('❌ deleteArtist: Ошибка удаления художника:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Удалить тег
+   */
+  async deleteTag(tagId) {
+    try {
+      console.log('🗑️ deleteTag: Удаляем тег:', tagId)
+
+      const { error } = await supabase
+        .from('tags')
+        .delete()
+        .eq('id', tagId)
+
+      if (error) throw error
+      console.log('✅ deleteTag: Тег удален')
+    } catch (error) {
+      console.error('❌ deleteTag: Ошибка удаления тега:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Удалить персонажа
+   */
+  async deleteCharacter(characterId) {
+    try {
+      console.log('🗑️ deleteCharacter: Удаляем персонажа:', characterId)
+
+      const { error } = await supabase
+        .from('fursonas')
+        .delete()
+        .eq('id', characterId)
+
+      if (error) throw error
+      console.log('✅ deleteCharacter: Персонаж удален')
+    } catch (error) {
+      console.error('❌ deleteCharacter: Ошибка удаления персонажа:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Удалить арт
+   */
+  async deleteArt(artId) {
+    try {
+      console.log('🗑️ deleteArt: Удаляем арт:', artId)
+
+      // Сначала удаляем связи
+      await supabase
+        .from('art_collaborators')
+        .delete()
+        .eq('art_id', artId)
+
+      await supabase
+        .from('art_tags')
+        .delete()
+        .eq('art_id', artId)
+
+      await supabase
+        .from('art_fursonas')
+        .delete()
+        .eq('art_id', artId)
+
+      // Затем удаляем сам арт
+      const { error } = await supabase
+        .from('arts')
+        .delete()
+        .eq('id', artId)
+
+      if (error) throw error
+      console.log('✅ deleteArt: Арт удален')
+    } catch (error) {
+      console.error('❌ deleteArt: Ошибка удаления арта:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Получить теги арта
+   */
+  async getArtTags(artId) {
+    try {
+      const { data, error } = await supabase
+        .from('art_tags')
+        .select('tag_id, tags(name)')
+        .eq('art_id', artId)
+
+      if (error) throw error
+      return data.map(item => item.tags.name)
+    } catch (error) {
+      console.error('❌ getArtTags: Ошибка получения тегов арта:', error)
+      return []
+    }
+  },
+
+  /**
+   * Получить персонажей арта
+   */
+  async getArtCharacters(artId) {
+    try {
+      const { data, error } = await supabase
+        .from('art_fursonas')
+        .select('fursona_id, fursonas(name)')
+        .eq('art_id', artId)
+
+      if (error) throw error
+      return data.map(item => item.fursonas.name)
+    } catch (error) {
+      console.error('❌ getArtCharacters: Ошибка получения персонажей арта:', error)
+      return []
+    }
+  },
+
+  /**
+   * Обновить теги арта
+   */
+  async updateArtTags(artId, tagNames) {
+    try {
+      // Удаляем старые теги
+      await supabase
+        .from('art_tags')
+        .delete()
+        .eq('art_id', artId)
+
+      // Добавляем новые теги
+      if (tagNames && tagNames.length > 0) {
+        await this.addArtTags(artId, tagNames)
+      }
+    } catch (error) {
+      console.error('❌ updateArtTags: Ошибка обновления тегов:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Обновить персонажей арта
+   */
+  async updateArtCharacters(artId, characterNames) {
+    try {
+      // Удаляем старых персонажей
+      await supabase
+        .from('art_fursonas')
+        .delete()
+        .eq('art_id', artId)
+
+      // Добавляем новых персонажей
+      if (characterNames && characterNames.length > 0) {
+        await this.addArtCharacters(artId, characterNames)
+      }
+    } catch (error) {
+      console.error('❌ updateArtCharacters: Ошибка обновления персонажей:', error)
+      throw error
+    }
+  },
+
+  // ============================================
   // 📊 СТАТИСТИКА И АНАЛИТИКА
   // ============================================
 

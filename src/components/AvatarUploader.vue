@@ -248,22 +248,71 @@ const removeAvatar = () => {
 
 .avatar-preview {
   position: relative;
-  width: 120px;
-  height: 120px;
-  border-radius: 12px;
+  width: 160px;
+  height: 160px;
+  border-radius: 24px;
   overflow: hidden;
-  border: 2px solid rgba(255, 123, 37, 0.3);
-  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
   flex-shrink: 0;
-  transition: border-color 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 123, 37, 0.15),
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(255, 123, 37, 0.1);
+}
+
+.avatar-preview::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  padding: 2px;
+  background: linear-gradient(135deg,
+    rgba(255, 123, 37, 0.6) 0%,
+    rgba(255, 60, 172, 0.4) 50%,
+    rgba(75, 0, 130, 0.3) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.avatar-preview:hover::before {
+  opacity: 1;
 }
 
 .avatar-preview:hover {
-  border-color: rgba(255, 123, 37, 0.6);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 123, 37, 0.3),
+    0 12px 48px rgba(0, 0, 0, 0.5),
+    0 6px 20px rgba(255, 123, 37, 0.25);
 }
 
 .avatar-preview.is-uploading {
-  border-color: #FF7B25;
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 123, 37, 0.8),
+    0 0 0 4px rgba(255, 123, 37, 0.2),
+    0 8px 32px rgba(255, 123, 37, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 0 3px rgba(255, 123, 37, 0.8),
+      0 0 0 4px rgba(255, 123, 37, 0.2),
+      0 8px 32px rgba(255, 123, 37, 0.3);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 3px rgba(255, 123, 37, 1),
+      0 0 0 8px rgba(255, 123, 37, 0.3),
+      0 12px 48px rgba(255, 123, 37, 0.5);
+  }
 }
 
 .avatar-image {
@@ -278,7 +327,7 @@ const removeAvatar = () => {
   justify-content: center;
   width: 100%;
   height: 100%;
-  font-size: 2.5rem;
+  font-size: 2rem;
   color: rgba(255, 123, 37, 0.4);
 }
 
