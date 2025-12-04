@@ -5,6 +5,8 @@
     <div class="container">
       <!-- Подключаем компоненты -->
       <HeaderSection />
+      <!-- Новогодний счётчик -->
+      <NewYearCountdown />
       <ReferenceSection />
       <BioSection />
       <FursuitSection />
@@ -22,6 +24,7 @@
 
 <script>
 import HeaderSection from './Base/Header.vue'
+import NewYearCountdown from './NewYearCountdown.vue'
 import ReferenceSection from './Base/Reference.vue'
 import BioSection from './Base/Bio.vue'
 import FursuitSection from './Base/Fursuit.vue'
@@ -33,6 +36,7 @@ export default {
   name: 'HomeView',
   components: {
     HeaderSection,
+    NewYearCountdown,
     ReferenceSection,
     BioSection,
     FursuitSection,

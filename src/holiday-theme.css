@@ -1,0 +1,435 @@
+/* ===============================================
+   🎄 НОВОГОДНЯЯ ТЕМА (1 декабря - 1 февраля)
+   =============================================== */
+
+/* Переопределение основных переменных для новогодней темы */
+body.holiday-theme {
+  --bg-dark: #0a1628;
+  --bg-darker: #050f1a;
+  --text-light: #ffffff;
+  --text-muted: #b8c5d6;
+  --accent-orange: #e63946;
+  --accent-green: #2a9d4f;
+  --accent-gold: #ffd700;
+  --accent-silver: #c0c0c0;
+  --accent-red: #c41e3a;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --card-bg: #132238;
+  --card-hover: #1a2f47;
+  --transition: all 0.3s ease;
+
+  /* Новогодние эффекты */
+  --snow-color: rgba(255, 255, 255, 0.9);
+  --sparkle-color: #ffd700;
+
+  background: linear-gradient(180deg, #0a1628 0%, #132238 100%);
+}
+
+/* ===============================================
+   ❄️ АНИМАЦИЯ СНЕЖИНОК
+   =============================================== */
+.snowflakes {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.snowflake {
+  position: absolute;
+  top: -10px;
+  color: var(--snow-color);
+  font-size: 1em;
+  font-family: Arial, sans-serif;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+  animation: fall linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes fall {
+  0% {
+    top: -10%;
+    opacity: 0.8;
+  }
+  100% {
+    top: 100%;
+    opacity: 0.3;
+  }
+}
+
+.snowflake:nth-child(1) { left: 10%; animation-duration: 10s; animation-delay: 0s; font-size: 1.2em; }
+.snowflake:nth-child(2) { left: 20%; animation-duration: 12s; animation-delay: 2s; font-size: 0.8em; }
+.snowflake:nth-child(3) { left: 30%; animation-duration: 8s; animation-delay: 4s; font-size: 1em; }
+.snowflake:nth-child(4) { left: 40%; animation-duration: 15s; animation-delay: 1s; font-size: 1.5em; }
+.snowflake:nth-child(5) { left: 50%; animation-duration: 11s; animation-delay: 3s; font-size: 0.9em; }
+.snowflake:nth-child(6) { left: 60%; animation-duration: 9s; animation-delay: 5s; font-size: 1.3em; }
+.snowflake:nth-child(7) { left: 70%; animation-duration: 13s; animation-delay: 2.5s; font-size: 1.1em; }
+.snowflake:nth-child(8) { left: 80%; animation-duration: 14s; animation-delay: 1.5s; font-size: 0.7em; }
+.snowflake:nth-child(9) { left: 90%; animation-duration: 10s; animation-delay: 4.5s; font-size: 1.4em; }
+.snowflake:nth-child(10) { left: 5%; animation-duration: 12s; animation-delay: 0.5s; font-size: 1em; }
+.snowflake:nth-child(11) { left: 15%; animation-duration: 11s; animation-delay: 3.5s; font-size: 0.9em; }
+.snowflake:nth-child(12) { left: 25%; animation-duration: 9s; animation-delay: 2s; font-size: 1.2em; }
+.snowflake:nth-child(13) { left: 35%; animation-duration: 13s; animation-delay: 1s; font-size: 0.8em; }
+.snowflake:nth-child(14) { left: 45%; animation-duration: 10s; animation-delay: 4s; font-size: 1.3em; }
+.snowflake:nth-child(15) { left: 55%; animation-duration: 14s; animation-delay: 0s; font-size: 1.1em; }
+.snowflake:nth-child(16) { left: 65%; animation-duration: 8s; animation-delay: 5s; font-size: 0.9em; }
+.snowflake:nth-child(17) { left: 75%; animation-duration: 12s; animation-delay: 2.5s; font-size: 1.4em; }
+.snowflake:nth-child(18) { left: 85%; animation-duration: 11s; animation-delay: 3s; font-size: 0.8em; }
+.snowflake:nth-child(19) { left: 95%; animation-duration: 9s; animation-delay: 1.5s; font-size: 1.2em; }
+.snowflake:nth-child(20) { left: 12%; animation-duration: 15s; animation-delay: 0.5s; font-size: 1em; }
+
+/* ===============================================
+   🎅 ПРАЗДНИЧНЫЕ ЭФФЕКТЫ ДЛЯ НАВБАРА
+   =============================================== */
+body.holiday-theme .navbar {
+  background: linear-gradient(90deg,
+    rgba(10, 22, 40, 0.98) 0%,
+    rgba(197, 30, 58, 0.15) 25%,
+    rgba(42, 157, 79, 0.15) 50%,
+    rgba(255, 215, 0, 0.15) 75%,
+    rgba(10, 22, 40, 0.98) 100%
+  );
+  border-bottom: 2px solid var(--accent-gold);
+  box-shadow: 0 5px 20px rgba(255, 215, 0, 0.2);
+}
+
+body.holiday-theme .navbar.scrolled {
+  background: rgba(10, 22, 40, 0.98);
+  backdrop-filter: blur(20px);
+}
+
+/* Праздничное сияние для логотипа */
+body.holiday-theme .logo-avatar::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, var(--accent-red), var(--accent-gold), var(--accent-green));
+  animation: rotate-border 3s linear infinite;
+  z-index: -1;
+  opacity: 0.6;
+}
+
+@keyframes rotate-border {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Праздничные цвета для активных ссылок */
+body.holiday-theme .nav-link.active {
+  background: linear-gradient(45deg, var(--accent-red), var(--accent-gold));
+  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+}
+
+body.holiday-theme .nav-link:hover {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+/* ===============================================
+   🎄 ПРАЗДНИЧНЫЕ ЭФФЕКТЫ ДЛЯ СЕКЦИЙ
+   =============================================== */
+body.holiday-theme .section {
+  background: linear-gradient(135deg,
+    var(--card-bg) 0%,
+    rgba(197, 30, 58, 0.1) 50%,
+    var(--card-bg) 100%
+  );
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3),
+              0 0 20px rgba(255, 215, 0, 0.1);
+}
+
+body.holiday-theme .section::before {
+  background: linear-gradient(90deg,
+    var(--accent-red) 0%,
+    var(--accent-gold) 50%,
+    var(--accent-green) 100%
+  );
+  height: 4px;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+body.holiday-theme .section:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4),
+              0 0 30px rgba(255, 215, 0, 0.2);
+  background: linear-gradient(135deg,
+    var(--card-hover) 0%,
+    rgba(197, 30, 58, 0.15) 50%,
+    var(--card-hover) 100%
+  );
+}
+
+/* ===============================================
+   🌟 ПРАЗДНИЧНЫЕ КНОПКИ И ССЫЛКИ
+   =============================================== */
+body.holiday-theme .social-link {
+  background: linear-gradient(135deg,
+    rgba(197, 30, 58, 0.2) 0%,
+    rgba(255, 215, 0, 0.1) 100%
+  );
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+body.holiday-theme .social-link:hover {
+  background: linear-gradient(135deg,
+    var(--accent-red) 0%,
+    var(--accent-gold) 100%
+  );
+  box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+}
+
+/* ===============================================
+   ⏰ СЧЁТЧИК ДО НОВОГО ГОДА
+   =============================================== */
+.new-year-countdown {
+  position: relative;
+  background: linear-gradient(135deg,
+    rgba(197, 30, 58, 0.2) 0%,
+    rgba(42, 157, 79, 0.2) 50%,
+    rgba(255, 215, 0, 0.2) 100%
+  );
+  border: 2px solid var(--accent-gold);
+  border-radius: 1rem;
+  padding: 2rem;
+  margin: 2rem 0;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3),
+              0 0 40px rgba(255, 215, 0, 0.2);
+  overflow: hidden;
+}
+
+.new-year-countdown::before {
+  content: '🎄';
+  position: absolute;
+  top: -20px;
+  left: 10px;
+  font-size: 4rem;
+  opacity: 0.2;
+  animation: sway 3s ease-in-out infinite;
+}
+
+.new-year-countdown::after {
+  content: '🎁';
+  position: absolute;
+  bottom: -20px;
+  right: 10px;
+  font-size: 4rem;
+  opacity: 0.2;
+  animation: sway 3s ease-in-out infinite reverse;
+}
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+.countdown-title {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(45deg,
+    var(--accent-red),
+    var(--accent-gold),
+    var(--accent-green)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1.5rem;
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% { text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+  50% { text-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+}
+
+.countdown-timer {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.countdown-block {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 2px solid var(--accent-gold);
+  border-radius: 0.75rem;
+  padding: 1.5rem 2rem;
+  min-width: 120px;
+  transition: var(--transition);
+}
+
+.countdown-block:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 10px 25px rgba(255, 215, 0, 0.3);
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.countdown-number {
+  display: block;
+  font-size: 3rem;
+  font-weight: 700;
+  background: linear-gradient(45deg,
+    var(--accent-red),
+    var(--accent-gold)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.countdown-label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.countdown-message {
+  margin-top: 1.5rem;
+  font-size: 1.1rem;
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+/* ===============================================
+   ✨ ПРАЗДНИЧНЫЕ ЧАСТИЦЫ
+   =============================================== */
+.holiday-sparkle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+.sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--sparkle-color);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--sparkle-color);
+  animation: sparkle-float 4s ease-in-out infinite;
+}
+
+@keyframes sparkle-float {
+  0%, 100% {
+    opacity: 0;
+    transform: translateY(0) scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-100px) scale(1);
+  }
+}
+
+/* ===============================================
+   🎊 АДАПТИВНОСТЬ
+   =============================================== */
+@media (max-width: 768px) {
+  .countdown-timer {
+    gap: 1rem;
+  }
+
+  .countdown-block {
+    padding: 1rem 1.5rem;
+    min-width: 100px;
+  }
+
+  .countdown-number {
+    font-size: 2rem;
+  }
+
+  .countdown-title {
+    font-size: 1.5rem;
+  }
+
+  .new-year-countdown::before,
+  .new-year-countdown::after {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .countdown-timer {
+    gap: 0.75rem;
+  }
+
+  .countdown-block {
+    padding: 0.75rem 1rem;
+    min-width: 80px;
+  }
+
+  .countdown-number {
+    font-size: 1.5rem;
+  }
+
+  .countdown-label {
+    font-size: 0.7rem;
+  }
+}
+
+/* ===============================================
+   🎄 ДОПОЛНИТЕЛЬНЫЕ ПРАЗДНИЧНЫЕ ЭФФЕКТЫ
+   =============================================== */
+
+/* Праздничное сияние для хедера */
+body.holiday-theme .header {
+  position: relative;
+  overflow: visible;
+}
+
+body.holiday-theme .header::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 0%,
+    rgba(255, 215, 0, 0.1) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Праздничные тени для текста */
+body.holiday-theme h1,
+body.holiday-theme h2,
+body.holiday-theme h3 {
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+/* Анимация появления для праздничных элементов */
+@keyframes holiday-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+body.holiday-theme .section {
+  animation: holiday-fade-in 0.6s ease-out;
+}

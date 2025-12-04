@@ -150,6 +150,8 @@
 </template>
 
 <script>
+import { initHolidayTheme } from './utils/holidayTheme.js'
+
 export default {
   name: 'App',
   data() {
@@ -260,6 +262,9 @@ export default {
     window.addEventListener('scroll', this.handleScroll)
     window.addEventListener('resize', this.handleResize)
     this.updateActiveSection()
+
+    // Инициализируем праздничную тему
+    initHolidayTheme()
   },
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll)
