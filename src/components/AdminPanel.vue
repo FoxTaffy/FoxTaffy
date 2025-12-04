@@ -1782,43 +1782,31 @@ const resetForm = () => {
 const openModal = async (type, item = null) => {
   modal.type = type
   modal.editing = item
-  modal.show = true
+
+  // Сбрасываем modal.data перед заполнением
+  modal.data = {}
 
   switch (type) {
     case 'artist':
       modal.title = item ? 'Редактировать художника' : 'Добавить художника'
       modal.icon = 'fas fa-palette'
-      modal.data = item ? {
-        nickname: item.name,
-        avatar_url: item.avatar_url || '',
-        is_friend: item.is_friend || false
-      } : {
-        nickname: '',
-        avatar_url: '',
-        is_friend: false
-      }
+      // Явное присваивание свойств для правильной реактивности
+      modal.data.nickname = item ? item.name : ''
+      modal.data.avatar_url = item ? (item.avatar_url || '') : ''
+      modal.data.is_friend = item ? (item.is_friend || false) : false
       break
 
     case 'tag':
       modal.title = item ? 'Редактировать тег' : 'Добавить тег'
       modal.icon = 'fas fa-tags'
-      modal.data = item ? {
-        name: item.name
-      } : {
-        name: ''
-      }
+      modal.data.name = item ? item.name : ''
       break
 
     case 'character':
       modal.title = item ? 'Редактировать персонажа' : 'Добавить персонажа'
       modal.icon = 'fas fa-paw'
-      modal.data = item ? {
-        name: item.name,
-        avatar_url: item.avatar_url || ''
-      } : {
-        name: '',
-        avatar_url: ''
-      }
+      modal.data.name = item ? item.name : ''
+      modal.data.avatar_url = item ? (item.avatar_url || '') : ''
       break
 
     case 'art':
@@ -1831,16 +1819,17 @@ const openModal = async (type, item = null) => {
         furryApi.getArtCharacters(item.id)
       ])
 
-      modal.data = {
-        title: item.title || '',
-        artist_nickname: item.artist_name || '',
-        is_nsfw: item.is_nsfw || false,
-        created_date: item.upload_date ? new Date(item.upload_date).toISOString().split('T')[0] : '',
-        tags: artTags || [],
-        characters: artCharacters || []
-      }
+      modal.data.title = item.title || ''
+      modal.data.artist_nickname = item.artist_name || ''
+      modal.data.is_nsfw = item.is_nsfw || false
+      modal.data.created_date = item.upload_date ? new Date(item.upload_date).toISOString().split('T')[0] : ''
+      modal.data.tags = artTags || []
+      modal.data.characters = artCharacters || []
       break
   }
+
+  // Открываем модальное окно только после заполнения данных
+  modal.show = true
 }
 
 const closeModal = () => {
@@ -2840,12 +2829,25 @@ watch(activeTab, () => {
 }
 
 .avatar-mini {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
   object-fit: cover;
-  border: 2px solid rgba(255, 107, 53, 0.3);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: none;
+  position: relative;
+  box-shadow:
+    0 0 0 2px rgba(255, 107, 53, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.avatar-mini:hover {
+  transform: scale(1.1) rotate(2deg);
+  box-shadow:
+    0 0 0 2px rgba(255, 107, 53, 0.8),
+    0 8px 24px rgba(255, 107, 53, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .info-mini {
@@ -3649,11 +3651,25 @@ watch(activeTab, () => {
 }
 
 .selected-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   object-fit: cover;
-  border: 2px solid rgba(255, 107, 53, 0.3);
+  border: none;
+  position: relative;
+  box-shadow:
+    0 0 0 3px rgba(255, 107, 53, 0.5),
+    0 6px 20px rgba(255, 107, 53, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.15);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.selected-avatar:hover {
+  transform: scale(1.08);
+  box-shadow:
+    0 0 0 3px rgba(255, 107, 53, 0.9),
+    0 10px 32px rgba(255, 107, 53, 0.5),
+    inset 0 2px 0 rgba(255, 255, 255, 0.25);
 }
 
 .selected-artist-info {
@@ -4267,12 +4283,26 @@ watch(activeTab, () => {
 }
 
 .item-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: none;
   flex-shrink: 0;
+  position: relative;
+  box-shadow:
+    0 0 0 2px rgba(255, 107, 53, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.item-avatar:hover {
+  transform: scale(1.12) rotate(-2deg);
+  box-shadow:
+    0 0 0 2px rgba(255, 107, 53, 0.7),
+    0 8px 24px rgba(255, 107, 53, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .item-name {
@@ -4371,11 +4401,24 @@ watch(activeTab, () => {
 }
 
 .character-avatar {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
   object-fit: cover;
-  border: 1px solid rgba(147, 51, 234, 0.3);
+  border: none;
+  box-shadow:
+    0 0 0 2px rgba(147, 51, 234, 0.5),
+    0 2px 8px rgba(147, 51, 234, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.character-avatar:hover {
+  transform: scale(1.15);
+  box-shadow:
+    0 0 0 2px rgba(147, 51, 234, 0.8),
+    0 4px 16px rgba(147, 51, 234, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .selected-character i {
@@ -4533,12 +4576,25 @@ watch(activeTab, () => {
   margin-bottom: 1rem;
 }
 
-.item-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+.item-card .item-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 18px;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: none;
+  box-shadow:
+    0 0 0 3px rgba(255, 107, 53, 0.4),
+    0 8px 24px rgba(0, 0, 0, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.12);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.item-card:hover .item-avatar {
+  transform: scale(1.08) rotate(-3deg);
+  box-shadow:
+    0 0 0 3px rgba(255, 107, 53, 0.8),
+    0 12px 36px rgba(255, 107, 53, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
 }
 
 .tag-icon {
@@ -4961,24 +5017,31 @@ watch(activeTab, () => {
 }
 
 .delete-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   object-fit: cover;
-  border: 2px solid rgba(239, 68, 68, 0.3);
+  border: none;
   flex-shrink: 0;
+  box-shadow:
+    0 0 0 3px rgba(239, 68, 68, 0.5),
+    0 6px 20px rgba(239, 68, 68, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.1);
 }
 
 .delete-placeholder {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(239, 68, 68, 0.2);
   color: #ef4444;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
+  box-shadow:
+    0 0 0 3px rgba(239, 68, 68, 0.4),
+    0 6px 20px rgba(239, 68, 68, 0.2);
 }
 
 .delete-name {
