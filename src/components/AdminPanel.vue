@@ -109,230 +109,116 @@
           <div class="tab-content">
             <!-- Dashboard -->
             <div v-if="activeTab === 'dashboard'" class="dashboard">
-              <div class="dashboard-grid">
-                <!-- НОВЫЙ КОД - ВСТАВИТЬ -->
-                <div class="dashboard-card quick-actions-card">
-                  <h3><i class="fas fa-bolt"></i> Быстрые действия</h3>
-                  <div class="quick-actions-grid">
-                    <button @click="setActiveTab('add-art')" class="quick-action-btn primary">
-                      <div class="btn-icon">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                      </div>
-                      <div class="btn-content">
-                        <span class="btn-title">Загрузить арт</span>
-                        <span class="btn-subtitle">Добавить новый арт в галерею</span>
-                      </div>
-                      <i class="fas fa-arrow-right btn-arrow"></i>
-                    </button>
-                    
-                    <button @click="openModal('artist')" class="quick-action-btn secondary">
-                      <div class="btn-icon">
-                        <i class="fas fa-user-plus"></i>
-                      </div>
-                      <div class="btn-content">
-                        <span class="btn-title">Новый художник</span>
-                        <span class="btn-subtitle">Добавить художника в базу</span>
-                      </div>
-                      <i class="fas fa-arrow-right btn-arrow"></i>
-                    </button>
-                    
-                    <button @click="openModal('tag')" class="quick-action-btn tertiary">
-                      <div class="btn-icon">
-                        <i class="fas fa-tag"></i>
-                      </div>
-                      <div class="btn-content">
-                        <span class="btn-title">Новый тег</span>
-                        <span class="btn-subtitle">Создать тег для категоризации</span>
-                      </div>
-                      <i class="fas fa-arrow-right btn-arrow"></i>
-                    </button>
-                    
-                    <button @click="openModal('character')" class="quick-action-btn quaternary">
-                      <div class="btn-icon">
-                        <i class="fas fa-paw"></i>
-                      </div>
-                      <div class="btn-content">
-                        <span class="btn-title">Новый персонаж</span>
-                        <span class="btn-subtitle">Добавить персонажа в коллекцию</span>
-                      </div>
-                      <i class="fas fa-arrow-right btn-arrow"></i>
-                    </button>
+              <div class="dashboard-compact">
+                <!-- Компактная строка статистики -->
+                <div class="stats-compact-row">
+                  <div class="stat-compact">
+                    <i class="fas fa-images"></i>
+                    <div>
+                      <div class="stat-num">{{ stats.arts }}</div>
+                      <div class="stat-lbl">Артов</div>
+                    </div>
                   </div>
-                </div>
-
-
-                <div class="dashboard-card">
-                  <h3><i class="fas fa-chart-bar"></i> Статистика</h3>
-                  <div class="stats-grid">
-                    <div class="stat-item">
-                      <div class="stat-icon">
-                        <i class="fas fa-images"></i>
-                      </div>
-                      <div class="stat-content">
-                        <span class="stat-number">{{ stats.arts }}</span>
-                        <span class="stat-label">Артов</span>
-                        <div class="stat-progress">
-                          <div class="progress-bar" :style="{ width: '75%' }"></div>
-                        </div>
-                      </div>
+                  <div class="stat-compact">
+                    <i class="fas fa-palette"></i>
+                    <div>
+                      <div class="stat-num">{{ stats.artists }}</div>
+                      <div class="stat-lbl">Художников</div>
                     </div>
-                    
-                    <div class="stat-item">
-                      <div class="stat-icon artists">
-                        <i class="fas fa-palette"></i>
-                      </div>
-                      <div class="stat-content">
-                        <span class="stat-number">{{ stats.artists }}</span>
-                        <span class="stat-label">Художников</span>
-                        <div class="stat-progress">
-                          <div class="progress-bar artists" :style="{ width: '60%' }"></div>
-                        </div>
-                      </div>
+                  </div>
+                  <div class="stat-compact">
+                    <i class="fas fa-tags"></i>
+                    <div>
+                      <div class="stat-num">{{ stats.tags }}</div>
+                      <div class="stat-lbl">Тегов</div>
                     </div>
-                    
-                    <div class="stat-item">
-                      <div class="stat-icon tags">
-                        <i class="fas fa-tags"></i>
-                      </div>
-                      <div class="stat-content">
-                        <span class="stat-number">{{ stats.tags }}</span>
-                        <span class="stat-label">Тегов</span>
-                        <div class="stat-progress">
-                          <div class="progress-bar tags" :style="{ width: '45%' }"></div>
-                        </div>
-                      </div>
+                  </div>
+                  <div class="stat-compact">
+                    <i class="fas fa-server"></i>
+                    <div>
+                      <div class="stat-num">{{ uploadedFilesCount }}</div>
+                      <div class="stat-lbl">Файлов S3</div>
                     </div>
                   </div>
                 </div>
 
-                <div class="dashboard-card">
-                  <h3><i class="fas fa-server"></i> Хранилище S3</h3>
-                  <div class="storage-overview">
-                    <div class="storage-status">
-                      <div class="status-indicator active">
-                        <div class="status-dot"></div>
-                        <span>Подключено</span>
-                      </div>
-                      <div class="storage-stats">
-                        <span class="storage-count">{{ uploadedFilesCount }}</span>
-                        <span class="storage-label">файлов в S3</span>
-                      </div>
+                <!-- Средняя секция: Арты и Контент -->
+                <div class="dashboard-middle">
+                  <div class="dashboard-card-mini">
+                    <div class="card-header-mini">
+                      <h3><i class="fas fa-clock"></i> Последние арты</h3>
+                      <button @click="activeTab = 'gallery'" class="view-btn-mini">
+                        <i class="fas fa-arrow-right"></i>
+                      </button>
                     </div>
-                    
-                    <div class="storage-details">
-                      <div class="storage-item">
-                        <i class="fas fa-database"></i>
-                        <div>
-                          <span>Supabase Storage</span>
-                          <small>Провайдер хранилища</small>
-                        </div>
-                      </div>
-                      <div class="storage-item">
-                        <i class="fas fa-folder"></i>
-                        <div>
-                          <span>gallery</span>
-                          <small>Основной bucket</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="dashboard-card">
-                  <h3><i class="fas fa-shield-alt"></i> Контент</h3>
-                  <div class="content-stats">
-                    <div class="content-item sfw">
-                      <div class="content-icon">
-                        <i class="fas fa-check-circle"></i>
-                      </div>
-                      <div class="content-info">
-                        <span class="content-number">{{ sfwArtsCount }}</span>
-                        <span class="content-label">SFW артов</span>
-                        <div class="content-percentage">{{ Math.round((sfwArtsCount / stats.arts) * 100) }}%</div>
-                      </div>
-                    </div>
-                    
-                    <div class="content-item nsfw">
-                      <div class="content-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
-                      </div>
-                      <div class="content-info">
-                        <span class="content-number">{{ nsfwArtsCount }}</span>
-                        <span class="content-label">NSFW артов</span>
-                        <div class="content-percentage">{{ Math.round((nsfwArtsCount / stats.arts) * 100) }}%</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="dashboard-card full-width">
-                  <div class="card-header">
-                    <h3><i class="fas fa-clock"></i> Последние арты</h3>
-                    <button @click="activeTab = 'gallery'" class="view-all-btn">
-                      <span>Смотреть все</span>
-                      <i class="fas fa-arrow-right"></i>
-                    </button>
-                  </div>
-                  <div class="recent-arts">
-                    <div
-                      v-for="art in recentArts.slice(0, 6)"
-                      :key="art.id"
-                      class="recent-art"
-                      @click="viewArt(art)"
-                    >
-                      <div class="art-image-container">
+                    <div class="recent-arts-mini">
+                      <div
+                        v-for="art in recentArts.slice(0, 4)"
+                        :key="art.id"
+                        class="art-mini"
+                        @click="viewArt(art)"
+                      >
                         <img :src="art.thumbnail_url || art.image_url" :alt="art.title">
-                        <div v-if="art.is_nsfw" class="nsfw-indicator">NSFW</div>
-                        <div v-if="isS3Url(art.image_url)" class="s3-indicator">S3</div>
-                        <div class="art-overlay">
+                        <div v-if="art.is_nsfw" class="nsfw-badge-mini">NSFW</div>
+                        <div class="art-overlay-mini">
                           <i class="fas fa-eye"></i>
                         </div>
                       </div>
-                      <div class="art-info">
-                        <h4>{{ art.title }}</h4>
-                        <p>{{ art.artist_name }}</p>
-                        <div class="art-date">{{ formatDate(art.created_date) }}</div>
+                    </div>
+                  </div>
+
+                  <div class="dashboard-card-mini">
+                    <h3><i class="fas fa-shield-alt"></i> Контент</h3>
+                    <div class="content-mini">
+                      <div class="content-row">
+                        <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+                        <span>SFW: <strong>{{ sfwArtsCount }}</strong></span>
+                        <span class="percent-mini">{{ Math.round((sfwArtsCount / stats.arts) * 100) }}%</span>
+                      </div>
+                      <div class="content-row">
+                        <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+                        <span>NSFW: <strong>{{ nsfwArtsCount }}</strong></span>
+                        <span class="percent-mini">{{ Math.round((nsfwArtsCount / stats.arts) * 100) }}%</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div class="dashboard-row">
-                  <div class="dashboard-card">
+                <!-- Нижняя секция: Художники и Теги -->
+                <div class="dashboard-bottom">
+                  <div class="dashboard-card-mini">
                     <h3><i class="fas fa-crown"></i> Топ художники</h3>
-                    <div class="top-artists">
+                    <div class="top-list-mini">
                       <div
-                        v-for="(artist, index) in topArtists.slice(0, 4)"
+                        v-for="(artist, index) in topArtists.slice(0, 3)"
                         :key="artist.id"
-                        class="top-artist-item"
+                        class="list-item-mini"
                       >
-                        <div class="artist-rank">{{ index + 1 }}</div>
+                        <div class="rank-mini">{{ index + 1 }}</div>
                         <img
                           :src="artist.avatar_url || getDefaultAvatar(artist.name)"
                           :alt="artist.name"
-                          class="artist-mini-avatar"
+                          class="avatar-mini"
                         >
-                        <div class="artist-details">
-                          <span class="artist-name">{{ artist.name }}</span>
-                          <span class="artist-count">{{ artist.count }} артов</span>
+                        <div class="info-mini">
+                          <div class="name-mini">{{ artist.name }}</div>
+                          <div class="count-mini">{{ artist.count }}</div>
                         </div>
-                        <div v-if="artist.is_friend" class="friend-mini-badge">
-                          <i class="fas fa-star"></i>
-                        </div>
+                        <i v-if="artist.is_friend" class="fas fa-star star-mini"></i>
                       </div>
                     </div>
                   </div>
 
-                  <div class="dashboard-card">
+                  <div class="dashboard-card-mini">
                     <h3><i class="fas fa-fire"></i> Популярные теги</h3>
-                    <div class="popular-tags">
+                    <div class="tags-mini-grid">
                       <div
-                        v-for="tag in popularTags.slice(0, 6)"
+                        v-for="tag in popularTags.slice(0, 9)"
                         :key="tag.id"
-                        class="popular-tag"
+                        class="tag-mini"
                       >
-                        <span class="tag-name">{{ tag.name }}</span>
-                        <span class="tag-uses">{{ tag.count }}</span>
+                        <span>{{ tag.name }}</span>
+                        <span>{{ tag.count }}</span>
                       </div>
                     </div>
                   </div>
@@ -2651,48 +2537,302 @@ watch(activeTab, () => {
 
 /* Контент вкладок */
 .tab-content {
-  padding: 1.25rem;
-  overflow-y: auto;
-  max-height: calc(100vh - 160px);
-}
-
-/* Dashboard */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-  max-height: calc(100vh - 200px);
+  padding: 0.75rem;
   overflow: hidden;
 }
 
-.dashboard-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+/* Dashboard Compact */
+.dashboard-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  height: 100%;
 }
 
-.dashboard-card {
+.stats-compact-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.stat-compact {
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  padding: 1.25rem;
+  border-radius: 12px;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.stat-compact:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.stat-compact i {
+  font-size: 1.5rem;
+  color: #ff6b35;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 107, 53, 0.1);
+  border-radius: 8px;
+}
+
+.stat-num {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
+}
+
+.stat-lbl {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 0.25rem;
+}
+
+.dashboard-middle,
+.dashboard-bottom {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 0.75rem;
+}
+
+.dashboard-card-mini {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.dashboard-card.full-width {
-  grid-column: 1 / -1;
-}
-
-.dashboard-card h3 {
+.dashboard-card-mini h3 {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin: 0 0 1rem 0;
-  font-size: 1.1rem;
+  margin: 0 0 0.75rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: white;
+}
+
+.dashboard-card-mini h3 i {
+  color: #ff6b35;
+  font-size: 0.9rem;
+}
+
+.card-header-mini {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.card-header-mini h3 {
+  margin: 0;
+}
+
+.view-btn-mini {
+  background: rgba(255, 107, 53, 0.1);
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  color: #ff6b35;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-btn-mini:hover {
+  background: rgba(255, 107, 53, 0.2);
+}
+
+.recent-arts-mini {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.art-mini {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.art-mini:hover {
+  transform: scale(1.05);
+}
+
+.art-mini img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nsfw-badge-mini {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
   font-weight: 600;
 }
 
-.dashboard-card h3 i {
-  color: #ff6b35;
+.art-overlay-mini {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: white;
+  font-size: 1.25rem;
+}
+
+.art-mini:hover .art-overlay-mini {
+  opacity: 1;
+}
+
+.content-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.content-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.content-row i {
+  font-size: 1rem;
+}
+
+.percent-mini {
+  margin-left: auto;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 0.15rem 0.4rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.top-list-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.list-item-mini {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.list-item-mini:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.rank-mini {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-mini {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-mini {
+  flex: 1;
+  min-width: 0;
+}
+
+.name-mini {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.count-mini {
+  font-size: 0.7rem;
+  color: #888;
+}
+
+.star-mini {
+  color: #ffd700;
+  font-size: 0.75rem;
+}
+
+.tags-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+}
+
+.tag-mini {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.5rem;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+  color: #3b82f6;
+  font-size: 0.7rem;
+  transition: all 0.3s ease;
+}
+
+.tag-mini:hover {
+  background: rgba(59, 130, 246, 0.2);
+  transform: translateY(-1px);
+}
+
+.tag-mini span:first-child {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tag-mini span:last-child {
+  font-weight: 700;
+  font-size: 0.65rem;
+  margin-left: 0.25rem;
 }
 .quick-actions-card {
   background: rgba(255, 255, 255, 0.05);
