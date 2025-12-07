@@ -401,28 +401,29 @@
               />
             </div>
 
-            <div class="form-row two-columns">
-              <div class="form-group">
-                <label class="form-label required">Тип мероприятия</label>
-                <div class="event-type-grid">
-                  <label
-                    v-for="type in eventTypes"
-                    :key="type.value"
-                    class="type-card"
-                    :class="{ 'selected': eventForm.event_type === type.value }"
-                  >
-                    <input
-                      type="radio"
-                      v-model="eventForm.event_type"
-                      :value="type.value"
-                      class="hidden-radio"
-                    />
-                    <i :class="type.icon"></i>
-                    <span>{{ type.label }}</span>
-                  </label>
-                </div>
+            <div class="form-group">
+              <label class="form-label required">Тип мероприятия</label>
+              <div class="event-type-grid">
+                <label
+                  v-for="type in eventTypes"
+                  :key="type.value"
+                  class="type-card"
+                  :class="{ 'selected': eventForm.event_type === type.value }"
+                >
+                  <input
+                    type="radio"
+                    v-model="eventForm.event_type"
+                    :value="type.value"
+                    class="hidden-radio"
+                  />
+                  <i :class="type.icon"></i>
+                  <span>{{ type.label }}</span>
+                </label>
               </div>
+            </div>
 
+            <!-- Даты рядом друг с другом -->
+            <div class="form-row two-columns">
               <div class="form-group">
                 <label class="form-label required">Дата начала</label>
                 <input
@@ -437,9 +438,10 @@
                 </div>
               </div>
 
-              <!-- Дата окончания для конвентов -->
-              <div v-if="eventForm.event_type === 'convention'" class="form-group">
-                <label class="form-label">Дата окончания (для КОНов)</label>
+              <div class="form-group">
+                <label class="form-label" :class="{ 'required': eventForm.event_type === 'convention' }">
+                  Дата окончания
+                </label>
                 <input
                   v-model="eventForm.event_end_date"
                   type="date"
@@ -447,8 +449,30 @@
                 />
                 <div class="form-hint">
                   <i class="fas fa-info-circle"></i>
-                  Для многодневных мероприятий (отображение: ДД.ММ – ДД.ММ)
+                  Для многодневных мероприятий
                 </div>
+              </div>
+            </div>
+
+            <!-- Статус участия -->
+            <div class="form-group">
+              <label class="form-label">Статус участия</label>
+              <div class="status-selector">
+                <label
+                  v-for="status in filteredStatuses"
+                  :key="status.value"
+                  class="status-option"
+                  :class="{ 'selected': eventForm.attendance_status === status.value }"
+                >
+                  <input
+                    type="radio"
+                    v-model="eventForm.attendance_status"
+                    :value="status.value"
+                    class="hidden-radio"
+                  />
+                  <i :class="status.icon"></i>
+                  <span>{{ status.label }}</span>
+                </label>
               </div>
             </div>
           </div>
@@ -703,27 +727,6 @@
               <div class="overall-rating">
                 <span>Общая оценка:</span>
                 <strong>{{ calculatedOverallRating }}/5</strong>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Статус участия</label>
-              <div class="status-selector">
-                <label
-                  v-for="status in filteredStatuses"
-                  :key="status.value"
-                  class="status-option"
-                  :class="{ 'selected': eventForm.attendance_status === status.value }"
-                >
-                  <input
-                    type="radio"
-                    v-model="eventForm.attendance_status"
-                    :value="status.value"
-                    class="hidden-radio"
-                  />
-                  <i :class="status.icon"></i>
-                  <span>{{ status.label }}</span>
-                </label>
               </div>
             </div>
 

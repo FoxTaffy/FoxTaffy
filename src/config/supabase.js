@@ -141,6 +141,15 @@ export const furryApi = {
       })
 
       console.log('✅ getEvents: Мероприятия загружены:', eventsWithPhotos.length)
+
+      // Отладка con_features
+      console.log('🔍 Проверка con_features:')
+      eventsWithPhotos.forEach(event => {
+        if (event.con_features && event.con_features.length > 0) {
+          console.log(`  - ${event.name}: ${event.con_features.length} особенностей`)
+        }
+      })
+
       return eventsWithPhotos
 
     } catch (error) {
