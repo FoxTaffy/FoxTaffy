@@ -116,14 +116,17 @@ const createThumbnailBlob = (file, maxWidth = THUMBNAIL_MAX_WIDTH, maxHeight = T
 }
 
 /**
- * Оптимизация изображения (сжатие без изменения размера)
+ * Оптимизация изображения (сжатие с адаптивным качеством и размером)
  * @param {File} file - Исходный файл
- * @param {number} quality - Качество (0-1)
+ * @param {number} quality - Базовое качество (0-1)
  * @returns {Promise<Blob>} Оптимизированное изображение
  */
 const optimizeImage = async (file, quality = 0.9) => {
+  const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 МБ
+  const MIN_FILE_SIZE = 500 * 1024 // 500 КБ
+
   // Если файл уже небольшой, не оптимизируем
-  if (file.size < 500 * 1024) { // < 500KB
+  if (file.size < MIN_FILE_SIZE) {
     return file
   }
 
@@ -140,16 +143,39 @@ const optimizeImage = async (file, quality = 0.9) => {
     }
 
     img.onload = () => {
+      let width = img.width
+      let height = img.height
+      let targetQuality = quality
+
+      // Если файл больше 10 МБ, нужно сжать агрессивнее
+      if (file.size > MAX_FILE_SIZE) {
+        console.log(`📦 Файл ${(file.size / 1024 / 1024).toFixed(2)} МБ > 10 МБ, сжимаем...`)
+
+        // Вычисляем коэффициент сжатия
+        const compressionRatio = Math.sqrt(MAX_FILE_SIZE / file.size)
+
+        // Уменьшаем размеры изображения
+        width = Math.round(width * compressionRatio)
+        height = Math.round(height * compressionRatio)
+
+        // Снижаем качество
+        targetQuality = Math.max(0.7, quality * compressionRatio)
+
+        console.log(`📐 Новые размеры: ${width}x${height}, качество: ${(targetQuality * 100).toFixed(0)}%`)
+      }
+
       const canvas = document.createElement('canvas')
-      canvas.width = img.width
-      canvas.height = img.height
+      canvas.width = width
+      canvas.height = height
 
       const ctx = canvas.getContext('2d')
-      ctx.drawImage(img, 0, 0)
+      ctx.drawImage(img, 0, 0, width, height)
 
       canvas.toBlob(
         (blob) => {
           if (blob) {
+            console.log(`✅ Сжато: ${(file.size / 1024 / 1024).toFixed(2)} МБ → ${(blob.size / 1024 / 1024).toFixed(2)} МБ`)
+
             // Если оптимизация увеличила размер, возвращаем оригинал
             resolve(blob.size < file.size ? blob : file)
           } else {
@@ -157,7 +183,7 @@ const optimizeImage = async (file, quality = 0.9) => {
           }
         },
         'image/jpeg',
-        quality
+        targetQuality
       )
     }
 

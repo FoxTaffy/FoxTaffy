@@ -29,6 +29,13 @@
         :class="[getCardClass(event), { 'no-review': !hasReview(event) && !isUpcoming(event) }]"
         @click="openEvent(event)"
       >
+        <!-- Оверлей блокировки для событий без обзора -->
+        <div v-if="!hasReview(event) && !isUpcoming(event)" class="blocked-overlay">
+          <div class="blocked-message">
+            <i class="fas fa-lock"></i>
+            <span>Обзор не готов</span>
+          </div>
+        </div>
         <!-- Изображение -->
         <div class="card-image">
           <img 
@@ -653,6 +660,11 @@ export default {
     
     // =================== НАВИГАЦИЯ ===================
     openEvent(event) {
+      // Блокируем переход для прошедших событий без обзора
+      if (!this.hasReview(event) && !this.isUpcoming(event)) {
+        return
+      }
+
       if (event.slug) {
         this.$router.push(`/events/${event.slug}`)
       } else if (event.id) {
@@ -768,24 +780,68 @@ export default {
 
 /* ===== КАРТОЧКИ БЕЗ ОБЗОРА (СЕРЫЕ) ===== */
 .event-card.no-review {
-  background: rgba(100, 100, 100, 0.15);
-  border-left-color: rgba(150, 150, 150, 0.5);
-  opacity: 0.75;
+  background: linear-gradient(135deg, rgba(240, 240, 240, 0.9) 0%, rgba(220, 220, 220, 0.9) 100%);
+  border: 2px solid rgba(128, 128, 128, 0.4);
+  cursor: not-allowed;
+  opacity: 0.7;
+  filter: grayscale(100%);
+  position: relative;
 }
 
 .event-card.no-review .card-image {
-  filter: grayscale(0.6);
+  filter: grayscale(100%) brightness(0.8);
+  opacity: 0.5;
 }
 
 .event-card.no-review:hover {
-  opacity: 0.9;
-  box-shadow: 0 12px 25px rgba(100, 100, 100, 0.2);
+  transform: none;
+  box-shadow: 0 4px 12px rgba(128, 128, 128, 0.2);
+  border-color: rgba(128, 128, 128, 0.5);
 }
 
 .event-card.no-review .event-name,
 .event-card.no-review .event-description,
 .event-card.no-review .meta-item {
-  color: rgba(200, 200, 200, 0.8);
+  color: rgba(100, 100, 100, 0.8);
+}
+
+/* Оверлей блокировки */
+.blocked-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(100, 100, 100, 0.85);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.blocked-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  color: white;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.blocked-message i {
+  font-size: 2.5rem;
+  opacity: 0.9;
+}
+
+.blocked-message span {
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .event-card.no-review .status-badge {
