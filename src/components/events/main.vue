@@ -871,17 +871,19 @@ export default {
       const isPast = new Date(event.event_date) < new Date()
       if (!isPast) return false
 
-      // Приоритет: если review_completed = true, обзор написан
-      if (event.review_completed === true) {
-        return false
+      // Если поле review_completed явно установлено, используем его значение
+      if (event.review_completed !== undefined && event.review_completed !== null) {
+        // false = обзор НЕ завершён = блокировать карточку
+        // true = обзор завершён = НЕ блокировать
+        return event.review_completed === false
       }
 
-      // Обзор считается написанным если есть рейтинги
+      // Fallback: если поле не установлено, проверяем наличие рейтингов
       const hasRatings = event.rating_organization || event.rating_program ||
                          event.rating_atmosphere || event.rating_location ||
                          event.rating_participants || event.rating_food || event.my_rating
 
-      // Обзор отсутствует если нет флага и нет рейтингов
+      // Обзор отсутствует если нет рейтингов
       return !hasRatings
     },
     

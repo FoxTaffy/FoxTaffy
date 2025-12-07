@@ -459,11 +459,13 @@ export default {
     hasReview(event) {
       if (!event) return false
 
-      // Приоритет: проверяем флаг review_completed
-      if (event.review_completed === true) {
-        return true
+      // Если поле review_completed явно установлено, используем его значение
+      if (event.review_completed !== undefined && event.review_completed !== null) {
+        // true = обзор завершён, false = обзор НЕ завершён
+        return event.review_completed === true
       }
 
+      // Fallback: если поле не установлено, проверяем наличие рейтингов/отзывов
       // Проверяем наличие хотя бы одной оценки в новой системе рейтингов
       const hasDetailedRatings = [
         event.rating_organization,
