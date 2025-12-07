@@ -100,18 +100,7 @@
           <div v-else class="completed-info-block">
             <!-- Рейтинг (если есть) -->
             <div v-if="getOverallRating(event) > 0" class="rating-block">
-              <div class="rating-text">
-                <i class="fas fa-star"></i>
-                <span>Оценка: {{ getOverallRating(event) }}/5</span>
-              </div>
-              <div class="stars">
-                <i
-                  v-for="star in 5"
-                  :key="star"
-                  class="fas fa-star"
-                  :class="{ filled: star <= Math.round(getOverallRating(event)) }"
-                ></i>
-              </div>
+              <StarRating :rating="getOverallRating(event)" size="medium" :show-value="false" />
             </div>
 
             <!-- Фотогаллерея (показываем всегда для прошедших, даже без обзора) -->
@@ -218,9 +207,13 @@
 
 <script>
 import { furryApi } from '@/config/supabase.js'
+import StarRating from '@/components/ui/StarRating.vue'
 
 export default {
   name: 'EventsSection',
+  components: {
+    StarRating
+  },
   
   data() {
     return {

@@ -160,15 +160,7 @@
 
                 <!-- Рейтинг для завершённых (только если обзор написан и тип поддерживает рейтинги) -->
                 <div v-else-if="shouldShowRating(event) && getOverallRating(event) > 0 && !isReviewMissing(event)" class="event-rating-badge">
-                  <div class="rating-stars">
-                    <i
-                      v-for="n in 5"
-                      :key="n"
-                      class="fas fa-star"
-                      :class="{ 'active': n <= Math.round(getOverallRating(event)) }"
-                    ></i>
-                  </div>
-                  <div class="rating-text">{{ getOverallRating(event) }}/5</div>
+                  <StarRating :rating="getOverallRating(event)" size="small" :show-value="true" />
                 </div>
               </div>
 
@@ -467,9 +459,13 @@
 
 <script>
 import { furryApi } from '@/config/supabase.js'
+import StarRating from '@/components/ui/StarRating.vue'
 
 export default {
   name: 'EventsMain',
+  components: {
+    StarRating
+  },
   
   data() {
     return {
