@@ -454,21 +454,21 @@
               </div>
             </div>
 
-            <!-- Статус участия -->
+            <!-- Статус участия (мультивыбор) -->
             <div class="form-group">
-              <label class="form-label">Статус участия</label>
+              <label class="form-label">Статус участия (можно выбрать несколько)</label>
               <div class="status-selector">
                 <label
                   v-for="status in filteredStatuses"
                   :key="status.value"
                   class="status-option"
-                  :class="{ 'selected': eventForm.attendance_status === status.value }"
+                  :class="{ 'selected': eventForm.attendance_status.includes(status.value) }"
                 >
                   <input
-                    type="radio"
+                    type="checkbox"
                     v-model="eventForm.attendance_status"
                     :value="status.value"
-                    class="hidden-radio"
+                    class="hidden-checkbox"
                   />
                   <i :class="status.icon"></i>
                   <span>{{ status.label }}</span>
@@ -1235,23 +1235,18 @@ export default {
     },
 
     filteredStatuses() {
-      if (this.isEventInPast) {
-        return [
-          { value: 'attended', label: 'Посетил', icon: 'fas fa-star' },
-          { value: 'missed', label: 'Пропустил', icon: 'fas fa-times-circle' },
-          { value: 'cancelled', label: 'Отменено', icon: 'fas fa-ban' }
-        ]
-      } else {
-        return [
-          { value: 'planning', label: 'Планирую', icon: 'fas fa-clock' },
-          { value: 'registered', label: 'Зарегистрирован', icon: 'fas fa-check-circle' },
-          { value: 'ticket_purchased', label: 'Билет куплен', icon: 'fas fa-ticket-alt' },
-          { value: 'vip', label: 'VIP', icon: 'fas fa-crown' },
-          { value: 'sponsor', label: 'Спонсор', icon: 'fas fa-hand-holding-usd' },
-          { value: 'volunteer', label: 'Волонтёр', icon: 'fas fa-hands-helping' },
-          { value: 'cancelled', label: 'Отменено', icon: 'fas fa-ban' }
-        ]
-      }
+      // Показываем все статусы для всех мероприятий (без фильтрации)
+      return [
+        { value: 'planning', label: 'Планирую', icon: 'fas fa-clock' },
+        { value: 'registered', label: 'Зарегистрирован', icon: 'fas fa-check-circle' },
+        { value: 'ticket_purchased', label: 'Билет куплен', icon: 'fas fa-ticket-alt' },
+        { value: 'vip', label: 'VIP', icon: 'fas fa-crown' },
+        { value: 'sponsor', label: 'Спонсор', icon: 'fas fa-hand-holding-usd' },
+        { value: 'volunteer', label: 'Волонтёр', icon: 'fas fa-hands-helping' },
+        { value: 'attended', label: 'Посетил', icon: 'fas fa-star' },
+        { value: 'missed', label: 'Пропустил', icon: 'fas fa-times-circle' },
+        { value: 'cancelled', label: 'Отменено', icon: 'fas fa-ban' }
+      ]
     },
 
     // Шаги визарда - этап обзора только для прошедших мероприятий
@@ -1379,7 +1374,7 @@ export default {
         city: '',
         country: '',
         event_type: 'convention',
-        attendance_status: 'planning',
+        attendance_status: [],  // Изменено на массив для мультивыбора
         my_rating: null,
         attendees_count: null,
         expected_visitors: null,
@@ -1701,6 +1696,23 @@ export default {
       if (!this.eventForm.pros) this.eventForm.pros = []
       if (!this.eventForm.cons_text) this.eventForm.cons_text = []
 
+      // Преобразуем attendance_status из строки в массив для мультивыбора
+      if (this.eventForm.attendance_status) {
+        if (typeof this.eventForm.attendance_status === 'string') {
+          // Если это JSON массив
+          try {
+            this.eventForm.attendance_status = JSON.parse(this.eventForm.attendance_status)
+          } catch {
+            // Если не JSON, то обычная строка - обернём в массив
+            this.eventForm.attendance_status = [this.eventForm.attendance_status]
+          }
+        } else if (!Array.isArray(this.eventForm.attendance_status)) {
+          this.eventForm.attendance_status = []
+        }
+      } else {
+        this.eventForm.attendance_status = []
+      }
+
       // Загружаем покупки и фотографии
       try {
         const [purchases, photos] = await Promise.all([
@@ -1740,23 +1752,31 @@ export default {
     
     async saveEvent() {
       if (!this.isFormValid) return
-      
+
       this.saving = true
-      
+
       try {
         // Генерируем slug из названия
         if (!this.eventForm.slug) {
           this.eventForm.slug = this.generateSlug(this.eventForm.name)
         }
-        
+
+        // Подготавливаем данные для сохранения
+        const dataToSave = { ...this.eventForm }
+
+        // Преобразуем attendance_status из массива в JSON строку для БД
+        if (Array.isArray(dataToSave.attendance_status)) {
+          dataToSave.attendance_status = JSON.stringify(dataToSave.attendance_status)
+        }
+
         let savedEvent
-        
+
         if (this.isEditing) {
-          console.log('✏️ AdminEvents: Обновляем мероприятие:', this.eventForm.id)
-          savedEvent = await furryApi.updateEvent(this.eventForm.id, this.eventForm)
+          console.log('✏️ AdminEvents: Обновляем мероприятие:', dataToSave.id)
+          savedEvent = await furryApi.updateEvent(dataToSave.id, dataToSave)
         } else {
           console.log('➕ AdminEvents: Создаём новое мероприятие')
-          savedEvent = await furryApi.createEvent(this.eventForm)
+          savedEvent = await furryApi.createEvent(dataToSave)
         }
         
         console.log('✅ AdminEvents: Мероприятие сохранено:', savedEvent)

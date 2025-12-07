@@ -163,10 +163,17 @@
                   <StarRating :rating="getOverallRating(event)" size="small" :show-value="true" />
                 </div>
 
-                <!-- Бейдж статуса участия (для всех событий) -->
-                <div v-if="event.attendance_status" class="attendance-badge" :class="'status-' + event.attendance_status">
-                  <i :class="getAttendanceIcon(event.attendance_status)"></i>
-                  <span>{{ getAttendanceLabel(event.attendance_status) }}</span>
+                <!-- Бейджи статусов участия (для всех событий, поддержка мультивыбора) -->
+                <div v-if="event.attendance_status" class="attendance-badges-container">
+                  <div
+                    v-for="status in parseAttendanceStatuses(event.attendance_status)"
+                    :key="status"
+                    class="attendance-badge"
+                    :class="'status-' + status"
+                  >
+                    <i :class="getAttendanceIcon(status)"></i>
+                    <span>{{ getAttendanceLabel(status) }}</span>
+                  </div>
                 </div>
               </div>
 
@@ -1066,6 +1073,28 @@ export default {
       return avg.toFixed(1)
     },
 
+    // Парсинг статусов участия (поддержка мультивыбора)
+    parseAttendanceStatuses(status) {
+      if (!status) return []
+
+      // Если это массив - возвращаем как есть
+      if (Array.isArray(status)) return status
+
+      // Если это строка
+      if (typeof status === 'string') {
+        // Пытаемся распарсить как JSON массив
+        try {
+          const parsed = JSON.parse(status)
+          if (Array.isArray(parsed)) return parsed
+        } catch {
+          // Если не JSON, то обычная строка - возвращаем как массив из одного элемента
+          return [status]
+        }
+      }
+
+      return []
+    },
+
     // Получение иконки для статуса участия
     getAttendanceIcon(status) {
       const icons = {
@@ -1681,11 +1710,19 @@ export default {
   font-weight: 600;
 }
 
-/* Бейдж статуса участия */
-.attendance-badge {
+/* Бейджи статусов участия */
+.attendance-badges-container {
   position: absolute;
   bottom: 1rem;
   left: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  max-width: calc(100% - 2rem);
+  z-index: 3;
+}
+
+.attendance-badge {
   padding: 0.4rem 0.8rem;
   border-radius: 8px;
   font-size: 0.75rem;
@@ -1694,9 +1731,9 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  z-index: 3;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(4px);
+  white-space: nowrap;
 }
 
 .attendance-badge.status-planning {
