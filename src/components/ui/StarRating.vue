@@ -8,7 +8,7 @@
         :class="getStarClass(n)"
       ></i>
     </div>
-    <span v-if="showValue && rating > 0" class="rating-value">{{ rating.toFixed(1) }}/5</span>
+    <span v-if="showValue && numericRating > 0" class="rating-value">{{ formattedRating }}/5</span>
   </div>
 </template>
 
@@ -17,10 +17,9 @@ import { computed } from 'vue'
 
 const props = defineProps({
   rating: {
-    type: Number,
+    type: [Number, String],
     required: true,
-    default: 0,
-    validator: (value) => value >= 0 && value <= 5
+    default: 0
   },
   size: {
     type: String,
@@ -33,6 +32,22 @@ const props = defineProps({
   }
 })
 
+// Преобразуем rating в число и валидируем
+const numericRating = computed(() => {
+  const num = typeof props.rating === 'string' ? parseFloat(props.rating) : props.rating
+
+  // Валидация: должно быть число от 0 до 5
+  if (isNaN(num) || num < 0) return 0
+  if (num > 5) return 5
+
+  return num
+})
+
+// Форматированное значение для отображения
+const formattedRating = computed(() => {
+  return numericRating.value.toFixed(1)
+})
+
 const sizeClass = computed(() => `size-${props.size}`)
 
 /**
@@ -41,7 +56,7 @@ const sizeClass = computed(() => `size-${props.size}`)
  * @returns {string} класс для звезды
  */
 const getStarClass = (n) => {
-  const rating = props.rating
+  const rating = numericRating.value
 
   // Полная звезда
   if (n <= Math.floor(rating)) {
