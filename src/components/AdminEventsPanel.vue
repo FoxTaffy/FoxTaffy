@@ -1251,7 +1251,7 @@ export default {
       }
     },
 
-    // Шаги визарда - при создании скрываем этап обзора
+    // Шаги визарда - этап обзора только для прошедших мероприятий
     wizardSteps() {
       const baseSteps = [
         { title: 'Основное', icon: 'fas fa-info-circle' },
@@ -1259,8 +1259,8 @@ export default {
         { title: 'Статистика', icon: 'fas fa-users' }
       ]
 
-      // Этап обзора только при редактировании
-      if (this.isEditMode) {
+      // Этап обзора только для прошедших мероприятий (редактирование после события)
+      if (this.eventForm.id && this.isEventInPast) {
         baseSteps.push({ title: 'Отзыв', icon: 'fas fa-comment-alt' })
       }
 
