@@ -51,12 +51,33 @@ supabase db execute --file sql/имя_файла.sql
 ALTER TABLE con_photos ALTER COLUMN image_url DROP NOT NULL;
 ```
 
+### remove_attendance_status_constraint.sql
+**Статус:** ⚠️ Требуется применить перед использованием нового UI статусов
+
+**Цель:** Удаление CHECK constraint для поддержки JSON формата статусов участия
+
+**Проблема:**
+- CHECK constraint требует, чтобы `attendance_status` был одним из фиксированных значений
+- Новая система использует JSON объект вида `{"status": "planning", "roles": ["vip"]}`
+- Возникает ошибка: "new row for relation cons violates check constraint cons_attendance_status_check"
+
+**Решение:**
+- Удаляем CHECK constraint `cons_attendance_status_check`
+- Теперь можно хранить любой JSON формат в поле `attendance_status`
+
+**Как применить:**
+```sql
+-- Скопируйте и выполните содержимое файла remove_attendance_status_constraint.sql
+ALTER TABLE cons DROP CONSTRAINT IF EXISTS cons_attendance_status_check;
+```
+
 ### Другие скрипты
 
 - `remove_duplicate_photos.sql` - Очистка дубликатов фотографий
 - `add_ratings_system.sql` - Добавление системы рейтингов
 - `add_review_completed_field.sql` - Добавление поля review_completed
-- `add_participation_statuses.sql` - Добавление статусов участия
+- `add_participation_statuses.sql` - Добавление статусов участия (старый формат)
+- `set_default_attendance_status.sql` - Установка дефолтного статуса
 - `setup_storage_policies.sql` - Настройка политик хранилища
 
 ## Порядок применения миграций
@@ -68,7 +89,9 @@ ALTER TABLE con_photos ALTER COLUMN image_url DROP NOT NULL;
 3. `add_ratings_system.sql`
 4. `add_review_completed_field.sql`
 5. `add_participation_statuses.sql`
-6. `setup_storage_policies.sql`
+6. `set_default_attendance_status.sql`
+7. **`remove_attendance_status_constraint.sql`** ⚠️ Важно для новой системы статусов
+8. `setup_storage_policies.sql`
 
 ## Откат миграций
 

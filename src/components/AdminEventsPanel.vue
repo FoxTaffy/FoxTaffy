@@ -454,24 +454,46 @@
               </div>
             </div>
 
-            <!-- Статус участия (мультивыбор) -->
+            <!-- Статус участия -->
             <div class="form-group">
-              <label class="form-label">Статус участия (можно выбрать несколько)</label>
+              <label class="form-label">Основной статус участия</label>
               <div class="status-selector">
                 <label
-                  v-for="status in filteredStatuses"
+                  v-for="status in mainStatuses"
                   :key="status.value"
                   class="status-option"
-                  :class="{ 'selected': eventForm.attendance_status.includes(status.value) }"
+                  :class="{ 'selected': eventForm.attendance_status === status.value }"
                 >
                   <input
-                    type="checkbox"
+                    type="radio"
                     v-model="eventForm.attendance_status"
                     :value="status.value"
-                    class="hidden-checkbox"
+                    class="hidden-radio"
                   />
                   <i :class="status.icon"></i>
                   <span>{{ status.label }}</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Дополнительные роли -->
+            <div class="form-group">
+              <label class="form-label">Дополнительные роли (необязательно)</label>
+              <div class="status-selector roles-selector">
+                <label
+                  v-for="role in roleStatuses"
+                  :key="role.value"
+                  class="status-option role-option"
+                  :class="{ 'selected': eventForm.attendance_roles.includes(role.value) }"
+                >
+                  <input
+                    type="checkbox"
+                    v-model="eventForm.attendance_roles"
+                    :value="role.value"
+                    class="hidden-checkbox"
+                  />
+                  <i :class="role.icon"></i>
+                  <span>{{ role.label }}</span>
                 </label>
               </div>
             </div>
@@ -1234,18 +1256,24 @@ export default {
       return this.ratingCategories
     },
 
-    filteredStatuses() {
-      // Показываем все статусы для всех мероприятий (без фильтрации)
+    // Основные статусы участия (выбирается один)
+    mainStatuses() {
       return [
         { value: 'planning', label: 'Планирую', icon: 'fas fa-clock' },
         { value: 'registered', label: 'Зарегистрирован', icon: 'fas fa-check-circle' },
         { value: 'ticket_purchased', label: 'Билет куплен', icon: 'fas fa-ticket-alt' },
-        { value: 'vip', label: 'VIP', icon: 'fas fa-crown' },
-        { value: 'sponsor', label: 'Спонсор', icon: 'fas fa-hand-holding-usd' },
-        { value: 'volunteer', label: 'Волонтёр', icon: 'fas fa-hands-helping' },
         { value: 'attended', label: 'Посетил', icon: 'fas fa-star' },
         { value: 'missed', label: 'Пропустил', icon: 'fas fa-times-circle' },
         { value: 'cancelled', label: 'Отменено', icon: 'fas fa-ban' }
+      ]
+    },
+
+    // Дополнительные роли (можно выбрать несколько)
+    roleStatuses() {
+      return [
+        { value: 'vip', label: 'VIP', icon: 'fas fa-crown' },
+        { value: 'sponsor', label: 'Спонсор', icon: 'fas fa-hand-holding-usd' },
+        { value: 'volunteer', label: 'Волонтёр', icon: 'fas fa-hands-helping' }
       ]
     },
 
@@ -1374,7 +1402,8 @@ export default {
         city: '',
         country: '',
         event_type: 'convention',
-        attendance_status: [],  // Изменено на массив для мультивыбора
+        attendance_status: 'planning',  // Основной статус участия
+        attendance_roles: [],  // Дополнительные роли (VIP, Спонсор, Волонтёр)
         my_rating: null,
         attendees_count: null,
         expected_visitors: null,
@@ -1696,21 +1725,39 @@ export default {
       if (!this.eventForm.pros) this.eventForm.pros = []
       if (!this.eventForm.cons_text) this.eventForm.cons_text = []
 
-      // Преобразуем attendance_status из строки в массив для мультивыбора
+      // Преобразуем attendance_status для новой структуры (статус + роли)
       if (this.eventForm.attendance_status) {
         if (typeof this.eventForm.attendance_status === 'string') {
-          // Если это JSON массив
           try {
-            this.eventForm.attendance_status = JSON.parse(this.eventForm.attendance_status)
+            const parsed = JSON.parse(this.eventForm.attendance_status)
+
+            // Если это объект с полями status и roles (новый формат)
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+              this.eventForm.attendance_status = parsed.status || 'planning'
+              this.eventForm.attendance_roles = parsed.roles || []
+            }
+            // Если это массив (старый формат) - первый элемент статус, остальные роли
+            else if (Array.isArray(parsed)) {
+              const roles = ['vip', 'sponsor', 'volunteer']
+              const mainStatuses = ['planning', 'registered', 'ticket_purchased', 'attended', 'missed', 'cancelled']
+
+              this.eventForm.attendance_status = parsed.find(s => mainStatuses.includes(s)) || 'planning'
+              this.eventForm.attendance_roles = parsed.filter(s => roles.includes(s))
+            }
+            // Если это просто строка в JSON
+            else {
+              this.eventForm.attendance_status = parsed
+              this.eventForm.attendance_roles = []
+            }
           } catch {
-            // Если не JSON, то обычная строка - обернём в массив
-            this.eventForm.attendance_status = [this.eventForm.attendance_status]
+            // Если не JSON, то обычная строка - это статус
+            this.eventForm.attendance_status = this.eventForm.attendance_status
+            this.eventForm.attendance_roles = []
           }
-        } else if (!Array.isArray(this.eventForm.attendance_status)) {
-          this.eventForm.attendance_status = []
         }
       } else {
-        this.eventForm.attendance_status = []
+        this.eventForm.attendance_status = 'planning'
+        this.eventForm.attendance_roles = []
       }
 
       // Загружаем покупки и фотографии
@@ -1764,10 +1811,15 @@ export default {
         // Подготавливаем данные для сохранения
         const dataToSave = { ...this.eventForm }
 
-        // Преобразуем attendance_status из массива в JSON строку для БД
-        if (Array.isArray(dataToSave.attendance_status)) {
-          dataToSave.attendance_status = JSON.stringify(dataToSave.attendance_status)
+        // Преобразуем attendance_status в JSON объект для БД
+        const attendanceData = {
+          status: dataToSave.attendance_status || 'planning',
+          roles: dataToSave.attendance_roles || []
         }
+        dataToSave.attendance_status = JSON.stringify(attendanceData)
+
+        // Удаляем временное поле attendance_roles (оно не существует в БД)
+        delete dataToSave.attendance_roles
 
         let savedEvent
 
@@ -3887,6 +3939,31 @@ export default {
 
 .status-option.selected i {
   color: var(--accent-blue);
+}
+
+/* Скрытие radio и checkbox внутри кастомных кнопок */
+.hidden-radio,
+.hidden-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Дополнительные стили для секции ролей */
+.roles-selector {
+  margin-top: 0.5rem;
+}
+
+.role-option.selected {
+  border-color: var(--accent-purple);
+  background: rgba(156, 39, 176, 0.1);
+  color: var(--accent-purple);
+}
+
+.role-option.selected i {
+  color: var(--accent-purple);
 }
 
 .purchases-block {

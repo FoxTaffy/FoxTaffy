@@ -1073,23 +1073,40 @@ export default {
       return avg.toFixed(1)
     },
 
-    // Парсинг статусов участия (поддержка мультивыбора)
+    // Парсинг статусов участия (поддержка нового формата status + roles)
     parseAttendanceStatuses(status) {
       if (!status) return []
 
-      // Если это массив - возвращаем как есть
-      if (Array.isArray(status)) return status
-
       // Если это строка
       if (typeof status === 'string') {
-        // Пытаемся распарсить как JSON массив
         try {
           const parsed = JSON.parse(status)
-          if (Array.isArray(parsed)) return parsed
+
+          // Новый формат: объект с полями status и roles
+          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            const result = []
+            if (parsed.status) result.push(parsed.status)
+            if (parsed.roles && Array.isArray(parsed.roles)) {
+              result.push(...parsed.roles)
+            }
+            return result
+          }
+          // Старый формат: массив статусов
+          else if (Array.isArray(parsed)) {
+            return parsed
+          }
+          // Простая строка в JSON
+          else {
+            return [parsed]
+          }
         } catch {
-          // Если не JSON, то обычная строка - возвращаем как массив из одного элемента
+          // Если не JSON, то обычная строка
           return [status]
         }
+      }
+      // Если это массив (не должно быть, но для совместимости)
+      else if (Array.isArray(status)) {
+        return status
       }
 
       return []
