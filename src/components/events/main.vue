@@ -163,8 +163,8 @@
                   <StarRating :rating="getOverallRating(event)" size="small" :show-value="true" />
                 </div>
 
-                <!-- Бейдж статуса участия для предстоящих событий -->
-                <div v-if="isUpcoming(event) && event.attendance_status" class="attendance-badge" :class="'status-' + event.attendance_status">
+                <!-- Бейдж статуса участия (для всех событий) -->
+                <div v-if="event.attendance_status" class="attendance-badge" :class="'status-' + event.attendance_status">
                   <i :class="getAttendanceIcon(event.attendance_status)"></i>
                   <span>{{ getAttendanceLabel(event.attendance_status) }}</span>
                 </div>
@@ -816,8 +816,8 @@ export default {
     // ============================================
     
     goToEvent(event) {
-      // Блокируем переход для прошедших событий без обзора
-      if (this.isReviewMissing(event)) {
+      // Блокируем переход для прошедших событий без обзора (кроме админа)
+      if (!this.isAdminMode && this.isReviewMissing(event)) {
         return
       }
 
