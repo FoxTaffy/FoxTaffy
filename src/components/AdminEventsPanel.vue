@@ -1062,12 +1062,6 @@ export default {
       // Wizard
       currentStep: 0,
       maxReachedStep: 0,
-      wizardSteps: [
-        { title: 'Основное', icon: 'fas fa-info-circle' },
-        { title: 'Место', icon: 'fas fa-map-marker-alt' },
-        { title: 'Статистика', icon: 'fas fa-users' },
-        { title: 'Отзыв', icon: 'fas fa-comment-alt' }
-      ],
       eventTypes: [
         { value: 'convention', label: 'Конвент', icon: 'fas fa-crown' },
         { value: 'market', label: 'Маркет', icon: 'fas fa-store' },
@@ -1248,9 +1242,29 @@ export default {
         return [
           { value: 'planning', label: 'Планирую', icon: 'fas fa-clock' },
           { value: 'registered', label: 'Зарегистрирован', icon: 'fas fa-check-circle' },
+          { value: 'ticket_purchased', label: 'Билет куплен', icon: 'fas fa-ticket-alt' },
+          { value: 'vip', label: 'VIP', icon: 'fas fa-crown' },
+          { value: 'sponsor', label: 'Спонсор', icon: 'fas fa-hand-holding-usd' },
+          { value: 'volunteer', label: 'Волонтёр', icon: 'fas fa-hands-helping' },
           { value: 'cancelled', label: 'Отменено', icon: 'fas fa-ban' }
         ]
       }
+    },
+
+    // Шаги визарда - этап обзора только для прошедших мероприятий
+    wizardSteps() {
+      const baseSteps = [
+        { title: 'Основное', icon: 'fas fa-info-circle' },
+        { title: 'Место', icon: 'fas fa-map-marker-alt' },
+        { title: 'Статистика', icon: 'fas fa-users' }
+      ]
+
+      // Этап обзора только для прошедших мероприятий (редактирование после события)
+      if (this.eventForm.id && this.isEventInPast) {
+        baseSteps.push({ title: 'Отзыв', icon: 'fas fa-comment-alt' })
+      }
+
+      return baseSteps
     }
   },
   

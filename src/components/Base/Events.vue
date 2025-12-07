@@ -48,6 +48,12 @@
           <div class="status-badge" :class="getStatusClass(event)">
             {{ getStatusText(event) }}
           </div>
+
+          <!-- Бейдж статуса участия для предстоящих событий -->
+          <div v-if="isUpcoming(event) && event.attendance_status && event.attendance_status !== 'planning'" class="attendance-badge" :class="'status-' + event.attendance_status">
+            <i :class="getAttendanceIcon(event.attendance_status)"></i>
+            <span>{{ getAttendanceLabel(event.attendance_status) }}</span>
+          </div>
         </div>
         
         <!-- Контент -->
@@ -630,8 +636,9 @@ export default {
     
     // =================== ИЗОБРАЖЕНИЯ ===================
     getImageUrl(event) {
-      // Приоритет: avatar_url (логотип) -> banner_url -> остальные
-      const urls = [event.avatar_url, event.banner_url, event.image_url, event.meta_image, event.logo_url]
+      // Приоритет: logo_url (аватарка) -> avatar_url -> image_url
+      // Баннеры (banner_url, meta_image) используются только в детальной странице
+      const urls = [event.logo_url, event.avatar_url, event.image_url]
 
       for (const url of urls) {
         if (url && this.isValidUrl(url)) {
@@ -677,6 +684,39 @@ export default {
     
     showAllEvents() {
       this.$router.push('/events')
+    },
+
+    // =================== СТАТУСЫ УЧАСТИЯ ===================
+    // Получение иконки для статуса участия
+    getAttendanceIcon(status) {
+      const icons = {
+        'planning': 'fas fa-clock',
+        'registered': 'fas fa-check-circle',
+        'ticket_purchased': 'fas fa-ticket-alt',
+        'vip': 'fas fa-crown',
+        'sponsor': 'fas fa-hand-holding-usd',
+        'volunteer': 'fas fa-hands-helping',
+        'attended': 'fas fa-star',
+        'missed': 'fas fa-times-circle',
+        'cancelled': 'fas fa-ban'
+      }
+      return icons[status] || 'fas fa-question'
+    },
+
+    // Получение названия для статуса участия
+    getAttendanceLabel(status) {
+      const labels = {
+        'planning': 'Планирую',
+        'registered': 'Зарегистрирован',
+        'ticket_purchased': 'Билет куплен',
+        'vip': 'VIP',
+        'sponsor': 'Спонсор',
+        'volunteer': 'Волонтёр',
+        'attended': 'Посетил',
+        'missed': 'Пропустил',
+        'cancelled': 'Отменено'
+      }
+      return labels[status] || status
     }
   }
 }
@@ -891,6 +931,45 @@ export default {
 .status-badge.completed {
   background: rgba(255, 123, 37, 0.9);
   color: white;
+}
+
+/* ===== БЕЙДЖ СТАТУСА УЧАСТИЯ ===== */
+.attendance-badge {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  z-index: 3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+}
+
+.attendance-badge.status-registered {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+}
+
+.attendance-badge.status-ticket_purchased {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+}
+
+.attendance-badge.status-vip {
+  background: linear-gradient(135deg, #ffd700, #ffb300);
+  color: #333;
+}
+
+.attendance-badge.status-sponsor {
+  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+}
+
+.attendance-badge.status-volunteer {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
 }
 
 /* ===== КОНТЕНТ КАРТОЧКИ ===== */
