@@ -48,7 +48,7 @@ CREATE TABLE cons (
   -- Статусы и типы
   status TEXT DEFAULT 'upcoming' CHECK (status IN ('upcoming', 'ongoing', 'completed', 'cancelled')),
   event_type TEXT DEFAULT 'convention' CHECK (event_type IN ('convention', 'meeting', 'party', 'workshop', 'market', 'other')),
-  attendance_status TEXT DEFAULT 'planning' CHECK (attendance_status IN ('planning', 'registered', 'attended', 'missed', 'cancelled')),
+  attendance_status TEXT DEFAULT 'planning' CHECK (attendance_status IN ('planning', 'registered', 'ticket_purchased', 'vip', 'sponsor', 'volunteer', 'attended', 'missed', 'cancelled')),
   
   -- Дополнительная информация
   attendees_count INTEGER CHECK (attendees_count >= 0),

@@ -133,8 +133,8 @@
               <!-- Изображение мероприятия (логотип/аватар) -->
               <div class="event-image">
                 <img
-                  v-if="event.avatar_url || event.meta_image"
-                  :src="event.avatar_url || event.meta_image"
+                  v-if="event.logo_url || event.avatar_url"
+                  :src="event.logo_url || event.avatar_url"
                   :alt="event.name"
                   @error="handleImageError"
                 >
@@ -161,6 +161,12 @@
                 <!-- Рейтинг для завершённых (только если обзор написан и тип поддерживает рейтинги) -->
                 <div v-else-if="shouldShowRating(event) && getOverallRating(event) > 0 && !isReviewMissing(event)" class="event-rating-badge">
                   <StarRating :rating="getOverallRating(event)" size="small" :show-value="true" />
+                </div>
+
+                <!-- Бейдж статуса участия для предстоящих событий -->
+                <div v-if="isUpcoming(event) && event.attendance_status && event.attendance_status !== 'planning'" class="attendance-badge" :class="'status-' + event.attendance_status">
+                  <i :class="getAttendanceIcon(event.attendance_status)"></i>
+                  <span>{{ getAttendanceLabel(event.attendance_status) }}</span>
                 </div>
               </div>
 
@@ -1054,6 +1060,38 @@ export default {
       return avg.toFixed(1)
     },
 
+    // Получение иконки для статуса участия
+    getAttendanceIcon(status) {
+      const icons = {
+        'planning': 'fas fa-clock',
+        'registered': 'fas fa-check-circle',
+        'ticket_purchased': 'fas fa-ticket-alt',
+        'vip': 'fas fa-crown',
+        'sponsor': 'fas fa-hand-holding-usd',
+        'volunteer': 'fas fa-hands-helping',
+        'attended': 'fas fa-star',
+        'missed': 'fas fa-times-circle',
+        'cancelled': 'fas fa-ban'
+      }
+      return icons[status] || 'fas fa-question'
+    },
+
+    // Получение названия для статуса участия
+    getAttendanceLabel(status) {
+      const labels = {
+        'planning': 'Планирую',
+        'registered': 'Зарегистрирован',
+        'ticket_purchased': 'Билет куплен',
+        'vip': 'VIP',
+        'sponsor': 'Спонсор',
+        'volunteer': 'Волонтёр',
+        'attended': 'Посетил',
+        'missed': 'Пропустил',
+        'cancelled': 'Отменено'
+      }
+      return labels[status] || status
+    },
+
     // Плюрализация для количества фотографий
     pluralizePhotos(count) {
       const lastDigit = count % 10
@@ -1635,6 +1673,45 @@ export default {
   font-size: 0.75rem;
   color: white;
   font-weight: 600;
+}
+
+/* Бейдж статуса участия */
+.attendance-badge {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  z-index: 3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+}
+
+.attendance-badge.status-registered {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+}
+
+.attendance-badge.status-ticket_purchased {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+}
+
+.attendance-badge.status-vip {
+  background: linear-gradient(135deg, #ffd700, #ffb300);
+  color: #333;
+}
+
+.attendance-badge.status-sponsor {
+  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+}
+
+.attendance-badge.status-volunteer {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
 }
 
 /* Контент карточки */
