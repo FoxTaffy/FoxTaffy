@@ -637,30 +637,43 @@ export const furryApi = {
           : 0
 
         // Подготавливаем данные для вставки
-        const photosToInsert = photos.map((photo, index) => {
-          // Поддержка старого формата (простые URL) и нового (объекты)
-          if (typeof photo === 'string') {
-            return {
-              con_id: eventId,
-              image_url: photo,
-              thumbnail_url: photo,
-              display_order: startOrder + index
+        const photosToInsert = photos
+          .map((photo, index) => {
+            // Поддержка старого формата (простые URL) и нового (объекты)
+            if (typeof photo === 'string') {
+              return {
+                con_id: eventId,
+                image_url: photo,
+                thumbnail_url: photo,
+                display_order: startOrder + index
+              }
+            } else {
+              return {
+                con_id: eventId,
+                image_url: photo.image_url || null,
+                thumbnail_url: photo.thumbnail_url || photo.image_url || null,
+                file_path: photo.file_path || null,
+                thumbnail_path: photo.thumbnail_path || null,
+                file_size: photo.file_size || null,
+                file_name: photo.file_name || null,
+                caption: photo.caption || null,
+                is_featured: photo.is_featured || false,
+                display_order: startOrder + index
+              }
             }
-          } else {
-            return {
-              con_id: eventId,
-              image_url: photo.image_url,
-              thumbnail_url: photo.thumbnail_url || photo.image_url,
-              file_path: photo.file_path || null,
-              thumbnail_path: photo.thumbnail_path || null,
-              file_size: photo.file_size || null,
-              file_name: photo.file_name || null,
-              caption: photo.caption || null,
-              is_featured: photo.is_featured || false,
-              display_order: startOrder + index
+          })
+          // Фильтруем фотографии: должен быть хотя бы image_url или file_path
+          .filter(photo => {
+            const hasUrl = photo.image_url && photo.image_url.trim() !== ''
+            const hasPath = photo.file_path && photo.file_path.trim() !== ''
+
+            if (!hasUrl && !hasPath) {
+              console.warn('⚠️ Пропускаем фото без URL и пути:', photo)
+              return false
             }
-          }
-        })
+
+            return true
+          })
 
         const { error: insertError } = await supabase
           .from('con_photos')
