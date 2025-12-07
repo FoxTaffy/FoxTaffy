@@ -100,18 +100,7 @@
           <div v-else class="completed-info-block">
             <!-- Рейтинг (если есть) -->
             <div v-if="getOverallRating(event) > 0" class="rating-block">
-              <div class="rating-text">
-                <i class="fas fa-star"></i>
-                <span>Оценка: {{ getOverallRating(event) }}/5</span>
-              </div>
-              <div class="stars">
-                <i
-                  v-for="star in 5"
-                  :key="star"
-                  class="fas fa-star"
-                  :class="{ filled: star <= Math.round(getOverallRating(event)) }"
-                ></i>
-              </div>
+              <StarRating :rating="getOverallRating(event)" size="medium" :show-value="false" />
             </div>
 
             <!-- Фотогаллерея (показываем всегда для прошедших, даже без обзора) -->
@@ -147,8 +136,8 @@
               </div>
 
               <div class="gallery-hint">
-                <i class="fas fa-arrow-right"></i>
-                <span>{{ hasReview(event) ? 'Смотреть обзор' : 'Подробнее' }}</span>
+                <i :class="hasReview(event) ? 'fas fa-arrow-right' : 'fas fa-lock'"></i>
+                <span>{{ hasReview(event) ? 'Смотреть обзор' : 'Обзор ещё не написан' }}</span>
               </div>
             </div>
           </div>
@@ -218,9 +207,13 @@
 
 <script>
 import { furryApi } from '@/config/supabase.js'
+import StarRating from '@/components/ui/StarRating.vue'
 
 export default {
   name: 'EventsSection',
+  components: {
+    StarRating
+  },
   
   data() {
     return {
@@ -459,6 +452,13 @@ export default {
     hasReview(event) {
       if (!event) return false
 
+      // Если поле review_completed явно установлено, используем его значение
+      if (event.review_completed !== undefined && event.review_completed !== null) {
+        // true = обзор завершён, false = обзор НЕ завершён
+        return event.review_completed === true
+      }
+
+      // Fallback: если поле не установлено, проверяем наличие рейтингов/отзывов
       // Проверяем наличие хотя бы одной оценки в новой системе рейтингов
       const hasDetailedRatings = [
         event.rating_organization,
@@ -473,7 +473,7 @@ export default {
       const hasMyRating = event.my_rating && event.my_rating > 0
 
       // Или есть текст обзора
-      const hasReviewText = event.review || event.review_text
+      const hasReviewText = event.review || event.review_text || event.my_review
 
       return hasDetailedRatings || hasMyRating || hasReviewText
     },
@@ -660,6 +660,11 @@ export default {
     
     // =================== НАВИГАЦИЯ ===================
     openEvent(event) {
+      // Блокируем переход для прошедших событий без обзора
+      if (!this.hasReview(event) && !this.isUpcoming(event)) {
+        return
+      }
+
       if (event.slug) {
         this.$router.push(`/events/${event.slug}`)
       } else if (event.id) {
@@ -775,24 +780,15 @@ export default {
 
 /* ===== КАРТОЧКИ БЕЗ ОБЗОРА (СЕРЫЕ) ===== */
 .event-card.no-review {
-  background: rgba(100, 100, 100, 0.15);
-  border-left-color: rgba(150, 150, 150, 0.5);
-  opacity: 0.75;
-}
-
-.event-card.no-review .card-image {
-  filter: grayscale(0.6);
+  border: 2px solid rgba(128, 128, 128, 0.6);
+  cursor: not-allowed;
+  position: relative;
 }
 
 .event-card.no-review:hover {
-  opacity: 0.9;
-  box-shadow: 0 12px 25px rgba(100, 100, 100, 0.2);
-}
-
-.event-card.no-review .event-name,
-.event-card.no-review .event-description,
-.event-card.no-review .meta-item {
-  color: rgba(200, 200, 200, 0.8);
+  transform: none;
+  box-shadow: 0 4px 12px rgba(128, 128, 128, 0.3);
+  border-color: rgba(128, 128, 128, 0.8);
 }
 
 .event-card.no-review .status-badge {

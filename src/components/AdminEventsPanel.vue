@@ -279,15 +279,7 @@
             
             <!-- Рейтинг (только если тип поддерживает рейтинги) -->
             <div v-if="shouldShowEventRating(event) && getEventOverallRating(event) > 0" class="event-rating">
-              <div class="rating-stars">
-                <i
-                  v-for="star in 5"
-                  :key="star"
-                  class="fas fa-star"
-                  :class="{ 'active': star <= Math.round(getEventOverallRating(event)) }"
-                ></i>
-              </div>
-              <span class="rating-text">{{ getEventOverallRating(event) }}/5</span>
+              <StarRating :rating="getEventOverallRating(event)" size="small" :show-value="true" />
             </div>
           </div>
           
@@ -1009,12 +1001,14 @@
 <script>
 import { furryApi } from '@/config/supabase.js'
 import FileUploader from '@/FileUploader.vue'
+import StarRating from '@/components/ui/StarRating.vue'
 
 export default {
   name: 'AdminEventsPanel',
 
   components: {
-    FileUploader
+    FileUploader,
+    StarRating
   },
 
   emits: ['notification'],

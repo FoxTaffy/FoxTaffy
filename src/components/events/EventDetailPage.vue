@@ -73,10 +73,7 @@
             </div>
 
             <div v-if="event.my_rating" class="hero-rating">
-              <div class="rating-stars-large">
-                <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= event.my_rating }"></i>
-              </div>
-              <span class="rating-value">{{ event.my_rating }}/5</span>
+              <StarRating :rating="event.my_rating" size="large" :show-value="true" />
             </div>
           </div>
         </div>
@@ -365,9 +362,13 @@
 <script>
 import { furryApi } from '@/config/supabase.js'
 import { imageHelpers } from '@/utils/imageUtils'
+import StarRating from '@/components/ui/StarRating.vue'
 
 export default {
   name: 'EventDetailPage',
+  components: {
+    StarRating
+  },
   
   data() {
     return {

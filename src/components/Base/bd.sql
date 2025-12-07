@@ -58,7 +58,8 @@ CREATE TABLE cons (
   -- Рейтинг и отзыв
   my_rating INTEGER CHECK (my_rating >= 1 AND my_rating <= 5),
   my_review TEXT,
-  
+  review_completed BOOLEAN DEFAULT false,
+
   -- Особенности
   has_dealers_den BOOLEAN DEFAULT false,
   has_art_show BOOLEAN DEFAULT false,

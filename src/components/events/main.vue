@@ -160,15 +160,7 @@
 
                 <!-- Рейтинг для завершённых (только если обзор написан и тип поддерживает рейтинги) -->
                 <div v-else-if="shouldShowRating(event) && getOverallRating(event) > 0 && !isReviewMissing(event)" class="event-rating-badge">
-                  <div class="rating-stars">
-                    <i
-                      v-for="n in 5"
-                      :key="n"
-                      class="fas fa-star"
-                      :class="{ 'active': n <= Math.round(getOverallRating(event)) }"
-                    ></i>
-                  </div>
-                  <div class="rating-text">{{ getOverallRating(event) }}/5</div>
+                  <StarRating :rating="getOverallRating(event)" size="small" :show-value="true" />
                 </div>
               </div>
 
@@ -276,8 +268,8 @@
                       class="action-btn primary disabled"
                       disabled
                     >
-                      <i class="fas fa-pen"></i>
-                      <span>Обзор не написан</span>
+                      <i class="fas fa-lock"></i>
+                      <span>Обзор ещё не написан</span>
                     </button>
                   </template>
                 </div>
@@ -467,9 +459,13 @@
 
 <script>
 import { furryApi } from '@/config/supabase.js'
+import StarRating from '@/components/ui/StarRating.vue'
 
 export default {
   name: 'EventsMain',
+  components: {
+    StarRating
+  },
   
   data() {
     return {
@@ -868,12 +864,20 @@ export default {
       const isPast = new Date(event.event_date) < new Date()
       if (!isPast) return false
 
-      // Обзор считается написанным если review_completed=true ИЛИ есть рейтинги
+      // Если поле review_completed явно установлено, используем его значение
+      if (event.review_completed !== undefined && event.review_completed !== null) {
+        // false = обзор НЕ завершён = блокировать карточку
+        // true = обзор завершён = НЕ блокировать
+        return event.review_completed === false
+      }
+
+      // Fallback: если поле не установлено, проверяем наличие рейтингов
       const hasRatings = event.rating_organization || event.rating_program ||
                          event.rating_atmosphere || event.rating_location ||
                          event.rating_participants || event.rating_food || event.my_rating
 
-      return !event.review_completed && !hasRatings
+      // Обзор отсутствует если нет рейтингов
+      return !hasRatings
     },
     
     getStatusClass(event) {
@@ -1971,22 +1975,14 @@ export default {
 /* Заблокированные карточки (без обзора) */
 .event-card.blocked-card {
   cursor: not-allowed;
-  opacity: 0.6;
-  border-color: rgba(128, 128, 128, 0.3);
-  filter: grayscale(70%);
+  border: 2px solid rgba(128, 128, 128, 0.6);
+  position: relative;
 }
 
 .event-card.blocked-card:hover {
   transform: none;
-  box-shadow: 0 0 20px rgba(128, 128, 128, 0.1);
-}
-
-.event-card.blocked-card .event-image img {
-  filter: grayscale(100%);
-}
-
-.event-card.blocked-card::before {
-  background: rgba(128, 128, 128, 0.5);
+  box-shadow: 0 4px 12px rgba(128, 128, 128, 0.3);
+  border-color: rgba(128, 128, 128, 0.8);
 }
 
 /* ===============================================

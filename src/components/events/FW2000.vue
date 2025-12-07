@@ -41,10 +41,7 @@
           </div>
 
           <div class="hero-rating">
-            <div class="rating-stars-large">
-              <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= event.my_rating }"></i>
-            </div>
-            <span class="rating-value">{{ event.my_rating }}/5</span>
+            <StarRating :rating="event.my_rating" size="large" :show-value="true" />
           </div>
         </div>
       </div>
@@ -209,8 +206,13 @@
 </template>
 
 <script>
+import StarRating from '@/components/ui/StarRating.vue'
+
 export default {
   name: 'FW2000',
+  components: {
+    StarRating
+  },
 
   data() {
     return {
