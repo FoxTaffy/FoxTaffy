@@ -50,8 +50,8 @@
             {{ getStatusText(event) }}
           </div>
 
-          <!-- Бейдж статуса участия для предстоящих событий -->
-          <div v-if="isUpcoming(event) && event.attendance_status && event.attendance_status !== 'planning'" class="attendance-badge" :class="'status-' + event.attendance_status">
+          <!-- Бейдж статуса участия (для всех событий) -->
+          <div v-if="event.attendance_status" class="attendance-badge" :class="'status-' + event.attendance_status">
             <i :class="getAttendanceIcon(event.attendance_status)"></i>
             <span>{{ getAttendanceLabel(event.attendance_status) }}</span>
           </div>
@@ -232,7 +232,8 @@ export default {
         total: 0,
         upcoming: 0,
         completed: 0
-      }
+      },
+      isAdminMode: false
     }
   },
   
@@ -288,6 +289,7 @@ export default {
   },
   
   async mounted() {
+    this.checkAdminMode()
     await this.loadData()
   },
   
@@ -314,6 +316,12 @@ export default {
         if (eventsData.status === 'fulfilled') {
           this.events = eventsData.value || []
           console.log(`✅ Загружено ${this.events.length} событий`)
+
+          // Отладка: проверяем attendance_status
+          console.log('🔍 Проверка attendance_status у событий на главной:')
+          this.events.forEach(event => {
+            console.log(`  - ${event.name}: attendance_status="${event.attendance_status}", предстоящее=${new Date(event.event_date) > new Date()}`)
+          })
 
           // Загружаем превью фотографий для событий
           await this.loadEventPhotoPreviews()
@@ -450,7 +458,13 @@ export default {
         completed: 2
       }
     },
-    
+
+    checkAdminMode() {
+      // Проверяем админ-код из localStorage
+      const adminCode = localStorage.getItem('fox_taffy_admin')
+      this.isAdminMode = adminCode === import.meta.env.VITE_ADMIN_SECRET_CODE
+    },
+
     // =================== УТИЛИТЫ ===================
     isUpcoming(event) {
       return new Date(event.event_date) > new Date()
@@ -459,6 +473,11 @@ export default {
     // Проверка наличия обзора (хотя бы один рейтинг или my_rating)
     hasReview(event) {
       if (!event) return false
+
+      // Предстоящие события не блокируются (у них ещё нет обзора)
+      if (this.isUpcoming(event)) {
+        return true
+      }
 
       // Если поле review_completed явно установлено, используем его значение
       if (event.review_completed !== undefined && event.review_completed !== null) {
@@ -669,8 +688,8 @@ export default {
     
     // =================== НАВИГАЦИЯ ===================
     openEvent(event) {
-      // Блокируем переход для прошедших событий без обзора
-      if (!this.hasReview(event) && !this.isUpcoming(event)) {
+      // Блокируем переход для прошедших событий без обзора (кроме админа)
+      if (!this.isAdminMode && !this.hasReview(event) && !this.isUpcoming(event)) {
         return
       }
 
@@ -951,6 +970,10 @@ export default {
   z-index: 3;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(4px);
+}
+
+.attendance-badge.status-planning {
+  background: linear-gradient(135deg, #607d8b, #546e7a);
 }
 
 .attendance-badge.status-registered {

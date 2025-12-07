@@ -163,8 +163,8 @@
                   <StarRating :rating="getOverallRating(event)" size="small" :show-value="true" />
                 </div>
 
-                <!-- Бейдж статуса участия для предстоящих событий -->
-                <div v-if="isUpcoming(event) && event.attendance_status && event.attendance_status !== 'planning'" class="attendance-badge" :class="'status-' + event.attendance_status">
+                <!-- Бейдж статуса участия (для всех событий) -->
+                <div v-if="event.attendance_status" class="attendance-badge" :class="'status-' + event.attendance_status">
                   <i :class="getAttendanceIcon(event.attendance_status)"></i>
                   <span>{{ getAttendanceLabel(event.attendance_status) }}</span>
                 </div>
@@ -643,6 +643,12 @@ export default {
           stats: this.stats
         })
 
+        // Отладка: проверяем attendance_status
+        console.log('🔍 Проверка attendance_status у мероприятий:')
+        this.allEvents.forEach(event => {
+          console.log(`  - ${event.name}: attendance_status="${event.attendance_status}", предстоящее=${new Date(event.event_date) > new Date()}`)
+        })
+
         // Загружаем превью фотографий для событий
         await this.loadEventPhotoPreviews()
 
@@ -808,8 +814,8 @@ export default {
     // ============================================
     
     goToEvent(event) {
-      // Блокируем переход для прошедших событий без обзора
-      if (this.isReviewMissing(event)) {
+      // Блокируем переход для прошедших событий без обзора (кроме админа)
+      if (!this.isAdminMode && this.isReviewMissing(event)) {
         return
       }
 
@@ -1689,6 +1695,10 @@ export default {
   z-index: 3;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(4px);
+}
+
+.attendance-badge.status-planning {
+  background: linear-gradient(135deg, #607d8b, #546e7a);
 }
 
 .attendance-badge.status-registered {
