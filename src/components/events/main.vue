@@ -871,12 +871,18 @@ export default {
       const isPast = new Date(event.event_date) < new Date()
       if (!isPast) return false
 
-      // Обзор считается написанным если review_completed=true ИЛИ есть рейтинги
+      // Приоритет: если review_completed = true, обзор написан
+      if (event.review_completed === true) {
+        return false
+      }
+
+      // Обзор считается написанным если есть рейтинги
       const hasRatings = event.rating_organization || event.rating_program ||
                          event.rating_atmosphere || event.rating_location ||
                          event.rating_participants || event.rating_food || event.my_rating
 
-      return !event.review_completed && !hasRatings
+      // Обзор отсутствует если нет флага и нет рейтингов
+      return !hasRatings
     },
     
     getStatusClass(event) {

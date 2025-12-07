@@ -459,6 +459,11 @@ export default {
     hasReview(event) {
       if (!event) return false
 
+      // Приоритет: проверяем флаг review_completed
+      if (event.review_completed === true) {
+        return true
+      }
+
       // Проверяем наличие хотя бы одной оценки в новой системе рейтингов
       const hasDetailedRatings = [
         event.rating_organization,
@@ -473,7 +478,7 @@ export default {
       const hasMyRating = event.my_rating && event.my_rating > 0
 
       // Или есть текст обзора
-      const hasReviewText = event.review || event.review_text
+      const hasReviewText = event.review || event.review_text || event.my_review
 
       return hasDetailedRatings || hasMyRating || hasReviewText
     },
