@@ -37,6 +37,3 @@ FROM cons
 WHERE event_date < NOW()
 ORDER BY event_date DESC
 LIMIT 10;
-
--- Готово!
-SELECT '✅ Поле review_completed добавлено и заполнено!' as status;
