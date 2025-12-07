@@ -164,7 +164,7 @@
                 </div>
 
                 <!-- Бейдж статуса участия для предстоящих событий -->
-                <div v-if="isUpcoming(event) && event.attendance_status && event.attendance_status !== 'planning'" class="attendance-badge" :class="'status-' + event.attendance_status">
+                <div v-if="isUpcoming(event) && event.attendance_status" class="attendance-badge" :class="'status-' + event.attendance_status">
                   <i :class="getAttendanceIcon(event.attendance_status)"></i>
                   <span>{{ getAttendanceLabel(event.attendance_status) }}</span>
                 </div>
@@ -1697,6 +1697,10 @@ export default {
   z-index: 3;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(4px);
+}
+
+.attendance-badge.status-planning {
+  background: linear-gradient(135deg, #607d8b, #546e7a);
 }
 
 .attendance-badge.status-registered {
