@@ -130,13 +130,6 @@
               }"
               @click="goToEvent(event)"
             >
-              <!-- Оверлей блокировки для событий без обзора -->
-              <div v-if="isReviewMissing(event)" class="blocked-overlay">
-                <div class="blocked-message">
-                  <i class="fas fa-lock"></i>
-                  <span>Обзор не готов</span>
-                </div>
-              </div>
               <!-- Изображение мероприятия (логотип/аватар) -->
               <div class="event-image">
                 <img
@@ -275,8 +268,8 @@
                       class="action-btn primary disabled"
                       disabled
                     >
-                      <i class="fas fa-pen"></i>
-                      <span>Обзор не написан</span>
+                      <i class="fas fa-lock"></i>
+                      <span>Обзор ещё не написан</span>
                     </button>
                   </template>
                 </div>
@@ -1982,65 +1975,14 @@ export default {
 /* Заблокированные карточки (без обзора) */
 .event-card.blocked-card {
   cursor: not-allowed;
-  opacity: 0.7;
-  border: 2px solid rgba(128, 128, 128, 0.4);
-  background: linear-gradient(135deg, rgba(240, 240, 240, 0.9) 0%, rgba(220, 220, 220, 0.9) 100%);
-  filter: grayscale(100%);
+  border: 2px solid rgba(128, 128, 128, 0.6);
   position: relative;
 }
 
 .event-card.blocked-card:hover {
   transform: none;
-  box-shadow: 0 4px 12px rgba(128, 128, 128, 0.2);
-  border-color: rgba(128, 128, 128, 0.5);
-}
-
-.event-card.blocked-card .event-image img {
-  filter: grayscale(100%) brightness(0.8);
-  opacity: 0.5;
-}
-
-.event-card.blocked-card::before {
-  background: rgba(128, 128, 128, 0.3);
-}
-
-/* Оверлей блокировки */
-.blocked-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(100, 100, 100, 0.85);
-  backdrop-filter: blur(2px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  border-radius: 16px;
-  pointer-events: none;
-}
-
-.blocked-message {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  color: white;
-  text-align: center;
-  padding: 1.5rem;
-}
-
-.blocked-message i {
-  font-size: 2.5rem;
-  opacity: 0.9;
-}
-
-.blocked-message span {
-  font-size: 1.1rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  box-shadow: 0 4px 12px rgba(128, 128, 128, 0.3);
+  border-color: rgba(128, 128, 128, 0.8);
 }
 
 /* ===============================================
