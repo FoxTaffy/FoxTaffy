@@ -86,16 +86,6 @@
             <div class="progress-fill" :style="{ width: completedPercent + '%' }"></div>
           </div>
         </div>
-
-        <div class="stat-card featured">
-          <div class="stat-icon">
-            <i class="fas fa-star"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-number">{{ stats.featured || 0 }}</div>
-            <div class="stat-label">Избранных</div>
-          </div>
-        </div>
       </div>
 
       <!-- Визуальная диаграмма распределения -->
@@ -243,11 +233,6 @@
             <!-- Статус мероприятия -->
             <div class="event-status" :class="getEventStatusClass(event)">
               {{ getEventStatusText(event) }}
-            </div>
-            
-            <!-- Значок избранного -->
-            <div v-if="event.is_featured" class="featured-badge">
-              <i class="fas fa-star"></i>
             </div>
           </div>
         </div>
@@ -658,11 +643,6 @@
                   <i class="fas fa-paw"></i>
                   <span>Фурсьют-парад</span>
                 </label>
-                <label class="feature-checkbox" :class="{ 'checked': eventForm.is_featured }">
-                  <input v-model="eventForm.is_featured" type="checkbox" />
-                  <i class="fas fa-star"></i>
-                  <span>Избранное</span>
-                </label>
               </div>
             </div>
           </div>
@@ -1024,8 +1004,7 @@ export default {
       stats: {
         total: 0,
         upcoming: 0,
-        completed: 0,
-        featured: 0
+        completed: 0
       },
       
       // Фильтрация и поиск
@@ -1110,12 +1089,6 @@ export default {
           label: 'Завершённые',
           icon: 'fas fa-check-circle',
           count: this.stats.completed
-        },
-        {
-          value: 'featured',
-          label: 'Избранные',
-          icon: 'fas fa-star',
-          count: this.stats.featured
         }
       ]
     },
@@ -1384,7 +1357,6 @@ export default {
         official_website: '',
         meta_image: '',
         avatar_url: '',
-        is_featured: false,
         has_dealers_den: false,
         has_art_show: false,
         has_fursuit_parade: false,
@@ -2251,10 +2223,6 @@ export default {
   background: var(--accent-green);
 }
 
-.stat-card.featured .stat-icon {
-  background: var(--accent-purple);
-}
-
 .stat-info {
   flex: 1;
 }
@@ -2535,11 +2503,6 @@ export default {
   border-color: var(--accent-green);
 }
 
-.filter-btn.active.featured {
-  background: var(--accent-purple);
-  border-color: var(--accent-purple);
-}
-
 .filter-count {
   font-size: 0.8rem;
   opacity: 0.8;
@@ -2664,21 +2627,6 @@ export default {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
 }
 
-.event-card.featured {
-  border-color: var(--accent-purple);
-  box-shadow: 0 0 20px rgba(156, 39, 176, 0.2);
-}
-
-.event-card.featured::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent-purple), var(--accent-orange));
-}
-
 .event-card.high-rating {
   border-color: var(--accent-green);
 }
@@ -2718,8 +2666,7 @@ export default {
   background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
 }
 
-.event-status,
-.featured-badge {
+.event-status {
   position: absolute;
   padding: 0.25rem 0.75rem;
   border-radius: 1rem;
@@ -2727,9 +2674,6 @@ export default {
   font-weight: 600;
   backdrop-filter: blur(10px);
   z-index: 2;
-}
-
-.event-status {
   top: 0.75rem;
   left: 0.75rem;
 }
@@ -2742,19 +2686,6 @@ export default {
 .event-status.completed {
   background: rgba(76, 175, 80, 0.9);
   color: white;
-}
-
-.featured-badge {
-  top: 0.75rem;
-  right: 0.75rem;
-  width: 30px;
-  height: 30px;
-  background: rgba(255, 193, 7, 0.9);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .event-info {
