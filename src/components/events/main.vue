@@ -643,6 +643,12 @@ export default {
           stats: this.stats
         })
 
+        // Отладка: проверяем attendance_status
+        console.log('🔍 Проверка attendance_status у мероприятий:')
+        this.allEvents.forEach(event => {
+          console.log(`  - ${event.name}: attendance_status="${event.attendance_status}", предстоящее=${new Date(event.event_date) > new Date()}`)
+        })
+
         // Загружаем превью фотографий для событий
         await this.loadEventPhotoPreviews()
 
