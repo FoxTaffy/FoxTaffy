@@ -1,17 +1,17 @@
 -- ============================================
--- ДОБАВЛЕНИЕ ПОЛЯ review_completed В ТАБЛИЦУ convents
+-- ДОБАВЛЕНИЕ ПОЛЯ review_completed В ТАБЛИЦУ cons
 -- Необходимо для работы блокировки карточек без обзора
 -- ============================================
 
 -- Добавляем поле review_completed
-ALTER TABLE convents
+ALTER TABLE cons
 ADD COLUMN IF NOT EXISTS review_completed BOOLEAN DEFAULT false;
 
 -- Комментарий к полю
-COMMENT ON COLUMN convents.review_completed IS 'Отметка о том, что обзор мероприятия написан и завершён';
+COMMENT ON COLUMN cons.review_completed IS 'Отметка о том, что обзор мероприятия написан и завершён';
 
 -- Обновляем существующие записи: если есть рейтинги или текст обзора, считаем обзор завершённым
-UPDATE convents
+UPDATE cons
 SET review_completed = true
 WHERE (
   my_rating IS NOT NULL
@@ -33,7 +33,7 @@ SELECT
   review_completed,
   my_rating,
   my_review IS NOT NULL as has_review_text
-FROM convents
+FROM cons
 WHERE event_date < NOW()
 ORDER BY event_date DESC
 LIMIT 10;
