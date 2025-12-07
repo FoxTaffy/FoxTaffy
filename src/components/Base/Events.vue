@@ -464,6 +464,11 @@ export default {
     hasReview(event) {
       if (!event) return false
 
+      // Предстоящие события не блокируются (у них ещё нет обзора)
+      if (this.isUpcoming(event)) {
+        return true
+      }
+
       // Если поле review_completed явно установлено, используем его значение
       if (event.review_completed !== undefined && event.review_completed !== null) {
         // true = обзор завершён, false = обзор НЕ завершён

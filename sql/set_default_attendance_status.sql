@@ -8,6 +8,13 @@ UPDATE cons
 SET attendance_status = 'planning'
 WHERE attendance_status IS NULL;
 
+-- Делаем поле обязательным с дефолтом
+ALTER TABLE cons
+ALTER COLUMN attendance_status SET DEFAULT 'planning';
+
+ALTER TABLE cons
+ALTER COLUMN attendance_status SET NOT NULL;
+
 -- Проверяем результат
 SELECT
   id,
@@ -16,6 +23,5 @@ SELECT
   attendance_status,
   event_date > NOW() as is_upcoming
 FROM cons
-WHERE event_date > NOW()
-ORDER BY event_date ASC
-LIMIT 10;
+ORDER BY event_date DESC
+LIMIT 20;
