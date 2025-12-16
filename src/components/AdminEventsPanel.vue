@@ -1631,8 +1631,9 @@ export default {
         }
         dataToSave.attendance_status = JSON.stringify(attendanceData)
 
-        // Удаляем временное поле attendance_roles (оно не существует в БД)
+        // Удаляем временные поля (они не существуют в БД)
         delete dataToSave.attendance_roles
+        delete dataToSave.has_purchases
 
         let savedEvent
 
