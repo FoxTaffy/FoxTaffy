@@ -1,30 +1,49 @@
 /* ================================================
    🎄 НОВОГОДНЯЯ ТЕМА FOX TAFFY 2025
+   Яркие праздничные цвета!
    ================================================ */
 
 /* Применяется только когда новогодняя тема активна */
 body.christmas-theme {
   /* Переопределяем CSS переменные на новогодние цвета */
-  --bg-dark: #0a1410;
-  --bg-darker: #050f0a;
-  --text-light: #e8fff0;
-  --text-muted: #a0e0b0;
-  --accent-orange: #00ff41;
-  --accent-green: #39ff14;
-  --shadow: rgba(0, 255, 65, 0.3);
-  --card-bg: #0f1f15;
-  --card-hover: #152820;
+  --christmas-red: #ff0000;
+  --christmas-green: #00aa00;
+  --christmas-gold: #ffd700;
+  --christmas-blue: #0066ff;
+  --christmas-white: #ffffff;
+
+  --bg-dark: #1a0a0a;
+  --bg-darker: #0f0505;
+  --text-light: #ffffff;
+  --text-muted: #ffcccc;
+  --accent-orange: #ffd700;
+  --accent-green: #00ff00;
+  --shadow: rgba(255, 215, 0, 0.5);
+  --card-bg: #2a1515;
+  --card-hover: #3a2020;
   --transition: all 0.3s ease;
 
-  /* Новогодний градиентный фон */
+  /* Яркий новогодний градиентный фон */
   background: linear-gradient(180deg,
-    #0a1410 0%,
-    #0f1f15 25%,
-    #0a1410 50%,
-    #050f0a 100%
+    #1a0a0a 0%,
+    #0a1a0a 20%,
+    #0a0a1a 40%,
+    #1a0a0a 60%,
+    #0a1a0a 80%,
+    #1a0a0a 100%
   );
   background-attachment: fixed;
   position: relative;
+  animation: backgroundShift 20s ease-in-out infinite;
+}
+
+@keyframes backgroundShift {
+  0%, 100% {
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    filter: hue-rotate(10deg);
+  }
 }
 
 /* Добавляем новогодний паттерн на фон */
@@ -36,204 +55,363 @@ body.christmas-theme::before {
   right: 0;
   bottom: 0;
   background-image:
-    radial-gradient(circle at 20% 30%, rgba(0, 255, 65, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(57, 255, 20, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 40% 80%, rgba(127, 255, 0, 0.02) 0%, transparent 50%);
+    radial-gradient(circle at 20% 30%, rgba(255, 0, 0, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(0, 255, 0, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 10% 80%, rgba(0, 102, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 90% 20%, rgba(255, 0, 255, 0.06) 0%, transparent 50%);
   pointer-events: none;
   z-index: 1;
+  animation: patternPulse 10s ease-in-out infinite;
+}
+
+@keyframes patternPulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Переопределяем навигационную панель */
 body.christmas-theme .navbar {
-  background: rgba(10, 20, 16, 0.98);
-  border-bottom: 2px solid rgba(0, 255, 65, 0.2);
-  box-shadow: 0 5px 30px rgba(0, 255, 65, 0.2);
+  background: linear-gradient(135deg,
+    rgba(139, 0, 0, 0.98),
+    rgba(0, 100, 0, 0.98),
+    rgba(139, 0, 0, 0.98)
+  );
+  border-bottom: 3px solid;
+  border-image: linear-gradient(90deg,
+    #ff0000, #ffd700, #00ff00, #0088ff, #ff00ff
+  ) 1;
+  box-shadow:
+    0 5px 30px rgba(255, 215, 0, 0.4),
+    0 0 50px rgba(255, 0, 0, 0.3);
 }
 
 body.christmas-theme .navbar.scrolled {
-  background: rgba(10, 20, 16, 0.99);
-  box-shadow: 0 5px 40px rgba(0, 255, 65, 0.3);
+  box-shadow:
+    0 5px 40px rgba(255, 215, 0, 0.6),
+    0 0 60px rgba(255, 0, 0, 0.4);
 }
 
 /* Неоновое свечение для логотипа */
 body.christmas-theme .nav-logo .avatar-img {
-  border: 3px solid rgba(0, 255, 65, 0.5);
+  border: 3px solid;
+  border-image: linear-gradient(135deg, #ff0000, #ffd700, #00ff00) 1;
   box-shadow:
-    0 0 20px rgba(0, 255, 65, 0.5),
-    0 0 40px rgba(0, 255, 65, 0.3);
+    0 0 20px rgba(255, 215, 0, 0.8),
+    0 0 40px rgba(255, 0, 0, 0.5);
+  animation: avatarGlow 2s ease-in-out infinite;
+}
+
+@keyframes avatarGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 20px rgba(255, 215, 0, 0.8),
+      0 0 40px rgba(255, 0, 0, 0.5);
+  }
+  50% {
+    box-shadow:
+      0 0 30px rgba(0, 255, 0, 0.8),
+      0 0 60px rgba(255, 215, 0, 0.6);
+  }
 }
 
 body.christmas-theme .nav-logo:hover .avatar-img {
   box-shadow:
-    0 0 30px rgba(0, 255, 65, 0.8),
-    0 0 60px rgba(0, 255, 65, 0.5);
+    0 0 40px rgba(255, 215, 0, 1),
+    0 0 80px rgba(255, 0, 0, 0.8);
+  transform: scale(1.05) rotate(5deg);
 }
 
 /* Новогодний градиент для заголовка логотипа */
 body.christmas-theme .logo-text h3 {
-  background: linear-gradient(135deg, #00ff41, #39ff14, #7fff00);
+  background: linear-gradient(135deg, #ff0000, #ffd700, #00ff00, #0088ff);
+  background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 10px rgba(0, 255, 65, 0.5));
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+body.christmas-theme .logo-text span {
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
 }
 
 /* Неоновые кнопки навигации */
 body.christmas-theme .nav-link {
-  color: #a0e0b0;
+  color: #ffcccc;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
   transition: all 0.3s ease;
 }
 
 body.christmas-theme .nav-link:hover {
-  color: #00ff41;
-  background: rgba(0, 255, 65, 0.1);
+  color: #ffffff;
+  background: linear-gradient(135deg,
+    rgba(255, 0, 0, 0.3),
+    rgba(0, 255, 0, 0.3)
+  );
+  border: 1px solid;
+  border-image: linear-gradient(135deg, #ff0000, #ffd700, #00ff00) 1;
   box-shadow:
-    0 0 15px rgba(0, 255, 65, 0.2),
-    inset 0 0 15px rgba(0, 255, 65, 0.05);
-  border: 1px solid rgba(0, 255, 65, 0.3);
+    0 0 20px rgba(255, 215, 0, 0.5),
+    inset 0 0 20px rgba(255, 215, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 body.christmas-theme .nav-link.active {
   background: linear-gradient(135deg,
-    rgba(0, 255, 65, 0.2),
-    rgba(57, 255, 20, 0.2)
+    rgba(255, 0, 0, 0.4),
+    rgba(255, 215, 0, 0.4),
+    rgba(0, 255, 0, 0.4)
   );
-  border: 1px solid rgba(0, 255, 65, 0.5);
+  border: 2px solid #ffd700;
+  color: #ffffff;
   box-shadow:
-    0 5px 25px rgba(0, 255, 65, 0.3),
-    inset 0 0 20px rgba(0, 255, 65, 0.1);
-  color: #00ff41;
+    0 5px 25px rgba(255, 215, 0, 0.6),
+    inset 0 0 25px rgba(255, 215, 0, 0.2);
 }
 
 /* Социальные ссылки с неоном */
 body.christmas-theme .social-link {
-  background: rgba(0, 255, 65, 0.05);
-  border: 1px solid rgba(0, 255, 65, 0.2);
+  background: rgba(255, 0, 0, 0.1);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  color: #ffd700;
 }
 
 body.christmas-theme .social-link:hover {
-  background: rgba(0, 255, 65, 0.15);
+  background: linear-gradient(135deg,
+    rgba(255, 0, 0, 0.4),
+    rgba(0, 255, 0, 0.4)
+  );
+  border-color: #ffd700;
+  color: #ffffff;
   box-shadow:
-    0 5px 20px rgba(0, 255, 65, 0.4),
-    inset 0 0 15px rgba(0, 255, 65, 0.2);
-  border-color: rgba(0, 255, 65, 0.5);
+    0 5px 25px rgba(255, 215, 0, 0.6),
+    inset 0 0 20px rgba(255, 215, 0, 0.3);
+  transform: translateY(-3px) scale(1.1);
 }
 
 /* Карточки с новогодним стилем */
 body.christmas-theme .card,
 body.christmas-theme .section {
   background: linear-gradient(135deg,
-    rgba(15, 31, 21, 0.9),
-    rgba(10, 20, 16, 0.9)
+    rgba(42, 21, 21, 0.95),
+    rgba(21, 42, 21, 0.95),
+    rgba(21, 21, 42, 0.95)
   );
-  border: 1px solid rgba(0, 255, 65, 0.2);
+  border: 2px solid;
+  border-image: linear-gradient(135deg,
+    #ff0000, #ffd700, #00ff00, #0088ff
+  ) 1;
   box-shadow:
-    0 10px 40px rgba(0, 255, 65, 0.1),
-    inset 0 0 30px rgba(0, 255, 65, 0.03);
+    0 10px 40px rgba(255, 215, 0, 0.3),
+    0 0 60px rgba(255, 0, 0, 0.2),
+    inset 0 0 40px rgba(255, 215, 0, 0.05);
+  backdrop-filter: blur(10px);
+  animation: cardFloat 4s ease-in-out infinite;
+}
+
+@keyframes cardFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 body.christmas-theme .card:hover,
 body.christmas-theme .section:hover {
-  border-color: rgba(0, 255, 65, 0.4);
+  border-width: 3px;
   box-shadow:
-    0 15px 50px rgba(0, 255, 65, 0.2),
-    inset 0 0 40px rgba(0, 255, 65, 0.05);
+    0 15px 60px rgba(255, 215, 0, 0.5),
+    0 0 80px rgba(255, 0, 0, 0.3),
+    inset 0 0 50px rgba(255, 215, 0, 0.1);
+  transform: translateY(-10px) scale(1.02);
 }
 
 /* Заголовки с неоновым эффектом */
 body.christmas-theme h1,
 body.christmas-theme h2,
 body.christmas-theme h3 {
-  color: #00ff41;
-  text-shadow:
-    0 0 10px rgba(0, 255, 65, 0.5),
-    0 0 20px rgba(0, 255, 65, 0.3);
+  background: linear-gradient(135deg, #ff0000, #ffd700, #00ff00, #0088ff, #ff00ff);
+  background-size: 400% 400%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));
+  animation: headingGlow 4s ease infinite;
+}
+
+@keyframes headingGlow {
+  0%, 100% {
+    background-position: 0% 50%;
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: drop-shadow(0 0 25px rgba(255, 0, 0, 0.8));
+  }
 }
 
 /* Кнопки с новогодним стилем */
 body.christmas-theme button,
 body.christmas-theme .btn {
   background: linear-gradient(135deg,
-    rgba(0, 255, 65, 0.2),
-    rgba(57, 255, 20, 0.2)
+    rgba(255, 0, 0, 0.4),
+    rgba(255, 215, 0, 0.4),
+    rgba(0, 255, 0, 0.4)
   );
-  border: 2px solid rgba(0, 255, 65, 0.4);
-  color: #00ff41;
-  text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+  border: 2px solid #ffd700;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
   box-shadow:
-    0 5px 20px rgba(0, 255, 65, 0.2),
-    inset 0 0 15px rgba(0, 255, 65, 0.05);
+    0 5px 25px rgba(255, 215, 0, 0.4),
+    inset 0 0 20px rgba(255, 215, 0, 0.1);
+  font-weight: 700;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+body.christmas-theme button::before,
+body.christmas-theme .btn::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transform: rotate(45deg);
+  animation: buttonShine 3s infinite;
+}
+
+@keyframes buttonShine {
+  0% {
+    left: -50%;
+  }
+  100% {
+    left: 150%;
+  }
 }
 
 body.christmas-theme button:hover,
 body.christmas-theme .btn:hover {
   background: linear-gradient(135deg,
-    rgba(0, 255, 65, 0.3),
-    rgba(57, 255, 20, 0.3)
+    rgba(255, 0, 0, 0.6),
+    rgba(255, 215, 0, 0.6),
+    rgba(0, 255, 0, 0.6)
   );
-  border-color: rgba(0, 255, 65, 0.6);
+  border-color: #ffffff;
   box-shadow:
-    0 8px 30px rgba(0, 255, 65, 0.4),
-    inset 0 0 25px rgba(0, 255, 65, 0.1);
-  transform: translateY(-2px);
+    0 8px 35px rgba(255, 215, 0, 0.7),
+    inset 0 0 30px rgba(255, 215, 0, 0.2);
+  transform: translateY(-3px) scale(1.05);
 }
 
 /* Ссылки */
 body.christmas-theme a {
-  color: #39ff14;
-  text-shadow: 0 0 5px rgba(57, 255, 20, 0.3);
+  color: #ffd700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
   transition: all 0.3s ease;
+  position: relative;
+}
+
+body.christmas-theme a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #ff0000, #ffd700, #00ff00);
+  transition: width 0.3s ease;
 }
 
 body.christmas-theme a:hover {
-  color: #00ff41;
-  text-shadow: 0 0 10px rgba(0, 255, 65, 0.6);
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.9);
+}
+
+body.christmas-theme a:hover::after {
+  width: 100%;
 }
 
 /* Акцентные элементы */
 body.christmas-theme .accent,
 body.christmas-theme .highlight {
-  color: #00ff41;
-  text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+  background: linear-gradient(135deg, #ff0000, #ffd700, #00ff00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
 }
 
 /* Текстовые поля и инпуты */
 body.christmas-theme input,
 body.christmas-theme textarea,
 body.christmas-theme select {
-  background: rgba(15, 31, 21, 0.8);
-  border: 1px solid rgba(0, 255, 65, 0.3);
-  color: #e8fff0;
-  box-shadow: inset 0 0 15px rgba(0, 255, 65, 0.05);
+  background: rgba(42, 21, 21, 0.9);
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  color: #ffffff;
+  box-shadow: inset 0 0 20px rgba(255, 0, 0, 0.1);
 }
 
 body.christmas-theme input:focus,
 body.christmas-theme textarea:focus,
 body.christmas-theme select:focus {
-  border-color: rgba(0, 255, 65, 0.6);
+  border-color: #ffd700;
   box-shadow:
-    0 0 20px rgba(0, 255, 65, 0.3),
-    inset 0 0 20px rgba(0, 255, 65, 0.08);
+    0 0 25px rgba(255, 215, 0, 0.5),
+    inset 0 0 25px rgba(255, 215, 0, 0.1);
+  outline: none;
 }
 
 /* Футер */
 body.christmas-theme .footer {
   background: linear-gradient(180deg,
     transparent 0%,
-    rgba(10, 20, 16, 0.8) 50%,
-    rgba(5, 15, 10, 0.9) 100%
+    rgba(42, 21, 21, 0.9) 50%,
+    rgba(21, 10, 10, 0.95) 100%
   );
-  border-top: 2px solid rgba(0, 255, 65, 0.2);
-  color: #a0e0b0;
-  box-shadow: 0 -5px 30px rgba(0, 255, 65, 0.1);
+  border-top: 3px solid;
+  border-image: linear-gradient(90deg,
+    #ff0000, #ffd700, #00ff00, #0088ff
+  ) 1;
+  color: #ffcccc;
+  box-shadow: 0 -5px 40px rgba(255, 215, 0, 0.3);
 }
 
 /* Сердечко в футере */
 body.christmas-theme .footer .heart {
-  color: #00ff41;
+  background: linear-gradient(135deg, #ff0000, #ff69b4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   animation: heartBeat 1.5s ease-in-out infinite;
-  filter: drop-shadow(0 0 5px rgba(0, 255, 65, 0.6));
+  filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
+  font-size: 1.2em;
 }
 
 @keyframes heartBeat {
@@ -241,62 +419,118 @@ body.christmas-theme .footer .heart {
     transform: scale(1);
   }
   25% {
-    transform: scale(1.1);
+    transform: scale(1.15);
   }
   50% {
     transform: scale(1);
   }
   75% {
-    transform: scale(1.15);
+    transform: scale(1.2);
   }
 }
 
 /* Дополнительные новогодние эффекты */
 body.christmas-theme *::selection {
-  background: rgba(0, 255, 65, 0.3);
+  background: rgba(255, 215, 0, 0.5);
   color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
 }
 
 /* Скроллбар */
 body.christmas-theme::-webkit-scrollbar {
-  width: 12px;
+  width: 14px;
 }
 
 body.christmas-theme::-webkit-scrollbar-track {
-  background: rgba(10, 20, 16, 0.5);
+  background: rgba(26, 10, 10, 0.8);
+  border: 1px solid rgba(255, 215, 0, 0.2);
 }
 
 body.christmas-theme::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg,
-    rgba(0, 255, 65, 0.5),
-    rgba(57, 255, 20, 0.5)
+    rgba(255, 0, 0, 0.8),
+    rgba(255, 215, 0, 0.8),
+    rgba(0, 255, 0, 0.8)
   );
-  border-radius: 6px;
-  border: 2px solid rgba(10, 20, 16, 0.5);
+  border-radius: 7px;
+  border: 2px solid rgba(26, 10, 10, 0.8);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
 }
 
 body.christmas-theme::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg,
-    rgba(0, 255, 65, 0.7),
-    rgba(57, 255, 20, 0.7)
+    rgba(255, 0, 0, 1),
+    rgba(255, 215, 0, 1),
+    rgba(0, 255, 0, 1)
   );
-}
-
-/* Анимация появления */
-@keyframes christmasGlow {
-  0%, 100% {
-    box-shadow:
-      0 0 20px rgba(0, 255, 65, 0.3),
-      0 0 40px rgba(0, 255, 65, 0.2);
-  }
-  50% {
-    box-shadow:
-      0 0 30px rgba(0, 255, 65, 0.5),
-      0 0 60px rgba(0, 255, 65, 0.3);
-  }
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.9);
 }
 
 /* Добавляем мерцание для некоторых элементов */
 body.christmas-theme .glow {
   animation: christmasGlow 2s ease-in-out infinite;
+}
+
+@keyframes christmasGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 20px rgba(255, 215, 0, 0.5),
+      0 0 40px rgba(255, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 40px rgba(255, 215, 0, 0.8),
+      0 0 80px rgba(0, 255, 0, 0.5);
+  }
+}
+
+/* Специальные новогодние украшения для текста */
+body.christmas-theme .christmas-text {
+  background: linear-gradient(45deg, #ff0000, #ffd700, #00ff00, #0088ff, #ff00ff, #ff0000);
+  background-size: 400% 400%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: rainbowText 5s ease infinite;
+  font-weight: 900;
+}
+
+@keyframes rainbowText {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Добавляем блеск на границы */
+body.christmas-theme .sparkle-border {
+  position: relative;
+  overflow: hidden;
+}
+
+body.christmas-theme .sparkle-border::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg,
+    #ff0000, #ffd700, #00ff00, #0088ff, #ff00ff, #ff0000
+  );
+  background-size: 400% 400%;
+  border-radius: inherit;
+  z-index: -1;
+  animation: borderSparkle 3s linear infinite;
+}
+
+@keyframes borderSparkle {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }

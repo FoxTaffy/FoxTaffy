@@ -2,37 +2,27 @@
   <div class="countdown-container" v-if="showCountdown">
     <div class="countdown-card">
       <div class="countdown-header">
-        <div class="snowflake">❄️</div>
-        <h2 class="countdown-title">До Нового Года</h2>
-        <div class="snowflake">❄️</div>
+        <span class="snowflake">❄️</span>
+        <h2 class="countdown-title">До Нового Года:</h2>
+        <span class="snowflake">❄️</span>
       </div>
 
-      <div class="countdown-timer">
-        <div class="time-block">
-          <div class="time-value">{{ timeLeft.days }}</div>
-          <div class="time-label">{{ getDaysLabel(timeLeft.days) }}</div>
-        </div>
-        <div class="separator">:</div>
-        <div class="time-block">
-          <div class="time-value">{{ formatNumber(timeLeft.hours) }}</div>
-          <div class="time-label">{{ getHoursLabel(timeLeft.hours) }}</div>
-        </div>
-        <div class="separator">:</div>
-        <div class="time-block">
-          <div class="time-value">{{ formatNumber(timeLeft.minutes) }}</div>
-          <div class="time-label">{{ getMinutesLabel(timeLeft.minutes) }}</div>
-        </div>
-        <div class="separator">:</div>
-        <div class="time-block">
-          <div class="time-value">{{ formatNumber(timeLeft.seconds) }}</div>
-          <div class="time-label">{{ getSecondsLabel(timeLeft.seconds) }}</div>
-        </div>
+      <div class="countdown-display">
+        <span class="time-text">
+          <span class="time-number">{{ timeLeft.days }}</span> {{ getDaysLabel(timeLeft.days) }}
+          <span class="separator">:</span>
+          <span class="time-number">{{ formatNumber(timeLeft.hours) }}</span> {{ getHoursLabel(timeLeft.hours) }}
+          <span class="separator">:</span>
+          <span class="time-number">{{ formatNumber(timeLeft.minutes) }}</span> {{ getMinutesLabel(timeLeft.minutes) }}
+          <span class="separator">:</span>
+          <span class="time-number">{{ formatNumber(timeLeft.seconds) }}</span> {{ getSecondsLabel(timeLeft.seconds) }}
+        </span>
       </div>
 
       <div class="countdown-message">
-        <span class="tree-emoji">🎄</span>
+        <span class="emoji">🎄</span>
         {{ getMessage() }}
-        <span class="tree-emoji">🎄</span>
+        <span class="emoji">🎁</span>
       </div>
     </div>
   </div>
@@ -176,129 +166,106 @@ export default {
 }
 
 .countdown-card {
-  background: linear-gradient(135deg, rgba(0, 20, 10, 0.95), rgba(10, 40, 20, 0.95));
-  border: 2px solid rgba(0, 255, 65, 0.3);
+  background: linear-gradient(135deg,
+    rgba(139, 0, 0, 0.95),
+    rgba(25, 80, 25, 0.95),
+    rgba(139, 0, 0, 0.95)
+  );
+  border: 3px solid;
+  border-image: linear-gradient(90deg,
+    #ff0000, #ffd700, #00ff00, #0088ff, #ff00ff
+  ) 1;
   border-radius: 20px;
-  padding: 1.5rem 2.5rem;
+  padding: 1.5rem 3rem;
   box-shadow:
-    0 10px 40px rgba(0, 255, 65, 0.2),
-    0 0 60px rgba(0, 255, 65, 0.1),
-    inset 0 0 30px rgba(0, 255, 65, 0.05);
-  backdrop-filter: blur(10px);
-  animation: glow 2s ease-in-out infinite;
+    0 10px 50px rgba(255, 215, 0, 0.3),
+    0 0 80px rgba(255, 0, 0, 0.2),
+    inset 0 0 40px rgba(255, 215, 0, 0.1);
+  backdrop-filter: blur(15px);
+  animation: cardGlow 3s ease-in-out infinite;
 }
 
 .countdown-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 0.8rem;
+  margin-bottom: 0.5rem;
 }
 
 .snowflake {
   font-size: 1.5rem;
   animation: rotate 4s linear infinite;
+  filter: drop-shadow(0 0 5px rgba(135, 206, 250, 0.8));
 }
 
 @keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .countdown-title {
-  font-size: 1.8rem;
-  font-weight: 800;
+  font-size: 1.3rem;
+  font-weight: 700;
   margin: 0;
-  background: linear-gradient(135deg, #00ff41, #adff2f, #7fff00);
+  background: linear-gradient(135deg, #ffd700, #ffffff, #ffd700);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow: 0 0 30px rgba(0, 255, 65, 0.5);
-  animation: textGlow 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
 }
 
-.countdown-timer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+.countdown-display {
+  text-align: center;
+  margin-bottom: 0.5rem;
 }
 
-.time-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  background: rgba(0, 255, 65, 0.1);
-  border: 1px solid rgba(0, 255, 65, 0.3);
-  border-radius: 12px;
-  min-width: 80px;
-  box-shadow:
-    0 4px 15px rgba(0, 255, 65, 0.1),
-    inset 0 0 15px rgba(0, 255, 65, 0.05);
-  transition: all 0.3s ease;
-}
-
-.time-block:hover {
-  transform: translateY(-5px);
-  box-shadow:
-    0 8px 25px rgba(0, 255, 65, 0.2),
-    inset 0 0 20px rgba(0, 255, 65, 0.1);
-  border-color: rgba(0, 255, 65, 0.5);
-}
-
-.time-value {
-  font-size: 2.5rem;
+.time-text {
+  font-size: 1.8rem;
   font-weight: 800;
-  color: #00ff41;
-  text-shadow:
-    0 0 10px rgba(0, 255, 65, 0.8),
-    0 0 20px rgba(0, 255, 65, 0.5),
-    0 0 30px rgba(0, 255, 65, 0.3);
   font-family: 'Courier New', monospace;
-  line-height: 1;
+  color: #ffffff;
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 0.8),
+    0 0 20px rgba(255, 215, 0, 0.6),
+    0 0 30px rgba(255, 0, 0, 0.4);
+  display: inline-block;
 }
 
-.time-label {
-  font-size: 0.85rem;
-  color: #adff2f;
-  text-transform: uppercase;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-shadow: 0 0 10px rgba(173, 255, 47, 0.5);
+.time-number {
+  background: linear-gradient(135deg, #ff0000, #ffd700, #00ff00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 2.2rem;
+  font-weight: 900;
+  padding: 0 0.3rem;
+  animation: numberPulse 1s ease-in-out infinite;
 }
 
 .separator {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #7fff00;
-  text-shadow: 0 0 20px rgba(127, 255, 0, 0.6);
-  animation: blink 1s ease-in-out infinite;
+  color: #ffd700;
+  margin: 0 0.3rem;
+  animation: blink 1.5s ease-in-out infinite;
 }
 
 .countdown-message {
   text-align: center;
-  font-size: 1.1rem;
-  color: #adff2f;
+  font-size: 1rem;
+  color: #ffffff;
   font-weight: 600;
-  margin-top: 1rem;
-  text-shadow: 0 0 10px rgba(173, 255, 47, 0.5);
+  margin-top: 0.5rem;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
 }
 
-.tree-emoji {
-  font-size: 1.3rem;
+.emoji {
+  font-size: 1.2rem;
   animation: bounce 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.8));
 }
 
 @keyframes slideDown {
@@ -312,27 +279,27 @@ export default {
   }
 }
 
-@keyframes glow {
+@keyframes cardGlow {
   0%, 100% {
     box-shadow:
-      0 10px 40px rgba(0, 255, 65, 0.2),
-      0 0 60px rgba(0, 255, 65, 0.1),
-      inset 0 0 30px rgba(0, 255, 65, 0.05);
+      0 10px 50px rgba(255, 215, 0, 0.3),
+      0 0 80px rgba(255, 0, 0, 0.2),
+      inset 0 0 40px rgba(255, 215, 0, 0.1);
   }
   50% {
     box-shadow:
-      0 10px 50px rgba(0, 255, 65, 0.3),
-      0 0 80px rgba(0, 255, 65, 0.15),
-      inset 0 0 40px rgba(0, 255, 65, 0.08);
+      0 10px 60px rgba(255, 0, 0, 0.4),
+      0 0 100px rgba(255, 215, 0, 0.3),
+      inset 0 0 50px rgba(0, 255, 0, 0.15);
   }
 }
 
-@keyframes textGlow {
+@keyframes numberPulse {
   0%, 100% {
-    text-shadow: 0 0 30px rgba(0, 255, 65, 0.5);
+    transform: scale(1);
   }
   50% {
-    text-shadow: 0 0 50px rgba(0, 255, 65, 0.8);
+    transform: scale(1.05);
   }
 }
 
@@ -361,32 +328,23 @@ export default {
   }
 
   .countdown-card {
-    padding: 1rem 1.5rem;
+    padding: 1rem 2rem;
   }
 
   .countdown-title {
+    font-size: 1.1rem;
+  }
+
+  .time-text {
     font-size: 1.4rem;
   }
 
-  .time-block {
-    min-width: 60px;
-    padding: 0.75rem;
-  }
-
-  .time-value {
-    font-size: 2rem;
-  }
-
-  .time-label {
-    font-size: 0.7rem;
-  }
-
-  .separator {
-    font-size: 2rem;
+  .time-number {
+    font-size: 1.7rem;
   }
 
   .countdown-message {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 }
 
@@ -403,41 +361,31 @@ export default {
   }
 
   .countdown-title {
-    font-size: 1.2rem;
+    font-size: 0.9rem;
   }
 
   .snowflake {
-    font-size: 1.2rem;
+    font-size: 1rem;
   }
 
-  .time-block {
-    min-width: 50px;
-    padding: 0.5rem;
-    gap: 0.3rem;
+  .time-text {
+    font-size: 1rem;
+    line-height: 1.4;
   }
 
-  .time-value {
-    font-size: 1.5rem;
-  }
-
-  .time-label {
-    font-size: 0.6rem;
+  .time-number {
+    font-size: 1.3rem;
   }
 
   .separator {
-    font-size: 1.5rem;
-    margin: 0 0.2rem;
-  }
-
-  .countdown-timer {
-    gap: 0.5rem;
+    margin: 0 0.1rem;
   }
 
   .countdown-message {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
   }
 
-  .tree-emoji {
+  .emoji {
     font-size: 1rem;
   }
 }

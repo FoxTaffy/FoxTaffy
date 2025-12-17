@@ -3,6 +3,7 @@
     <!-- Новогодние компоненты -->
     <ChristmasLights v-if="isChristmasTheme" />
     <SnowEffect v-if="isChristmasTheme" />
+    <SnowOverlay v-if="isChristmasTheme" />
     <NewYearCountdown
       v-if="isChristmasTheme"
       @new-year-started="handleNewYear"
@@ -162,6 +163,7 @@
 <script>
 import ChristmasLights from './components/ui/ChristmasLights.vue'
 import SnowEffect from './components/ui/SnowEffect.vue'
+import SnowOverlay from './components/ui/SnowOverlay.vue'
 import NewYearCountdown from './components/ui/NewYearCountdown.vue'
 import Fireworks from './components/ui/Fireworks.vue'
 import ChristmasToggle from './components/ui/ChristmasToggle.vue'
@@ -171,6 +173,7 @@ export default {
   components: {
     ChristmasLights,
     SnowEffect,
+    SnowOverlay,
     NewYearCountdown,
     Fireworks,
     ChristmasToggle
