@@ -9,7 +9,7 @@
         <!-- Логотип -->
         <router-link to="/" class="nav-logo" @click="closeMobileMenu">
           <div class="logo-avatar">
-            <img src="https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery//Avatar.jpg" 
+            <img src="https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Main/NewYear.jpg" 
                  alt="Fox Taffy Avatar" 
                  class="avatar-img">
             <div class="logo-status"></div>

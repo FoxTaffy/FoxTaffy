@@ -145,7 +145,6 @@ export default {
 .snowflake-right {
   display: inline-block;
   font-size: 1.5rem;
-  animation: snowflakeFloat 3s ease-in-out infinite;
   margin: 0 1rem;
 }
 
