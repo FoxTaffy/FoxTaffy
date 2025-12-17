@@ -1,11 +1,12 @@
 <template>
-  <div class="countdown-wrapper">
+  <div class="section countdown-section" id="countdown">
+    <h2 class="section-title">
+      <span class="snowflake-left">❄</span>
+      До Нового Года осталось
+      <span class="snowflake-right">❄</span>
+    </h2>
+
     <div class="countdown-container" v-if="!isNewYear">
-      <div class="countdown-header">
-        <div class="snowflake">❄</div>
-        <h2 class="countdown-title">До Нового Года осталось</h2>
-        <div class="snowflake">❄</div>
-      </div>
 
       <div class="countdown-timer">
         <div class="time-block">
@@ -36,12 +37,14 @@
       </div>
 
       <div class="countdown-message">
-        Готовьтесь к празднику! 🎉
+        <span class="celebration-icon">🎉</span>
+        Готовьтесь к празднику!
+        <span class="celebration-icon">🎉</span>
       </div>
     </div>
 
     <div class="new-year-message" v-else>
-      <h1 class="celebration-title">🎊 С Новым 2026 Годом! 🎊</h1>
+      <h3 class="celebration-title">🎊 С Новым 2026 Годом! 🎊</h3>
       <p class="celebration-subtitle">Пусть этот год принесёт вам счастье и радость!</p>
     </div>
   </div>
@@ -132,64 +135,21 @@ export default {
 </script>
 
 <style scoped>
-.countdown-wrapper {
-  width: 100%;
-  padding: 2rem 1rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, rgba(26, 35, 126, 0.1) 0%, rgba(21, 101, 192, 0.1) 100%);
+.countdown-section {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
-.countdown-wrapper::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(circle at 20% 50%, rgba(76, 175, 80, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 50%, rgba(255, 123, 37, 0.1) 0%, transparent 50%);
-  pointer-events: none;
-}
-
-.countdown-container {
-  background: rgba(26, 26, 26, 0.8);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 2.5rem 3rem;
-  border: 2px solid rgba(76, 175, 80, 0.3);
-  box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.3),
-    0 0 20px rgba(76, 175, 80, 0.2),
-    inset 0 0 20px rgba(76, 175, 80, 0.05);
-  position: relative;
-  z-index: 1;
-  max-width: 900px;
-  width: 100%;
-}
-
-.countdown-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.snowflake {
-  font-size: 2rem;
+/* Снежинки в заголовке */
+.snowflake-left,
+.snowflake-right {
+  display: inline-block;
+  font-size: 1.5rem;
   animation: snowflakeFloat 3s ease-in-out infinite;
+  margin: 0 1rem;
 }
 
-.snowflake:nth-child(1) {
-  animation-delay: 0s;
-}
-
-.snowflake:nth-child(3) {
+.snowflake-right {
   animation-delay: 1.5s;
 }
 
@@ -198,20 +158,16 @@ export default {
     transform: translateY(0) rotate(0deg);
   }
   50% {
-    transform: translateY(-10px) rotate(180deg);
+    transform: translateY(-5px) rotate(180deg);
   }
 }
 
-.countdown-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #4CAF50, #81C784, #FFD54F);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0;
-  text-align: center;
-  text-shadow: 0 0 30px rgba(76, 175, 80, 0.3);
+.countdown-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem 1rem;
 }
 
 .countdown-timer {
@@ -223,41 +179,53 @@ export default {
 }
 
 .time-block {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(129, 199, 132, 0.15));
-  border: 2px solid rgba(76, 175, 80, 0.4);
-  border-radius: 15px;
+  background: rgba(34, 34, 34, 0.6);
+  border: 2px solid rgba(76, 175, 80, 0.3);
+  border-radius: 12px;
   padding: 1.5rem 1rem;
-  min-width: 120px;
+  min-width: 110px;
   text-align: center;
   box-shadow:
-    0 5px 15px rgba(0, 0, 0, 0.2),
-    0 0 15px rgba(76, 175, 80, 0.2),
-    inset 0 0 15px rgba(76, 175, 80, 0.1);
+    0 4px 10px rgba(0, 0, 0, 0.3),
+    0 0 15px rgba(76, 175, 80, 0.15);
   transition: all 0.3s ease;
-  animation: pulse 2s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.time-block::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, transparent, rgba(76, 175, 80, 0.2), transparent);
+  border-radius: 12px;
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+
+.time-block:hover::before {
+  opacity: 1;
+  animation: borderShine 2s linear infinite;
 }
 
 .time-block:hover {
-  transform: translateY(-5px) scale(1.05);
+  transform: translateY(-3px);
+  border-color: rgba(76, 175, 80, 0.5);
   box-shadow:
-    0 10px 25px rgba(0, 0, 0, 0.3),
-    0 0 25px rgba(76, 175, 80, 0.4),
-    inset 0 0 20px rgba(76, 175, 80, 0.15);
-  border-color: rgba(76, 175, 80, 0.6);
+    0 6px 20px rgba(0, 0, 0, 0.4),
+    0 0 25px rgba(76, 175, 80, 0.3);
 }
 
-@keyframes pulse {
-  0%, 100% {
-    box-shadow:
-      0 5px 15px rgba(0, 0, 0, 0.2),
-      0 0 15px rgba(76, 175, 80, 0.2),
-      inset 0 0 15px rgba(76, 175, 80, 0.1);
+@keyframes borderShine {
+  0% {
+    filter: hue-rotate(0deg);
   }
-  50% {
-    box-shadow:
-      0 5px 15px rgba(0, 0, 0, 0.2),
-      0 0 25px rgba(76, 175, 80, 0.4),
-      inset 0 0 20px rgba(76, 175, 80, 0.15);
+  100% {
+    filter: hue-rotate(360deg);
   }
 }
 
@@ -300,37 +268,46 @@ export default {
 
 .countdown-message {
   text-align: center;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #FFD54F;
   font-weight: 600;
-  animation: messageGlow 2s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-@keyframes messageGlow {
+.celebration-icon {
+  display: inline-block;
+  animation: bounce 1s ease-in-out infinite;
+}
+
+.celebration-icon:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.celebration-icon:nth-child(3) {
+  animation-delay: 0.5s;
+}
+
+@keyframes bounce {
   0%, 100% {
-    text-shadow: 0 0 10px rgba(255, 213, 79, 0.5);
+    transform: translateY(0) scale(1);
   }
   50% {
-    text-shadow: 0 0 20px rgba(255, 213, 79, 0.8);
+    transform: translateY(-5px) scale(1.1);
   }
 }
 
 .new-year-message {
   text-align: center;
-  padding: 3rem 2rem;
-  background: rgba(26, 26, 26, 0.8);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  border: 2px solid rgba(255, 213, 79, 0.5);
-  box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.3),
-    0 0 30px rgba(255, 213, 79, 0.3);
+  padding: 2rem;
   animation: celebration 1s ease-in-out;
 }
 
 @keyframes celebration {
   0% {
-    transform: scale(0.8);
+    transform: scale(0.9);
     opacity: 0;
   }
   100% {
@@ -340,13 +317,13 @@ export default {
 }
 
 .celebration-title {
-  font-size: 3rem;
-  font-weight: 800;
+  font-size: 2.5rem;
+  font-weight: 700;
   background: linear-gradient(135deg, #FFD54F, #FFA726, #FF7043);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 1rem;
+  margin: 0 0 1rem 0;
   animation: celebrationPulse 1.5s ease-in-out infinite;
 }
 
@@ -360,21 +337,14 @@ export default {
 }
 
 .celebration-subtitle {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   color: #81C784;
   font-weight: 600;
+  margin: 0;
 }
 
 /* Мобильная адаптация */
 @media (max-width: 768px) {
-  .countdown-container {
-    padding: 2rem 1.5rem;
-  }
-
-  .countdown-title {
-    font-size: 1.3rem;
-  }
-
   .countdown-timer {
     gap: 0.5rem;
     flex-wrap: wrap;
@@ -407,15 +377,17 @@ export default {
   }
 
   .celebration-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .snowflake-left,
+  .snowflake-right {
     font-size: 1.2rem;
+    margin: 0 0.5rem;
   }
 }
 
 @media (max-width: 480px) {
-  .countdown-title {
-    font-size: 1.1rem;
-  }
-
   .time-block {
     min-width: 70px;
     padding: 0.75rem 0.4rem;
@@ -429,8 +401,12 @@ export default {
     font-size: 0.65rem;
   }
 
-  .snowflake {
+  .celebration-title {
     font-size: 1.5rem;
+  }
+
+  .celebration-subtitle {
+    font-size: 1rem;
   }
 }
 </style>
