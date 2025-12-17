@@ -365,270 +365,176 @@
         <div class="modal-body wizard-body">
           <!-- Шаг 1: Основная информация -->
           <div v-show="currentStep === 0" class="wizard-step-content">
-            <div class="step-header">
-              <div class="step-icon">
+            <div class="step-header compact">
+              <div class="step-icon small">
                 <i class="fas fa-info-circle"></i>
               </div>
               <div class="step-info">
                 <h4>Основная информация</h4>
-                <p>Название, тип и дата мероприятия</p>
+                <p>Название, тип, дата и описание</p>
               </div>
             </div>
 
-            <div class="form-group large">
-              <label class="form-label required">Название мероприятия</label>
-              <input
-                v-model="eventForm.name"
-                type="text"
-                class="form-input large"
-                placeholder="Например: Any Furry Fest VII"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label class="form-label required">Тип мероприятия</label>
-              <div class="event-type-grid">
-                <label
-                  v-for="type in eventTypes"
-                  :key="type.value"
-                  class="type-card"
-                  :class="{ 'selected': eventForm.event_type === type.value }"
-                >
-                  <input
-                    type="radio"
-                    v-model="eventForm.event_type"
-                    :value="type.value"
-                    class="hidden-radio"
-                  />
-                  <i :class="type.icon"></i>
-                  <span>{{ type.label }}</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Даты рядом друг с другом -->
-            <div class="form-row two-columns">
-              <div class="form-group">
-                <label class="form-label required">Дата начала</label>
+            <!-- Название и тип в одном блоке -->
+            <div class="form-row name-type-row">
+              <div class="form-group flex-grow">
+                <label class="form-label required">Название</label>
                 <input
-                  v-model="eventForm.event_date"
-                  type="date"
+                  v-model="eventForm.name"
+                  type="text"
                   class="form-input"
+                  placeholder="Any Furry Fest VII"
                   required
                 />
-                <div class="form-hint">
-                  <i class="fas fa-info-circle"></i>
-                  Дата начала мероприятия
-                </div>
               </div>
-
-              <div class="form-group">
-                <label class="form-label" :class="{ 'required': eventForm.event_type === 'convention' }">
-                  Дата окончания
-                </label>
-                <input
-                  v-model="eventForm.event_end_date"
-                  type="date"
-                  class="form-input"
-                />
-                <div class="form-hint">
-                  <i class="fas fa-info-circle"></i>
-                  Для многодневных мероприятий
+              <div class="form-group type-select-group">
+                <label class="form-label required">Тип</label>
+                <div class="type-chips">
+                  <label
+                    v-for="type in eventTypes"
+                    :key="type.value"
+                    class="type-chip"
+                    :class="{ 'selected': eventForm.event_type === type.value }"
+                  >
+                    <input type="radio" v-model="eventForm.event_type" :value="type.value" class="hidden-radio" />
+                    <i :class="type.icon"></i>
+                    <span>{{ type.label }}</span>
+                  </label>
                 </div>
               </div>
             </div>
 
-            <!-- Статус участия -->
+            <!-- Изображения - компактный ряд -->
             <div class="form-group">
-              <label class="form-label">Основной статус участия</label>
-              <div class="status-selector">
+              <label class="form-label">Изображения</label>
+              <div class="images-row">
+                <CompactImageUploader
+                  v-model="eventForm.avatar_url"
+                  variant="avatar"
+                  folder="events/avatars"
+                  label="Лого"
+                  @uploaded="onAvatarUploaded"
+                  @error="handleUploadError"
+                />
+                <CompactImageUploader
+                  v-model="eventForm.meta_image"
+                  variant="banner"
+                  folder="events/banners"
+                  label="Баннер (перетащите изображение)"
+                  @uploaded="onBannerUploaded"
+                  @error="handleUploadError"
+                />
+              </div>
+            </div>
+
+            <!-- Даты компактно -->
+            <div class="form-row two-columns compact-dates">
+              <div class="form-group">
+                <label class="form-label required">Дата начала</label>
+                <input v-model="eventForm.event_date" type="date" class="form-input compact" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Дата окончания</label>
+                <input v-model="eventForm.event_end_date" type="date" class="form-input compact" />
+              </div>
+            </div>
+
+            <!-- Описание -->
+            <div class="form-group">
+              <label class="form-label">Описание</label>
+              <textarea
+                v-model="eventForm.description"
+                class="form-textarea compact"
+                placeholder="Краткое описание мероприятия..."
+                rows="2"
+              ></textarea>
+            </div>
+
+            <!-- Статусы компактно в один ряд -->
+            <div class="form-group">
+              <label class="form-label">Статус участия</label>
+              <div class="status-chips">
                 <label
                   v-for="status in mainStatuses"
                   :key="status.value"
-                  class="status-option"
+                  class="status-chip"
                   :class="{ 'selected': eventForm.attendance_status === status.value }"
                 >
-                  <input
-                    type="radio"
-                    v-model="eventForm.attendance_status"
-                    :value="status.value"
-                    class="hidden-radio"
-                  />
+                  <input type="radio" v-model="eventForm.attendance_status" :value="status.value" class="hidden-radio" />
                   <i :class="status.icon"></i>
                   <span>{{ status.label }}</span>
                 </label>
               </div>
             </div>
 
-            <!-- Дополнительные роли -->
+            <!-- Роли как чекбоксы в линию -->
             <div class="form-group">
-              <label class="form-label">Дополнительные роли (необязательно)</label>
-              <div class="status-selector roles-selector">
+              <label class="form-label">Дополнительные роли</label>
+              <div class="role-chips">
                 <label
                   v-for="role in roleStatuses"
                   :key="role.value"
-                  class="status-option role-option"
+                  class="role-chip"
                   :class="{ 'selected': eventForm.attendance_roles.includes(role.value) }"
                 >
-                  <input
-                    type="checkbox"
-                    v-model="eventForm.attendance_roles"
-                    :value="role.value"
-                    class="hidden-checkbox"
-                  />
+                  <input type="checkbox" v-model="eventForm.attendance_roles" :value="role.value" class="hidden-checkbox" />
                   <i :class="role.icon"></i>
                   <span>{{ role.label }}</span>
                 </label>
               </div>
             </div>
+
+            <!-- Переключатель покупок -->
+            <div class="form-group">
+              <label class="toggle-switch">
+                <input type="checkbox" v-model="eventForm.has_purchases" />
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">
+                  <i class="fas fa-shopping-bag"></i>
+                  Были покупки на мероприятии
+                </span>
+              </label>
+            </div>
           </div>
 
-          <!-- Шаг 2: Место и медиа -->
+          <!-- Шаг 2: Место и детали -->
           <div v-show="currentStep === 1" class="wizard-step-content">
-            <div class="step-header">
-              <div class="step-icon">
+            <div class="step-header compact">
+              <div class="step-icon small">
                 <i class="fas fa-map-marker-alt"></i>
               </div>
               <div class="step-info">
-                <h4>Место и описание</h4>
-                <p>Где будет проходить и как выглядит</p>
+                <h4>Место проведения</h4>
+                <p>Где проходит мероприятие</p>
               </div>
             </div>
 
             <div class="form-row two-columns">
               <div class="form-group">
                 <label class="form-label">Город</label>
-                <input
-                  v-model="eventForm.city"
-                  type="text"
-                  class="form-input"
-                  placeholder="Москва"
-                />
+                <input v-model="eventForm.city" type="text" class="form-input" placeholder="Москва" />
               </div>
-
               <div class="form-group">
                 <label class="form-label">Страна</label>
-                <input
-                  v-model="eventForm.country"
-                  type="text"
-                  class="form-input"
-                  placeholder="Россия"
-                />
+                <input v-model="eventForm.country" type="text" class="form-input" placeholder="Россия" />
               </div>
             </div>
 
             <div class="form-group">
               <label class="form-label">Место проведения</label>
-              <input
-                v-model="eventForm.location"
-                type="text"
-                class="form-input"
-                placeholder="Название площадки, адрес"
-              />
+              <input v-model="eventForm.location" type="text" class="form-input" placeholder="Название площадки, адрес" />
             </div>
 
             <div class="form-group">
-              <label class="form-label">Лого/Аватар для карточки</label>
-              <div class="upload-tabs">
-                <button
-                  type="button"
-                  @click="avatarUploadMethod = 's3'"
-                  class="upload-tab"
-                  :class="{ active: avatarUploadMethod === 's3' }"
-                >
-                  <i class="fas fa-cloud-upload-alt"></i>
-                  Загрузить файл
-                </button>
-                <button
-                  type="button"
-                  @click="avatarUploadMethod = 'url'"
-                  class="upload-tab"
-                  :class="{ active: avatarUploadMethod === 'url' }"
-                >
-                  <i class="fas fa-link"></i>
-                  URL
-                </button>
-              </div>
-              <div v-if="avatarUploadMethod === 's3'" class="upload-area">
-                <FileUploader
-                  v-model="eventForm.avatar_url"
-                  folder="events/avatars"
-                  :show-info="false"
-                  @file-uploaded="onAvatarUploaded"
-                />
-              </div>
-              <div v-else class="url-input-area">
-                <input
-                  v-model="eventForm.avatar_url"
-                  type="url"
-                  class="form-input"
-                  placeholder="https://example.com/logo.jpg"
-                />
-                <div v-if="eventForm.avatar_url" class="avatar-preview">
-                  <img :src="eventForm.avatar_url" alt="Avatar" @error="eventForm.avatar_url = ''" />
-                </div>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Баннер (широкий)</label>
-              <div class="upload-tabs">
-                <button
-                  type="button"
-                  @click="bannerUploadMethod = 's3'"
-                  class="upload-tab"
-                  :class="{ active: bannerUploadMethod === 's3' }"
-                >
-                  <i class="fas fa-cloud-upload-alt"></i>
-                  Загрузить файл
-                </button>
-                <button
-                  type="button"
-                  @click="bannerUploadMethod = 'url'"
-                  class="upload-tab"
-                  :class="{ active: bannerUploadMethod === 'url' }"
-                >
-                  <i class="fas fa-link"></i>
-                  URL
-                </button>
-              </div>
-              <div v-if="bannerUploadMethod === 's3'" class="upload-area">
-                <FileUploader
-                  v-model="eventForm.meta_image"
-                  folder="events/banners"
-                  :show-info="false"
-                  @file-uploaded="onBannerUploaded"
-                />
-              </div>
-              <div v-else class="url-input-area">
-                <input
-                  v-model="eventForm.meta_image"
-                  type="url"
-                  class="form-input"
-                  placeholder="https://example.com/banner.jpg"
-                />
-                <div v-if="eventForm.meta_image" class="banner-preview">
-                  <img :src="eventForm.meta_image" alt="Banner" @error="eventForm.meta_image = ''" />
-                </div>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Описание</label>
-              <textarea
-                v-model="eventForm.description"
-                class="form-textarea"
-                placeholder="Расскажите о мероприятии..."
-                rows="4"
-              ></textarea>
+              <label class="form-label">Официальный сайт</label>
+              <input v-model="eventForm.official_website" type="url" class="form-input" placeholder="https://example.com" />
             </div>
           </div>
 
           <!-- Шаг 3: Статистика -->
           <div v-show="currentStep === 2" class="wizard-step-content">
-            <div class="step-header">
-              <div class="step-icon">
+            <div class="step-header compact">
+              <div class="step-icon small">
                 <i class="fas fa-users"></i>
               </div>
               <div class="step-info">
@@ -640,51 +546,28 @@
             <div class="form-row two-columns">
               <div class="form-group">
                 <label class="form-label">Ожидаемых посетителей</label>
-                <input
-                  v-model="eventForm.expected_visitors"
-                  type="number"
-                  class="form-input"
-                  placeholder="500"
-                  min="0"
-                />
+                <input v-model="eventForm.expected_visitors" type="number" class="form-input" placeholder="500" min="0" />
               </div>
-
               <div class="form-group">
                 <label class="form-label">Фактическое количество</label>
-                <input
-                  v-model="eventForm.attendees_count"
-                  type="number"
-                  class="form-input"
-                  placeholder="Заполните после мероприятия"
-                  min="0"
-                />
+                <input v-model="eventForm.attendees_count" type="number" class="form-input" placeholder="После мероприятия" min="0" />
               </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Официальный сайт</label>
-              <input
-                v-model="eventForm.official_website"
-                type="url"
-                class="form-input"
-                placeholder="https://example.com"
-              />
             </div>
 
             <div class="form-group">
               <label class="form-label">Особенности мероприятия</label>
-              <div class="features-grid">
-                <label class="feature-checkbox" :class="{ 'checked': eventForm.has_dealers_den }">
+              <div class="features-chips">
+                <label class="feature-chip" :class="{ 'checked': eventForm.has_dealers_den }">
                   <input v-model="eventForm.has_dealers_den" type="checkbox" />
                   <i class="fas fa-store"></i>
                   <span>Торговая зона</span>
                 </label>
-                <label class="feature-checkbox" :class="{ 'checked': eventForm.has_art_show }">
+                <label class="feature-chip" :class="{ 'checked': eventForm.has_art_show }">
                   <input v-model="eventForm.has_art_show" type="checkbox" />
                   <i class="fas fa-palette"></i>
                   <span>Арт-выставка</span>
                 </label>
-                <label class="feature-checkbox" :class="{ 'checked': eventForm.has_fursuit_parade }">
+                <label class="feature-chip" :class="{ 'checked': eventForm.has_fursuit_parade }">
                   <input v-model="eventForm.has_fursuit_parade" type="checkbox" />
                   <i class="fas fa-paw"></i>
                   <span>Фурсьют-парад</span>
@@ -695,8 +578,8 @@
 
           <!-- Шаг 4: Отзыв (после мероприятия) -->
           <div v-show="currentStep === 3" class="wizard-step-content">
-            <div class="step-header">
-              <div class="step-icon review-icon">
+            <div class="step-header compact">
+              <div class="step-icon small review-icon">
                 <i class="fas fa-comment-alt"></i>
               </div>
               <div class="step-info">
@@ -705,222 +588,144 @@
               </div>
             </div>
 
+            <!-- Выделенная отметка о завершении обзора - вверху -->
+            <div class="review-completed-banner" :class="{ 'completed': eventForm.review_completed }">
+              <label class="review-completed-toggle">
+                <input type="checkbox" v-model="eventForm.review_completed" />
+                <span class="toggle-track">
+                  <span class="toggle-thumb"></span>
+                </span>
+                <span class="toggle-content">
+                  <i :class="eventForm.review_completed ? 'fas fa-check-circle' : 'fas fa-edit'"></i>
+                  <span class="toggle-text">{{ eventForm.review_completed ? 'Обзор завершён!' : 'Отметить обзор как завершённый' }}</span>
+                </span>
+              </label>
+            </div>
+
             <!-- Множественные оценки по категориям -->
             <div v-if="filteredRatingCategories.length > 0" class="form-group">
               <label class="form-label">Оценки по категориям</label>
-              <div class="multi-rating-grid">
-                <div v-for="category in filteredRatingCategories" :key="category.key" class="rating-category">
-                  <span class="category-name">{{ category.label }}</span>
-                  <div class="category-stars">
-                    <button
-                      v-for="n in 5"
-                      :key="n"
-                      type="button"
-                      class="rating-star small"
-                      :class="{ 'active': eventForm[category.key] >= n }"
-                      @click="eventForm[category.key] = n"
-                    >
+              <div class="rating-grid-compact">
+                <div v-for="category in filteredRatingCategories" :key="category.key" class="rating-row">
+                  <span class="rating-label-text">{{ category.label }}</span>
+                  <div class="rating-stars-inline">
+                    <button v-for="n in 5" :key="n" type="button" class="star-btn" :class="{ 'active': eventForm[category.key] >= n }" @click="eventForm[category.key] = n">
                       <i class="fas fa-star"></i>
                     </button>
                   </div>
-                  <span class="category-value">{{ eventForm[category.key] || 0 }}/5</span>
                 </div>
               </div>
-              <div class="overall-rating">
-                <span>Общая оценка:</span>
+              <div class="overall-rating-compact">
+                <span>Общая:</span>
                 <strong>{{ calculatedOverallRating }}/5</strong>
               </div>
             </div>
 
-            <!-- Плюсы как список -->
+            <!-- Плюсы и минусы компактно -->
             <div class="form-row two-columns">
               <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-thumbs-up" style="color: var(--accent-green)"></i>
-                  Плюсы
-                </label>
-                <div class="list-input-container">
-                  <div v-for="(item, index) in eventForm.pros" :key="'pro-' + index" class="list-item pro-item">
-                    <i class="fas fa-check"></i>
-                    <input
-                      v-model="eventForm.pros[index]"
-                      type="text"
-                      class="form-input small"
-                      placeholder="Плюс..."
-                    />
-                    <button type="button" class="remove-list-item" @click="removeProItem(index)">
-                      <i class="fas fa-times"></i>
-                    </button>
+                <label class="form-label"><i class="fas fa-thumbs-up" style="color: var(--accent-green)"></i> Плюсы</label>
+                <div class="list-compact">
+                  <div v-for="(item, index) in eventForm.pros" :key="'pro-' + index" class="list-item-compact">
+                    <input v-model="eventForm.pros[index]" type="text" class="form-input compact" placeholder="Плюс..." />
+                    <button type="button" class="remove-btn-small" @click="removeProItem(index)"><i class="fas fa-times"></i></button>
                   </div>
-                  <button type="button" class="add-list-item pro" @click="addProItem">
-                    <i class="fas fa-plus"></i>
-                    Добавить плюс
-                  </button>
+                  <button type="button" class="add-btn-small pro" @click="addProItem"><i class="fas fa-plus"></i> Добавить</button>
                 </div>
               </div>
-
               <div class="form-group">
-                <label class="form-label">
-                  <i class="fas fa-thumbs-down" style="color: var(--accent-red)"></i>
-                  Минусы
-                </label>
-                <div class="list-input-container">
-                  <div v-for="(item, index) in eventForm.cons_text" :key="'con-' + index" class="list-item con-item">
-                    <i class="fas fa-times"></i>
-                    <input
-                      v-model="eventForm.cons_text[index]"
-                      type="text"
-                      class="form-input small"
-                      placeholder="Минус..."
-                    />
-                    <button type="button" class="remove-list-item" @click="removeConItem(index)">
-                      <i class="fas fa-times"></i>
-                    </button>
+                <label class="form-label"><i class="fas fa-thumbs-down" style="color: var(--accent-red)"></i> Минусы</label>
+                <div class="list-compact">
+                  <div v-for="(item, index) in eventForm.cons_text" :key="'con-' + index" class="list-item-compact">
+                    <input v-model="eventForm.cons_text[index]" type="text" class="form-input compact" placeholder="Минус..." />
+                    <button type="button" class="remove-btn-small" @click="removeConItem(index)"><i class="fas fa-times"></i></button>
                   </div>
-                  <button type="button" class="add-list-item con" @click="addConItem">
-                    <i class="fas fa-plus"></i>
-                    Добавить минус
-                  </button>
+                  <button type="button" class="add-btn-small con" @click="addConItem"><i class="fas fa-plus"></i> Добавить</button>
                 </div>
               </div>
             </div>
 
             <div class="form-group">
               <label class="form-label">Общее впечатление</label>
-              <textarea
-                v-model="eventForm.my_review"
-                class="form-textarea"
-                placeholder="Общий отзыв о мероприятии..."
-                rows="3"
-              ></textarea>
+              <textarea v-model="eventForm.my_review" class="form-textarea compact" placeholder="Общий отзыв..." rows="2"></textarea>
             </div>
 
-            <!-- Отметка о завершении обзора -->
-            <div class="form-group review-completed-group">
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  v-model="eventForm.review_completed"
-                  class="form-checkbox"
-                />
-                <span class="checkbox-text">
-                  <i class="fas fa-check-circle"></i>
-                  Обзор завершён
-                </span>
-              </label>
-              <div class="form-hint">
-                <i class="fas fa-info-circle"></i>
-                Отметьте, когда полностью заполните отзыв. Мероприятие исчезнет из уведомлений.
-              </div>
-            </div>
-
-            <!-- Мульти-загрузка фотографий -->
-            <div class="form-group">
-              <label class="form-label">
-                <i class="fas fa-images"></i>
-                Загрузить фотографии
-              </label>
-              <div class="multi-upload-area">
-                <input
-                  type="file"
-                  ref="multiPhotoInput"
-                  multiple
-                  accept="image/*"
-                  @change="handleMultiPhotoUpload"
-                  class="hidden-input"
-                />
-                <button
-                  type="button"
-                  class="upload-photos-btn"
-                  @click="$refs.multiPhotoInput.click()"
-                  :disabled="uploadingPhotos"
-                >
-                  <i class="fas fa-cloud-upload-alt" v-if="!uploadingPhotos"></i>
-                  <i class="fas fa-spinner fa-spin" v-else></i>
-                  <span>{{ uploadingPhotos ? `Загрузка ${uploadProgress}/${uploadTotal}...` : 'Выбрать фотографии' }}</span>
-                </button>
-                <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-preview">
-                  <div v-for="(photo, index) in uploadedPhotos" :key="index" class="uploaded-photo">
-                    <img :src="typeof photo === 'string' ? photo : photo.url" alt="" loading="lazy" />
-                    <button type="button" class="remove-photo-btn" @click="removeUploadedPhoto(index)" :title="photo.id ? 'Удалить из БД и Storage' : 'Удалить из превью'">
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div class="form-hint">
-                <i class="fas fa-info-circle"></i>
-                Выберите несколько фотографий для загрузки в папку мероприятия
-              </div>
-            </div>
-
-            <!-- Покупки для маркетов/фестивалей -->
-            <div v-if="eventForm.event_type === 'festival' || eventForm.event_type === 'market'" class="purchases-block">
-              <h5 class="block-title">
+            <!-- Покупки (если включены) -->
+            <div v-if="eventForm.has_purchases" class="purchases-section">
+              <div class="section-header-compact">
                 <i class="fas fa-shopping-bag"></i>
-                Покупки
-              </h5>
-
-              <!-- Список покупок -->
-              <div class="form-group">
-                <label class="form-label">Список покупок</label>
-                <div class="purchase-items">
-                  <div
-                    v-for="(item, index) in eventForm.purchase_items"
-                    :key="index"
-                    class="purchase-item-card"
-                  >
-                    <div class="purchase-item-image">
-                      <img v-if="item.image" :src="item.image" alt="" loading="lazy" />
-                      <i v-else class="fas fa-image"></i>
-                      <div v-if="item.image" class="purchase-photo-delete" @click="deletePurchasePhoto(index)">
-                        <i class="fas fa-trash"></i>
-                      </div>
-                    </div>
-                    <div class="purchase-item-info">
-                      <input
-                        v-model="item.name"
-                        type="text"
-                        class="form-input small"
-                        placeholder="Название"
-                      />
-                      <input
-                        v-model="item.price"
-                        type="number"
-                        class="form-input small"
-                        placeholder="Цена"
-                        min="0"
-                      />
-                      <div class="purchase-photo-controls">
-                        <input
-                          type="file"
-                          :ref="'purchasePhoto' + index"
-                          accept="image/*"
-                          style="display: none"
-                          @change="uploadPurchasePhoto($event, index)"
-                        />
-                        <button
-                          type="button"
-                          class="upload-photo-btn"
-                          @click="$refs['purchasePhoto' + index][0].click()"
-                          :disabled="uploadingPurchasePhoto === index"
-                        >
-                          <i class="fas fa-spinner fa-spin" v-if="uploadingPurchasePhoto === index"></i>
-                          <i class="fas fa-upload" v-else></i>
-                          {{ item.image ? 'Заменить фото' : 'Загрузить фото' }}
-                        </button>
-                      </div>
-                    </div>
-                    <button type="button" class="remove-item-btn" @click="removePurchaseItem(index)">
-                      <i class="fas fa-times"></i>
+                <span>Покупки</span>
+              </div>
+              <div class="purchase-items-compact">
+                <div v-for="(item, index) in eventForm.purchase_items" :key="index" class="purchase-item-compact">
+                  <div class="purchase-thumb">
+                    <img v-if="item.image" :src="item.image" alt="" />
+                    <i v-else class="fas fa-image"></i>
+                    <input type="file" :ref="'purchasePhoto' + index" accept="image/*" style="display: none" @change="uploadPurchasePhoto($event, index)" />
+                    <button type="button" class="thumb-upload" @click="$refs['purchasePhoto' + index][0].click()" :disabled="uploadingPurchasePhoto === index">
+                      <i :class="uploadingPurchasePhoto === index ? 'fas fa-spinner fa-spin' : 'fas fa-camera'"></i>
                     </button>
                   </div>
-                  <button type="button" class="add-item-btn" @click="addPurchaseItem">
-                    <i class="fas fa-plus"></i>
-                    Добавить покупку
+                  <input v-model="item.name" type="text" class="form-input compact" placeholder="Название" />
+                  <input v-model="item.price" type="number" class="form-input compact price-input" placeholder="₽" min="0" />
+                  <button type="button" class="remove-btn-small" @click="removePurchaseItem(index)"><i class="fas fa-times"></i></button>
+                </div>
+                <button type="button" class="add-btn-small purchase" @click="addPurchaseItem"><i class="fas fa-plus"></i> Добавить покупку</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Шаг 5: Галерея фотографий -->
+          <div v-show="currentStep === 4" class="wizard-step-content">
+            <div class="step-header compact">
+              <div class="step-icon small gallery-icon">
+                <i class="fas fa-images"></i>
+              </div>
+              <div class="step-info">
+                <h4>Галерея фотографий</h4>
+                <p>Загрузите фотографии с мероприятия</p>
+              </div>
+            </div>
+
+            <!-- Зона drag & drop для фотографий -->
+            <div
+              class="gallery-upload-zone"
+              :class="{ 'dragging': isDraggingPhotos, 'uploading': uploadingPhotos }"
+              @dragover.prevent="isDraggingPhotos = true"
+              @dragleave.prevent="isDraggingPhotos = false"
+              @drop.prevent="handlePhotoDrop"
+              @click="$refs.multiPhotoInput.click()"
+            >
+              <input type="file" ref="multiPhotoInput" multiple accept="image/*" @change="handleMultiPhotoUpload" class="hidden-input" />
+              <div v-if="uploadingPhotos" class="upload-status">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Загрузка {{ uploadProgress }}/{{ uploadTotal }}...</span>
+              </div>
+              <div v-else class="upload-prompt">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span>Перетащите фотографии сюда или нажмите для выбора</span>
+                <small>JPG, PNG, WebP • до 10MB каждая</small>
+              </div>
+            </div>
+
+            <!-- Превью загруженных фотографий -->
+            <div v-if="uploadedPhotos.length > 0" class="gallery-preview">
+              <div class="gallery-header">
+                <span>Загружено: {{ uploadedPhotos.length }} фото</span>
+              </div>
+              <div class="gallery-grid">
+                <div v-for="(photo, index) in uploadedPhotos" :key="index" class="gallery-thumb">
+                  <img :src="typeof photo === 'string' ? photo : photo.url" alt="" loading="lazy" />
+                  <button type="button" class="gallery-remove" @click="removeUploadedPhoto(index)">
+                    <i class="fas fa-times"></i>
                   </button>
                 </div>
               </div>
+            </div>
+
+            <div v-else class="gallery-empty">
+              <i class="fas fa-camera-retro"></i>
+              <p>Пока нет загруженных фотографий</p>
             </div>
           </div>
         </div>
@@ -1007,13 +812,15 @@
 import { furryApi } from '@/config/supabase.js'
 import FileUploader from '@/FileUploader.vue'
 import StarRating from '@/components/ui/StarRating.vue'
+import CompactImageUploader from '@/components/CompactImageUploader.vue'
 
 export default {
   name: 'AdminEventsPanel',
 
   components: {
     FileUploader,
-    StarRating
+    StarRating,
+    CompactImageUploader
   },
 
   emits: ['notification'],
@@ -1062,6 +869,7 @@ export default {
       uploadTotal: 0,
       uploadedPhotos: [],
       uploadingPurchasePhoto: null,
+      isDraggingPhotos: false,
 
       // Wizard
       currentStep: 0,
@@ -1250,7 +1058,7 @@ export default {
       ]
     },
 
-    // Шаги визарда - этап обзора только для прошедших мероприятий
+    // Шаги визарда - этапы обзора и галереи только для прошедших мероприятий
     wizardSteps() {
       const baseSteps = [
         { title: 'Основное', icon: 'fas fa-info-circle' },
@@ -1258,19 +1066,37 @@ export default {
         { title: 'Статистика', icon: 'fas fa-users' }
       ]
 
-      // Этап обзора только для прошедших мероприятий (редактирование после события)
+      // Этапы обзора и галереи только для прошедших мероприятий (редактирование после события)
       if (this.eventForm.id && this.isEventInPast) {
         baseSteps.push({ title: 'Отзыв', icon: 'fas fa-comment-alt' })
+        baseSteps.push({ title: 'Галерея', icon: 'fas fa-images' })
       }
 
       return baseSteps
+    },
+
+    // Проверка, нужно ли включить покупки по умолчанию
+    shouldEnablePurchasesByDefault() {
+      return ['festival', 'market'].includes(this.eventForm.event_type)
     }
   },
   
   async mounted() {
     await this.loadInitialData()
   },
-  
+
+  watch: {
+    // Автоматически включаем покупки для фестивалей и маркетов
+    'eventForm.event_type': {
+      handler(newType) {
+        if (['festival', 'market'].includes(newType) && !this.isEditing) {
+          this.eventForm.has_purchases = true
+        }
+      },
+      immediate: false
+    }
+  },
+
   methods: {
     // ============================================
     // ИНИЦИАЛИЗАЦИЯ И ЗАГРУЗКА ДАННЫХ
@@ -1398,7 +1224,8 @@ export default {
         rating_participants: null,
         rating_food: null,
         review_completed: false,
-        photos_folder: ''
+        photos_folder: '',
+        has_purchases: false
       }
     },
     
@@ -1554,6 +1381,20 @@ export default {
     onBannerUploaded(fileData) {
       this.eventForm.meta_image = fileData.url
       this.$emit('notification', 'Баннер загружен', 'success')
+    },
+
+    handleUploadError(message) {
+      this.$emit('notification', message, 'error')
+    },
+
+    handlePhotoDrop(event) {
+      this.isDraggingPhotos = false
+      const files = Array.from(event.dataTransfer?.files || [])
+      if (files.length > 0) {
+        // Создаём фейковый event для handleMultiPhotoUpload
+        const fakeEvent = { target: { files: files, value: '' } }
+        this.handleMultiPhotoUpload(fakeEvent)
+      }
     },
 
     addProItem() {
@@ -1790,8 +1631,9 @@ export default {
         }
         dataToSave.attendance_status = JSON.stringify(attendanceData)
 
-        // Удаляем временное поле attendance_roles (оно не существует в БД)
+        // Удаляем временные поля (они не существуют в БД)
         delete dataToSave.attendance_roles
+        delete dataToSave.has_purchases
 
         let savedEvent
 
@@ -4303,6 +4145,755 @@ export default {
 
   .footer-spacer {
     display: none;
+  }
+}
+
+/* ===============================================
+   🆕 НОВЫЕ КОМПАКТНЫЕ СТИЛИ
+   =============================================== */
+
+/* Компактный заголовок шага */
+.step-header.compact {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+}
+
+.step-icon.small {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+/* Изображения в ряд */
+.images-row {
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+/* Название и тип в одном ряду */
+.name-type-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.flex-grow {
+  flex: 1;
+  min-width: 200px;
+}
+
+.type-select-group {
+  flex: 0 0 auto;
+}
+
+/* Типы мероприятий - компактные чипы */
+.type-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.type-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+  background: transparent;
+}
+
+.type-chip:hover {
+  border-color: var(--border-medium);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.type-chip.selected {
+  border-color: var(--accent-orange);
+  background: rgba(255, 123, 37, 0.15);
+}
+
+.type-chip i {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.type-chip.selected i {
+  color: var(--accent-orange);
+}
+
+.type-chip span {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.type-chip.selected span {
+  color: var(--text-light);
+}
+
+/* Компактные даты */
+.compact-dates .form-input.compact {
+  padding: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* Статусы участия - компактные чипы */
+.status-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.status-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+}
+
+.status-chip:hover {
+  border-color: var(--border-medium);
+}
+
+.status-chip.selected {
+  border-color: var(--accent-blue);
+  background: rgba(33, 150, 243, 0.15);
+}
+
+.status-chip i {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.status-chip.selected i {
+  color: var(--accent-blue);
+}
+
+.status-chip span {
+  color: var(--text-muted);
+}
+
+.status-chip.selected span {
+  color: var(--accent-blue);
+}
+
+/* Роли - компактные чипы */
+.role-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.role-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+}
+
+.role-chip.selected {
+  border-color: var(--accent-purple);
+  background: rgba(156, 39, 176, 0.15);
+}
+
+.role-chip.selected i {
+  color: var(--accent-purple);
+}
+
+.role-chip.selected span {
+  color: var(--accent-purple);
+}
+
+/* Toggle переключатель */
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  padding: 0.75rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.toggle-switch:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.toggle-switch input {
+  display: none;
+}
+
+.toggle-slider {
+  width: 40px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 11px;
+  position: relative;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  top: 2px;
+  left: 2px;
+  transition: all 0.3s ease;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--accent-green);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(18px);
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.toggle-switch input:checked ~ .toggle-label {
+  color: var(--accent-green);
+}
+
+.toggle-label i {
+  font-size: 1rem;
+}
+
+/* Компактный textarea */
+.form-textarea.compact {
+  min-height: 60px;
+  resize: vertical;
+}
+
+.form-input.compact {
+  padding: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* Особенности мероприятия - компактные чипы */
+.features-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.feature-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+}
+
+.feature-chip input {
+  display: none;
+}
+
+.feature-chip.checked {
+  border-color: var(--accent-green);
+  background: rgba(76, 175, 80, 0.15);
+}
+
+.feature-chip i {
+  color: var(--text-muted);
+}
+
+.feature-chip.checked i {
+  color: var(--accent-green);
+}
+
+.feature-chip span {
+  color: var(--text-muted);
+}
+
+.feature-chip.checked span {
+  color: var(--text-light);
+}
+
+/* Баннер "Обзор завершён" */
+.review-completed-banner {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  background: rgba(255, 193, 7, 0.1);
+  border: 2px solid rgba(255, 193, 7, 0.3);
+  transition: all 0.3s ease;
+}
+
+.review-completed-banner.completed {
+  background: rgba(76, 175, 80, 0.15);
+  border-color: var(--accent-green);
+}
+
+.review-completed-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.review-completed-toggle input {
+  display: none;
+}
+
+.toggle-track {
+  width: 44px;
+  height: 24px;
+  background: rgba(255, 193, 7, 0.5);
+  border-radius: 12px;
+  position: relative;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.review-completed-banner.completed .toggle-track {
+  background: var(--accent-green);
+}
+
+.toggle-thumb {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  top: 2px;
+  left: 2px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.review-completed-toggle input:checked + .toggle-track .toggle-thumb {
+  transform: translateX(20px);
+}
+
+.toggle-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toggle-content i {
+  font-size: 1.1rem;
+  color: #ffc107;
+}
+
+.review-completed-banner.completed .toggle-content i {
+  color: var(--accent-green);
+}
+
+.toggle-text {
+  font-weight: 600;
+  color: #ffc107;
+}
+
+.review-completed-banner.completed .toggle-text {
+  color: var(--accent-green);
+}
+
+/* Компактная сетка рейтингов */
+.rating-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.rating-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+}
+
+.rating-label-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.rating-stars-inline {
+  display: flex;
+  gap: 0.15rem;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  padding: 0.15rem;
+  cursor: pointer;
+  color: var(--text-dim);
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.star-btn.active {
+  color: #ffc107;
+}
+
+.star-btn:hover {
+  transform: scale(1.2);
+}
+
+.overall-rating-compact {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.overall-rating-compact strong {
+  color: var(--accent-orange);
+  font-size: 1rem;
+}
+
+/* Компактные списки плюсов/минусов */
+.list-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.list-item-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.list-item-compact .form-input.compact {
+  flex: 1;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+.remove-btn-small {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: none;
+  background: rgba(244, 67, 54, 0.15);
+  color: var(--accent-red);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.remove-btn-small:hover {
+  background: rgba(244, 67, 54, 0.3);
+}
+
+.add-btn-small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.4rem;
+  border: 1px dashed var(--border-light);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.add-btn-small.pro:hover {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+.add-btn-small.con:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+
+.add-btn-small.purchase:hover {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+/* Секция покупок */
+.purchases-section {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(76, 175, 80, 0.05);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 8px;
+}
+
+.section-header-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-green);
+  font-size: 0.9rem;
+}
+
+.purchase-items-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.purchase-item-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+}
+
+.purchase-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.purchase-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.purchase-thumb i {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.thumb-upload {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-size: 0.8rem;
+}
+
+.purchase-thumb:hover .thumb-upload {
+  opacity: 1;
+}
+
+.purchase-item-compact .form-input.compact {
+  flex: 1;
+  min-width: 80px;
+}
+
+.price-input {
+  max-width: 80px !important;
+  flex: 0 0 80px !important;
+}
+
+/* Галерея фотографий */
+.step-icon.gallery-icon {
+  background: linear-gradient(135deg, #9c27b0, #673ab7);
+}
+
+.gallery-upload-zone {
+  padding: 2rem;
+  border: 2px dashed var(--border-light);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.gallery-upload-zone:hover {
+  border-color: var(--accent-orange);
+  background: rgba(255, 123, 37, 0.05);
+}
+
+.gallery-upload-zone.dragging {
+  border-color: var(--accent-orange);
+  background: rgba(255, 123, 37, 0.15);
+  transform: scale(1.02);
+}
+
+.gallery-upload-zone.uploading {
+  border-color: var(--accent-blue);
+  pointer-events: none;
+}
+
+.upload-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--accent-blue);
+}
+
+.upload-status i {
+  font-size: 2rem;
+}
+
+.upload-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+}
+
+.upload-prompt i {
+  font-size: 2.5rem;
+  color: var(--accent-orange);
+}
+
+.upload-prompt span {
+  font-weight: 500;
+}
+
+.upload-prompt small {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.gallery-preview {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.gallery-header {
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 0.5rem;
+}
+
+.gallery-thumb {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.gallery-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(244, 67, 54, 0.9);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.gallery-thumb:hover .gallery-remove {
+  opacity: 1;
+}
+
+.gallery-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-dim);
+}
+
+.gallery-empty i {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}
+
+.gallery-empty p {
+  margin: 0;
+}
+
+/* Мобильная адаптация новых стилей */
+@media (max-width: 768px) {
+  .name-type-row {
+    flex-direction: column;
+  }
+
+  .images-row {
+    flex-direction: column;
+  }
+
+  .type-chips {
+    gap: 0.35rem;
+  }
+
+  .status-chips,
+  .role-chips {
+    gap: 0.25rem;
+  }
+
+  .rating-grid-compact {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>
