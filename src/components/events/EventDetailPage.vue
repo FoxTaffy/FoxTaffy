@@ -46,7 +46,7 @@
             <div class="event-badges">
               <span class="event-status" :class="getStatusClass(event)">
                 <i class="fas fa-check"></i>
-                {{ getStatusText(event) }}
+                {{ getStatusText() }}
               </span>
               <span v-if="event.event_type" class="event-type-badge">
                 <i :class="getEventTypeIcon(event.event_type)"></i>
@@ -55,7 +55,7 @@
             </div>
 
             <h1 class="event-title">{{ event.name }}</h1>
-            <p v-if="event.subtitle" class="event-subtitle">{{ event.subtitle }}</p>
+            <p v-if="event.description" class="event-subtitle">{{ stripHtml(event.description) }}</p>
 
             <div class="hero-meta">
               <span class="meta-item">
@@ -72,8 +72,8 @@
               </span>
             </div>
 
-            <div v-if="event.my_rating" class="hero-rating">
-              <StarRating :rating="event.my_rating" size="large" :show-value="true" />
+            <div v-if="hasAnyRating" class="hero-rating">
+              <StarRating :rating="parseFloat(calculatedOverallRating)" size="large" :show-value="true" />
             </div>
           </div>
         </div>
@@ -255,14 +255,14 @@
             </div>
 
             <!-- Особенности мероприятия -->
-            <div v-if="features.length > 0" class="event-card compact">
+            <div v-if="eventFeatures.length > 0" class="event-card compact">
               <h3 class="card-title">
                 <i class="fas fa-sparkles"></i>
                 Особенности
               </h3>
               <ul class="features-list">
-                <li v-for="feature in features" :key="feature.id" class="feature-item">
-                  <i class="fas fa-check-circle"></i>
+                <li v-for="feature in eventFeatures" :key="feature.id" class="feature-item">
+                  <i :class="feature.icon"></i>
                   <span>{{ feature.title }}</span>
                 </li>
               </ul>
@@ -298,13 +298,25 @@
                   <span class="info-label">Город</span>
                   <span class="info-value">{{ event.city }}</span>
                 </div>
-                <div v-if="event.announced_date" class="info-row">
-                  <span class="info-label">Анонс</span>
-                  <span class="info-value">{{ formatEventDate(event.announced_date) }}</span>
+                <div v-if="event.event_type" class="info-row">
+                  <span class="info-label">Тип</span>
+                  <span class="info-value">{{ getEventTypeName(event.event_type) }}</span>
+                </div>
+                <div v-if="event.attendees_count" class="info-row">
+                  <span class="info-label">Участников</span>
+                  <span class="info-value">{{ event.attendees_count }} чел.</span>
                 </div>
                 <div v-if="event.expected_visitors" class="info-row">
                   <span class="info-label">Ожидалось</span>
                   <span class="info-value">{{ event.expected_visitors }} чел.</span>
+                </div>
+                <div v-if="parsedAttendanceStatus.roles && parsedAttendanceStatus.roles.length > 0" class="info-row">
+                  <span class="info-label">Мой статус</span>
+                  <span class="info-value roles-value">
+                    <span v-for="role in parsedAttendanceStatus.roles" :key="role" class="role-badge" :class="role">
+                      {{ getRoleName(role) }}
+                    </span>
+                  </span>
                 </div>
               </div>
             </div>
@@ -375,7 +387,6 @@ export default {
       // Основные данные
       event: null,
       links: [],
-      features: [],
       photos: [],
       purchases: [],
 
@@ -422,11 +433,43 @@ export default {
         this.event.rating_food
       )
     },
+    // Особенности мероприятия из boolean полей
+    eventFeatures() {
+      if (!this.event) return []
+      const features = []
+      if (this.event.has_dealers_den) {
+        features.push({ id: 'dealers_den', title: 'Торговая зона', icon: 'fas fa-store' })
+      }
+      if (this.event.has_art_show) {
+        features.push({ id: 'art_show', title: 'Арт-выставка', icon: 'fas fa-palette' })
+      }
+      if (this.event.has_fursuit_parade) {
+        features.push({ id: 'fursuit_parade', title: 'Фурсьют-парад', icon: 'fas fa-paw' })
+      }
+      return features
+    },
     hasProsOrCons() {
       return this.event && (
         (this.event.pros && this.event.pros.length > 0) ||
         (this.event.cons_text && this.event.cons_text.length > 0)
       )
+    },
+    hasAnyRating() {
+      return this.event && this.visibleRatings.length > 0
+    },
+    // Парсинг attendance_status из JSON
+    parsedAttendanceStatus() {
+      if (!this.event || !this.event.attendance_status) return { status: null, roles: [] }
+
+      if (typeof this.event.attendance_status === 'string') {
+        try {
+          return JSON.parse(this.event.attendance_status)
+        } catch {
+          // Если это простая строка (старый формат)
+          return { status: this.event.attendance_status, roles: [] }
+        }
+      }
+      return this.event.attendance_status
     },
     calculatedOverallRating() {
       if (!this.event) return '0.0'
@@ -518,22 +561,19 @@ export default {
         console.log('✅ Мероприятие загружено:', this.event.name)
         
         // Загружаем связанные данные параллельно
-        const [linksData, featuresData, photosData, purchasesData] = await Promise.allSettled([
+        const [linksData, photosData, purchasesData] = await Promise.allSettled([
           furryApi.getEventLinks(this.event.id),
-          furryApi.getEventFeatures(this.event.id),
           furryApi.getEventPhotos(this.event.id),
           furryApi.getEventPurchases(this.event.id)
         ])
         
         // Обрабатываем результаты
         this.links = linksData.status === 'fulfilled' ? linksData.value : []
-        this.features = featuresData.status === 'fulfilled' ? featuresData.value : []
         this.photos = photosData.status === 'fulfilled' ? photosData.value : []
         this.purchases = purchasesData.status === 'fulfilled' ? purchasesData.value : []
-        
+
         console.log('✅ Связанные данные загружены:', {
           links: this.links.length,
-          features: this.features.length,
           photos: this.photos.length,
           purchases: this.purchases.length
         })
@@ -563,17 +603,33 @@ export default {
       return 'unknown'
     },
     
-    getStatusText(event) {
+    getStatusText() {
       const statusMap = {
-        planning: 'Планируется',
+        planning: 'Планирую',
         registered: 'Зарегистрирован',
+        ticket_bought: 'Билет куплен',
         attended: 'Посетил',
         missed: 'Пропустил',
-        cancelled: 'Отменено',
+        cancelled: 'Отменено'
+      }
+      const parsed = this.parsedAttendanceStatus
+      return statusMap[parsed.status] || 'Неизвестно'
+    },
+
+    getRoleName(role) {
+      const roleMap = {
         vip: 'VIP',
+        sponsor: 'Спонсор',
         volunteer: 'Волонтёр'
       }
-      return statusMap[event.attendance_status] || 'Неизвестно'
+      return roleMap[role] || role
+    },
+
+    stripHtml(html) {
+      if (!html) return ''
+      const div = document.createElement('div')
+      div.innerHTML = html
+      return div.textContent || div.innerText || ''
     },
 
     getEventTypeName(eventType) {
@@ -1440,7 +1496,7 @@ export default {
 }
 
 .feature-item i {
-  color: #4ade80;
+  color: #8b5cf6;
   font-size: 0.875rem;
   flex-shrink: 0;
 }
@@ -1461,6 +1517,36 @@ export default {
 
 .info-row:last-child {
   border-bottom: none;
+}
+
+.info-row .roles-value {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  justify-content: flex-end;
+}
+
+.role-badge {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.role-badge.vip {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+
+.role-badge.sponsor {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.role-badge.volunteer {
+  background: rgba(244, 114, 182, 0.2);
+  color: #f472b6;
 }
 
 .info-row .info-label {
