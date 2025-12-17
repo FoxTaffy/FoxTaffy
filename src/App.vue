@@ -1,5 +1,15 @@
 <template>
   <div id="app">
+    <!-- Новогодние компоненты -->
+    <ChristmasLights v-if="isChristmasTheme" />
+    <SnowEffect v-if="isChristmasTheme" />
+    <NewYearCountdown
+      v-if="isChristmasTheme"
+      @new-year-started="handleNewYear"
+    />
+    <Fireworks :active="showFireworks" />
+    <ChristmasToggle @theme-changed="handleThemeChange" />
+
     <!-- Навигационная панель -->
     <nav class="navbar" :class="{ 'scrolled': isScrolled, 'mobile-open': isMobileMenuOpen }">
       <div class="nav-container">
@@ -150,8 +160,21 @@
 </template>
 
 <script>
+import ChristmasLights from './components/ui/ChristmasLights.vue'
+import SnowEffect from './components/ui/SnowEffect.vue'
+import NewYearCountdown from './components/ui/NewYearCountdown.vue'
+import Fireworks from './components/ui/Fireworks.vue'
+import ChristmasToggle from './components/ui/ChristmasToggle.vue'
+
 export default {
   name: 'App',
+  components: {
+    ChristmasLights,
+    SnowEffect,
+    NewYearCountdown,
+    Fireworks,
+    ChristmasToggle
+  },
   data() {
     return {
       isScrolled: false,
@@ -159,6 +182,8 @@ export default {
       isDropdownOpen: false,
       activeSection: '#header',
       closeTimer: null,
+      isChristmasTheme: false,
+      showFireworks: false,
       
       // Секции главной страницы (якорные ссылки)
       mainSections: [
@@ -260,6 +285,16 @@ export default {
     window.addEventListener('scroll', this.handleScroll)
     window.addEventListener('resize', this.handleResize)
     this.updateActiveSection()
+
+    // Проверяем сохранённую тему при загрузке
+    const savedTheme = localStorage.getItem('foxTaffy_christmas_theme')
+    if (savedTheme === 'true') {
+      this.isChristmasTheme = true
+      document.body.classList.add('christmas-theme')
+    }
+
+    // Проверяем, не наступил ли уже Новый год
+    this.checkNewYear()
   },
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll)
@@ -347,6 +382,36 @@ export default {
           this.activeSection = '#' + sections[i]
           break
         }
+      }
+    },
+    handleThemeChange(enabled) {
+      this.isChristmasTheme = enabled
+
+      if (enabled) {
+        document.body.classList.add('christmas-theme')
+      } else {
+        document.body.classList.remove('christmas-theme')
+        this.showFireworks = false
+      }
+    },
+    handleNewYear() {
+      // Когда наступает Новый год, запускаем фейерверки
+      this.showFireworks = true
+
+      // Фейерверки будут идти 5 минут
+      setTimeout(() => {
+        this.showFireworks = false
+      }, 300000) // 5 минут
+    },
+    checkNewYear() {
+      const now = new Date()
+      const currentYear = now.getFullYear()
+      const newYear = new Date(currentYear, 0, 1, 0, 0, 0)
+      const fiveMinutesAfter = new Date(currentYear, 0, 1, 0, 5, 0)
+
+      // Если сейчас в промежутке от 00:00 до 00:05 1 января
+      if (now >= newYear && now <= fiveMinutesAfter && this.isChristmasTheme) {
+        this.showFireworks = true
       }
     }
   }

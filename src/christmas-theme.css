@@ -1,0 +1,302 @@
+/* ================================================
+   🎄 НОВОГОДНЯЯ ТЕМА FOX TAFFY 2025
+   ================================================ */
+
+/* Применяется только когда новогодняя тема активна */
+body.christmas-theme {
+  /* Переопределяем CSS переменные на новогодние цвета */
+  --bg-dark: #0a1410;
+  --bg-darker: #050f0a;
+  --text-light: #e8fff0;
+  --text-muted: #a0e0b0;
+  --accent-orange: #00ff41;
+  --accent-green: #39ff14;
+  --shadow: rgba(0, 255, 65, 0.3);
+  --card-bg: #0f1f15;
+  --card-hover: #152820;
+  --transition: all 0.3s ease;
+
+  /* Новогодний градиентный фон */
+  background: linear-gradient(180deg,
+    #0a1410 0%,
+    #0f1f15 25%,
+    #0a1410 50%,
+    #050f0a 100%
+  );
+  background-attachment: fixed;
+  position: relative;
+}
+
+/* Добавляем новогодний паттерн на фон */
+body.christmas-theme::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(0, 255, 65, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(57, 255, 20, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(127, 255, 0, 0.02) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Переопределяем навигационную панель */
+body.christmas-theme .navbar {
+  background: rgba(10, 20, 16, 0.98);
+  border-bottom: 2px solid rgba(0, 255, 65, 0.2);
+  box-shadow: 0 5px 30px rgba(0, 255, 65, 0.2);
+}
+
+body.christmas-theme .navbar.scrolled {
+  background: rgba(10, 20, 16, 0.99);
+  box-shadow: 0 5px 40px rgba(0, 255, 65, 0.3);
+}
+
+/* Неоновое свечение для логотипа */
+body.christmas-theme .nav-logo .avatar-img {
+  border: 3px solid rgba(0, 255, 65, 0.5);
+  box-shadow:
+    0 0 20px rgba(0, 255, 65, 0.5),
+    0 0 40px rgba(0, 255, 65, 0.3);
+}
+
+body.christmas-theme .nav-logo:hover .avatar-img {
+  box-shadow:
+    0 0 30px rgba(0, 255, 65, 0.8),
+    0 0 60px rgba(0, 255, 65, 0.5);
+}
+
+/* Новогодний градиент для заголовка логотипа */
+body.christmas-theme .logo-text h3 {
+  background: linear-gradient(135deg, #00ff41, #39ff14, #7fff00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 65, 0.5));
+}
+
+/* Неоновые кнопки навигации */
+body.christmas-theme .nav-link {
+  color: #a0e0b0;
+  transition: all 0.3s ease;
+}
+
+body.christmas-theme .nav-link:hover {
+  color: #00ff41;
+  background: rgba(0, 255, 65, 0.1);
+  box-shadow:
+    0 0 15px rgba(0, 255, 65, 0.2),
+    inset 0 0 15px rgba(0, 255, 65, 0.05);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+}
+
+body.christmas-theme .nav-link.active {
+  background: linear-gradient(135deg,
+    rgba(0, 255, 65, 0.2),
+    rgba(57, 255, 20, 0.2)
+  );
+  border: 1px solid rgba(0, 255, 65, 0.5);
+  box-shadow:
+    0 5px 25px rgba(0, 255, 65, 0.3),
+    inset 0 0 20px rgba(0, 255, 65, 0.1);
+  color: #00ff41;
+}
+
+/* Социальные ссылки с неоном */
+body.christmas-theme .social-link {
+  background: rgba(0, 255, 65, 0.05);
+  border: 1px solid rgba(0, 255, 65, 0.2);
+}
+
+body.christmas-theme .social-link:hover {
+  background: rgba(0, 255, 65, 0.15);
+  box-shadow:
+    0 5px 20px rgba(0, 255, 65, 0.4),
+    inset 0 0 15px rgba(0, 255, 65, 0.2);
+  border-color: rgba(0, 255, 65, 0.5);
+}
+
+/* Карточки с новогодним стилем */
+body.christmas-theme .card,
+body.christmas-theme .section {
+  background: linear-gradient(135deg,
+    rgba(15, 31, 21, 0.9),
+    rgba(10, 20, 16, 0.9)
+  );
+  border: 1px solid rgba(0, 255, 65, 0.2);
+  box-shadow:
+    0 10px 40px rgba(0, 255, 65, 0.1),
+    inset 0 0 30px rgba(0, 255, 65, 0.03);
+}
+
+body.christmas-theme .card:hover,
+body.christmas-theme .section:hover {
+  border-color: rgba(0, 255, 65, 0.4);
+  box-shadow:
+    0 15px 50px rgba(0, 255, 65, 0.2),
+    inset 0 0 40px rgba(0, 255, 65, 0.05);
+}
+
+/* Заголовки с неоновым эффектом */
+body.christmas-theme h1,
+body.christmas-theme h2,
+body.christmas-theme h3 {
+  color: #00ff41;
+  text-shadow:
+    0 0 10px rgba(0, 255, 65, 0.5),
+    0 0 20px rgba(0, 255, 65, 0.3);
+}
+
+/* Кнопки с новогодним стилем */
+body.christmas-theme button,
+body.christmas-theme .btn {
+  background: linear-gradient(135deg,
+    rgba(0, 255, 65, 0.2),
+    rgba(57, 255, 20, 0.2)
+  );
+  border: 2px solid rgba(0, 255, 65, 0.4);
+  color: #00ff41;
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+  box-shadow:
+    0 5px 20px rgba(0, 255, 65, 0.2),
+    inset 0 0 15px rgba(0, 255, 65, 0.05);
+  transition: all 0.3s ease;
+}
+
+body.christmas-theme button:hover,
+body.christmas-theme .btn:hover {
+  background: linear-gradient(135deg,
+    rgba(0, 255, 65, 0.3),
+    rgba(57, 255, 20, 0.3)
+  );
+  border-color: rgba(0, 255, 65, 0.6);
+  box-shadow:
+    0 8px 30px rgba(0, 255, 65, 0.4),
+    inset 0 0 25px rgba(0, 255, 65, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Ссылки */
+body.christmas-theme a {
+  color: #39ff14;
+  text-shadow: 0 0 5px rgba(57, 255, 20, 0.3);
+  transition: all 0.3s ease;
+}
+
+body.christmas-theme a:hover {
+  color: #00ff41;
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.6);
+}
+
+/* Акцентные элементы */
+body.christmas-theme .accent,
+body.christmas-theme .highlight {
+  color: #00ff41;
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+}
+
+/* Текстовые поля и инпуты */
+body.christmas-theme input,
+body.christmas-theme textarea,
+body.christmas-theme select {
+  background: rgba(15, 31, 21, 0.8);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  color: #e8fff0;
+  box-shadow: inset 0 0 15px rgba(0, 255, 65, 0.05);
+}
+
+body.christmas-theme input:focus,
+body.christmas-theme textarea:focus,
+body.christmas-theme select:focus {
+  border-color: rgba(0, 255, 65, 0.6);
+  box-shadow:
+    0 0 20px rgba(0, 255, 65, 0.3),
+    inset 0 0 20px rgba(0, 255, 65, 0.08);
+}
+
+/* Футер */
+body.christmas-theme .footer {
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(10, 20, 16, 0.8) 50%,
+    rgba(5, 15, 10, 0.9) 100%
+  );
+  border-top: 2px solid rgba(0, 255, 65, 0.2);
+  color: #a0e0b0;
+  box-shadow: 0 -5px 30px rgba(0, 255, 65, 0.1);
+}
+
+/* Сердечко в футере */
+body.christmas-theme .footer .heart {
+  color: #00ff41;
+  animation: heartBeat 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 5px rgba(0, 255, 65, 0.6));
+}
+
+@keyframes heartBeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.1);
+  }
+  50% {
+    transform: scale(1);
+  }
+  75% {
+    transform: scale(1.15);
+  }
+}
+
+/* Дополнительные новогодние эффекты */
+body.christmas-theme *::selection {
+  background: rgba(0, 255, 65, 0.3);
+  color: #ffffff;
+}
+
+/* Скроллбар */
+body.christmas-theme::-webkit-scrollbar {
+  width: 12px;
+}
+
+body.christmas-theme::-webkit-scrollbar-track {
+  background: rgba(10, 20, 16, 0.5);
+}
+
+body.christmas-theme::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg,
+    rgba(0, 255, 65, 0.5),
+    rgba(57, 255, 20, 0.5)
+  );
+  border-radius: 6px;
+  border: 2px solid rgba(10, 20, 16, 0.5);
+}
+
+body.christmas-theme::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg,
+    rgba(0, 255, 65, 0.7),
+    rgba(57, 255, 20, 0.7)
+  );
+}
+
+/* Анимация появления */
+@keyframes christmasGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 20px rgba(0, 255, 65, 0.3),
+      0 0 40px rgba(0, 255, 65, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 30px rgba(0, 255, 65, 0.5),
+      0 0 60px rgba(0, 255, 65, 0.3);
+  }
+}
+
+/* Добавляем мерцание для некоторых элементов */
+body.christmas-theme .glow {
+  animation: christmasGlow 2s ease-in-out infinite;
+}

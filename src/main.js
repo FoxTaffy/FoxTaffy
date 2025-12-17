@@ -5,6 +5,7 @@ import router from './router'
 import { createHead } from '@vueuse/head'
 import './style.css'
 import './Base.css'
+import './christmas-theme.css'
 
 // Функции для управления метатегами
 export function updateMetaTags(metaData) {
