@@ -1,5 +1,8 @@
 <template>
   <div id="app">
+    <!-- Новогодняя тема -->
+    <NewYearTheme ref="newYearTheme" />
+
     <!-- Навигационная панель -->
     <nav class="navbar" :class="{ 'scrolled': isScrolled, 'mobile-open': isMobileMenuOpen }">
       <div class="nav-container">
@@ -144,14 +147,19 @@
     
     <!-- Основной контент -->
     <main class="main-content">
-      <router-view />
+      <router-view @new-year-started="handleNewYearStart" />
     </main>
   </div>
 </template>
 
 <script>
+import NewYearTheme from './components/NewYear/NewYearTheme.vue'
+
 export default {
   name: 'App',
+  components: {
+    NewYearTheme
+  },
   data() {
     return {
       isScrolled: false,
@@ -347,6 +355,11 @@ export default {
           this.activeSection = '#' + sections[i]
           break
         }
+      }
+    },
+    handleNewYearStart() {
+      if (this.$refs.newYearTheme) {
+        this.$refs.newYearTheme.handleNewYearStart()
       }
     }
   }
