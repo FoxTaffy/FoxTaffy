@@ -2,48 +2,44 @@
   <div class="avatar-uploader">
     <label v-if="label" class="avatar-label">{{ label }}</label>
 
-    <div class="avatar-container">
-      <div class="avatar-preview" :class="{ 'is-uploading': isUploading }">
-        <img
-          v-if="previewUrl || modelValue"
-          :src="previewUrl || modelValue"
-          alt="Avatar preview"
-          class="avatar-image"
-        >
-        <div v-else class="avatar-placeholder">
-          <i class="fas fa-user"></i>
-        </div>
-
-        <div
-          class="upload-overlay"
-          @click="triggerFileInput"
-          @dragover.prevent="onDragOver"
-          @dragleave.prevent="onDragLeave"
-          @drop.prevent="onDrop"
-          :class="{ 'drag-over': isDragOver }"
-        >
-          <template v-if="isUploading">
-            <div class="upload-spinner"></div>
-            <span>{{ uploadProgress }}%</span>
-          </template>
-          <template v-else>
-            <i class="fas fa-camera"></i>
-            <span>Загрузить</span>
-          </template>
-        </div>
+    <div class="avatar-preview" :class="{ 'is-uploading': isUploading }">
+      <img
+        v-if="previewUrl || modelValue"
+        :src="previewUrl || modelValue"
+        alt="Avatar preview"
+        class="avatar-image"
+      >
+      <div v-else class="avatar-placeholder">
+        <i class="fas fa-user"></i>
       </div>
 
-      <div class="avatar-actions">
-        <button
-          v-if="modelValue && !isUploading"
-          type="button"
-          class="remove-btn"
-          @click="removeAvatar"
-          title="Удалить аватар"
-        >
-          <i class="fas fa-trash"></i>
-        </button>
+      <div
+        class="upload-overlay"
+        @click="triggerFileInput"
+        @dragover.prevent="onDragOver"
+        @dragleave.prevent="onDragLeave"
+        @drop.prevent="onDrop"
+        :class="{ 'drag-over': isDragOver }"
+      >
+        <template v-if="isUploading">
+          <div class="upload-spinner"></div>
+          <span>{{ uploadProgress }}%</span>
+        </template>
+        <template v-else>
+          <i class="fas fa-camera"></i>
+          <span>{{ modelValue ? 'Изменить' : 'Загрузить' }}</span>
+        </template>
       </div>
+
+      <button
+        v-if="modelValue && !isUploading"
+        type="button"
+        class="remove-btn"
+        @click.stop="removeAvatar"
+        title="Удалить аватар"
+      >
+        <i class="fas fa-times"></i>
+      </button>
     </div>
 
     <input
@@ -53,6 +49,11 @@
       @change="handleFileSelect"
       hidden
     >
+
+    <div v-if="!isUploading && !errorMessage" class="upload-hint">
+      <i class="fas fa-info-circle"></i>
+      <span>{{ modelValue ? 'Кликните для изменения или перетащите файл' : 'Кликните или перетащите файл' }}</span>
+    </div>
 
     <div v-if="compressionInfo" class="compression-info">
       <i class="fas fa-compress-arrows-alt"></i>
@@ -240,78 +241,34 @@ const removeAvatar = () => {
   color: rgba(255, 255, 255, 0.9);
 }
 
-.avatar-container {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
 .avatar-preview {
   position: relative;
   width: 160px;
   height: 160px;
-  border-radius: 24px;
+  border-radius: 20px;
   overflow: hidden;
-  border: none;
-  background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
-  flex-shrink: 0;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow:
-    inset 0 0 0 2px rgba(255, 123, 37, 0.15),
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    0 4px 12px rgba(255, 123, 37, 0.1);
-}
-
-.avatar-preview::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 24px;
-  padding: 2px;
-  background: linear-gradient(135deg,
-    rgba(255, 123, 37, 0.6) 0%,
-    rgba(255, 60, 172, 0.4) 50%,
-    rgba(75, 0, 130, 0.3) 100%
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.avatar-preview:hover::before {
-  opacity: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .avatar-preview:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow:
-    inset 0 0 0 2px rgba(255, 123, 37, 0.3),
-    0 12px 48px rgba(0, 0, 0, 0.5),
-    0 6px 20px rgba(255, 123, 37, 0.25);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .avatar-preview.is-uploading {
-  box-shadow:
-    inset 0 0 0 3px rgba(255, 123, 37, 0.8),
-    0 0 0 4px rgba(255, 123, 37, 0.2),
-    0 8px 32px rgba(255, 123, 37, 0.3);
+  border-color: rgba(255, 123, 37, 0.6);
   animation: pulse 2s ease-in-out infinite;
 }
 
 @keyframes pulse {
   0%, 100% {
-    box-shadow:
-      inset 0 0 0 3px rgba(255, 123, 37, 0.8),
-      0 0 0 4px rgba(255, 123, 37, 0.2),
-      0 8px 32px rgba(255, 123, 37, 0.3);
+    border-color: rgba(255, 123, 37, 0.6);
   }
   50% {
-    box-shadow:
-      inset 0 0 0 3px rgba(255, 123, 37, 1),
-      0 0 0 8px rgba(255, 123, 37, 0.3),
-      0 12px 48px rgba(255, 123, 37, 0.5);
+    border-color: rgba(255, 123, 37, 1);
   }
 }
 
@@ -379,26 +336,50 @@ const removeAvatar = () => {
   }
 }
 
-.avatar-actions {
+.remove-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0;
+  z-index: 10;
 }
 
-.remove-btn {
-  padding: 0.5rem;
-  background: rgba(244, 67, 54, 0.1);
-  border: 1px solid rgba(244, 67, 54, 0.3);
-  border-radius: 8px;
-  color: #f44336;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.85rem;
+.avatar-preview:hover .remove-btn {
+  opacity: 1;
 }
 
 .remove-btn:hover {
-  background: rgba(244, 67, 54, 0.2);
-  border-color: rgba(244, 67, 54, 0.5);
+  background: rgba(244, 67, 54, 0.9);
+  border-color: rgba(244, 67, 54, 1);
+  color: white;
+  transform: scale(1.1);
+}
+
+.upload-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: rgba(59, 130, 246, 0.9);
+}
+
+.upload-hint i {
+  font-size: 0.9rem;
 }
 
 .compression-info {

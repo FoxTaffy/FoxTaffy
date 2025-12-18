@@ -899,7 +899,7 @@
                     <input
                       v-model="modal.data.name"
                       type="text"
-                      placeholder="Введите имя персонажа..."
+                      placeholder="Например: Felix"
                       class="form-input"
                       required
                     >
@@ -1374,7 +1374,7 @@ const isFormValid = computed(() => {
 
 const isModalFormValid = computed(() => {
   if (!modal.show) return false
-  
+
   switch (modal.type) {
     case 'artist':
       return modal.data.nickname && modal.data.nickname.trim()
@@ -1382,6 +1382,8 @@ const isModalFormValid = computed(() => {
       return modal.data.name && modal.data.name.trim()
     case 'character':
       return modal.data.name && modal.data.name.trim()
+    case 'art':
+      return modal.data.title && modal.data.title.trim() && modal.data.artist_nickname
     default:
       return false
   }
@@ -4495,14 +4497,15 @@ watch(activeTab, () => {
 }
 
 .btn.secondary {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #888;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .btn.danger {
@@ -4924,7 +4927,8 @@ watch(activeTab, () => {
   justify-content: center;
   z-index: 10000;
   backdrop-filter: blur(10px);
-  padding: 2rem;
+  padding: 1rem;
+  overflow-y: auto;
 }
 
 .modal-content {
@@ -4933,10 +4937,13 @@ watch(activeTab, () => {
   border-radius: 20px;
   max-width: 500px;
   width: 100%;
-  max-height: 90vh;
+  max-height: calc(100vh - 2rem);
   overflow-y: auto;
   backdrop-filter: blur(20px);
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .delete-modal {
@@ -4949,6 +4956,7 @@ watch(activeTab, () => {
   justify-content: space-between;
   padding: 2rem 2rem 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
 }
 
 .modal-header h3 {
@@ -4962,27 +4970,31 @@ watch(activeTab, () => {
 }
 
 .modal-close {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
+  background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #888;
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .modal-close:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .modal-body {
   padding: 2rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .modal-form {
@@ -4996,6 +5008,7 @@ watch(activeTab, () => {
   justify-content: flex-end;
   padding: 1rem 2rem 2rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
 }
 
 /* Удаление */
@@ -5332,19 +5345,26 @@ watch(activeTab, () => {
   }
   
   .modal-overlay {
-    padding: 1rem;
+    padding: 0.5rem;
   }
-  
+
   .modal-content {
     max-width: none;
     width: 100%;
+    max-height: calc(100vh - 1rem);
+    border-radius: 16px;
   }
-  
-  .modal-header,
-  .modal-body,
+
+  .modal-header {
+    padding: 1.5rem 1.5rem 1rem;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
   .modal-actions {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+    padding: 1rem 1.5rem 1.5rem;
   }
   
   .notifications {
