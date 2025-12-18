@@ -1374,7 +1374,7 @@ const isFormValid = computed(() => {
 
 const isModalFormValid = computed(() => {
   if (!modal.show) return false
-  
+
   switch (modal.type) {
     case 'artist':
       return modal.data.nickname && modal.data.nickname.trim()
@@ -1382,6 +1382,8 @@ const isModalFormValid = computed(() => {
       return modal.data.name && modal.data.name.trim()
     case 'character':
       return modal.data.name && modal.data.name.trim()
+    case 'art':
+      return modal.data.title && modal.data.title.trim() && modal.data.artist_nickname
     default:
       return false
   }
@@ -4924,7 +4926,8 @@ watch(activeTab, () => {
   justify-content: center;
   z-index: 10000;
   backdrop-filter: blur(10px);
-  padding: 2rem;
+  padding: 1rem;
+  overflow-y: auto;
 }
 
 .modal-content {
@@ -4933,10 +4936,13 @@ watch(activeTab, () => {
   border-radius: 20px;
   max-width: 500px;
   width: 100%;
-  max-height: 90vh;
+  max-height: calc(100vh - 2rem);
   overflow-y: auto;
   backdrop-filter: blur(20px);
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .delete-modal {
@@ -4949,6 +4955,7 @@ watch(activeTab, () => {
   justify-content: space-between;
   padding: 2rem 2rem 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
 }
 
 .modal-header h3 {
@@ -4983,6 +4990,9 @@ watch(activeTab, () => {
 
 .modal-body {
   padding: 2rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .modal-form {
@@ -4996,6 +5006,7 @@ watch(activeTab, () => {
   justify-content: flex-end;
   padding: 1rem 2rem 2rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
 }
 
 /* Удаление */
@@ -5332,19 +5343,26 @@ watch(activeTab, () => {
   }
   
   .modal-overlay {
-    padding: 1rem;
+    padding: 0.5rem;
   }
-  
+
   .modal-content {
     max-width: none;
     width: 100%;
+    max-height: calc(100vh - 1rem);
+    border-radius: 16px;
   }
-  
-  .modal-header,
-  .modal-body,
+
+  .modal-header {
+    padding: 1.5rem 1.5rem 1rem;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
   .modal-actions {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+    padding: 1rem 1.5rem 1.5rem;
   }
   
   .notifications {

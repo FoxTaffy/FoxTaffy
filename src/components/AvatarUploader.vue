@@ -35,6 +35,16 @@
 
       <div class="avatar-actions">
         <button
+          v-if="!isUploading"
+          type="button"
+          class="upload-btn"
+          @click="triggerFileInput"
+          title="Выбрать файл"
+        >
+          <i class="fas fa-folder-open"></i>
+          <span>Выбрать файл</span>
+        </button>
+        <button
           v-if="modelValue && !isUploading"
           type="button"
           class="remove-btn"
@@ -53,6 +63,11 @@
       @change="handleFileSelect"
       hidden
     >
+
+    <div v-if="!isUploading && !errorMessage" class="upload-hint">
+      <i class="fas fa-info-circle"></i>
+      <span>Нажмите на превью или кнопку, либо перетащите файл</span>
+    </div>
 
     <div v-if="compressionInfo" class="compression-info">
       <i class="fas fa-compress-arrows-alt"></i>
@@ -383,22 +398,75 @@ const removeAvatar = () => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  flex: 1;
+}
+
+.upload-btn {
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(255, 123, 37, 0.15), rgba(255, 60, 172, 0.1));
+  border: 1px solid rgba(255, 123, 37, 0.3);
+  border-radius: 12px;
+  color: #FF7B25;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.upload-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 123, 37, 0.25), rgba(255, 60, 172, 0.15));
+  border-color: rgba(255, 123, 37, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 123, 37, 0.3);
+}
+
+.upload-btn i {
+  font-size: 1rem;
 }
 
 .remove-btn {
-  padding: 0.5rem;
+  padding: 0.75rem 1rem;
   background: rgba(244, 67, 54, 0.1);
   border: 1px solid rgba(244, 67, 54, 0.3);
-  border-radius: 8px;
+  border-radius: 12px;
   color: #f44336;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  white-space: nowrap;
 }
 
 .remove-btn:hover {
   background: rgba(244, 67, 54, 0.2);
   border-color: rgba(244, 67, 54, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(244, 67, 54, 0.3);
+}
+
+.upload-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: rgba(59, 130, 246, 0.9);
+}
+
+.upload-hint i {
+  font-size: 0.9rem;
 }
 
 .compression-info {
