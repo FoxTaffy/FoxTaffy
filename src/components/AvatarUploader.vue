@@ -52,6 +52,7 @@
           title="Удалить аватар"
         >
           <i class="fas fa-trash"></i>
+          <span>Удалить</span>
         </button>
       </div>
     </div>
@@ -64,9 +65,9 @@
       hidden
     >
 
-    <div v-if="!isUploading && !errorMessage" class="upload-hint">
+    <div v-if="!isUploading && !errorMessage && !modelValue" class="upload-hint">
       <i class="fas fa-info-circle"></i>
-      <span>Нажмите на превью или кнопку, либо перетащите файл</span>
+      <span>Кликните или перетащите файл</span>
     </div>
 
     <div v-if="compressionInfo" class="compression-info">
@@ -270,11 +271,10 @@ const removeAvatar = () => {
   border: none;
   background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
   flex-shrink: 0;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.3s ease;
   box-shadow:
-    inset 0 0 0 2px rgba(255, 123, 37, 0.15),
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    0 4px 12px rgba(255, 123, 37, 0.1);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .avatar-preview::before {
@@ -284,9 +284,9 @@ const removeAvatar = () => {
   border-radius: 24px;
   padding: 2px;
   background: linear-gradient(135deg,
-    rgba(255, 123, 37, 0.6) 0%,
-    rgba(255, 60, 172, 0.4) 50%,
-    rgba(75, 0, 130, 0.3) 100%
+    rgba(255, 123, 37, 0.4) 0%,
+    rgba(255, 60, 172, 0.25) 50%,
+    rgba(75, 0, 130, 0.2) 100%
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -300,11 +300,11 @@ const removeAvatar = () => {
 }
 
 .avatar-preview:hover {
-  transform: translateY(-4px) scale(1.02);
+  transform: translateY(-2px);
   box-shadow:
-    inset 0 0 0 2px rgba(255, 123, 37, 0.3),
-    0 12px 48px rgba(0, 0, 0, 0.5),
-    0 6px 20px rgba(255, 123, 37, 0.25);
+    inset 0 0 0 1px rgba(255, 123, 37, 0.2),
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(255, 123, 37, 0.15);
 }
 
 .avatar-preview.is-uploading {
@@ -431,13 +431,13 @@ const removeAvatar = () => {
 
 .remove-btn {
   padding: 0.75rem 1rem;
-  background: rgba(244, 67, 54, 0.1);
-  border: 1px solid rgba(244, 67, 54, 0.3);
+  background: transparent;
+  border: 1px solid rgba(244, 67, 54, 0.2);
   border-radius: 12px;
-  color: #f44336;
+  color: rgba(244, 67, 54, 0.7);
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -447,10 +447,11 @@ const removeAvatar = () => {
 }
 
 .remove-btn:hover {
-  background: rgba(244, 67, 54, 0.2);
+  background: rgba(244, 67, 54, 0.15);
   border-color: rgba(244, 67, 54, 0.5);
+  color: #f44336;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(244, 67, 54, 0.3);
+  box-shadow: 0 8px 20px rgba(244, 67, 54, 0.25);
 }
 
 .upload-hint {
