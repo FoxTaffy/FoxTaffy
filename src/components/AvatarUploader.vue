@@ -28,31 +28,18 @@
           </template>
           <template v-else>
             <i class="fas fa-camera"></i>
-            <span>Загрузить</span>
+            <span>{{ modelValue ? 'Изменить' : 'Загрузить' }}</span>
           </template>
         </div>
-      </div>
 
-      <div class="avatar-actions">
-        <button
-          v-if="!isUploading"
-          type="button"
-          class="upload-btn"
-          @click="triggerFileInput"
-          title="Выбрать файл"
-        >
-          <i class="fas fa-folder-open"></i>
-          <span>Выбрать файл</span>
-        </button>
         <button
           v-if="modelValue && !isUploading"
           type="button"
           class="remove-btn"
-          @click="removeAvatar"
+          @click.stop="removeAvatar"
           title="Удалить аватар"
         >
-          <i class="fas fa-trash"></i>
-          <span>Удалить</span>
+          <i class="fas fa-times"></i>
         </button>
       </div>
     </div>
@@ -65,9 +52,9 @@
       hidden
     >
 
-    <div v-if="!isUploading && !errorMessage && !modelValue" class="upload-hint">
+    <div v-if="!isUploading && !errorMessage" class="upload-hint">
       <i class="fas fa-info-circle"></i>
-      <span>Кликните или перетащите файл</span>
+      <span>{{ modelValue ? 'Кликните для изменения или перетащите файл' : 'Кликните или перетащите файл' }}</span>
     </div>
 
     <div v-if="compressionInfo" class="compression-info">
@@ -259,74 +246,36 @@ const removeAvatar = () => {
 .avatar-container {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
 }
 
 .avatar-preview {
   position: relative;
   width: 160px;
   height: 160px;
-  border-radius: 24px;
+  border-radius: 20px;
   overflow: hidden;
-  border: none;
-  background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
-  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 4px 16px rgba(0, 0, 0, 0.3);
-}
-
-.avatar-preview::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 24px;
-  padding: 2px;
-  background: linear-gradient(135deg,
-    rgba(255, 123, 37, 0.4) 0%,
-    rgba(255, 60, 172, 0.25) 50%,
-    rgba(75, 0, 130, 0.2) 100%
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.avatar-preview:hover::before {
-  opacity: 1;
+  cursor: pointer;
 }
 
 .avatar-preview:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 123, 37, 0.2),
-    0 8px 24px rgba(0, 0, 0, 0.4),
-    0 4px 12px rgba(255, 123, 37, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .avatar-preview.is-uploading {
-  box-shadow:
-    inset 0 0 0 3px rgba(255, 123, 37, 0.8),
-    0 0 0 4px rgba(255, 123, 37, 0.2),
-    0 8px 32px rgba(255, 123, 37, 0.3);
+  border-color: rgba(255, 123, 37, 0.6);
   animation: pulse 2s ease-in-out infinite;
 }
 
 @keyframes pulse {
   0%, 100% {
-    box-shadow:
-      inset 0 0 0 3px rgba(255, 123, 37, 0.8),
-      0 0 0 4px rgba(255, 123, 37, 0.2),
-      0 8px 32px rgba(255, 123, 37, 0.3);
+    border-color: rgba(255, 123, 37, 0.6);
   }
   50% {
-    box-shadow:
-      inset 0 0 0 3px rgba(255, 123, 37, 1),
-      0 0 0 8px rgba(255, 123, 37, 0.3),
-      0 12px 48px rgba(255, 123, 37, 0.5);
+    border-color: rgba(255, 123, 37, 1);
   }
 }
 
@@ -394,64 +343,34 @@ const removeAvatar = () => {
   }
 }
 
-.avatar-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  flex: 1;
-}
-
-.upload-btn {
-  padding: 0.75rem 1rem;
-  background: linear-gradient(135deg, rgba(255, 123, 37, 0.15), rgba(255, 60, 172, 0.1));
-  border: 1px solid rgba(255, 123, 37, 0.3);
-  border-radius: 12px;
-  color: #FF7B25;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  font-size: 0.9rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  white-space: nowrap;
-}
-
-.upload-btn:hover {
-  background: linear-gradient(135deg, rgba(255, 123, 37, 0.25), rgba(255, 60, 172, 0.15));
-  border-color: rgba(255, 123, 37, 0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(255, 123, 37, 0.3);
-}
-
-.upload-btn i {
-  font-size: 1rem;
-}
-
 .remove-btn {
-  padding: 0.75rem 1rem;
-  background: transparent;
-  border: 1px solid rgba(244, 67, 54, 0.2);
-  border-radius: 12px;
-  color: rgba(244, 67, 54, 0.7);
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.85rem;
-  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  white-space: nowrap;
+  transition: all 0.2s ease;
+  opacity: 0;
+  z-index: 10;
+}
+
+.avatar-preview:hover .remove-btn {
+  opacity: 1;
 }
 
 .remove-btn:hover {
-  background: rgba(244, 67, 54, 0.15);
-  border-color: rgba(244, 67, 54, 0.5);
-  color: #f44336;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(244, 67, 54, 0.25);
+  background: rgba(244, 67, 54, 0.9);
+  border-color: rgba(244, 67, 54, 1);
+  color: white;
+  transform: scale(1.1);
 }
 
 .upload-hint {
