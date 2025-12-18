@@ -2,46 +2,44 @@
   <div class="avatar-uploader">
     <label v-if="label" class="avatar-label">{{ label }}</label>
 
-    <div class="avatar-container">
-      <div class="avatar-preview" :class="{ 'is-uploading': isUploading }">
-        <img
-          v-if="previewUrl || modelValue"
-          :src="previewUrl || modelValue"
-          alt="Avatar preview"
-          class="avatar-image"
-        >
-        <div v-else class="avatar-placeholder">
-          <i class="fas fa-user"></i>
-        </div>
-
-        <div
-          class="upload-overlay"
-          @click="triggerFileInput"
-          @dragover.prevent="onDragOver"
-          @dragleave.prevent="onDragLeave"
-          @drop.prevent="onDrop"
-          :class="{ 'drag-over': isDragOver }"
-        >
-          <template v-if="isUploading">
-            <div class="upload-spinner"></div>
-            <span>{{ uploadProgress }}%</span>
-          </template>
-          <template v-else>
-            <i class="fas fa-camera"></i>
-            <span>{{ modelValue ? 'Изменить' : 'Загрузить' }}</span>
-          </template>
-        </div>
-
-        <button
-          v-if="modelValue && !isUploading"
-          type="button"
-          class="remove-btn"
-          @click.stop="removeAvatar"
-          title="Удалить аватар"
-        >
-          <i class="fas fa-times"></i>
-        </button>
+    <div class="avatar-preview" :class="{ 'is-uploading': isUploading }">
+      <img
+        v-if="previewUrl || modelValue"
+        :src="previewUrl || modelValue"
+        alt="Avatar preview"
+        class="avatar-image"
+      >
+      <div v-else class="avatar-placeholder">
+        <i class="fas fa-user"></i>
       </div>
+
+      <div
+        class="upload-overlay"
+        @click="triggerFileInput"
+        @dragover.prevent="onDragOver"
+        @dragleave.prevent="onDragLeave"
+        @drop.prevent="onDrop"
+        :class="{ 'drag-over': isDragOver }"
+      >
+        <template v-if="isUploading">
+          <div class="upload-spinner"></div>
+          <span>{{ uploadProgress }}%</span>
+        </template>
+        <template v-else>
+          <i class="fas fa-camera"></i>
+          <span>{{ modelValue ? 'Изменить' : 'Загрузить' }}</span>
+        </template>
+      </div>
+
+      <button
+        v-if="modelValue && !isUploading"
+        type="button"
+        class="remove-btn"
+        @click.stop="removeAvatar"
+        title="Удалить аватар"
+      >
+        <i class="fas fa-times"></i>
+      </button>
     </div>
 
     <input
@@ -241,11 +239,6 @@ const removeAvatar = () => {
   font-size: 0.9rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.9);
-}
-
-.avatar-container {
-  display: flex;
-  align-items: flex-start;
 }
 
 .avatar-preview {
