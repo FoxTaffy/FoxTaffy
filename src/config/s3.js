@@ -9,9 +9,9 @@ import { supabase } from '@/config/supabase.js'
 // КОНСТАНТЫ
 // ============================================
 const DEFAULT_BUCKET = 'Convent'
-const THUMBNAIL_MAX_WIDTH = 400
-const THUMBNAIL_MAX_HEIGHT = 400
-const THUMBNAIL_QUALITY = 0.8
+const THUMBNAIL_MAX_WIDTH = 300
+const THUMBNAIL_MAX_HEIGHT = 300
+const THUMBNAIL_QUALITY = 0.7
 
 // ============================================
 // ОПРЕДЕЛЕНИЕ БАКЕТА И СТРУКТУРЫ ПАПОК
@@ -121,11 +121,12 @@ const createThumbnailBlob = (file, maxWidth = THUMBNAIL_MAX_WIDTH, maxHeight = T
  * @param {number} quality - Базовое качество (0-1)
  * @returns {Promise<Blob>} Оптимизированное изображение
  */
-const optimizeImage = async (file, quality = 0.9) => {
-  const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 МБ
-  const MIN_FILE_SIZE = 500 * 1024 // 500 КБ
+const optimizeImage = async (file, quality = 0.8) => {
+  const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2 МБ
+  const MIN_FILE_SIZE = 300 * 1024 // 300 КБ
+  const MAX_DIMENSION = 2000 // Максимальная ширина/высота
 
-  // Если файл уже небольшой, не оптимизируем
+  // Оптимизируем все файлы больше MIN_FILE_SIZE
   if (file.size < MIN_FILE_SIZE) {
     return file
   }
@@ -147,19 +148,27 @@ const optimizeImage = async (file, quality = 0.9) => {
       let height = img.height
       let targetQuality = quality
 
-      // Если файл больше 10 МБ, нужно сжать агрессивнее
+      // Ограничиваем размеры изображения
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        const scale = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height)
+        width = Math.round(width * scale)
+        height = Math.round(height * scale)
+        console.log(`📐 Уменьшаем размеры до: ${width}x${height}`)
+      }
+
+      // Если файл больше 2 МБ, нужно сжать агрессивнее
       if (file.size > MAX_FILE_SIZE) {
-        console.log(`📦 Файл ${(file.size / 1024 / 1024).toFixed(2)} МБ > 10 МБ, сжимаем...`)
+        console.log(`📦 Файл ${(file.size / 1024 / 1024).toFixed(2)} МБ > 2 МБ, сжимаем агрессивнее...`)
 
         // Вычисляем коэффициент сжатия
         const compressionRatio = Math.sqrt(MAX_FILE_SIZE / file.size)
 
-        // Уменьшаем размеры изображения
+        // Дополнительно уменьшаем размеры
         width = Math.round(width * compressionRatio)
         height = Math.round(height * compressionRatio)
 
         // Снижаем качество
-        targetQuality = Math.max(0.7, quality * compressionRatio)
+        targetQuality = Math.max(0.6, quality * compressionRatio)
 
         console.log(`📐 Новые размеры: ${width}x${height}, качество: ${(targetQuality * 100).toFixed(0)}%`)
       }
@@ -219,8 +228,8 @@ export const s3Api = {
 
       console.log(`📤 Загружаем файл в Supabase Storage [${bucketName}]:`, fileName)
 
-      // Проверяем размер файла (максимум 10MB)
-      const maxSize = 10 * 1024 * 1024
+      // Проверяем размер файла (максимум 5MB)
+      const maxSize = 5 * 1024 * 1024
       if (file.size > maxSize) {
         throw new Error(`Файл слишком большой. Максимальный размер: ${Math.round(maxSize / 1024 / 1024)}MB`)
       }
@@ -304,7 +313,7 @@ export const s3Api = {
 
       // 1. Оптимизируем оригинал если нужно
       console.log('🔄 Оптимизируем оригинальное изображение...')
-      const optimizedOriginal = await optimizeImage(file, 0.92)
+      const optimizedOriginal = await optimizeImage(file, 0.8)
       if (onProgress) onProgress(20)
 
       // 2. Создаем миниатюру
@@ -425,7 +434,7 @@ export const s3Api = {
       const purchasesFolder = getEventFolderPath(eventId, 'purchases')
 
       // Оптимизируем изображение
-      const optimizedImage = await optimizeImage(file, 0.85)
+      const optimizedImage = await optimizeImage(file, 0.75)
       const optimizedFile = new File([optimizedImage], fileName, { type: 'image/jpeg' })
 
       // Загружаем файл
@@ -532,7 +541,7 @@ export const s3Api = {
   validateFile(file) {
     const errors = []
 
-    const maxSize = 10 * 1024 * 1024 // 10MB
+    const maxSize = 5 * 1024 * 1024 // 5MB
     if (file.size > maxSize) {
       errors.push(`Файл слишком большой. Максимум: ${Math.round(maxSize / 1024 / 1024)}MB`)
     }
@@ -611,5 +620,6 @@ export default s3Api
 
 console.log('✅ Supabase Storage API с автоматической генерацией миниатюр загружен!')
 console.log('📁 Структура хранения: events/{event-id}/original/ и events/{event-id}/thumbnails/')
-console.log('🖼️ Размер миниатюр: максимум 400x400px')
+console.log('🖼️ Размер миниатюр: максимум 300x300px')
 console.log('📦 Bucket по умолчанию: Convent')
+console.log('⚡ Оптимизация: макс. 2MB на файл, качество 80%, макс. размер 2000px')
