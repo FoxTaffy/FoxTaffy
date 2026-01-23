@@ -5,7 +5,6 @@
     <div class="container">
       <!-- Подключаем компоненты -->
       <HeaderSection />
-      <NewYearCountdown @new-year-started="handleNewYearStart" />
       <ReferenceSection />
       <BioSection />
       <FursuitSection />
@@ -23,7 +22,6 @@
 
 <script>
 import HeaderSection from './Base/Header.vue'
-import NewYearCountdown from './NewYear/NewYearCountdown.vue'
 import ReferenceSection from './Base/Reference.vue'
 import BioSection from './Base/Bio.vue'
 import FursuitSection from './Base/Fursuit.vue'
@@ -35,18 +33,12 @@ export default {
   name: 'HomeView',
   components: {
     HeaderSection,
-    NewYearCountdown,
     ReferenceSection,
     BioSection,
     FursuitSection,
     PartnerSection,
     EventsSection,
     CommunitiesSection
-  },
-  methods: {
-    handleNewYearStart() {
-      this.$emit('new-year-started')
-    }
   }
 }
 </script>

@@ -72,7 +72,7 @@ export default {
   data() {
     return {
       birthDate: new Date(2004, 7, 2), // 02.08.2004 (месяцы в JavaScript начинаются с 0)
-      avatarImage: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Main/NewYear.jpg' // Прямой URL из Supabase
+      avatarImage: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery//Avatar.jpg' // Прямой URL из Supabase
     }
   },
   computed: {
