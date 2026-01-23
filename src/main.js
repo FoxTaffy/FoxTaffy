@@ -4,8 +4,14 @@ import { inject } from '@vercel/analytics'
 import App from './App.vue'
 import router from './router'
 import { createHead } from '@vueuse/head'
+
+// Импорт локальных стилей и шрифтов
+import './fonts.css'
 import './style.css'
 import './Base.css'
+
+// Импорт Font Awesome CSS
+import '@fortawesome/fontawesome-free/css/all.min.css'
 
 // Функции для управления метатегами
 export function updateMetaTags(metaData) {

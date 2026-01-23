@@ -10,6 +10,7 @@
     "clean": "rm -rf node_modules package-lock.json && npm install"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.1.0",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
