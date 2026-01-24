@@ -146,6 +146,9 @@
     <main class="main-content">
       <router-view />
     </main>
+
+    <!-- Vercel Analytics -->
+    <SpeedInsights />
   </div>
 </template>
 
