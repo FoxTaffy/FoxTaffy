@@ -1,15 +1,10 @@
 import { createApp } from 'vue'
+import { SpeedInsights } from "@vercel/speed-insights/vue"
 import App from './App.vue'
 import router from './router'
 import { createHead } from '@vueuse/head'
-
-// Импорт локальных стилей и шрифтов
-import './fonts.css'
 import './style.css'
 import './Base.css'
-
-// Импорт Font Awesome CSS
-import '@fortawesome/fontawesome-free/css/all.min.css'
 
 // Функции для управления метатегами
 export function updateMetaTags(metaData) {
@@ -74,6 +69,8 @@ function updateCanonicalLink(url) {
 // Инициализация приложения
 const app = createApp(App)
 const head = createHead()
+// Добавление Vercel Speed Insights
+app.component('SpeedInsights', SpeedInsights)
 
 // Глобальная директива для анимации при скролле
 app.directive('scroll-animation', {
@@ -156,6 +153,3 @@ initializeLocalStorage()
 app.use(router)
 app.use(head)
 app.mount('#app')
-
-// Инициализация Vercel Analytics
-inject()
