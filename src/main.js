@@ -8,9 +8,6 @@ import './fonts.css'
 import './style.css'
 import './Base.css'
 
-// Импорт Font Awesome CSS
-import '@fortawesome/fontawesome-free/css/all.min.css'
-
 // Функции для управления метатегами
 export function updateMetaTags(metaData) {
   // Обновляем title
@@ -156,6 +153,3 @@ initializeLocalStorage()
 app.use(router)
 app.use(head)
 app.mount('#app')
-
-// Инициализация Vercel Analytics
-inject()
