@@ -11,7 +11,7 @@
         <div class="character-avatar-container">
           <div class="avatar-ring"></div>
           <div class="character-avatar">
-            <img src="https://www.foxtaffy.fun/assets/Avatar-BylXFhw2.jpg" alt="Fox Taffy" loading="lazy" />
+            <img :src="avatarImage" alt="Fox Taffy" loading="lazy" />
           </div>
         </div>
         <h1 class="character-name">Fox Taffy</h1>
@@ -252,6 +252,7 @@
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue'
 import { furryApi } from '@/config/supabase.js'
+import avatarImage from '@/assets/Image/Avatar.jpg'
 
 // ============================================
 // ДАННЫЕ ПЕРСОНАЖА
