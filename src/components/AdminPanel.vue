@@ -56,10 +56,10 @@
           <nav class="sidebar-nav">
             <div class="nav-section">
               <h3>Основное</h3>
-              <button 
-                v-for="tab in mainTabs" 
+              <button
+                v-for="tab in mainTabs"
                 :key="tab.id"
-                @click="activeTab = tab.id"
+                @click="tryChangeTab(tab.id)"
                 class="nav-item"
                 :class="{ active: activeTab === tab.id }"
               >
@@ -68,13 +68,13 @@
                 <div v-if="tab.count" class="count-badge">{{ tab.count }}</div>
               </button>
             </div>
-            
+
             <div class="nav-section">
               <h3>Управление</h3>
-              <button 
-                v-for="tab in manageTabs" 
+              <button
+                v-for="tab in manageTabs"
                 :key="tab.id"
-                @click="activeTab = tab.id"
+                @click="tryChangeTab(tab.id)"
                 class="nav-item"
                 :class="{ active: activeTab === tab.id }"
               >
@@ -1194,6 +1194,46 @@
           </div>
         </div>
       </Transition>
+
+      <!-- Модальное окно подтверждения выхода -->
+      <Transition name="modal">
+        <div v-if="confirmExitModal.show" class="modal-overlay" @click.self="cancelExit">
+          <div class="modal-content confirm-exit-modal" @click.stop>
+            <div class="modal-header">
+              <h3>
+                <i class="fas fa-exclamation-circle"></i>
+                Несохраненные изменения
+              </h3>
+              <button @click="cancelExit" class="modal-close">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+
+            <div class="modal-body">
+              <div class="confirm-exit-content">
+                <div class="confirm-exit-icon">
+                  <i class="fas fa-save"></i>
+                </div>
+                <div class="confirm-exit-text">
+                  <h4>У вас есть несохраненные данные</h4>
+                  <p>Вы заполнили форму добавления арта, но не сохранили её. Если вы покинете эту страницу, все введенные данные будут потеряны.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button @click="cancelExit" class="btn secondary">
+                <i class="fas fa-arrow-left"></i>
+                Вернуться к форме
+              </button>
+              <button @click="confirmExit" class="btn danger">
+                <i class="fas fa-trash"></i>
+                Покинуть без сохранения
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
     </Teleport>
 
     <!-- Уведомления -->
@@ -1303,6 +1343,12 @@ const deleteModal = reactive({
   item: null
 })
 
+// Модальное окно подтверждения выхода
+const confirmExitModal = reactive({
+  show: false,
+  pendingTab: ''
+})
+
 // Селекторы в модальном окне
 const modalArtistSelectorOpen = ref(false)
 const modalArtistSearch = ref('')
@@ -1370,6 +1416,16 @@ const isFormValid = computed(() => {
          selectedArtist.value &&
          newArt.imageUrl.trim() &&
          (uploadMethod.value === 's3' ? uploadedFileInfo.value : isValidImageUrl.value)
+})
+
+// Проверка наличия несохраненных изменений в форме добавления арта
+const hasUnsavedChanges = computed(() => {
+  return newArt.title.trim() !== '' ||
+         selectedArtist.value !== '' ||
+         newArt.imageUrl.trim() !== '' ||
+         selectedTags.value.length > 0 ||
+         selectedCharacters.value.length > 0 ||
+         newArt.isNsfw === true
 })
 
 const isModalFormValid = computed(() => {
@@ -2124,6 +2180,28 @@ const getDeleteWarning = () => {
     default:
       return 'Это действие нельзя отменить.'
   }
+}
+
+// Функции для подтверждения выхода из формы
+const tryChangeTab = (tabId) => {
+  if (activeTab.value === 'add-art' && hasUnsavedChanges.value && tabId !== 'add-art') {
+    confirmExitModal.pendingTab = tabId
+    confirmExitModal.show = true
+  } else {
+    activeTab.value = tabId
+  }
+}
+
+const confirmExit = () => {
+  resetForm()
+  activeTab.value = confirmExitModal.pendingTab
+  confirmExitModal.show = false
+  confirmExitModal.pendingTab = ''
+}
+
+const cancelExit = () => {
+  confirmExitModal.show = false
+  confirmExitModal.pendingTab = ''
 }
 
 const viewArt = (art) => {
@@ -4054,22 +4132,6 @@ watch(activeTab, () => {
   transform: scale(1.05);
 }
 
-.art-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  color: white;
-  font-size: 1.5rem;
-}
-
 .recent-art:hover .art-overlay {
   opacity: 1;
 }
@@ -4222,12 +4284,22 @@ watch(activeTab, () => {
   border-radius: 12px;
   backdrop-filter: blur(20px);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 123, 37, 0.1);
-  max-height: 400px;
+  max-height: min(400px, calc(100vh - 300px));
   overflow: hidden;
   display: flex;
   flex-direction: column;
   z-index: 1000;
   animation: slideDown 0.2s ease-out;
+}
+
+/* Dropdown внутри модального окна - ограничиваем позиционирование */
+.modal-body .selector-dropdown {
+  position: absolute;
+  max-height: min(280px, calc(100vh - 400px));
+}
+
+.modal-body .form-group {
+  position: relative;
 }
 
 @keyframes slideDown {
@@ -4860,6 +4932,8 @@ watch(activeTab, () => {
   opacity: 0;
   transition: opacity 0.3s ease;
   backdrop-filter: blur(5px);
+  color: white;
+  font-size: 1.5rem;
 }
 
 .art-card:hover .art-overlay {
@@ -5096,6 +5170,47 @@ watch(activeTab, () => {
 .delete-type {
   color: #888;
   font-size: 0.85rem;
+}
+
+/* Модальное окно подтверждения выхода */
+.confirm-exit-modal {
+  max-width: 480px;
+}
+
+.confirm-exit-content {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.confirm-exit-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(245, 158, 11, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.confirm-exit-text {
+  flex: 1;
+}
+
+.confirm-exit-text h4 {
+  margin: 0 0 0.75rem 0;
+  color: white;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.confirm-exit-text p {
+  margin: 0;
+  color: #888;
+  line-height: 1.6;
 }
 
 /* Уведомления */

@@ -211,7 +211,7 @@ export default {
           name: 'О Felix',
           description: 'История нашей любви',
           path: '/felix',
-          icon: 'fas fa-heart-circle'
+          icon: 'fas fa-heart'
         }
       ],
 
