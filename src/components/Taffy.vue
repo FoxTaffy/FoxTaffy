@@ -11,7 +11,7 @@
         <div class="character-avatar-container">
           <div class="avatar-ring"></div>
           <div class="character-avatar">
-            <img src="/src/assets/Image/Avatar.jpg" alt="Fox Taffy" loading="lazy" />
+            <img src="https://www.foxtaffy.fun/assets/Avatar-BylXFhw2.jpg" alt="Fox Taffy" loading="lazy" />
           </div>
         </div>
         <h1 class="character-name">Fox Taffy</h1>
