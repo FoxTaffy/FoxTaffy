@@ -154,6 +154,3 @@ initializeLocalStorage()
 app.use(router)
 app.use(head)
 app.mount('#app')
-
-// Инициализация Vercel Analytics
-inject()
