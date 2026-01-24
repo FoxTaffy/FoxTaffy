@@ -1,6 +1,4 @@
 import { createApp } from 'vue'
-import { SpeedInsights } from "@vercel/speed-insights/vue"
-import { inject } from '@vercel/analytics'
 import App from './App.vue'
 import router from './router'
 import { createHead } from '@vueuse/head'
@@ -70,8 +68,6 @@ function updateCanonicalLink(url) {
 // Инициализация приложения
 const app = createApp(App)
 const head = createHead()
-// Добавление Vercel Speed Insights
-app.component('SpeedInsights', SpeedInsights)
 
 // Глобальная директива для анимации при скролле
 app.directive('scroll-animation', {
@@ -154,6 +150,3 @@ initializeLocalStorage()
 app.use(router)
 app.use(head)
 app.mount('#app')
-
-// Инициализация Vercel Analytics
-inject()
