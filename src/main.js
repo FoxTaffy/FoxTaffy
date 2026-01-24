@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { SpeedInsights } from "@vercel/speed-insights/vue"
+import { inject } from '@vercel/analytics'
 import App from './App.vue'
 import router from './router'
 import { createHead } from '@vueuse/head'
