@@ -597,8 +597,11 @@ export default {
 
 .dropdown-item i {
   width: 20px;
+  min-width: 20px;
+  font-size: 1.1rem;
   text-align: center;
   color: var(--accent-orange);
+  display: inline-block;
 }
 
 .dropdown-item-content {
