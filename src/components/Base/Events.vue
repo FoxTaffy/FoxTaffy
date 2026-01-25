@@ -861,6 +861,7 @@ export default {
   position: relative;
   backdrop-filter: blur(10px);
   transform: translateY(0) scale(1);
+  will-change: transform, box-shadow;
 }
 
 .event-card:hover {
@@ -916,6 +917,7 @@ export default {
   object-fit: cover;
   transition: transform 0.6s ease;
   transform-origin: center;
+  will-change: transform;
 }
 
 .event-card:hover .card-image img {
@@ -941,6 +943,7 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.2);
   z-index: 3;
   transition: all 0.4s ease;
+  will-change: transform;
 }
 
 .event-card:hover .date-badge {

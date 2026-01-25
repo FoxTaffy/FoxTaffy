@@ -1397,9 +1397,28 @@ export default {
    =============================================== */
 
 .filters-section {
-  background: rgba(255, 255, 255, 0.02);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 2rem 0;
+  background: linear-gradient(180deg, rgba(255, 123, 37, 0.05) 0%, rgba(76, 175, 80, 0.05) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2.5rem 0;
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+}
+
+.filters-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 123, 37, 0.5), rgba(76, 175, 80, 0.5), transparent);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
 }
 
 .filters-container {
@@ -1410,106 +1429,183 @@ export default {
 
 .search-box {
   position: relative;
-  max-width: 500px;
+  max-width: 600px;
+  width: 100%;
 }
 
 .search-box i {
   position: absolute;
-  left: 1rem;
+  left: 1.25rem;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-muted, #a0a0a0);
+  color: var(--accent-orange, #ff7b25);
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  z-index: 1;
 }
 
 .search-box input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.75rem;
+  padding: 1rem 3.5rem 1rem 3rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
   color: var(--text-light, #f2f2f2);
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.search-box input::placeholder {
+  color: rgba(160, 160, 160, 0.7);
 }
 
 .search-box input:focus {
   outline: none;
   border-color: var(--accent-orange, #ff7b25);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 25px rgba(255, 123, 37, 0.2), 0 0 0 4px rgba(255, 123, 37, 0.1);
+  transform: translateY(-2px);
 }
 
 .clear-btn {
   position: absolute;
-  right: 0.5rem;
+  right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: var(--text-muted, #a0a0a0);
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 1;
 }
 
 .clear-btn:hover {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #ef4444;
+  transform: translateY(-50%) scale(1.1) rotate(90deg);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.clear-btn:active {
+  transform: translateY(-50%) scale(0.95);
 }
 
 .filter-tabs {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
 .filter-tab {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.75rem;
+  gap: 0.6rem;
+  padding: 0.9rem 1.3rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
   color: var(--text-light, #f2f2f2);
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  font-weight: 600;
+  font-size: 0.95rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.filter-tab::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.filter-tab:hover::before {
+  left: 100%;
 }
 
 .filter-tab:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: var(--accent-orange, #ff7b25);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 123, 37, 0.5);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 123, 37, 0.2);
+}
+
+.filter-tab i {
+  transition: all 0.3s ease;
+}
+
+.filter-tab:hover i {
+  transform: scale(1.2) rotate(5deg);
 }
 
 .filter-tab.active {
-  background: linear-gradient(135deg, var(--accent-orange, #ff7b25), var(--accent-green, #4caf50));
+  background: linear-gradient(135deg, var(--accent-orange, #ff7b25) 0%, var(--accent-green, #4caf50) 100%);
   border-color: transparent;
   color: white;
+  box-shadow: 0 8px 25px rgba(255, 123, 37, 0.4), 0 0 0 4px rgba(255, 123, 37, 0.1);
+  transform: translateY(-2px);
+}
+
+.filter-tab.active i {
+  animation: pulse-icon 2s ease-in-out infinite;
+}
+
+@keyframes pulse-icon {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
 }
 
 .filter-count {
   font-size: 0.8rem;
-  opacity: 0.8;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 0.2rem 0.5rem;
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 0.25rem 0.6rem;
   border-radius: 1rem;
+  font-weight: 700;
 }
 
 .sort-select select {
-  padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.75rem;
+  padding: 0.9rem 1.3rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
   color: var(--text-light, #f2f2f2);
   cursor: pointer;
-  font-weight: 500;
-  min-width: 200px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  min-width: 220px;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.sort-select select:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(76, 175, 80, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(76, 175, 80, 0.2);
+}
+
+.sort-select select:focus {
+  outline: none;
+  border-color: var(--accent-green, #4caf50);
+  box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3), 0 0 0 4px rgba(76, 175, 80, 0.1);
 }
 
 /* ===============================================

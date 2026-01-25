@@ -87,6 +87,8 @@
 <script>
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useNsfwToggle } from '@/composables/useNsfwToggle';
+import ReferenceSFW from '@/assets/Ref/Reference.png';
+import ReferenceNSFW from '@/assets/Ref/Reference_NSFW.png';
 
 export default {
   name: 'FoxTaffyReference',
@@ -153,9 +155,9 @@ export default {
     // Вычисляемые свойства
     const currentReferenceUrl = computed(() => {
       if (showNsfw.value) {
-        return 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/reference_nsfw.png';
+        return ReferenceNSFW;
       }
-      return 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/reference.png';
+      return ReferenceSFW;
     });
     
     // Методы
