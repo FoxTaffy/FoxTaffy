@@ -3816,17 +3816,34 @@ watch(activeTab, () => {
 .checkbox-label {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.85rem;
   cursor: pointer;
-  padding: 1rem;
-  border-radius: 12px;
-  transition: background 0.3s ease;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.08) 0%, rgba(247, 147, 30, 0.08) 100%);
+  border: 1px solid rgba(255, 107, 53, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.checkbox-label::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .checkbox-label:hover {
-  background: rgba(239, 68, 68, 0.15);
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.12) 0%, rgba(247, 147, 30, 0.12) 100%);
+  border-color: rgba(255, 107, 53, 0.3);
+  transform: translateY(-1px);
+}
+
+.checkbox-label:hover::before {
+  opacity: 1;
 }
 
 .checkbox {
@@ -3839,11 +3856,12 @@ watch(activeTab, () => {
 .checkmark {
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 107, 53, 0.3);
   border-radius: 6px;
   position: relative;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .checkmark::after {
@@ -3851,22 +3869,23 @@ watch(activeTab, () => {
   position: absolute;
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  width: 6px;
-  height: 10px;
+  transform: translate(-50%, -50%) scale(0) rotate(45deg);
+  width: 5px;
+  height: 9px;
   border: solid white;
-  border-width: 0 2px 2px 0;
+  border-width: 0 2.5px 2.5px 0;
   transform-origin: center;
-  transition: transform 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .checkbox:checked + .checkmark {
   background: linear-gradient(135deg, #ff6b35, #f7931e);
   border-color: #ff6b35;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
 
 .checkbox:checked + .checkmark::after {
-  transform: translate(-50%, -50%) scale(1) rotate(45deg);
+  transform: translate(-50%, -60%) scale(1) rotate(45deg);
 }
 
 .checkbox-text {
@@ -3874,20 +3893,37 @@ watch(activeTab, () => {
   align-items: center;
   gap: 0.5rem;
   font-weight: 500;
-  color: white;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.9rem;
 }
 
 .nsfw-warning {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   margin-top: 0.75rem;
-  padding: 0.75rem;
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(234, 88, 12, 0.12) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 10px;
   color: #f59e0b;
   font-size: 0.85rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.nsfw-warning::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #f59e0b 0%, #ea580c 100%);
+}
+
+.nsfw-warning i {
+  font-size: 1rem;
 }
 
 /* Селекторы - базовые стили */
@@ -5303,6 +5339,18 @@ watch(activeTab, () => {
   letter-spacing: -0.01em;
 }
 
+.modal-header h3 i {
+  font-size: 1.1rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(247, 147, 30, 0.2) 100%);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.15);
+}
+
 .modal-close {
   width: 32px;
   height: 32px;
@@ -5347,25 +5395,84 @@ watch(activeTab, () => {
   background: linear-gradient(180deg, transparent 0%, rgba(255, 107, 53, 0.03) 100%);
 }
 
+.modal-actions .btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 120px;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-actions .btn.primary {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25);
+}
+
+.modal-actions .btn.primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 107, 53, 0.35);
+}
+
+.modal-actions .btn.secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.modal-actions .btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: white;
+}
+
+.modal-actions .btn.danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.modal-actions .btn.danger:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.35);
+}
+
+.modal-actions .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
 /* Удаление */
 .delete-warning {
   display: flex;
-  gap: 1.5rem;
+  gap: 1.25rem;
   align-items: flex-start;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .delete-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: rgba(239, 68, 68, 0.15);
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.2) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   color: #ef4444;
   flex-shrink: 0;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.delete-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), transparent);
 }
 
 .delete-text {
@@ -5373,26 +5480,40 @@ watch(activeTab, () => {
 }
 
 .delete-text h4 {
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 0.6rem 0;
   color: white;
-  font-weight: 600;
-  font-size: 1.2rem;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
 }
 
 .delete-text p {
-  margin: 0 0 1.5rem 0;
-  color: #888;
-  line-height: 1.5;
+  margin: 0 0 1.25rem 0;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  font-size: 0.9rem;
 }
 
 .delete-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: rgba(239, 68, 68, 0.05);
-  border: 1px solid rgba(239, 68, 68, 0.15);
-  border-radius: 12px;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.08) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.delete-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
 }
 
 .delete-avatar {
