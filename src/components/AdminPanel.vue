@@ -134,6 +134,20 @@
                     </div>
                   </div>
                   <div class="stat-compact">
+                    <i class="fas fa-calendar-alt"></i>
+                    <div>
+                      <div class="stat-num">{{ artsPerMonth }}</div>
+                      <div class="stat-lbl">За месяц</div>
+                    </div>
+                  </div>
+                  <div class="stat-compact">
+                    <i class="fas fa-calendar-check"></i>
+                    <div>
+                      <div class="stat-num">{{ artsPerYear }}</div>
+                      <div class="stat-lbl">За год</div>
+                    </div>
+                  </div>
+                  <div class="stat-compact">
                     <i class="fas fa-server"></i>
                     <div>
                       <div class="stat-num">{{ uploadedFilesCount }}</div>
@@ -1411,6 +1425,35 @@ const popularTags = computed(() => {
     .slice(0, 15)
 })
 
+// Регулярность публикаций
+const artsPerMonth = computed(() => {
+  if (recentArts.value.length === 0) return 0
+
+  const now = new Date()
+  const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
+
+  const artsThisMonth = recentArts.value.filter(art => {
+    const artDate = new Date(art.created_date || art.upload_date)
+    return artDate >= oneMonthAgo
+  }).length
+
+  return artsThisMonth
+})
+
+const artsPerYear = computed(() => {
+  if (recentArts.value.length === 0) return 0
+
+  const now = new Date()
+  const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+
+  const artsThisYear = recentArts.value.filter(art => {
+    const artDate = new Date(art.created_date || art.upload_date)
+    return artDate >= oneYearAgo
+  }).length
+
+  return artsThisYear
+})
+
 const isFormValid = computed(() => {
   return newArt.title.trim().length >= 3 &&
          selectedArtist.value &&
@@ -2422,7 +2465,7 @@ watch(activeTab, () => {
 
 /* Боковая панель */
 .sidebar {
-  width: 280px;
+  width: 260px;
   background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(20px);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
@@ -2435,66 +2478,67 @@ watch(activeTab, () => {
 }
 
 .sidebar-header {
-  padding: 2rem 1.5rem;
+  padding: 1.25rem 1.25rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .logo {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   background: linear-gradient(135deg, #ff6b35, #f7931e);
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   color: white;
 }
 
 .brand h2 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
 }
 
 .brand span {
   color: #888;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: 1.5rem 0;
+  padding: 1rem 0;
 }
 
 .nav-section {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .nav-section h3 {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 600;
   color: #666;
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin: 0 0 1rem 0;
-  padding: 0 1.5rem;
+  margin: 0 0 0.75rem 0;
+  padding: 0 1.25rem;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1.5rem;
+  gap: 0.75rem;
+  padding: 0.65rem 1.25rem;
   background: none;
   border: none;
   color: #888;
   cursor: pointer;
   font-family: inherit;
   font-weight: 500;
+  font-size: 0.9rem;
   transition: all 0.3s ease;
   width: 100%;
   text-align: left;
@@ -2650,8 +2694,8 @@ watch(activeTab, () => {
 
 .stats-compact-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.75rem;
 }
 
 .stat-compact {
@@ -3372,15 +3416,21 @@ watch(activeTab, () => {
 
 /* Формы */
 .art-form {
-  max-width: 800px;
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
 }
 
 .form-section {
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
-  padding: 2rem;
-  margin-bottom: 2rem;
+  border-radius: 16px;
+  padding: 1.5rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-section:first-child {
+  grid-column: 1 / -1;
 }
 
 .form-section h3 {
@@ -4607,7 +4657,8 @@ watch(activeTab, () => {
 
 /* Страницы управления */
 .management-page {
-  max-width: 1200px;
+  max-width: 100%;
+  width: 100%;
 }
 
 .management-header {
@@ -4776,7 +4827,8 @@ watch(activeTab, () => {
 
 /* Галерея */
 .gallery-page {
-  max-width: 1200px;
+  max-width: 100%;
+  width: 100%;
 }
 
 .gallery-header {
@@ -4871,9 +4923,9 @@ watch(activeTab, () => {
 }
 
 .art-card:hover {
-  transform: translateY(-5px);
   background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 107, 53, 0.3);
 }
 
 .art-card.nsfw {
@@ -4890,6 +4942,11 @@ watch(activeTab, () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.art-card:hover .art-image img {
+  transform: scale(1.05);
 }
 
 .nsfw-indicator {
@@ -4997,11 +5054,11 @@ watch(activeTab, () => {
   bottom: 0;
   background: rgba(0, 0, 0, 0.8);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 10000;
   backdrop-filter: blur(10px);
-  padding: 1rem;
+  padding: 2rem 1rem;
   overflow-y: auto;
 }
 
@@ -5011,13 +5068,14 @@ watch(activeTab, () => {
   border-radius: 20px;
   max-width: 500px;
   width: 100%;
-  max-height: calc(100vh - 2rem);
+  max-height: calc(100vh - 4rem);
   overflow-y: auto;
   backdrop-filter: blur(20px);
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-  margin: auto;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .delete-modal {
