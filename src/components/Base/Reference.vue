@@ -6,7 +6,7 @@
       <!-- Основное изображение референса с переходом в галерею -->
       <div class="reference-main">
         <div class="reference-image" @click="$router.push('/gallery')">
-          <img src="https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/reference.png" alt="Fox Taffy Ref Sheet">
+          <img :src="ReferenceSFW" alt="Fox Taffy Ref Sheet">
         </div>
         
         <!-- Цветовая палитра персонажа -->
@@ -83,10 +83,13 @@
 </template>
 
 <script>
+import ReferenceSFW from '@/assets/Ref/Reference.png';
+
 export default {
   name: 'ReferenceSection',
   data() {
     return {
+      ReferenceSFW: ReferenceSFW,
       activeColor: null,
       colorCopied: false,
       copyTimeout: null,
