@@ -424,19 +424,35 @@ export const furryApi = {
     try {
       console.log('🔗 getEventLinks: Загружаем ссылки для мероприятия:', eventId)
 
+      // Проверяем что eventId валидный
+      if (!eventId) {
+        console.warn('⚠️ getEventLinks: eventId не указан')
+        return []
+      }
+
       const { data, error } = await supabase
         .from('con_links')
         .select('*')
         .eq('con_id', eventId)
-        .order('sort_order', { ascending: true })
+        .order('sort_order', { ascending: true, nullsFirst: false })
 
-      if (error) throw error
+      // Если ошибка связана с отсутствием таблицы или колонки, возвращаем пустой массив
+      if (error) {
+        console.warn('⚠️ getEventLinks: Ошибка загрузки ссылок:', error.message)
+        // Если таблица не существует или нет прав доступа, просто возвращаем пустой массив
+        if (error.code === '42P01' || error.code === '42703' || error.code === 'PGRST116') {
+          console.log('ℹ️ getEventLinks: Таблица con_links не доступна, пропускаем загрузку')
+          return []
+        }
+        throw error
+      }
 
       console.log('✅ getEventLinks: Ссылки загружены:', data?.length || 0)
       return data || []
 
     } catch (error) {
       console.error('❌ getEventLinks: Ошибка загрузки ссылок:', error)
+      // Не бросаем ошибку дальше, чтобы не ломать загрузку события
       return []
     }
   },
