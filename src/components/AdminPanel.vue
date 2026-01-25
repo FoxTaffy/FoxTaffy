@@ -134,20 +134,6 @@
                     </div>
                   </div>
                   <div class="stat-compact">
-                    <i class="fas fa-calendar-alt"></i>
-                    <div>
-                      <div class="stat-num">{{ artsPerMonth }}</div>
-                      <div class="stat-lbl">За месяц</div>
-                    </div>
-                  </div>
-                  <div class="stat-compact">
-                    <i class="fas fa-calendar-check"></i>
-                    <div>
-                      <div class="stat-num">{{ artsPerYear }}</div>
-                      <div class="stat-lbl">За год</div>
-                    </div>
-                  </div>
-                  <div class="stat-compact">
                     <i class="fas fa-server"></i>
                     <div>
                       <div class="stat-num">{{ uploadedFilesCount }}</div>
@@ -193,6 +179,38 @@
                         <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
                         <span>NSFW: <strong>{{ nsfwArtsCount }}</strong></span>
                         <span class="percent-mini">{{ Math.round((nsfwArtsCount / stats.arts) * 100) }}%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="dashboard-card-mini">
+                    <h3><i class="fas fa-chart-line"></i> Активность</h3>
+                    <div class="activity-stats">
+                      <div class="activity-item">
+                        <div class="activity-header">
+                          <i class="fas fa-calendar-alt"></i>
+                          <span class="activity-label">За месяц</span>
+                          <span class="activity-value">{{ artsPerMonth }}</span>
+                        </div>
+                        <div class="activity-bar">
+                          <div
+                            class="activity-fill month"
+                            :style="{ width: Math.min((artsPerMonth / 10) * 100, 100) + '%' }"
+                          ></div>
+                        </div>
+                      </div>
+                      <div class="activity-item">
+                        <div class="activity-header">
+                          <i class="fas fa-calendar-check"></i>
+                          <span class="activity-label">За год</span>
+                          <span class="activity-value">{{ artsPerYear }}</span>
+                        </div>
+                        <div class="activity-bar">
+                          <div
+                            class="activity-fill year"
+                            :style="{ width: Math.min((artsPerYear / 50) * 100, 100) + '%' }"
+                          ></div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2510,35 +2528,37 @@ watch(activeTab, () => {
 
 .sidebar-nav {
   flex: 1;
-  padding: 1rem 0;
+  padding: 0.75rem 0;
+  overflow-y: auto;
+  max-height: calc(100vh - 180px);
 }
 
 .nav-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .nav-section h3 {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 600;
   color: #666;
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 0.5rem 0;
   padding: 0 1.25rem;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.65rem 1.25rem;
+  gap: 0.65rem;
+  padding: 0.55rem 1.25rem;
   background: none;
   border: none;
   color: #888;
   cursor: pointer;
   font-family: inherit;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   transition: all 0.3s ease;
   width: 100%;
   text-align: left;
@@ -2580,16 +2600,16 @@ watch(activeTab, () => {
 }
 
 .sidebar-footer {
-  padding: 1.5rem;
+  padding: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .footer-btn {
   flex: 1;
-  height: 45px;
-  border-radius: 12px;
+  height: 38px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.05);
   color: #888;
@@ -2768,7 +2788,12 @@ watch(activeTab, () => {
   letter-spacing: 0.05em;
 }
 
-.dashboard-middle,
+.dashboard-middle {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1rem;
+}
+
 .dashboard-bottom {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -2943,6 +2968,90 @@ watch(activeTab, () => {
   background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(247, 147, 30, 0.2));
   border-radius: 6px;
   border: 1px solid rgba(255, 107, 53, 0.3);
+}
+
+/* Activity stats */
+.activity-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.activity-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.activity-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.activity-header i {
+  color: #ff6b35;
+  font-size: 0.9rem;
+  width: 20px;
+  text-align: center;
+}
+
+.activity-label {
+  color: rgba(255, 255, 255, 0.7);
+  flex: 1;
+}
+
+.activity-value {
+  font-weight: 700;
+  color: white;
+  font-size: 1rem;
+}
+
+.activity-bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.activity-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.activity-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+.activity-fill.month {
+  background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+}
+
+.activity-fill.year {
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .top-list-mini {
@@ -4364,21 +4473,22 @@ watch(activeTab, () => {
 }
 
 .selector-header {
-  padding: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.02);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.01);
 }
 
 .search-input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
   color: white;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-family: inherit;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
 }
 
 .search-input:focus {
@@ -4389,17 +4499,17 @@ watch(activeTab, () => {
 
 .selector-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .selector-actions button {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 0.35rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
   color: #888;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-family: inherit;
   transition: all 0.3s ease;
 }
@@ -4407,6 +4517,7 @@ watch(activeTab, () => {
 .selector-actions button:hover {
   background: rgba(255, 107, 53, 0.1);
   color: #ff6b35;
+  border-color: rgba(255, 107, 53, 0.3);
 }
 
 .selector-list {
