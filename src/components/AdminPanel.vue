@@ -167,44 +167,45 @@
                     </div>
                   </div>
 
-                  <div class="dashboard-card-mini">
-                    <h3><i class="fas fa-shield-alt"></i> Контент</h3>
-                    <div class="content-mini">
-                      <div class="content-row">
-                        <i class="fas fa-check-circle" style="color: #22c55e;"></i>
-                        <span>SFW: <strong>{{ sfwArtsCount }}</strong></span>
-                        <span class="percent-mini">{{ Math.round((sfwArtsCount / stats.arts) * 100) }}%</span>
-                      </div>
-                      <div class="content-row">
-                        <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
-                        <span>NSFW: <strong>{{ nsfwArtsCount }}</strong></span>
-                        <span class="percent-mini">{{ Math.round((nsfwArtsCount / stats.arts) * 100) }}%</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="dashboard-card-mini activity-heatmap-card">
-                    <h3><i class="fas fa-chart-line"></i> Активность</h3>
-                    <div class="heatmap-container">
-                      <div class="heatmap-grid">
-                        <div
-                          v-for="(month, index) in activityHeatmap"
-                          :key="index"
-                          class="heatmap-cell"
-                          :class="'level-' + month.level"
-                          :title="`${month.month}: ${month.count} артов`"
-                        >
-                          <span class="month-label">{{ month.month }}</span>
+                  <div class="dashboard-right-column">
+                    <div class="dashboard-card-mini">
+                      <h3><i class="fas fa-shield-alt"></i> Контент</h3>
+                      <div class="content-mini">
+                        <div class="content-row">
+                          <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+                          <span>SFW: <strong>{{ sfwArtsCount }}</strong></span>
+                          <span class="percent-mini">{{ Math.round((sfwArtsCount / stats.arts) * 100) }}%</span>
+                        </div>
+                        <div class="content-row">
+                          <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+                          <span>NSFW: <strong>{{ nsfwArtsCount }}</strong></span>
+                          <span class="percent-mini">{{ Math.round((nsfwArtsCount / stats.arts) * 100) }}%</span>
                         </div>
                       </div>
-                      <div class="heatmap-legend">
-                        <span class="legend-label">Меньше</span>
-                        <div class="legend-cell level-0"></div>
-                        <div class="legend-cell level-1"></div>
-                        <div class="legend-cell level-2"></div>
-                        <div class="legend-cell level-3"></div>
-                        <div class="legend-cell level-4"></div>
-                        <span class="legend-label">Больше</span>
+                    </div>
+
+                    <div class="dashboard-card-mini activity-heatmap-card">
+                      <h3><i class="fas fa-chart-line"></i> Активность</h3>
+                      <div class="heatmap-container">
+                        <div class="heatmap-grid">
+                          <div
+                            v-for="(month, index) in activityHeatmap"
+                            :key="index"
+                            class="heatmap-cell"
+                            :class="'level-' + month.level"
+                            :title="`${month.month}: ${month.count} артов`"
+                          >
+                          </div>
+                        </div>
+                        <div class="heatmap-legend">
+                          <span class="legend-label">Меньше</span>
+                          <div class="legend-cell level-0"></div>
+                          <div class="legend-cell level-1"></div>
+                          <div class="legend-cell level-2"></div>
+                          <div class="legend-cell level-3"></div>
+                          <div class="legend-cell level-4"></div>
+                          <span class="legend-label">Больше</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2815,6 +2816,12 @@ watch(activeTab, () => {
   gap: 1rem;
 }
 
+.dashboard-right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .dashboard-bottom {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -2991,45 +2998,34 @@ watch(activeTab, () => {
 }
 
 /* Activity Heatmap */
-.activity-heatmap-card {
-  grid-column: span 2;
-}
-
 .heatmap-container {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .heatmap-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: 0.3rem;
+  gap: 2px;
 }
 
 .heatmap-cell {
-  aspect-ratio: 1;
-  border-radius: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
   background: rgba(255, 255, 255, 0.05);
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   cursor: pointer;
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .heatmap-cell:hover {
-  transform: scale(1.15);
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  transform: scale(1.3);
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4);
   z-index: 10;
-}
-
-.month-label {
-  font-size: 0.5rem;
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 600;
+  border-radius: 3px;
 }
 
 .heatmap-cell.level-0 {
@@ -3041,17 +3037,9 @@ watch(activeTab, () => {
   border-color: rgba(34, 197, 94, 0.3);
 }
 
-.heatmap-cell.level-1 .month-label {
-  color: rgba(255, 255, 255, 0.7);
-}
-
 .heatmap-cell.level-2 {
   background: rgba(34, 197, 94, 0.5);
   border-color: rgba(34, 197, 94, 0.5);
-}
-
-.heatmap-cell.level-2 .month-label {
-  color: rgba(255, 255, 255, 0.8);
 }
 
 .heatmap-cell.level-3 {
@@ -3059,36 +3047,29 @@ watch(activeTab, () => {
   border-color: rgba(34, 197, 94, 0.6);
 }
 
-.heatmap-cell.level-3 .month-label {
-  color: white;
-}
-
 .heatmap-cell.level-4 {
   background: rgba(34, 197, 94, 0.9);
   border-color: rgba(34, 197, 94, 0.8);
-  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
-}
-
-.heatmap-cell.level-4 .month-label {
-  color: white;
+  box-shadow: 0 0 4px rgba(34, 197, 94, 0.4);
 }
 
 .heatmap-legend {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 3px;
   justify-content: flex-end;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
 }
 
 .legend-label {
   font-size: 0.65rem;
   color: rgba(255, 255, 255, 0.5);
+  margin: 0 0.25rem;
 }
 
 .legend-cell {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 2px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
