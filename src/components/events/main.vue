@@ -41,46 +41,44 @@
 
     <!-- Фильтры и поиск -->
     <div class="filters-section">
-      <div class="container">
-        <div class="filters-container">
-          <!-- Поиск -->
-          <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input 
-              v-model="searchQuery" 
-              type="text" 
-              placeholder="Поиск мероприятий..."
-              @input="debouncedSearch"
-            >
-            <button v-if="searchQuery" @click="clearSearch" class="clear-btn">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          
-          <!-- Фильтры -->
-          <div class="filter-tabs">
-            <button 
-              v-for="filter in filters" 
-              :key="filter.key"
-              class="filter-tab"
-              :class="{ 'active': activeFilter === filter.key }"
-              @click="setFilter(filter.key)"
-            >
-              <i :class="filter.icon"></i>
-              <span>{{ filter.label }}</span>
-              <span v-if="filter.count > 0" class="filter-count">({{ filter.count }})</span>
-            </button>
-          </div>
-          
-          <!-- Сортировка -->
-          <div class="sort-select">
-            <select v-model="sortBy" @change="applySorting">
-              <option value="date_desc">Сначала новые</option>
-              <option value="date_asc">Сначала старые</option>
-              <option value="rating_desc">Лучшие (по рейтингу)</option>
-              <option value="name_asc">По названию А-Я</option>
-            </select>
-          </div>
+      <div class="filters-container">
+        <!-- Поиск -->
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Поиск мероприятий..."
+            @input="debouncedSearch"
+          >
+          <button v-if="searchQuery" @click="clearSearch" class="clear-btn">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Фильтры -->
+        <div class="filter-tabs">
+          <button
+            v-for="filter in filters"
+            :key="filter.key"
+            class="filter-tab"
+            :class="{ 'active': activeFilter === filter.key }"
+            @click="setFilter(filter.key)"
+          >
+            <i :class="filter.icon"></i>
+            <span>{{ filter.label }}</span>
+            <span v-if="filter.count > 0" class="filter-count">({{ filter.count }})</span>
+          </button>
+        </div>
+
+        <!-- Сортировка -->
+        <div class="sort-select">
+          <select v-model="sortBy" @change="applySorting">
+            <option value="date_desc">Сначала новые</option>
+            <option value="date_asc">Сначала старые</option>
+            <option value="rating_desc">Лучшие (по рейтингу)</option>
+            <option value="name_asc">По названию А-Я</option>
+          </select>
         </div>
       </div>
     </div>
@@ -1425,6 +1423,9 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
 }
 
 .search-box {
