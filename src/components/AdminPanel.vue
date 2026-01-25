@@ -183,34 +183,28 @@
                     </div>
                   </div>
 
-                  <div class="dashboard-card-mini">
+                  <div class="dashboard-card-mini activity-heatmap-card">
                     <h3><i class="fas fa-chart-line"></i> Активность</h3>
-                    <div class="activity-stats">
-                      <div class="activity-item">
-                        <div class="activity-header">
-                          <i class="fas fa-calendar-alt"></i>
-                          <span class="activity-label">За месяц</span>
-                          <span class="activity-value">{{ artsPerMonth }}</span>
-                        </div>
-                        <div class="activity-bar">
-                          <div
-                            class="activity-fill month"
-                            :style="{ width: Math.min((artsPerMonth / 10) * 100, 100) + '%' }"
-                          ></div>
+                    <div class="heatmap-container">
+                      <div class="heatmap-grid">
+                        <div
+                          v-for="(month, index) in activityHeatmap"
+                          :key="index"
+                          class="heatmap-cell"
+                          :class="'level-' + month.level"
+                          :title="`${month.month}: ${month.count} артов`"
+                        >
+                          <span class="month-label">{{ month.month }}</span>
                         </div>
                       </div>
-                      <div class="activity-item">
-                        <div class="activity-header">
-                          <i class="fas fa-calendar-check"></i>
-                          <span class="activity-label">За год</span>
-                          <span class="activity-value">{{ artsPerYear }}</span>
-                        </div>
-                        <div class="activity-bar">
-                          <div
-                            class="activity-fill year"
-                            :style="{ width: Math.min((artsPerYear / 50) * 100, 100) + '%' }"
-                          ></div>
-                        </div>
+                      <div class="heatmap-legend">
+                        <span class="legend-label">Меньше</span>
+                        <div class="legend-cell level-0"></div>
+                        <div class="legend-cell level-1"></div>
+                        <div class="legend-cell level-2"></div>
+                        <div class="legend-cell level-3"></div>
+                        <div class="legend-cell level-4"></div>
+                        <span class="legend-label">Больше</span>
                       </div>
                     </div>
                   </div>
@@ -1472,6 +1466,32 @@ const artsPerYear = computed(() => {
   return artsThisYear
 })
 
+// Тепловая карта активности по месяцам
+const activityHeatmap = computed(() => {
+  const months = []
+  const now = new Date()
+
+  // Генерируем данные за последние 12 месяцев
+  for (let i = 11; i >= 0; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const monthStart = new Date(date.getFullYear(), date.getMonth(), 1)
+    const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0)
+
+    const count = recentArts.value.filter(art => {
+      const artDate = new Date(art.created_date || art.upload_date)
+      return artDate >= monthStart && artDate <= monthEnd
+    }).length
+
+    months.push({
+      month: date.toLocaleDateString('ru-RU', { month: 'short' }),
+      count: count,
+      level: count === 0 ? 0 : count <= 2 ? 1 : count <= 5 ? 2 : count <= 10 ? 3 : 4
+    })
+  }
+
+  return months
+})
+
 const isFormValid = computed(() => {
   return newArt.title.trim().length >= 3 &&
          selectedArtist.value &&
@@ -2483,7 +2503,7 @@ watch(activeTab, () => {
 
 /* Боковая панель */
 .sidebar {
-  width: 260px;
+  width: 220px;
   background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(20px);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
@@ -2496,16 +2516,16 @@ watch(activeTab, () => {
 }
 
 .sidebar-header {
-  padding: 1.25rem 1.25rem;
+  padding: 0.75rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .logo {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   background: linear-gradient(135deg, #ff6b35, #f7931e);
   border-radius: 10px;
   display: flex;
@@ -2517,48 +2537,48 @@ watch(activeTab, () => {
 
 .brand h2 {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 700;
 }
 
 .brand span {
   color: #888;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: 0.75rem 0;
+  padding: 0.5rem 0;
   overflow-y: auto;
-  max-height: calc(100vh - 180px);
+  max-height: calc(100vh - 140px);
 }
 
 .nav-section {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .nav-section h3 {
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   font-weight: 600;
   color: #666;
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin: 0 0 0.5rem 0;
-  padding: 0 1.25rem;
+  margin: 0 0 0.35rem 0;
+  padding: 0 0.85rem;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.55rem 1.25rem;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
   background: none;
   border: none;
   color: #888;
   cursor: pointer;
   font-family: inherit;
   font-weight: 500;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   transition: all 0.3s ease;
   width: 100%;
   text-align: left;
@@ -2586,29 +2606,30 @@ watch(activeTab, () => {
 }
 
 .nav-item i {
-  width: 20px;
+  width: 18px;
   text-align: center;
+  font-size: 0.85rem;
 }
 
 .count-badge {
   background: #ff6b35;
   color: white;
-  font-size: 0.7rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 10px;
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 8px;
   margin-left: auto;
 }
 
 .sidebar-footer {
-  padding: 1rem;
+  padding: 0.75rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .footer-btn {
   flex: 1;
-  height: 38px;
+  height: 32px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.05);
@@ -2790,7 +2811,7 @@ watch(activeTab, () => {
 
 .dashboard-middle {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr;
   gap: 1rem;
 }
 
@@ -2881,19 +2902,18 @@ watch(activeTab, () => {
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.art-mini:hover {
-  transform: translateY(-4px) scale(1.05);
-  box-shadow: 0 12px 32px rgba(255, 107, 53, 0.25);
 }
 
 .art-mini img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.art-mini:hover img {
+  transform: scale(1.05);
 }
 
 .nsfw-badge-mini {
@@ -2970,88 +2990,127 @@ watch(activeTab, () => {
   border: 1px solid rgba(255, 107, 53, 0.3);
 }
 
-/* Activity stats */
-.activity-stats {
+/* Activity Heatmap */
+.activity-heatmap-card {
+  grid-column: span 2;
+}
+
+.heatmap-container {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.activity-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 0.3rem;
 }
 
-.activity-header {
+.heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.activity-header i {
-  color: #ff6b35;
-  font-size: 0.9rem;
-  width: 20px;
-  text-align: center;
+.heatmap-cell:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  z-index: 10;
 }
 
-.activity-label {
+.month-label {
+  font-size: 0.5rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+}
+
+.heatmap-cell.level-0 {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.heatmap-cell.level-1 {
+  background: rgba(34, 197, 94, 0.3);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.heatmap-cell.level-1 .month-label {
   color: rgba(255, 255, 255, 0.7);
-  flex: 1;
 }
 
-.activity-value {
-  font-weight: 700;
+.heatmap-cell.level-2 {
+  background: rgba(34, 197, 94, 0.5);
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.heatmap-cell.level-2 .month-label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.heatmap-cell.level-3 {
+  background: rgba(34, 197, 94, 0.7);
+  border-color: rgba(34, 197, 94, 0.6);
+}
+
+.heatmap-cell.level-3 .month-label {
   color: white;
-  font-size: 1rem;
 }
 
-.activity-bar {
-  height: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  overflow: hidden;
-  position: relative;
+.heatmap-cell.level-4 {
+  background: rgba(34, 197, 94, 0.9);
+  border-color: rgba(34, 197, 94, 0.8);
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
 }
 
-.activity-fill {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  position: relative;
-  overflow: hidden;
+.heatmap-cell.level-4 .month-label {
+  color: white;
 }
 
-.activity-fill::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  animation: shimmer 2s infinite;
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  justify-content: flex-end;
+  margin-top: 0.25rem;
 }
 
-.activity-fill.month {
-  background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
-  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+.legend-label {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.5);
 }
 
-.activity-fill.year {
-  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+.legend-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
+.legend-cell.level-0 {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.legend-cell.level-1 {
+  background: rgba(34, 197, 94, 0.3);
+}
+
+.legend-cell.level-2 {
+  background: rgba(34, 197, 94, 0.5);
+}
+
+.legend-cell.level-3 {
+  background: rgba(34, 197, 94, 0.7);
+}
+
+.legend-cell.level-4 {
+  background: rgba(34, 197, 94, 0.9);
 }
 
 .top-list-mini {
@@ -3567,31 +3626,46 @@ watch(activeTab, () => {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.6rem;
 }
 
 .form-group label {
   font-weight: 600;
-  color: white;
-  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .selected-count {
   color: #ff6b35;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .form-input,
 .form-select {
-  padding: 1rem 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 0.85rem 1.1rem;
+  border: 1px solid rgba(255, 107, 53, 0.15);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
   color: white;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-family: inherit;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: rgba(255, 107, 53, 0.4);
+  background: rgba(255, 107, 53, 0.08);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.form-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .tags-selector {
@@ -5163,30 +5237,45 @@ watch(activeTab, () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   align-items: flex-start;
   justify-content: center;
   z-index: 10000;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
   padding: 2rem 1rem;
   overflow-y: auto;
 }
 
 .modal-content {
-  background: rgba(15, 15, 15, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  max-width: 500px;
+  background: linear-gradient(135deg, rgba(20, 20, 20, 0.98) 0%, rgba(15, 15, 15, 0.98) 100%);
+  border: 1px solid rgba(255, 107, 53, 0.2);
+  border-radius: 24px;
+  max-width: 480px;
   width: 100%;
   max-height: calc(100vh - 4rem);
   overflow-y: auto;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(24px);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 107, 53, 0.1) inset,
+    0 10px 40px rgba(255, 107, 53, 0.15);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   position: relative;
+  animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .delete-modal {
@@ -5197,44 +5286,47 @@ watch(activeTab, () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 2rem 2rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.5rem 1.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 107, 53, 0.15);
   flex-shrink: 0;
+  background: linear-gradient(180deg, rgba(255, 107, 53, 0.05) 0%, transparent 100%);
 }
 
 .modal-header h3 {
   margin: 0;
-  font-weight: 600;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
   color: #ff6b35;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
 }
 
 .modal-close {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.4);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   font-size: 1rem;
 }
 
 .modal-close:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 107, 53, 0.1);
+  border-color: rgba(255, 107, 53, 0.3);
+  color: #ff6b35;
+  transform: rotate(90deg);
 }
 
 .modal-body {
-  padding: 2rem;
+  padding: 1.5rem 1.75rem;
   overflow-y: auto;
   flex: 1;
   min-height: 0;
@@ -5247,11 +5339,12 @@ watch(activeTab, () => {
 
 .modal-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   justify-content: flex-end;
-  padding: 1rem 2rem 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1rem 1.75rem 1.5rem;
+  border-top: 1px solid rgba(255, 107, 53, 0.1);
   flex-shrink: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 107, 53, 0.03) 100%);
 }
 
 /* Удаление */
