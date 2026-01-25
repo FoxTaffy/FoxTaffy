@@ -422,11 +422,8 @@ export const furryApi = {
    */
   async getEventLinks(eventId) {
     try {
-      console.log('🔗 getEventLinks: Загружаем ссылки для мероприятия:', eventId)
-
       // Проверяем что eventId валидный
       if (!eventId) {
-        console.warn('⚠️ getEventLinks: eventId не указан')
         return []
       }
 
@@ -436,23 +433,16 @@ export const furryApi = {
         .eq('con_id', eventId)
         .order('sort_order', { ascending: true, nullsFirst: false })
 
-      // Если ошибка связана с отсутствием таблицы или колонки, возвращаем пустой массив
+      // Если ошибка - просто возвращаем пустой массив
+      // Таблица con_links опциональна и может не существовать
       if (error) {
-        console.warn('⚠️ getEventLinks: Ошибка загрузки ссылок:', error.message)
-        // Если таблица не существует или нет прав доступа, просто возвращаем пустой массив
-        if (error.code === '42P01' || error.code === '42703' || error.code === 'PGRST116') {
-          console.log('ℹ️ getEventLinks: Таблица con_links не доступна, пропускаем загрузку')
-          return []
-        }
-        throw error
+        return []
       }
 
-      console.log('✅ getEventLinks: Ссылки загружены:', data?.length || 0)
       return data || []
 
     } catch (error) {
-      console.error('❌ getEventLinks: Ошибка загрузки ссылок:', error)
-      // Не бросаем ошибку дальше, чтобы не ломать загрузку события
+      // Не логируем ошибку, так как таблица опциональна
       return []
     }
   },
@@ -462,7 +452,9 @@ export const furryApi = {
    */
   async getEventFeatures(eventId) {
     try {
-      console.log('⭐ getEventFeatures: Загружаем особенности для мероприятия:', eventId)
+      if (!eventId) {
+        return []
+      }
 
       const { data, error } = await supabase
         .from('con_features')
@@ -470,13 +462,14 @@ export const furryApi = {
         .eq('con_id', eventId)
         .order('sort_order', { ascending: true })
 
-      if (error) throw error
+      // Таблица опциональна
+      if (error) {
+        return []
+      }
 
-      console.log('✅ getEventFeatures: Особенности загружены:', data?.length || 0)
       return data || []
 
     } catch (error) {
-      console.error('❌ getEventFeatures: Ошибка загрузки особенностей:', error)
       return []
     }
   },
@@ -486,7 +479,9 @@ export const furryApi = {
    */
   async getEventPhotos(eventId) {
     try {
-      console.log('📸 getEventPhotos: Загружаем фотографии для мероприятия:', eventId)
+      if (!eventId) {
+        return []
+      }
 
       const { data, error } = await supabase
         .from('con_photos')
@@ -494,7 +489,10 @@ export const furryApi = {
         .eq('con_id', eventId)
         .order('display_order', { ascending: true })
 
-      if (error) throw error
+      // Таблица опциональна
+      if (error) {
+        return []
+      }
 
       // Фильтруем дубликаты: оставляем только записи где есть разница между image_url и thumbnail_url
       // Или где image_url не содержит 'thumb_' (не является миниатюрой)
@@ -514,11 +512,9 @@ export const furryApi = {
         return !isDuplicate
       })
 
-      console.log(`✅ getEventPhotos: Фотографии загружены: ${data?.length || 0} (уникальных: ${uniquePhotos.length})`)
       return uniquePhotos
 
     } catch (error) {
-      console.error('❌ getEventPhotos: Ошибка загрузки фотографий:', error)
       return []
     }
   },
@@ -528,7 +524,9 @@ export const furryApi = {
    */
   async getPhotosForEvents(eventIds, limit = 5) {
     try {
-      console.log(`📸 getPhotosForEvents: Загружаем фотографии для ${eventIds.length} событий (по ${limit} шт.)`)
+      if (!eventIds || eventIds.length === 0) {
+        return []
+      }
 
       const { data, error } = await supabase
         .from('con_photos')
@@ -537,7 +535,10 @@ export const furryApi = {
         .order('display_order', { ascending: true })
         .limit(limit * eventIds.length) // Загружаем максимум limit*N фотографий
 
-      if (error) throw error
+      // Таблица опциональна
+      if (error) {
+        return []
+      }
 
       // Фильтруем дубликаты для каждого мероприятия
       const uniquePhotos = (data || []).filter((photo, index, self) => {
@@ -557,11 +558,9 @@ export const furryApi = {
         return !isDuplicate
       })
 
-      console.log(`✅ getPhotosForEvents: Фотографии загружены: ${data?.length || 0} (уникальных: ${uniquePhotos.length})`)
       return uniquePhotos
 
     } catch (error) {
-      console.error('❌ getPhotosForEvents: Ошибка загрузки фотографий:', error)
       return []
     }
   },
