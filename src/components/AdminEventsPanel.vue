@@ -1,17 +1,32 @@
 <template>
   <div class="admin-events-panel">
-    <!-- Заголовок панели -->
+    <!-- Заголовок панели с градиентом -->
     <div class="panel-header">
       <div class="header-content">
-        <h2 class="panel-title">
-          <i class="fas fa-calendar-star"></i>
-          Управление мероприятиями
-        </h2>
-        <p class="panel-description">
-          Создание, редактирование и управление всеми мероприятиями Fox Taffy
-        </p>
+        <div class="header-text">
+          <h2 class="panel-title">
+            <i class="fas fa-calendar-star"></i>
+            Управление мероприятиями
+          </h2>
+          <p class="panel-description">
+            Создание, редактирование и управление всеми мероприятиями Fox Taffy
+          </p>
+        </div>
+
+        <!-- Быстрая статистика в заголовке -->
+        <div class="quick-stats" v-if="!loading && stats">
+          <div class="quick-stat">
+            <span class="quick-stat-number">{{ stats.total || 0 }}</span>
+            <span class="quick-stat-label">событий</span>
+          </div>
+          <div class="quick-stat-divider"></div>
+          <div class="quick-stat">
+            <span class="quick-stat-number">{{ stats.upcoming || 0 }}</span>
+            <span class="quick-stat-label">предстоящих</span>
+          </div>
+        </div>
       </div>
-      
+
       <div class="header-actions">
         <button @click="refreshData" class="refresh-btn" :disabled="loading">
           <i class="fas fa-sync-alt" :class="{ 'spinning': loading }"></i>
@@ -19,7 +34,7 @@
         </button>
         <button @click="openCreateModal" class="add-btn" :disabled="loading">
           <i class="fas fa-plus"></i>
-          <span>Создать мероприятие</span>
+          <span>Новое мероприятие</span>
         </button>
       </div>
     </div>
@@ -86,6 +101,7 @@
             <div class="progress-fill" :style="{ width: completedPercent + '%' }"></div>
           </div>
         </div>
+        <div class="stat-glow"></div>
       </div>
 
       <!-- Визуальная диаграмма распределения -->
@@ -130,6 +146,7 @@
             <span>Завершённые ({{ stats.completed || 0 }})</span>
           </div>
         </div>
+        <div class="stat-glow"></div>
       </div>
     </div>
 
@@ -209,9 +226,9 @@
 
     <!-- Список мероприятий -->
     <div v-else-if="events.length > 0" class="events-list">
-      <div 
-        v-for="event in events" 
-        :key="event.id" 
+      <div
+        v-for="event in events"
+        :key="event.id"
         class="event-card"
         :class="{
           'high-rating': event.my_rating >= 5,
@@ -235,8 +252,24 @@
               {{ getEventStatusText(event) }}
             </div>
           </div>
+
+          <!-- Дата в углу -->
+          <div class="event-date-badge" :class="{ 'upcoming-badge': isUpcoming(event) }">
+            <div class="date-day">{{ getDay(event.event_date) }}</div>
+            <div class="date-month">{{ getMonthShort(event.event_date) }}</div>
+          </div>
+
+          <!-- Статус -->
+          <div class="event-status-badge" :class="getEventStatusClass(event)">
+            {{ getEventStatusText(event) }}
+          </div>
+
+          <!-- Избранное -->
+          <div v-if="event.is_featured" class="featured-star">
+            <i class="fas fa-star"></i>
+          </div>
         </div>
-        
+
         <!-- Информация о мероприятии -->
         <div class="event-info">
           <div class="event-main-info">
@@ -244,19 +277,19 @@
               <h3 class="event-title">{{ event.name }}</h3>
               <div v-if="event.subtitle" class="event-subtitle">{{ event.subtitle }}</div>
             </div>
-            
+
             <div class="event-meta">
               <div class="event-meta-item">
                 <i class="fas fa-calendar"></i>
                 <span>{{ formatEventDate(event.event_date) }}</span>
               </div>
-              
+
               <div v-if="event.city" class="event-meta-item">
                 <i class="fas fa-map-marker-alt"></i>
                 <span>{{ event.city }}</span>
               </div>
-              
-              <div class="event-meta-item">
+
+              <div class="event-meta-item type">
                 <i :class="getEventTypeIcon(event.event_type)"></i>
                 <span>{{ getEventTypeName(event.event_type) }}</span>
               </div>
@@ -272,7 +305,7 @@
           <div class="event-extras">
             <div v-if="event.attendees_count || event.expected_visitors" class="event-attendees">
               <i class="fas fa-users"></i>
-              <span>{{ event.attendees_count || event.expected_visitors }} участников</span>
+              <span>{{ event.attendees_count || event.expected_visitors }}+</span>
             </div>
 
             <div v-if="event.photos_count" class="event-photos">
@@ -280,24 +313,20 @@
               <span>{{ event.photos_count }} фото</span>
             </div>
           </div>
-          
+
           <!-- Действия -->
           <div class="event-actions">
-            <button @click="viewEvent(event)" class="action-btn view">
-              <i class="fas fa-eye"></i>
-              <span>Посмотреть</span>
+            <button @click="viewEvent(event)" class="action-btn view" title="Посмотреть на сайте">
+              <i class="fas fa-external-link-alt"></i>
             </button>
-            <button @click="editEvent(event)" class="action-btn edit">
-              <i class="fas fa-edit"></i>
-              <span>Редактировать</span>
+            <button @click="editEvent(event)" class="action-btn edit" title="Редактировать">
+              <i class="fas fa-pen"></i>
             </button>
-            <button @click="duplicateEvent(event)" class="action-btn duplicate">
+            <button @click="duplicateEvent(event)" class="action-btn duplicate" title="Дублировать">
               <i class="fas fa-copy"></i>
-              <span>Дублировать</span>
             </button>
-            <button @click="deleteEvent(event)" class="action-btn delete">
-              <i class="fas fa-trash"></i>
-              <span>Удалить</span>
+            <button @click="deleteEvent(event)" class="action-btn delete" title="Удалить">
+              <i class="fas fa-trash-alt"></i>
             </button>
           </div>
         </div>
@@ -1905,70 +1934,127 @@ export default {
   --bg-secondary: #2a2a2a;
   --bg-card: rgba(255, 255, 255, 0.05);
   --bg-card-hover: rgba(255, 255, 255, 0.08);
-  
+
   --text-light: #f2f2f2;
   --text-muted: #a0a0a0;
   --text-dim: #666666;
-  
+
   --accent-green: #4caf50;
   --accent-orange: #ff7b25;
   --accent-red: #f44336;
   --accent-blue: #2196f3;
   --accent-purple: #9c27b0;
-  
+  --accent-gold: #ffd700;
+
   --border-light: rgba(255, 255, 255, 0.1);
   --border-medium: rgba(255, 255, 255, 0.2);
-  
+
   --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.15);
   --shadow-strong: 0 8px 32px rgba(0, 0, 0, 0.25);
-  
+  --shadow-glow-orange: 0 0 30px rgba(255, 123, 37, 0.3);
+  --shadow-glow-green: 0 0 30px rgba(76, 175, 80, 0.3);
+
   --border-radius-small: 0.5rem;
   --border-radius-medium: 0.75rem;
   --border-radius-large: 1rem;
-  
+  --border-radius-xl: 1.5rem;
+
   min-height: 100vh;
   background: var(--bg-primary);
   color: var(--text-light);
   font-family: 'Nunito', sans-serif;
-  padding: 2rem;
 }
 
 /* ===============================================
-   📋 ЗАГОЛОВОК ПАНЕЛИ
+   📋 ЗАГОЛОВОК ПАНЕЛИ С ГРАДИЕНТОМ
    =============================================== */
 
 .panel-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  padding: 2rem;
   margin-bottom: 2rem;
-  gap: 2rem;
+  background: linear-gradient(135deg, rgba(255, 123, 37, 0.15) 0%, rgba(76, 175, 80, 0.15) 100%);
+  border-radius: var(--border-radius-xl);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
 }
 
-.header-content h2.panel-title {
-  font-size: 2.5rem;
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  flex: 1;
+}
+
+.header-text {
+  flex: 1;
+}
+
+h2.panel-title {
+  font-size: 2rem;
   font-weight: 800;
   color: var(--text-light);
   margin: 0 0 0.5rem 0;
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .panel-title i {
-  color: var(--accent-orange);
+  -webkit-text-fill-color: var(--accent-orange);
 }
 
 .panel-description {
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: var(--text-muted);
   margin: 0;
   line-height: 1.4;
 }
 
+/* Быстрая статистика в заголовке */
+.quick-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem 1.5rem;
+  border-radius: var(--border-radius-large);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.quick-stat {
+  text-align: center;
+}
+
+.quick-stat-number {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent-orange);
+}
+
+.quick-stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.quick-stat-divider {
+  width: 1px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .header-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
@@ -1990,21 +2076,21 @@ export default {
 
 .refresh-btn:hover {
   background: var(--bg-card-hover);
-  border-color: var(--border-medium);
+  border-color: var(--accent-orange);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
 }
 
 .add-btn {
-  background: var(--accent-green);
-  border-color: var(--accent-green);
+  background: linear-gradient(135deg, var(--accent-green), #45a049);
+  border-color: transparent;
   color: white;
 }
 
 .add-btn:hover {
-  background: #45a049;
-  border-color: #45a049;
+  background: linear-gradient(135deg, #45a049, #3d8b40);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-soft);
+  box-shadow: var(--shadow-glow-green);
 }
 
 .refresh-btn:disabled,
@@ -2116,35 +2202,73 @@ export default {
 
 .stat-card:hover {
   background: var(--bg-card-hover);
-  transform: translateY(-2px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-soft);
 }
 
+.stat-card:hover .stat-glow {
+  opacity: 1;
+}
+
+.stat-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.stat-card.total .stat-glow {
+  background: radial-gradient(circle at center, rgba(33, 150, 243, 0.15), transparent 70%);
+}
+
+.stat-card.upcoming .stat-glow {
+  background: radial-gradient(circle at center, rgba(255, 123, 37, 0.15), transparent 70%);
+}
+
+.stat-card.completed .stat-glow {
+  background: radial-gradient(circle at center, rgba(76, 175, 80, 0.15), transparent 70%);
+}
+
+.stat-card.featured .stat-glow {
+  background: radial-gradient(circle at center, rgba(156, 39, 176, 0.15), transparent 70%);
+}
+
 .stat-icon {
-  width: 50px;
-  height: 50px;
+  width: 55px;
+  height: 55px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   color: white;
+  position: relative;
+  z-index: 1;
 }
 
 .stat-card.total .stat-icon {
-  background: var(--accent-blue);
+  background: linear-gradient(135deg, var(--accent-blue), #1976d2);
+  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
 }
 
 .stat-card.upcoming .stat-icon {
-  background: var(--accent-orange);
+  background: linear-gradient(135deg, var(--accent-orange), #e6691f);
+  box-shadow: 0 4px 15px rgba(255, 123, 37, 0.3);
 }
 
 .stat-card.completed .stat-icon {
-  background: var(--accent-green);
+  background: linear-gradient(135deg, var(--accent-green), #45a049);
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
 }
 
 .stat-info {
   flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .stat-number {
@@ -2155,7 +2279,7 @@ export default {
 }
 
 .stat-label {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-muted);
   margin-top: 0.25rem;
 }
@@ -2521,7 +2645,7 @@ export default {
 }
 
 /* ===============================================
-   📅 СПИСОК МЕРОПРИЯТИЙ
+   📅 СПИСОК МЕРОПРИЯТИЙ - НОВЫЙ ДИЗАЙН
    =============================================== */
 
 .events-list {
@@ -2572,48 +2696,85 @@ export default {
   background-color: rgba(255, 255, 255, 0.03);
 }
 
-.no-image-placeholder {
-  font-size: 2rem;
-  color: var(--text-muted);
+.event-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
 }
 
-.event-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
+.event-card:hover .event-avatar {
+  transform: scale(1.05);
+  border-color: var(--accent-orange);
+}
+
+.event-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-green));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
 }
 
 .event-status {
   position: absolute;
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.8rem;
-  font-weight: 600;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(10px);
   z-index: 2;
   top: 0.75rem;
   left: 0.75rem;
 }
 
-.event-status.upcoming {
-  background: rgba(255, 123, 37, 0.9);
+.date-day {
+  font-size: 1rem;
+  line-height: 1;
   color: white;
 }
 
-.event-status.completed {
-  background: rgba(76, 175, 80, 0.9);
+.date-month {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+}
+
+/* Статус бейдж */
+.event-status-badge {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.event-status-badge.upcoming {
+  background: var(--accent-orange);
   color: white;
 }
 
 .event-info {
   flex: 1;
-  padding: 1.5rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .event-main-info {
@@ -2621,19 +2782,19 @@ export default {
 }
 
 .event-header {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .event-title {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-light);
   margin: 0 0 0.25rem 0;
-  line-height: 1.2;
+  line-height: 1.3;
 }
 
 .event-subtitle {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   color: var(--text-muted);
   line-height: 1.3;
 }
@@ -2642,124 +2803,137 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .event-meta-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
 .event-meta-item i {
   color: var(--accent-orange);
-  width: 1.2rem;
+  width: 1rem;
   text-align: center;
+  font-size: 0.75rem;
+}
+
+.event-meta-item.type {
+  background: rgba(255, 123, 37, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 123, 37, 0.2);
 }
 
 .event-rating {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: 0.5rem;
 }
 
 .rating-stars {
   display: flex;
-  gap: 0.25rem;
+  gap: 0.15rem;
 }
 
 .rating-stars i {
   color: var(--text-dim);
-  font-size: 1rem;
+  font-size: 0.75rem;
   transition: color 0.2s ease;
 }
 
 .rating-stars i.active {
-  color: #ffc107;
+  color: var(--accent-gold);
 }
 
 .rating-text {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
   font-weight: 600;
 }
 
-.event-extras {
+/* Статистика */
+.event-stats-row {
   display: flex;
-  flex-wrap: wrap;
   gap: 1rem;
-  margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
 .event-attendees,
 .event-photos {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--text-muted);
-  font-size: 0.9rem;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.6rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--border-radius-small);
 }
 
 .event-attendees i {
   color: var(--accent-blue);
 }
 
-.event-photos i {
+.event-stat.photos {
   color: var(--accent-purple);
 }
 
+/* Кнопки действий */
 .event-actions {
   display: flex;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  margin-top: auto;
 }
 
 .action-btn {
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 0.75rem;
-  background: transparent;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-light);
-  border-radius: var(--border-radius-small);
+  border-radius: 50%;
   color: var(--text-muted);
   cursor: pointer;
-  font-family: inherit;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   transition: all 0.2s ease;
 }
 
 .action-btn:hover {
-  color: var(--text-light);
-  border-color: var(--border-medium);
-  background: rgba(255, 255, 255, 0.05);
+  transform: scale(1.1);
 }
 
 .action-btn.view:hover {
   color: var(--accent-blue);
   border-color: var(--accent-blue);
-  background: rgba(33, 150, 243, 0.1);
+  background: rgba(33, 150, 243, 0.15);
+  box-shadow: 0 0 10px rgba(33, 150, 243, 0.3);
 }
 
 .action-btn.edit:hover {
   color: var(--accent-orange);
   border-color: var(--accent-orange);
-  background: rgba(255, 123, 37, 0.1);
+  background: rgba(255, 123, 37, 0.15);
+  box-shadow: 0 0 10px rgba(255, 123, 37, 0.3);
 }
 
 .action-btn.duplicate:hover {
   color: var(--accent-purple);
   border-color: var(--accent-purple);
-  background: rgba(156, 39, 176, 0.1);
+  background: rgba(156, 39, 176, 0.15);
+  box-shadow: 0 0 10px rgba(156, 39, 176, 0.3);
 }
 
 .action-btn.delete:hover {
   color: var(--accent-red);
   border-color: var(--accent-red);
-  background: rgba(244, 67, 54, 0.1);
+  background: rgba(244, 67, 54, 0.15);
+  box-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
 }
 
 /* ===============================================
@@ -3098,73 +3272,110 @@ export default {
    📱 АДАПТИВНЫЙ ДИЗАЙН
    =============================================== */
 
-@media (max-width: 768px) {
-  .admin-events-panel {
-    padding: 1rem;
+@media (max-width: 1024px) {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
   }
-  
+
+  .quick-stats {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
   .panel-header {
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
+    padding: 1.5rem;
   }
-  
+
   .header-actions {
     width: 100%;
   }
-  
+
   .refresh-btn,
   .add-btn {
     flex: 1;
     justify-content: center;
   }
-  
+
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .filters-row {
     flex-direction: column;
     align-items: stretch;
     gap: 1rem;
   }
-  
+
   .status-filters {
     justify-content: center;
+    flex-wrap: wrap;
   }
-  
+
   .event-card {
     flex-direction: column;
   }
-  
-  .event-preview {
+
+  .event-avatar-section {
     width: 100%;
+    padding: 1.5rem;
   }
-  
-  .event-banner {
-    height: 200px;
+
+  .event-avatar {
+    width: 100px;
+    height: 100px;
   }
-  
+
+  .event-date-badge {
+    top: 1rem;
+    right: 1rem;
+  }
+
+  .featured-star {
+    top: 1rem;
+    left: 1rem;
+  }
+
+  .event-status-badge {
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .event-info {
+    padding: 1.5rem;
+  }
+
+  .event-actions {
+    justify-content: center;
+  }
+
   .form-row.two-columns {
     grid-template-columns: 1fr;
   }
-  
+
   .modal {
     margin: 1rem;
     max-height: calc(100vh - 2rem);
   }
-  
+
   .modal-body {
     padding: 1.5rem;
   }
-  
+
   .form-checkboxes {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 480px) {
-  .panel-title {
-    font-size: 2rem !important;
+  .panel-header {
+    padding: 1rem;
   }
 
   .event-actions {
