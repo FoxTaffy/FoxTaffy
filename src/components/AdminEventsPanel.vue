@@ -1156,12 +1156,12 @@ export default {
           search: this.searchQuery.trim() || undefined
         })
 
-        // Нормализуем даты для всех событий
+        // Нормализуем даты для всех событий (приводим к null или валидной строке)
         this.events = (events || []).map(event => ({
           ...event,
-          event_date: event.event_date || null,
-          event_end_date: event.event_end_date || null,
-          announced_date: event.announced_date || null
+          event_date: (event.event_date && typeof event.event_date === 'string' && event.event_date.trim() !== '') ? event.event_date : null,
+          event_end_date: (event.event_end_date && typeof event.event_end_date === 'string' && event.event_end_date.trim() !== '') ? event.event_end_date : null,
+          announced_date: (event.announced_date && typeof event.announced_date === 'string' && event.announced_date.trim() !== '') ? event.announced_date : null
         }))
 
         console.log('✅ AdminEvents: Мероприятия загружены:', this.events.length)
@@ -1890,14 +1890,27 @@ export default {
     },
     
     formatEventDate(dateString) {
-      if (!dateString) return 'Дата не указана'
-      const date = new Date(dateString)
-      if (isNaN(date.getTime())) return 'Некорректная дата'
-      return date.toLocaleDateString('ru-RU', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
+      // Строгая проверка на все возможные невалидные значения
+      if (!dateString || (typeof dateString === 'string' && dateString.trim() === '')) {
+        return 'Дата не указана'
+      }
+
+      try {
+        const date = new Date(dateString)
+        // Двойная проверка валидности даты
+        if (isNaN(date.getTime()) || !isFinite(date.getTime())) {
+          return 'Некорректная дата'
+        }
+
+        return date.toLocaleDateString('ru-RU', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      } catch (error) {
+        console.error('Ошибка форматирования даты:', dateString, error)
+        return 'Ошибка даты'
+      }
     },
     
     formatMoney(amount) {
