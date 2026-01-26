@@ -347,26 +347,41 @@ export const furryApi = {
   async deleteEvent(eventId) {
     try {
       console.log('🗑️ deleteEvent: Удаляем мероприятие:', eventId)
-      
-      // Сначала удаляем связанные данные
+
+      // Сначала получаем информацию о событии (нужно для удаления файлов)
+      const event = await this.getEventById(eventId)
+
+      // Удаляем файлы из Storage
+      if (event) {
+        try {
+          const { s3Api } = await import('./s3.js')
+          await s3Api.deleteEventFiles(event)
+          console.log('✅ deleteEvent: Файлы мероприятия удалены из Storage')
+        } catch (storageError) {
+          console.error('⚠️ deleteEvent: Ошибка удаления файлов из Storage:', storageError)
+          // Продолжаем удаление даже если файлы не удалились
+        }
+      }
+
+      // Удаляем связанные данные из БД
       await Promise.all([
         supabase.from('con_links').delete().eq('con_id', eventId),
         supabase.from('con_features').delete().eq('con_id', eventId),
         supabase.from('con_photos').delete().eq('con_id', eventId),
         supabase.from('con_purchases').delete().eq('con_id', eventId)
       ])
-      
+
       // Затем удаляем само мероприятие
       const { error } = await supabase
         .from('cons')
         .delete()
         .eq('id', eventId)
-      
+
       if (error) throw error
-      
+
       console.log('✅ deleteEvent: Мероприятие и все связанные данные удалены')
       return true
-      
+
     } catch (error) {
       console.error('❌ deleteEvent: Ошибка удаления мероприятия:', error)
       throw new Error(`Ошибка удаления мероприятия: ${error.message}`)

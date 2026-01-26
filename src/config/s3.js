@@ -26,18 +26,69 @@ const getBucketName = (folder) => {
 }
 
 /**
+ * Санитизация имени для использования в качестве имени папки
+ * @param {string} name - Имя для санитизации
+ * @returns {string} Безопасное имя папки
+ */
+const sanitizeFolderName = (name) => {
+  if (!name) return ''
+
+  return name
+    // Убираем спецсимволы, оставляем буквы, цифры, пробелы и дефисы
+    .replace(/[^\w\s-]/g, '')
+    // Заменяем пробелы на дефисы
+    .replace(/\s+/g, '-')
+    // Убираем множественные дефисы
+    .replace(/-+/g, '-')
+    // Убираем дефисы в начале и конце
+    .replace(/^-+|-+$/g, '')
+    // Ограничиваем длину до 50 символов
+    .substring(0, 50)
+}
+
+/**
  * Генерация структуры папок для мероприятия
- * @param {string|number} eventId - ID мероприятия
+ * @param {string|number|Object} eventIdentifier - Может быть: photos_folder из БД, slug, name, или старый eventId для обратной совместимости
  * @param {string} type - Тип файла: 'original', 'thumbnails', 'purchases', 'avatar', 'banner'
  * @returns {string} Путь к папке
  */
-const getEventFolderPath = (eventId, type = 'original') => {
-  if (!eventId) {
+const getEventFolderPath = (eventIdentifier, type = 'original') => {
+  if (!eventIdentifier) {
     // Для файлов без привязки к мероприятию (временные)
     return `events/temp/${type}`
   }
-  // Структура: events/{event-id}/original/ или events/{event-id}/thumbnails/ или events/{event-id}/purchases/
-  return `events/${eventId}/${type}`
+
+  let folderName = ''
+
+  // Если передан объект события с photos_folder - используем его
+  if (typeof eventIdentifier === 'object' && eventIdentifier.photos_folder) {
+    folderName = eventIdentifier.photos_folder
+  }
+  // Если передан объект события со slug - используем slug
+  else if (typeof eventIdentifier === 'object' && eventIdentifier.slug) {
+    folderName = sanitizeFolderName(eventIdentifier.slug)
+  }
+  // Если передан объект события с name - используем name
+  else if (typeof eventIdentifier === 'object' && eventIdentifier.name) {
+    folderName = sanitizeFolderName(eventIdentifier.name)
+  }
+  // Если передана строка - используем её напрямую (предполагаем что это уже photos_folder или slug)
+  else if (typeof eventIdentifier === 'string') {
+    // Если это уже путь events/... - извлекаем имя папки
+    if (eventIdentifier.startsWith('events/')) {
+      const parts = eventIdentifier.split('/')
+      folderName = parts[1] || eventIdentifier
+    } else {
+      folderName = eventIdentifier
+    }
+  }
+  // Иначе это число (старый eventId) - используем для обратной совместимости
+  else {
+    folderName = String(eventIdentifier)
+  }
+
+  // Структура: events/{folder-name}/original/ или events/{folder-name}/thumbnails/ или events/{folder-name}/purchases/
+  return `events/${folderName}/${type}`
 }
 
 // ============================================
@@ -285,7 +336,7 @@ export const s3Api = {
   /**
    * Загрузка изображения с автоматическим созданием миниатюры
    * @param {File} file - Файл изображения
-   * @param {string} folder - Базовая папка (например 'events/123')
+   * @param {string|Object} folder - Базовая папка (например 'events/AnyFurryFestVI') или объект события
    * @param {Function} onProgress - Callback прогресса
    * @returns {Promise<Object>} Объект с URL оригинала и миниатюры
    */
@@ -293,20 +344,23 @@ export const s3Api = {
     try {
       console.log('🖼️ Загружаем изображение с созданием миниатюры...')
 
-      // Парсим eventId из folder если это путь к событию
-      let eventId = null
-      let baseFolder = folder
+      // Определяем идентификатор события из folder
+      let eventIdentifier = null
 
-      if (folder.startsWith('events/')) {
+      if (typeof folder === 'object') {
+        // Если передан объект события
+        eventIdentifier = folder
+      } else if (typeof folder === 'string' && folder.startsWith('events/')) {
+        // Если это путь к событию - извлекаем имя папки
         const parts = folder.split('/')
         if (parts[1] && parts[1] !== 'temp') {
-          eventId = parts[1]
+          eventIdentifier = parts[1]
         }
       }
 
       // Определяем пути для оригинала и миниатюры
-      const originalFolder = eventId ? getEventFolderPath(eventId, 'original') : folder
-      const thumbnailFolder = eventId ? getEventFolderPath(eventId, 'thumbnails') : `${folder}/thumbnails`
+      const originalFolder = eventIdentifier ? getEventFolderPath(eventIdentifier, 'original') : folder
+      const thumbnailFolder = eventIdentifier ? getEventFolderPath(eventIdentifier, 'thumbnails') : `${folder}/thumbnails`
 
       // Обновляем прогресс
       if (onProgress) onProgress(5)
@@ -365,13 +419,16 @@ export const s3Api = {
   /**
    * Загрузка нескольких фотографий для мероприятия
    * @param {Array<File>} files - Массив файлов
-   * @param {string|number} eventId - ID мероприятия
+   * @param {string|number|Object} eventIdentifier - ID/slug/name мероприятия или объект события
    * @param {Function} onProgress - Callback прогресса для каждого файла
    * @returns {Promise<Array>} Массив результатов загрузки
    */
-  async uploadEventPhotos(files, eventId, onProgress = null) {
+  async uploadEventPhotos(files, eventIdentifier, onProgress = null) {
     try {
-      console.log(`📸 Загружаем ${files.length} фотографий для мероприятия ${eventId}...`)
+      const displayName = typeof eventIdentifier === 'object'
+        ? (eventIdentifier.name || eventIdentifier.slug || eventIdentifier.id)
+        : eventIdentifier
+      console.log(`📸 Загружаем ${files.length} фотографий для мероприятия ${displayName}...`)
 
       const results = []
       const totalFiles = files.length
@@ -383,7 +440,7 @@ export const s3Api = {
 
         const result = await this.uploadImageWithThumbnail(
           file,
-          `events/${eventId}`,
+          eventIdentifier,
           (progress) => {
             if (onProgress) {
               // Общий прогресс: (завершенные файлы + прогресс текущего) / всего файлов
@@ -415,13 +472,16 @@ export const s3Api = {
   /**
    * Загрузка фотографии покупки
    * @param {File} file - Файл изображения
-   * @param {string} eventId - ID мероприятия
+   * @param {string|number|Object} eventIdentifier - ID/slug/name мероприятия или объект события
    * @param {string} purchaseId - ID покупки (опционально)
    * @returns {Promise<Object>} URL загруженного файла
    */
-  async uploadPurchasePhoto(file, eventId, purchaseId = null) {
+  async uploadPurchasePhoto(file, eventIdentifier, purchaseId = null) {
     try {
-      console.log(`📸 Загружаем фото покупки для мероприятия ${eventId}...`)
+      const displayName = typeof eventIdentifier === 'object'
+        ? (eventIdentifier.name || eventIdentifier.slug || eventIdentifier.id)
+        : eventIdentifier
+      console.log(`📸 Загружаем фото покупки для мероприятия ${displayName}...`)
 
       // Генерируем имя файла
       const timestamp = Date.now()
@@ -431,7 +491,7 @@ export const s3Api = {
         : `purchase_${timestamp}_${randomStr}.jpg`
 
       // Путь к папке покупок
-      const purchasesFolder = getEventFolderPath(eventId, 'purchases')
+      const purchasesFolder = getEventFolderPath(eventIdentifier, 'purchases')
 
       // Оптимизируем изображение
       const optimizedImage = await optimizeImage(file, 0.75)
@@ -483,15 +543,36 @@ export const s3Api = {
 
   /**
    * Удаление всех файлов мероприятия
-   * @param {string|number} eventId - ID мероприятия
+   * @param {string|number|Object} eventIdentifier - ID/slug/name мероприятия или объект события
    * @returns {Promise<boolean>} Успешность удаления
    */
-  async deleteEventFiles(eventId) {
+  async deleteEventFiles(eventIdentifier) {
     try {
-      console.log(`🗑️ Удаляем все файлы мероприятия ${eventId}...`)
+      const displayName = typeof eventIdentifier === 'object'
+        ? (eventIdentifier.name || eventIdentifier.slug || eventIdentifier.id)
+        : eventIdentifier
+      console.log(`🗑️ Удаляем все файлы мероприятия ${displayName}...`)
 
       const bucketName = 'Convent'
-      const eventFolder = `events/${eventId}`
+
+      // Получаем имя папки из идентификатора
+      let folderName = ''
+      if (typeof eventIdentifier === 'object' && eventIdentifier.photos_folder) {
+        // Используем photos_folder из БД
+        folderName = eventIdentifier.photos_folder.replace('events/', '')
+      } else if (typeof eventIdentifier === 'object' && eventIdentifier.slug) {
+        folderName = sanitizeFolderName(eventIdentifier.slug)
+      } else if (typeof eventIdentifier === 'object' && eventIdentifier.name) {
+        folderName = sanitizeFolderName(eventIdentifier.name)
+      } else if (typeof eventIdentifier === 'string') {
+        folderName = eventIdentifier.startsWith('events/')
+          ? eventIdentifier.split('/')[1]
+          : eventIdentifier
+      } else {
+        folderName = String(eventIdentifier)
+      }
+
+      const eventFolder = `events/${folderName}`
 
       // Получаем список всех файлов в папке мероприятия
       const { data: files, error: listError } = await supabase.storage
@@ -524,7 +605,7 @@ export const s3Api = {
         return false
       }
 
-      console.log(`✅ Удалено ${files.length} файлов мероприятия ${eventId}`)
+      console.log(`✅ Удалено ${files.length} файлов мероприятия ${displayName}`)
       return true
 
     } catch (error) {
@@ -617,9 +698,10 @@ export const isFileApiSupported = () => {
 // ДЕФОЛТНЫЙ ЭКСПОРТ
 // ============================================
 export default s3Api
+export { sanitizeFolderName, getEventFolderPath }
 
 console.log('✅ Supabase Storage API с автоматической генерацией миниатюр загружен!')
-console.log('📁 Структура хранения: events/{event-id}/original/ и events/{event-id}/thumbnails/')
+console.log('📁 Структура хранения: events/{event-name}/original/ и events/{event-name}/thumbnails/')
 console.log('🖼️ Размер миниатюр: максимум 300x300px')
 console.log('📦 Bucket по умолчанию: Convent')
 console.log('⚡ Оптимизация: макс. 2MB на файл, качество 80%, макс. размер 2000px')
