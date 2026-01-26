@@ -520,7 +520,7 @@
                 <span class="toggle-slider"></span>
                 <span class="toggle-label">
                   <i class="fas fa-shopping-bag"></i>
-                  Были покупки на мероприятии
+                  {{ isEventInPast ? 'Были покупки на мероприятии' : 'Планируются покупки' }}
                 </span>
               </label>
             </div>
@@ -568,23 +568,43 @@
               </div>
               <div class="step-info">
                 <h4>Статистика</h4>
-                <p>Информация об участниках</p>
+                <p>{{ isEventInPast ? 'Информация об участниках' : 'Ожидаемая посещаемость' }}</p>
               </div>
             </div>
 
             <div class="form-row two-columns">
               <div class="form-group">
-                <label class="form-label">Ожидаемых посетителей</label>
-                <input v-model="eventForm.expected_visitors" type="number" class="form-input" placeholder="500" min="0" />
+                <label class="form-label">
+                  {{ isEventInPast ? 'Ожидалось посетителей' : 'Ожидаемое количество посетителей' }}
+                </label>
+                <input
+                  v-model="eventForm.expected_visitors"
+                  type="number"
+                  class="form-input"
+                  :placeholder="isEventInPast ? '500' : 'Примерное количество (например, 500)'"
+                  min="0"
+                />
               </div>
-              <div class="form-group">
-                <label class="form-label">Фактическое количество</label>
-                <input v-model="eventForm.attendees_count" type="number" class="form-input" placeholder="После мероприятия" min="0" />
+              <div v-if="isEventInPast" class="form-group">
+                <label class="form-label">
+                  Посетило фактически
+                  <span class="label-hint">(заполните после мероприятия)</span>
+                </label>
+                <input
+                  v-model="eventForm.attendees_count"
+                  type="number"
+                  class="form-input"
+                  placeholder="Фактическое количество участников"
+                  min="0"
+                />
               </div>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Особенности мероприятия</label>
+              <label class="form-label">
+                Особенности мероприятия
+                <span class="label-hint">{{ isEventInPast ? 'Что было на мероприятии' : 'Что планируется' }}</span>
+              </label>
               <div class="features-chips">
                 <label class="feature-chip" :class="{ 'checked': eventForm.has_dealers_den }">
                   <input v-model="eventForm.has_dealers_den" type="checkbox" />
@@ -839,7 +859,7 @@
 
 <script>
 import { furryApi } from '@/config/supabase.js'
-import { s3Api, sanitizeFolderName } from '@/config/s3.js'
+import s3Api, { sanitizeFolderName } from '@/config/s3.js'
 import FileUploader from '@/FileUploader.vue'
 import StarRating from '@/components/ui/StarRating.vue'
 import CompactImageUploader from '@/components/CompactImageUploader.vue'
@@ -3175,6 +3195,13 @@ h2.panel-title {
   content: '*';
   color: var(--accent-red);
   margin-left: 0.25rem;
+}
+
+.label-hint {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-left: 0.5rem;
 }
 
 .form-input,
