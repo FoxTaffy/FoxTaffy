@@ -810,6 +810,7 @@
 
 <script>
 import { furryApi } from '@/config/supabase.js'
+import { s3Api, sanitizeFolderName } from '@/config/s3.js'
 import FileUploader from '@/FileUploader.vue'
 import StarRating from '@/components/ui/StarRating.vue'
 import CompactImageUploader from '@/components/CompactImageUploader.vue'
@@ -1321,12 +1322,10 @@ export default {
       this.uploadingPurchasePhoto = index
 
       try {
-        console.log(`📸 Загружаем фото покупки для мероприятия ${this.eventForm.id}...`)
+        console.log(`📸 Загружаем фото покупки для мероприятия ${this.eventForm.name}...`)
 
-        const { s3Api } = await import('@/config/s3.js')
-
-        // Загружаем фото покупки
-        const result = await s3Api.uploadPurchasePhoto(file, this.eventForm.id)
+        // Загружаем фото покупки (передаем объект события с photos_folder)
+        const result = await s3Api.uploadPurchasePhoto(file, this.eventForm)
 
         // Сохраняем URL в форме
         this.eventForm.purchase_items[index].image = result.url
@@ -1451,14 +1450,13 @@ export default {
       this.uploadTotal = files.length
 
       try {
-        console.log(`📸 Загружаем ${files.length} фотографий для мероприятия ${this.eventForm.id}...`)
-
-        const { s3Api } = await import('@/config/s3.js')
+        console.log(`📸 Загружаем ${files.length} фотографий для мероприятия ${this.eventForm.name}...`)
 
         // Используем новый метод uploadEventPhotos который автоматически создает миниатюры
+        // Передаем объект события целиком (с photos_folder)
         const results = await s3Api.uploadEventPhotos(
           files,
-          this.eventForm.id,
+          this.eventForm,
           (totalProgress, currentFile, totalFiles) => {
             this.uploadProgress = currentFile
             this.uploadTotal = totalFiles
@@ -1619,6 +1617,11 @@ export default {
         // Генерируем slug из названия
         if (!this.eventForm.slug) {
           this.eventForm.slug = this.generateSlug(this.eventForm.name)
+        }
+
+        // Генерируем photos_folder из slug если его нет
+        if (!this.eventForm.photos_folder && this.eventForm.slug) {
+          this.eventForm.photos_folder = sanitizeFolderName(this.eventForm.slug)
         }
 
         // Подготавливаем данные для сохранения
