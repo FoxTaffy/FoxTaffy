@@ -14,67 +14,53 @@
 
 -- Посмотрим, сколько записей с проблемными датами
 SELECT
-  'Записи с пустыми event_date' as issue,
+  'Записи с NULL event_date' as issue,
   COUNT(*) as count
 FROM cons
-WHERE event_date IS NULL OR event_date = '' OR TRIM(event_date::text) = '';
+WHERE event_date IS NULL;
 
 SELECT
-  'Записи с пустыми event_end_date' as issue,
+  'Записи с NULL event_end_date' as issue,
   COUNT(*) as count
 FROM cons
-WHERE event_end_date IS NOT NULL AND (event_end_date = '' OR TRIM(event_end_date::text) = '');
+WHERE event_end_date IS NULL;
 
 SELECT
-  'Записи с пустыми announced_date' as issue,
+  'Записи с NULL announced_date' as issue,
   COUNT(*) as count
 FROM cons
-WHERE announced_date IS NOT NULL AND (announced_date = '' OR TRIM(announced_date::text) = '');
+WHERE announced_date IS NULL;
 
 -- ============================================
 -- 2. ИСПРАВЛЕНИЕ НЕВАЛИДНЫХ ДАТ
 -- ============================================
 
--- Конвертируем пустые строки в NULL для event_date
-UPDATE cons
-SET event_date = NULL
-WHERE event_date IS NOT NULL
-  AND (TRIM(event_date::text) = '' OR event_date::text = '');
+-- Примечание: В PostgreSQL timestamp поля не могут содержать пустые строки
+-- Они могут быть только NULL или валидными датами
+-- Если ошибка возникает в приложении, проблема скорее всего в том,
+-- что даты приходят из БД как NULL, а приложение не обрабатывает это
 
--- Конвертируем пустые строки в NULL для event_end_date
-UPDATE cons
-SET event_end_date = NULL
-WHERE event_end_date IS NOT NULL
-  AND (TRIM(event_end_date::text) = '' OR event_end_date::text = '');
-
--- Конвертируем пустые строки в NULL для announced_date
-UPDATE cons
-SET announced_date = NULL
-WHERE announced_date IS NOT NULL
-  AND (TRIM(announced_date::text) = '' OR announced_date::text = '');
+-- Проверим есть ли записи где event_date требуется, но отсутствует
+-- (для событий должна быть хотя бы дата начала)
+SELECT
+  'События без даты начала' as warning,
+  COUNT(*) as count,
+  string_agg(name, ', ' ORDER BY id LIMIT 5) as examples
+FROM cons
+WHERE event_date IS NULL;
 
 -- ============================================
 -- 3. ПРОВЕРКА РЕЗУЛЬТАТОВ
 -- ============================================
 
--- Проверяем, что все пустые строки преобразованы в NULL
+-- Показываем статистику по датам
 SELECT
-  'После исправления - пустые event_date' as check_result,
-  COUNT(*) as count
-FROM cons
-WHERE event_date IS NOT NULL AND (event_date = '' OR TRIM(event_date::text) = '');
-
-SELECT
-  'После исправления - пустые event_end_date' as check_result,
-  COUNT(*) as count
-FROM cons
-WHERE event_end_date IS NOT NULL AND (event_end_date = '' OR TRIM(event_end_date::text) = '');
-
-SELECT
-  'После исправления - пустые announced_date' as check_result,
-  COUNT(*) as count
-FROM cons
-WHERE announced_date IS NOT NULL AND (announced_date = '' OR TRIM(announced_date::text) = '');
+  COUNT(*) as total_events,
+  COUNT(event_date) as events_with_date,
+  COUNT(*) - COUNT(event_date) as events_without_date,
+  COUNT(event_end_date) as events_with_end_date,
+  COUNT(announced_date) as events_with_announced_date
+FROM cons;
 
 -- Показываем статистику по датам
 SELECT
@@ -86,45 +72,28 @@ SELECT
 FROM cons;
 
 -- ============================================
--- 4. ДОБАВЛЕНИЕ CONSTRAINT ДЛЯ ПРЕДОТВРАЩЕНИЯ ПРОБЛЕМ В БУДУЩЕМ
+-- РЕЗУЛЬТАТЫ ПРОВЕРКИ
 -- ============================================
 
--- Удаляем старые constraint если есть
-ALTER TABLE cons DROP CONSTRAINT IF EXISTS check_event_date_not_empty;
-ALTER TABLE cons DROP CONSTRAINT IF EXISTS check_event_end_date_not_empty;
-ALTER TABLE cons DROP CONSTRAINT IF EXISTS check_announced_date_not_empty;
-
--- Добавляем constraint: дата должна быть либо NULL, либо валидной (не пустая строка)
-ALTER TABLE cons ADD CONSTRAINT check_event_date_not_empty
-  CHECK (event_date IS NULL OR TRIM(event_date::text) != '');
-
-ALTER TABLE cons ADD CONSTRAINT check_event_end_date_not_empty
-  CHECK (event_end_date IS NULL OR TRIM(event_end_date::text) != '');
-
-ALTER TABLE cons ADD CONSTRAINT check_announced_date_not_empty
-  CHECK (announced_date IS NULL OR TRIM(announced_date::text) != '');
+SELECT '✅ Проверка базы данных завершена!' AS status;
+SELECT '📊 В PostgreSQL timestamp поля не могут содержать пустые строки' AS info;
+SELECT '💡 Если есть события без даты - это нормально для БД' AS note;
+SELECT '🔧 Ошибка getDay() исправлена в коде приложения (проверки на NULL)' AS fix;
 
 -- ============================================
--- ГОТОВО!
--- ============================================
-
-SELECT '✅ Невалидные даты успешно исправлены!' AS status;
-SELECT '📋 Добавлены constraints для предотвращения пустых строк в будущем' AS info;
-SELECT '🎉 Теперь приложение должно работать без ошибок!' AS ready;
-
--- ============================================
--- ИНСТРУКЦИИ ПО ИСПОЛЬЗОВАНИЮ
+-- ИНСТРУКЦИИ
 -- ============================================
 --
--- 1. Откройте Supabase Dashboard для PRODUCTION базы данных
--- 2. Перейдите в SQL Editor
--- 3. Создайте новый запрос
--- 4. Скопируйте и вставьте содержимое этого файла
--- 5. Нажмите "Run" для выполнения
--- 6. Проверьте результаты выполнения
--- 7. Обновите страницу приложения (Ctrl+Shift+R)
+-- Этот скрипт проверяет состояние дат в таблице cons
 --
--- ВАЖНО: После применения этой миграции все пустые строки в датах
--- будут преобразованы в NULL, что предотвратит ошибку getDay()
+-- ВАЖНО: В PostgreSQL timestamp поля не могут быть пустыми строками.
+-- Они могут быть только:
+-- - NULL (нет значения)
+-- - Валидная дата
+--
+-- Ошибка "e.getDay is not a function" возникала из-за того, что:
+-- 1. Из БД приходит NULL
+-- 2. Код не проверял NULL перед созданием new Date()
+-- 3. Исправление - в коде приложения (уже сделано)
 --
 -- ============================================
