@@ -976,7 +976,9 @@ export default {
 
     isEventInPast() {
       if (!this.eventForm.event_date) return false
-      return new Date(this.eventForm.event_date) < new Date()
+      const eventDate = new Date(this.eventForm.event_date)
+      if (isNaN(eventDate.getTime())) return false
+      return eventDate < new Date()
     },
 
     upcomingPercent() {
@@ -1016,7 +1018,10 @@ export default {
 
     eventsNeedingReview() {
       return this.events.filter(e => {
-        const isPast = new Date(e.event_date) < new Date()
+        if (!e.event_date) return false
+        const eventDate = new Date(e.event_date)
+        if (isNaN(eventDate.getTime())) return false
+        const isPast = eventDate < new Date()
         return isPast && !e.review_completed
       })
     },
@@ -1814,7 +1819,10 @@ export default {
     // ============================================
     
     isUpcoming(event) {
-      return new Date(event.event_date) > new Date()
+      if (!event.event_date) return false
+      const eventDate = new Date(event.event_date)
+      if (isNaN(eventDate.getTime())) return false
+      return eventDate > new Date()
     },
     
     getEventStatusClass(event) {
@@ -1859,7 +1867,9 @@ export default {
     },
     
     formatEventDate(dateString) {
+      if (!dateString) return 'Дата не указана'
       const date = new Date(dateString)
+      if (isNaN(date.getTime())) return 'Некорректная дата'
       return date.toLocaleDateString('ru-RU', {
         year: 'numeric',
         month: 'long',
