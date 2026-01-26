@@ -460,11 +460,22 @@
             <div class="form-row two-columns compact-dates">
               <div class="form-group">
                 <label class="form-label required">Дата начала</label>
-                <input v-model="eventForm.event_date" type="date" class="form-input compact" required />
+                <input
+                  v-model="eventForm.event_date"
+                  type="date"
+                  class="form-input compact"
+                  required
+                  @change="eventForm.event_date = eventForm.event_date || null"
+                />
               </div>
               <div class="form-group">
                 <label class="form-label">Дата окончания</label>
-                <input v-model="eventForm.event_end_date" type="date" class="form-input compact" />
+                <input
+                  v-model="eventForm.event_end_date"
+                  type="date"
+                  class="form-input compact"
+                  @change="eventForm.event_end_date = eventForm.event_end_date || null"
+                />
               </div>
             </div>
 
@@ -1149,6 +1160,31 @@ export default {
         }
       },
       immediate: false
+    },
+
+    // Защита от пустых строк в датах (конвертируем в null)
+    'eventForm.event_date': {
+      handler(newVal) {
+        if (newVal === '' || (typeof newVal === 'string' && newVal.trim() === '')) {
+          this.eventForm.event_date = null
+        }
+      }
+    },
+
+    'eventForm.event_end_date': {
+      handler(newVal) {
+        if (newVal === '' || (typeof newVal === 'string' && newVal.trim() === '')) {
+          this.eventForm.event_end_date = null
+        }
+      }
+    },
+
+    'eventForm.announced_date': {
+      handler(newVal) {
+        if (newVal === '' || (typeof newVal === 'string' && newVal.trim() === '')) {
+          this.eventForm.announced_date = null
+        }
+      }
     }
   },
 
