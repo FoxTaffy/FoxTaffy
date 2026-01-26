@@ -830,7 +830,7 @@
 
 <script>
 import { furryApi } from '@/config/supabase.js'
-import { s3Api, sanitizeFolderName } from '@/config/s3.js'
+import s3Api, { sanitizeFolderName } from '@/config/s3.js'
 import FileUploader from '@/FileUploader.vue'
 import StarRating from '@/components/ui/StarRating.vue'
 import CompactImageUploader from '@/components/CompactImageUploader.vue'
