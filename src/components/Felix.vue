@@ -335,15 +335,13 @@
               <span class="gallery-count">{{ galleryPhotos.length }} воспоминаний</span>
             </div>
             <div class="gallery-buttons">
-              <a 
-                href="https://foxtaffy.fun/gallery" 
-                target="_blank" 
+              <router-link
+                to="/gallery"
                 class="gallery-btn external"
-                rel="noopener noreferrer"
               >
-                <i class="fas fa-external-link-alt"></i>
+                <i class="fas fa-images"></i>
                 <span>Полная галерея</span>
-              </a>
+              </router-link>
             </div>
           </div>
         </div>

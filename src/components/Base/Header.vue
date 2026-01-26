@@ -67,13 +67,14 @@
 </template>
 
 <script>
-import avatarImage from '@/assets/Image/Avatar.jpg'
+import AvatarImage from '@/assets/Image/Avatar.jpg'
+
 export default {
   name: 'HeaderSection',
   data() {
     return {
       birthDate: new Date(2004, 7, 2), // 02.08.2004 (месяцы в JavaScript начинаются с 0)
-      avatarImage: avatarImage // Использование импортированного изображения
+      avatarImage: AvatarImage
     }
   },
   computed: {
