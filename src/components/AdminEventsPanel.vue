@@ -1148,18 +1148,24 @@ export default {
     async loadEvents() {
       try {
         console.log('🎪 AdminEvents: Загружаем мероприятия...')
-        
+
         const events = await furryApi.getEvents({
           status: this.statusFilter === 'all' ? undefined : this.statusFilter,
           sort: this.sortBy,
           limit: 100,
           search: this.searchQuery.trim() || undefined
         })
-        
-        this.events = events || []
-        
+
+        // Нормализуем даты для всех событий
+        this.events = (events || []).map(event => ({
+          ...event,
+          event_date: event.event_date || null,
+          event_end_date: event.event_end_date || null,
+          announced_date: event.announced_date || null
+        }))
+
         console.log('✅ AdminEvents: Мероприятия загружены:', this.events.length)
-        
+
       } catch (error) {
         console.error('❌ AdminEvents: Ошибка загрузки мероприятий:', error)
         throw error
@@ -1220,9 +1226,9 @@ export default {
         slug: '',
         subtitle: '',
         description: '',
-        event_date: '',
-        event_end_date: '',
-        announced_date: '',
+        event_date: null,
+        event_end_date: null,
+        announced_date: null,
         location: '',
         city: '',
         country: '',
@@ -1549,19 +1555,34 @@ export default {
       this.isEditing = true
       this.eventForm = { ...event }
 
-      // Конвертируем дату из ISO формата в YYYY-MM-DD для input[type="date"]
+      // Нормализуем и конвертируем даты из ISO формата в YYYY-MM-DD для input[type="date"]
       if (this.eventForm.event_date) {
         if (typeof this.eventForm.event_date === 'string') {
           this.eventForm.event_date = this.eventForm.event_date.split('T')[0]
         } else if (this.eventForm.event_date instanceof Date) {
           this.eventForm.event_date = this.eventForm.event_date.toISOString().split('T')[0]
+        } else {
+          this.eventForm.event_date = null
         }
       }
+
+      if (this.eventForm.event_end_date) {
+        if (typeof this.eventForm.event_end_date === 'string') {
+          this.eventForm.event_end_date = this.eventForm.event_end_date.split('T')[0]
+        } else if (this.eventForm.event_end_date instanceof Date) {
+          this.eventForm.event_end_date = this.eventForm.event_end_date.toISOString().split('T')[0]
+        } else {
+          this.eventForm.event_end_date = null
+        }
+      }
+
       if (this.eventForm.announced_date) {
         if (typeof this.eventForm.announced_date === 'string') {
           this.eventForm.announced_date = this.eventForm.announced_date.split('T')[0]
         } else if (this.eventForm.announced_date instanceof Date) {
           this.eventForm.announced_date = this.eventForm.announced_date.toISOString().split('T')[0]
+        } else {
+          this.eventForm.announced_date = null
         }
       }
 
