@@ -997,7 +997,9 @@ export default {
 
     isEventInPast() {
       if (!this.eventForm.event_date) return false
-      return new Date(this.eventForm.event_date) < new Date()
+      const eventDate = new Date(this.eventForm.event_date)
+      if (isNaN(eventDate.getTime())) return false
+      return eventDate < new Date()
     },
 
     upcomingPercent() {
@@ -1037,7 +1039,10 @@ export default {
 
     eventsNeedingReview() {
       return this.events.filter(e => {
-        const isPast = new Date(e.event_date) < new Date()
+        if (!e.event_date) return false
+        const eventDate = new Date(e.event_date)
+        if (isNaN(eventDate.getTime())) return false
+        const isPast = eventDate < new Date()
         return isPast && !e.review_completed
       })
     },
@@ -1575,10 +1580,18 @@ export default {
 
       // Конвертируем дату из ISO формата в YYYY-MM-DD для input[type="date"]
       if (this.eventForm.event_date) {
-        this.eventForm.event_date = this.eventForm.event_date.split('T')[0]
+        if (typeof this.eventForm.event_date === 'string') {
+          this.eventForm.event_date = this.eventForm.event_date.split('T')[0]
+        } else if (this.eventForm.event_date instanceof Date) {
+          this.eventForm.event_date = this.eventForm.event_date.toISOString().split('T')[0]
+        }
       }
       if (this.eventForm.announced_date) {
-        this.eventForm.announced_date = this.eventForm.announced_date.split('T')[0]
+        if (typeof this.eventForm.announced_date === 'string') {
+          this.eventForm.announced_date = this.eventForm.announced_date.split('T')[0]
+        } else if (this.eventForm.announced_date instanceof Date) {
+          this.eventForm.announced_date = this.eventForm.announced_date.toISOString().split('T')[0]
+        }
       }
 
       // Инициализируем массивы если они null
@@ -1837,7 +1850,10 @@ export default {
     // ============================================
     
     isUpcoming(event) {
-      return new Date(event.event_date) > new Date()
+      if (!event.event_date) return false
+      const eventDate = new Date(event.event_date)
+      if (isNaN(eventDate.getTime())) return false
+      return eventDate > new Date()
     },
     
     getEventStatusClass(event) {
@@ -1882,7 +1898,9 @@ export default {
     },
     
     formatEventDate(dateString) {
+      if (!dateString) return 'Дата не указана'
       const date = new Date(dateString)
+      if (isNaN(date.getTime())) return 'Некорректная дата'
       return date.toLocaleDateString('ru-RU', {
         year: 'numeric',
         month: 'long',
