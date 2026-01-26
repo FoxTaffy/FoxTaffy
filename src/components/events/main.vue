@@ -1421,17 +1421,19 @@ export default {
 
 .filters-container {
   display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  max-width: 1200px;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 2rem;
 }
 
 .search-box {
   position: relative;
-  max-width: 600px;
-  width: 100%;
+  flex: 0 0 280px;
+  min-width: 200px;
 }
 
 .search-box i {
@@ -1503,14 +1505,16 @@ export default {
 .filter-tabs {
   display: flex;
   gap: 0.75rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .filter-tab {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.9rem 1.3rem;
+  gap: 0.5rem;
+  padding: 0.9rem 1rem;
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
   border: 2px solid rgba(255, 255, 255, 0.1);
@@ -1519,7 +1523,8 @@ export default {
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  white-space: nowrap;
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -1581,6 +1586,10 @@ export default {
   font-weight: 700;
 }
 
+.sort-select {
+  flex: 0 0 auto;
+}
+
 .sort-select select {
   padding: 0.9rem 1.3rem;
   background: rgba(255, 255, 255, 0.08);
@@ -1590,8 +1599,8 @@ export default {
   color: var(--text-light, #f2f2f2);
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.95rem;
-  min-width: 220px;
+  font-size: 0.9rem;
+  width: 200px;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
@@ -2810,11 +2819,27 @@ export default {
   }
   
   .filters-container {
+    flex-direction: column;
     gap: 1rem;
+    padding: 0 1rem;
   }
-  
+
+  .search-box {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+
   .filter-tabs {
+    flex-wrap: wrap;
     justify-content: center;
+  }
+
+  .sort-select {
+    width: 100%;
+  }
+
+  .sort-select select {
+    width: 100%;
   }
   
   .events-grid {
