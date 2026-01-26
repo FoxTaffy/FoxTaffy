@@ -460,22 +460,11 @@
             <div class="form-row two-columns compact-dates">
               <div class="form-group">
                 <label class="form-label required">Дата начала</label>
-                <input
-                  v-model="eventForm.event_date"
-                  type="date"
-                  class="form-input compact"
-                  required
-                  @change="eventForm.event_date = eventForm.event_date || null"
-                />
+                <input v-model="eventForm.event_date" type="date" class="form-input compact" required />
               </div>
               <div class="form-group">
                 <label class="form-label">Дата окончания</label>
-                <input
-                  v-model="eventForm.event_end_date"
-                  type="date"
-                  class="form-input compact"
-                  @change="eventForm.event_end_date = eventForm.event_end_date || null"
-                />
+                <input v-model="eventForm.event_end_date" type="date" class="form-input compact" />
               </div>
             </div>
 
@@ -531,7 +520,7 @@
                 <span class="toggle-slider"></span>
                 <span class="toggle-label">
                   <i class="fas fa-shopping-bag"></i>
-                  {{ isEventInPast ? 'Были покупки на мероприятии' : 'Планируются покупки' }}
+                  Были покупки на мероприятии
                 </span>
               </label>
             </div>
@@ -579,43 +568,23 @@
               </div>
               <div class="step-info">
                 <h4>Статистика</h4>
-                <p>{{ isEventInPast ? 'Информация об участниках' : 'Ожидаемая посещаемость' }}</p>
+                <p>Информация об участниках</p>
               </div>
             </div>
 
             <div class="form-row two-columns">
               <div class="form-group">
-                <label class="form-label">
-                  {{ isEventInPast ? 'Ожидалось посетителей' : 'Ожидаемое количество посетителей' }}
-                </label>
-                <input
-                  v-model="eventForm.expected_visitors"
-                  type="number"
-                  class="form-input"
-                  :placeholder="isEventInPast ? '500' : 'Примерное количество (например, 500)'"
-                  min="0"
-                />
+                <label class="form-label">Ожидаемых посетителей</label>
+                <input v-model="eventForm.expected_visitors" type="number" class="form-input" placeholder="500" min="0" />
               </div>
-              <div v-if="isEventInPast" class="form-group">
-                <label class="form-label">
-                  Посетило фактически
-                  <span class="label-hint">(заполните после мероприятия)</span>
-                </label>
-                <input
-                  v-model="eventForm.attendees_count"
-                  type="number"
-                  class="form-input"
-                  placeholder="Фактическое количество участников"
-                  min="0"
-                />
+              <div class="form-group">
+                <label class="form-label">Фактическое количество</label>
+                <input v-model="eventForm.attendees_count" type="number" class="form-input" placeholder="После мероприятия" min="0" />
               </div>
             </div>
 
             <div class="form-group">
-              <label class="form-label">
-                Особенности мероприятия
-                <span class="label-hint">{{ isEventInPast ? 'Что было на мероприятии' : 'Что планируется' }}</span>
-              </label>
+              <label class="form-label">Особенности мероприятия</label>
               <div class="features-chips">
                 <label class="feature-chip" :class="{ 'checked': eventForm.has_dealers_den }">
                   <input v-model="eventForm.has_dealers_den" type="checkbox" />
@@ -870,7 +839,6 @@
 
 <script>
 import { furryApi } from '@/config/supabase.js'
-import s3Api, { sanitizeFolderName } from '@/config/s3.js'
 import FileUploader from '@/FileUploader.vue'
 import StarRating from '@/components/ui/StarRating.vue'
 import CompactImageUploader from '@/components/CompactImageUploader.vue'
@@ -1008,9 +976,7 @@ export default {
 
     isEventInPast() {
       if (!this.eventForm.event_date) return false
-      const eventDate = new Date(this.eventForm.event_date)
-      if (isNaN(eventDate.getTime())) return false
-      return eventDate < new Date()
+      return new Date(this.eventForm.event_date) < new Date()
     },
 
     upcomingPercent() {
@@ -1050,10 +1016,7 @@ export default {
 
     eventsNeedingReview() {
       return this.events.filter(e => {
-        if (!e.event_date) return false
-        const eventDate = new Date(e.event_date)
-        if (isNaN(eventDate.getTime())) return false
-        const isPast = eventDate < new Date()
+        const isPast = new Date(e.event_date) < new Date()
         return isPast && !e.review_completed
       })
     },
@@ -1160,31 +1123,6 @@ export default {
         }
       },
       immediate: false
-    },
-
-    // Защита от пустых строк в датах (конвертируем в null)
-    'eventForm.event_date': {
-      handler(newVal) {
-        if (newVal === '' || (typeof newVal === 'string' && newVal.trim() === '')) {
-          this.eventForm.event_date = null
-        }
-      }
-    },
-
-    'eventForm.event_end_date': {
-      handler(newVal) {
-        if (newVal === '' || (typeof newVal === 'string' && newVal.trim() === '')) {
-          this.eventForm.event_end_date = null
-        }
-      }
-    },
-
-    'eventForm.announced_date': {
-      handler(newVal) {
-        if (newVal === '' || (typeof newVal === 'string' && newVal.trim() === '')) {
-          this.eventForm.announced_date = null
-        }
-      }
     }
   },
 
@@ -1213,24 +1151,18 @@ export default {
     async loadEvents() {
       try {
         console.log('🎪 AdminEvents: Загружаем мероприятия...')
-
+        
         const events = await furryApi.getEvents({
           status: this.statusFilter === 'all' ? undefined : this.statusFilter,
           sort: this.sortBy,
           limit: 100,
           search: this.searchQuery.trim() || undefined
         })
-
-        // Нормализуем даты для всех событий (приводим к null или валидной строке)
-        this.events = (events || []).map(event => ({
-          ...event,
-          event_date: (event.event_date && typeof event.event_date === 'string' && event.event_date.trim() !== '') ? event.event_date : null,
-          event_end_date: (event.event_end_date && typeof event.event_end_date === 'string' && event.event_end_date.trim() !== '') ? event.event_end_date : null,
-          announced_date: (event.announced_date && typeof event.announced_date === 'string' && event.announced_date.trim() !== '') ? event.announced_date : null
-        }))
-
+        
+        this.events = events || []
+        
         console.log('✅ AdminEvents: Мероприятия загружены:', this.events.length)
-
+        
       } catch (error) {
         console.error('❌ AdminEvents: Ошибка загрузки мероприятий:', error)
         throw error
@@ -1291,9 +1223,9 @@ export default {
         slug: '',
         subtitle: '',
         description: '',
-        event_date: null,
-        event_end_date: null,
-        announced_date: null,
+        event_date: '',
+        event_end_date: '',
+        announced_date: '',
         location: '',
         city: '',
         country: '',
@@ -1418,10 +1350,12 @@ export default {
       this.uploadingPurchasePhoto = index
 
       try {
-        console.log(`📸 Загружаем фото покупки для мероприятия ${this.eventForm.name}...`)
+        console.log(`📸 Загружаем фото покупки для мероприятия ${this.eventForm.id}...`)
 
-        // Загружаем фото покупки (передаем объект события с photos_folder)
-        const result = await s3Api.uploadPurchasePhoto(file, this.eventForm)
+        const { s3Api } = await import('@/config/s3.js')
+
+        // Загружаем фото покупки
+        const result = await s3Api.uploadPurchasePhoto(file, this.eventForm.id)
 
         // Сохраняем URL в форме
         this.eventForm.purchase_items[index].image = result.url
@@ -1546,13 +1480,14 @@ export default {
       this.uploadTotal = files.length
 
       try {
-        console.log(`📸 Загружаем ${files.length} фотографий для мероприятия ${this.eventForm.name}...`)
+        console.log(`📸 Загружаем ${files.length} фотографий для мероприятия ${this.eventForm.id}...`)
+
+        const { s3Api } = await import('@/config/s3.js')
 
         // Используем новый метод uploadEventPhotos который автоматически создает миниатюры
-        // Передаем объект события целиком (с photos_folder)
         const results = await s3Api.uploadEventPhotos(
           files,
-          this.eventForm,
+          this.eventForm.id,
           (totalProgress, currentFile, totalFiles) => {
             this.uploadProgress = currentFile
             this.uploadTotal = totalFiles
@@ -1620,35 +1555,12 @@ export default {
       this.isEditing = true
       this.eventForm = { ...event }
 
-      // Нормализуем и конвертируем даты из ISO формата в YYYY-MM-DD для input[type="date"]
+      // Конвертируем дату из ISO формата в YYYY-MM-DD для input[type="date"]
       if (this.eventForm.event_date) {
-        if (typeof this.eventForm.event_date === 'string') {
-          this.eventForm.event_date = this.eventForm.event_date.split('T')[0]
-        } else if (this.eventForm.event_date instanceof Date) {
-          this.eventForm.event_date = this.eventForm.event_date.toISOString().split('T')[0]
-        } else {
-          this.eventForm.event_date = null
-        }
+        this.eventForm.event_date = this.eventForm.event_date.split('T')[0]
       }
-
-      if (this.eventForm.event_end_date) {
-        if (typeof this.eventForm.event_end_date === 'string') {
-          this.eventForm.event_end_date = this.eventForm.event_end_date.split('T')[0]
-        } else if (this.eventForm.event_end_date instanceof Date) {
-          this.eventForm.event_end_date = this.eventForm.event_end_date.toISOString().split('T')[0]
-        } else {
-          this.eventForm.event_end_date = null
-        }
-      }
-
       if (this.eventForm.announced_date) {
-        if (typeof this.eventForm.announced_date === 'string') {
-          this.eventForm.announced_date = this.eventForm.announced_date.split('T')[0]
-        } else if (this.eventForm.announced_date instanceof Date) {
-          this.eventForm.announced_date = this.eventForm.announced_date.toISOString().split('T')[0]
-        } else {
-          this.eventForm.announced_date = null
-        }
+        this.eventForm.announced_date = this.eventForm.announced_date.split('T')[0]
       }
 
       // Инициализируем массивы если они null
@@ -1736,11 +1648,6 @@ export default {
         // Генерируем slug из названия
         if (!this.eventForm.slug) {
           this.eventForm.slug = this.generateSlug(this.eventForm.name)
-        }
-
-        // Генерируем photos_folder из slug если его нет
-        if (!this.eventForm.photos_folder && this.eventForm.slug) {
-          this.eventForm.photos_folder = sanitizeFolderName(this.eventForm.slug)
         }
 
         // Подготавливаем данные для сохранения
@@ -1907,10 +1814,7 @@ export default {
     // ============================================
     
     isUpcoming(event) {
-      if (!event.event_date) return false
-      const eventDate = new Date(event.event_date)
-      if (isNaN(eventDate.getTime())) return false
-      return eventDate > new Date()
+      return new Date(event.event_date) > new Date()
     },
     
     getEventStatusClass(event) {
@@ -1955,27 +1859,12 @@ export default {
     },
     
     formatEventDate(dateString) {
-      // Строгая проверка на все возможные невалидные значения
-      if (!dateString || (typeof dateString === 'string' && dateString.trim() === '')) {
-        return 'Дата не указана'
-      }
-
-      try {
-        const date = new Date(dateString)
-        // Двойная проверка валидности даты
-        if (isNaN(date.getTime()) || !isFinite(date.getTime())) {
-          return 'Некорректная дата'
-        }
-
-        return date.toLocaleDateString('ru-RU', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        })
-      } catch (error) {
-        console.error('Ошибка форматирования даты:', dateString, error)
-        return 'Ошибка даты'
-      }
+      const date = new Date(dateString)
+      return date.toLocaleDateString('ru-RU', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
     },
     
     formatMoney(amount) {
@@ -3283,13 +3172,6 @@ h2.panel-title {
   content: '*';
   color: var(--accent-red);
   margin-left: 0.25rem;
-}
-
-.label-hint {
-  font-size: 0.8rem;
-  font-weight: 400;
-  color: var(--text-muted);
-  margin-left: 0.5rem;
 }
 
 .form-input,
