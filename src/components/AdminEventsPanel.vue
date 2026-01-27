@@ -1177,63 +1177,7 @@ export default {
 
         // Нормализуем даты для всех событий
         // Это решает проблему разных форматов дат между preview и production
-        const normalizedEvents = (events || []).map(event => {
-          const normalized = { ...event }
-
-          // Нормализуем основные даты
-          if (event.event_date !== null && event.event_date !== undefined) {
-            try {
-              const date = new Date(event.event_date)
-              if (!isNaN(date.getTime()) && isFinite(date.getTime())) {
-                // Преобразуем в ISO строку для консистентности
-                normalized.event_date = date.toISOString()
-              } else {
-                normalized.event_date = null
-              }
-            } catch (e) {
-              console.warn('⚠️ Некорректная event_date для события', event.id, ':', event.event_date)
-              normalized.event_date = null
-            }
-          } else {
-            normalized.event_date = null
-          }
-
-          if (event.event_end_date !== null && event.event_end_date !== undefined) {
-            try {
-              const date = new Date(event.event_end_date)
-              if (!isNaN(date.getTime()) && isFinite(date.getTime())) {
-                normalized.event_end_date = date.toISOString()
-              } else {
-                normalized.event_end_date = null
-              }
-            } catch (e) {
-              console.warn('⚠️ Некорректная event_end_date для события', event.id, ':', event.event_end_date)
-              normalized.event_end_date = null
-            }
-          } else {
-            normalized.event_end_date = null
-          }
-
-          if (event.announced_date !== null && event.announced_date !== undefined) {
-            try {
-              const date = new Date(event.announced_date)
-              if (!isNaN(date.getTime()) && isFinite(date.getTime())) {
-                normalized.announced_date = date.toISOString()
-              } else {
-                normalized.announced_date = null
-              }
-            } catch (e) {
-              console.warn('⚠️ Некорректная announced_date для события', event.id, ':', event.announced_date)
-              normalized.announced_date = null
-            }
-          } else {
-            normalized.announced_date = null
-          }
-
-          return normalized
-        })
-
-        this.events = normalizedEvents
+        this.events = (events || []).map(event => this.normalizeEventDates(event))
 
         console.log('✅ AdminEvents: Мероприятия загружены и нормализованы:', this.events.length)
 
@@ -1627,37 +1571,23 @@ export default {
 
     async editEvent(event) {
       this.isEditing = true
-      this.eventForm = { ...event }
+
+      // Сначала нормализуем все даты к ISO формату
+      const normalizedEvent = this.normalizeEventDates(event)
+      this.eventForm = { ...normalizedEvent }
 
       // Конвертируем дату из ISO формата в YYYY-MM-DD для input[type="date"]
+      // После нормализации все даты гарантированно либо ISO строки либо null
       if (this.eventForm.event_date) {
-        if (typeof this.eventForm.event_date === 'string') {
-          this.eventForm.event_date = this.eventForm.event_date.split('T')[0]
-        } else if (this.eventForm.event_date instanceof Date) {
-          this.eventForm.event_date = this.eventForm.event_date.toISOString().split('T')[0]
-        } else {
-          this.eventForm.event_date = null
-        }
+        this.eventForm.event_date = this.eventForm.event_date.split('T')[0]
       }
 
       if (this.eventForm.event_end_date) {
-        if (typeof this.eventForm.event_end_date === 'string') {
-          this.eventForm.event_end_date = this.eventForm.event_end_date.split('T')[0]
-        } else if (this.eventForm.event_end_date instanceof Date) {
-          this.eventForm.event_end_date = this.eventForm.event_end_date.toISOString().split('T')[0]
-        } else {
-          this.eventForm.event_end_date = null
-        }
+        this.eventForm.event_end_date = this.eventForm.event_end_date.split('T')[0]
       }
 
       if (this.eventForm.announced_date) {
-        if (typeof this.eventForm.announced_date === 'string') {
-          this.eventForm.announced_date = this.eventForm.announced_date.split('T')[0]
-        } else if (this.eventForm.announced_date instanceof Date) {
-          this.eventForm.announced_date = this.eventForm.announced_date.toISOString().split('T')[0]
-        } else {
-          this.eventForm.announced_date = null
-        }
+        this.eventForm.announced_date = this.eventForm.announced_date.split('T')[0]
       }
 
       // Инициализируем массивы если они null
@@ -1785,14 +1715,18 @@ export default {
           console.log('✅ AdminEvents: Фотографии сохранены')
         }
 
+        // Нормализуем даты перед добавлением в локальные данные
+        // КРИТИЧНО: savedEvent из API может иметь разный формат дат на preview vs production
+        const normalizedEvent = this.normalizeEventDates(savedEvent)
+
         // Обновляем локальные данные
         if (this.isEditing) {
           const index = this.events.findIndex(e => e.id === savedEvent.id)
           if (index !== -1) {
-            this.events.splice(index, 1, savedEvent)
+            this.events.splice(index, 1, normalizedEvent)
           }
         } else {
-          this.events.unshift(savedEvent)
+          this.events.unshift(normalizedEvent)
         }
         
         this.closeCreateModal()
@@ -1816,8 +1750,10 @@ export default {
     
     duplicateEvent(event) {
       this.isEditing = false
+      // Нормализуем даты перед дублированием
+      const normalizedEvent = this.normalizeEventDates(event)
       this.eventForm = {
-        ...event,
+        ...normalizedEvent,
         id: undefined,
         name: `${event.name} (копия)`,
         slug: '',
@@ -1958,6 +1894,41 @@ export default {
       return typeMap[type] || type
     },
     
+    // ============================================
+    // НОРМАЛИЗАЦИЯ ДАТ
+    // ============================================
+
+    // Нормализует одну дату - преобразует в ISO строку или null
+    normalizeDateValue(dateValue) {
+      if (dateValue === null || dateValue === undefined) {
+        return null
+      }
+
+      try {
+        const date = new Date(dateValue)
+        if (!isNaN(date.getTime()) && isFinite(date.getTime())) {
+          return date.toISOString()
+        } else {
+          return null
+        }
+      } catch (e) {
+        console.warn('⚠️ Некорректное значение даты:', dateValue)
+        return null
+      }
+    },
+
+    // Нормализует все даты в объекте события
+    normalizeEventDates(event) {
+      if (!event) return event
+
+      return {
+        ...event,
+        event_date: this.normalizeDateValue(event.event_date),
+        event_end_date: this.normalizeDateValue(event.event_end_date),
+        announced_date: this.normalizeDateValue(event.announced_date)
+      }
+    },
+
     formatEventDate(dateString) {
       // Максимально строгая проверка
       if (!dateString) return 'Дата не указана'
