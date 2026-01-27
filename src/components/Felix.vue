@@ -290,32 +290,40 @@
 
       <!-- 4. Галерея -->
       <section id="gallery" class="story-chapter gallery-chapter fullwidth">
-        <div class="chapter-header">
-          <div class="chapter-number">04</div>
-          <h2 class="chapter-title">Галерея воспоминаний</h2>
-          <div class="chapter-subtitle">Наши моменты в кадре</div>
+        <div v-if="isGalleryLoading" class="gallery-loading">
+          <div class="loading-spinner">
+            <div class="spinner"></div>
+          </div>
+          <p class="loading-text">Загружаем воспоминания...</p>
         </div>
-        
-        <div class="gallery-showcase">
-          <div v-if="isGalleryLoading" class="gallery-loading">
-            <div class="loading-spinner">
-              <div class="spinner"></div>
-            </div>
-            <p class="loading-text">Загружаем воспоминания...</p>
+
+        <div v-else-if="galleryError" class="gallery-error">
+          <div class="error-icon">⚠️</div>
+          <p class="error-text">{{ galleryError }}</p>
+          <p class="error-subtext">Используем резервные изображения</p>
+        </div>
+
+        <BentoGallery
+          v-else
+          :imageItems="bentoGalleryItems"
+          title="Галерея воспоминаний"
+          description="Наши особенные моменты в интерактивном формате. Перетащите для исследования, нажмите для увеличения."
+        />
+
+        <div v-if="!isGalleryLoading" class="gallery-controls">
+          <div class="gallery-info">
+            <span class="gallery-count">{{ galleryPhotos.length }} воспоминаний</span>
           </div>
-          
-          <div v-else-if="galleryError" class="gallery-error">
-            <div class="error-icon">⚠️</div>
-            <p class="error-text">{{ galleryError }}</p>
-            <p class="error-subtext">Используем резервные изображения</p>
-          </div>
-          
-          <div v-else class="gallery-grid">
-            <div 
-              v-for="(photo, index) in galleryPhotos" 
-              :key="`photo-${index}`"
-              class="gallery-item"
+          <div class="gallery-buttons">
+            <a
+              href="https://foxtaffy.fun/gallery"
+              target="_blank"
+              class="gallery-btn external"
+              rel="noopener noreferrer"
             >
+              <i class="fas fa-external-link-alt"></i>
+              <span>Полная галерея</span>
+            </a>
               <div class="gallery-image">
                 <img 
                   :src="photo.src" 
@@ -462,10 +470,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useHead } from '@vueuse/head'
 import FelixImage from '@/assets/Felix/Felix.jpg'
 import { furryApi } from '../config/supabase.js'
+import BentoGallery from '@/components/ui/BentoGallery.vue'
 
 // Интерфейсы
 interface NavigationItem {
@@ -737,6 +746,26 @@ const heritageData = ref<Heritage[]>([
 ])
 
 const galleryPhotos = ref<GalleryPhoto[]>([])
+
+// Computed property для преобразования galleryPhotos в формат BentoGallery
+const bentoGalleryItems = computed(() => {
+  const spanPatterns = [
+    'md:col-span-2 md:row-span-2',
+    'md:row-span-1',
+    'md:row-span-1',
+    'md:row-span-2',
+    'md:row-span-1',
+    'md:col-span-2 md:row-span-1'
+  ]
+
+  return galleryPhotos.value.map((photo, index) => ({
+    id: index + 1,
+    title: photo.title || photo.caption || `Память ${index + 1}`,
+    desc: photo.caption || 'Особенный момент нашей истории',
+    url: photo.src,
+    span: spanPatterns[index % spanPatterns.length]
+  }))
+})
 
 const factsData = ref<Fact[]>([
   {
