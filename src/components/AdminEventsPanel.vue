@@ -2008,6 +2008,48 @@ export default {
 
       const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length
       return parseFloat(avg.toFixed(1))
+    },
+
+    // Методы для форматирования даты в угловом бейдже
+    getMonthShort(dateValue) {
+      if (!dateValue) return '---'
+
+      try {
+        // Нормализация даты - преобразуем в Date если это строка
+        const date = dateValue instanceof Date ? dateValue : new Date(dateValue)
+
+        // Проверка валидности даты
+        if (isNaN(date.getTime()) || !isFinite(date.getTime())) {
+          console.error('Invalid date in getMonthShort:', dateValue)
+          return '---'
+        }
+
+        const months = ['ЯНВ', 'ФЕВ', 'МАР', 'АПР', 'МАЙ', 'ИЮН', 'ИЮЛ', 'АВГ', 'СЕН', 'ОКТ', 'НОЯ', 'ДЕК']
+        return months[date.getMonth()]
+      } catch (error) {
+        console.error('Error in getMonthShort:', error, dateValue)
+        return '---'
+      }
+    },
+
+    getDay(dateValue) {
+      if (!dateValue) return '--'
+
+      try {
+        // Нормализация даты - преобразуем в Date если это строка
+        const date = dateValue instanceof Date ? dateValue : new Date(dateValue)
+
+        // Проверка валидности даты
+        if (isNaN(date.getTime()) || !isFinite(date.getTime())) {
+          console.error('Invalid date in getDay:', dateValue)
+          return '--'
+        }
+
+        return date.getDate()
+      } catch (error) {
+        console.error('Error in getDay:', error, dateValue)
+        return '--'
+      }
     }
   },
   
