@@ -947,9 +947,15 @@ export default {
 
     isEventInPast() {
       if (!this.eventForm.event_date) return false
-      const eventDate = new Date(this.eventForm.event_date)
-      if (isNaN(eventDate.getTime())) return false
-      return eventDate < new Date()
+
+      try {
+        const eventDate = new Date(this.eventForm.event_date)
+        if (isNaN(eventDate.getTime()) || !isFinite(eventDate.getTime())) return false
+        return eventDate < new Date()
+      } catch (error) {
+        console.error('Ошибка проверки даты:', error)
+        return false
+      }
     },
 
     upcomingPercent() {
@@ -989,11 +995,16 @@ export default {
 
     eventsNeedingReview() {
       return this.events.filter(e => {
-        if (!e.event_date) return false
-        const eventDate = new Date(e.event_date)
-        if (isNaN(eventDate.getTime())) return false
-        const isPast = eventDate < new Date()
-        return isPast && !e.review_completed
+        if (!e || !e.event_date) return false
+
+        try {
+          const eventDate = new Date(e.event_date)
+          if (isNaN(eventDate.getTime()) || !isFinite(eventDate.getTime())) return false
+          const isPast = eventDate < new Date()
+          return isPast && !e.review_completed
+        } catch (error) {
+          return false
+        }
       })
     },
 
@@ -1533,10 +1544,33 @@ export default {
 
       // Конвертируем дату из ISO формата в YYYY-MM-DD для input[type="date"]
       if (this.eventForm.event_date) {
-        this.eventForm.event_date = this.eventForm.event_date.split('T')[0]
+        if (typeof this.eventForm.event_date === 'string') {
+          this.eventForm.event_date = this.eventForm.event_date.split('T')[0]
+        } else if (this.eventForm.event_date instanceof Date) {
+          this.eventForm.event_date = this.eventForm.event_date.toISOString().split('T')[0]
+        } else {
+          this.eventForm.event_date = null
+        }
       }
+
+      if (this.eventForm.event_end_date) {
+        if (typeof this.eventForm.event_end_date === 'string') {
+          this.eventForm.event_end_date = this.eventForm.event_end_date.split('T')[0]
+        } else if (this.eventForm.event_end_date instanceof Date) {
+          this.eventForm.event_end_date = this.eventForm.event_end_date.toISOString().split('T')[0]
+        } else {
+          this.eventForm.event_end_date = null
+        }
+      }
+
       if (this.eventForm.announced_date) {
-        this.eventForm.announced_date = this.eventForm.announced_date.split('T')[0]
+        if (typeof this.eventForm.announced_date === 'string') {
+          this.eventForm.announced_date = this.eventForm.announced_date.split('T')[0]
+        } else if (this.eventForm.announced_date instanceof Date) {
+          this.eventForm.announced_date = this.eventForm.announced_date.toISOString().split('T')[0]
+        } else {
+          this.eventForm.announced_date = null
+        }
       }
 
       // Инициализируем массивы если они null
@@ -1838,14 +1872,39 @@ export default {
     },
     
     formatEventDate(dateString) {
+      // Максимально строгая проверка
       if (!dateString) return 'Дата не указана'
-      const date = new Date(dateString)
-      if (isNaN(date.getTime())) return 'Некорректная дата'
-      return date.toLocaleDateString('ru-RU', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
+
+      // Проверяем что это строка
+      if (typeof dateString !== 'string') {
+        // Если это Date объект, конвертируем
+        if (dateString instanceof Date) {
+          if (isNaN(dateString.getTime())) return 'Некорректная дата'
+          dateString = dateString.toISOString()
+        } else {
+          return 'Некорректный формат даты'
+        }
+      }
+
+      // Проверка на пустую строку
+      if (dateString.trim() === '') return 'Дата не указана'
+
+      try {
+        const date = new Date(dateString)
+        // Двойная проверка валидности
+        if (isNaN(date.getTime()) || !isFinite(date.getTime())) {
+          return 'Некорректная дата'
+        }
+
+        return date.toLocaleDateString('ru-RU', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      } catch (error) {
+        console.error('Ошибка форматирования даты:', dateString, error)
+        return 'Ошибка даты'
+      }
     },
     
     formatMoney(amount) {
