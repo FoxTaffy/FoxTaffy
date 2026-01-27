@@ -11,7 +11,7 @@
       <PartnerSection />
       <EventsSection />
       <CommunitiesSection />
-      
+
       <div class="footer">
         <p>© 2025 Fox Taffy | FoxTaffy.fun v.2.0</p>
         <p>Сделано с <span class="heart">❤</span> для фурри-сообщества</p>

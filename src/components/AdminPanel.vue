@@ -56,10 +56,10 @@
           <nav class="sidebar-nav">
             <div class="nav-section">
               <h3>Основное</h3>
-              <button 
-                v-for="tab in mainTabs" 
+              <button
+                v-for="tab in mainTabs"
                 :key="tab.id"
-                @click="activeTab = tab.id"
+                @click="tryChangeTab(tab.id)"
                 class="nav-item"
                 :class="{ active: activeTab === tab.id }"
               >
@@ -68,13 +68,13 @@
                 <div v-if="tab.count" class="count-badge">{{ tab.count }}</div>
               </button>
             </div>
-            
+
             <div class="nav-section">
               <h3>Управление</h3>
-              <button 
-                v-for="tab in manageTabs" 
+              <button
+                v-for="tab in manageTabs"
                 :key="tab.id"
-                @click="activeTab = tab.id"
+                @click="tryChangeTab(tab.id)"
                 class="nav-item"
                 :class="{ active: activeTab === tab.id }"
               >
@@ -103,258 +103,150 @@
               <h1>{{ currentTabInfo.title }}</h1>
               <p>{{ currentTabInfo.subtitle }}</p>
             </div>
-            <div class="header-stats">
-              <div class="stat-card">
-                <i class="fas fa-images"></i>
-                <div>
-                  <span class="stat-number">{{ stats.arts }}</span>
-                  <span class="stat-label">Артов</span>
-                </div>
-              </div>
-              <div class="stat-card">
-                <i class="fas fa-palette"></i>
-                <div>
-                  <span class="stat-number">{{ stats.artists }}</span>
-                  <span class="stat-label">Художников</span>
-                </div>
-              </div>
-              <div class="stat-card">
-                <i class="fas fa-cloud"></i>
-                <div>
-                  <span class="stat-number">{{ uploadedFilesCount }}</span>
-                  <span class="stat-label">S3 файлов</span>
-                </div>
-              </div>
-            </div>
           </header>
 
           <!-- Контент вкладок -->
           <div class="tab-content">
             <!-- Dashboard -->
             <div v-if="activeTab === 'dashboard'" class="dashboard">
-              <div class="dashboard-grid">
-                <!-- НОВЫЙ КОД - ВСТАВИТЬ -->
-                <div class="dashboard-card quick-actions-card">
-                  <h3><i class="fas fa-bolt"></i> Быстрые действия</h3>
-                  <div class="quick-actions-grid">
-                    <button @click="setActiveTab('add-art')" class="quick-action-btn primary">
-                      <div class="btn-icon">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                      </div>
-                      <div class="btn-content">
-                        <span class="btn-title">Загрузить арт</span>
-                        <span class="btn-subtitle">Добавить новый арт в галерею</span>
-                      </div>
-                      <i class="fas fa-arrow-right btn-arrow"></i>
-                    </button>
-                    
-                    <button @click="openModal('artist')" class="quick-action-btn secondary">
-                      <div class="btn-icon">
-                        <i class="fas fa-user-plus"></i>
-                      </div>
-                      <div class="btn-content">
-                        <span class="btn-title">Новый художник</span>
-                        <span class="btn-subtitle">Добавить художника в базу</span>
-                      </div>
-                      <i class="fas fa-arrow-right btn-arrow"></i>
-                    </button>
-                    
-                    <button @click="openModal('tag')" class="quick-action-btn tertiary">
-                      <div class="btn-icon">
-                        <i class="fas fa-tag"></i>
-                      </div>
-                      <div class="btn-content">
-                        <span class="btn-title">Новый тег</span>
-                        <span class="btn-subtitle">Создать тег для категоризации</span>
-                      </div>
-                      <i class="fas fa-arrow-right btn-arrow"></i>
-                    </button>
-                    
-                    <button @click="openModal('character')" class="quick-action-btn quaternary">
-                      <div class="btn-icon">
-                        <i class="fas fa-paw"></i>
-                      </div>
-                      <div class="btn-content">
-                        <span class="btn-title">Новый персонаж</span>
-                        <span class="btn-subtitle">Добавить персонажа в коллекцию</span>
-                      </div>
-                      <i class="fas fa-arrow-right btn-arrow"></i>
-                    </button>
+              <div class="dashboard-compact">
+                <!-- Компактная строка статистики -->
+                <div class="stats-compact-row">
+                  <div class="stat-compact">
+                    <i class="fas fa-images"></i>
+                    <div>
+                      <div class="stat-num">{{ stats.arts }}</div>
+                      <div class="stat-lbl">Артов</div>
+                    </div>
                   </div>
-                </div>
-
-
-                <div class="dashboard-card">
-                  <h3><i class="fas fa-chart-bar"></i> Статистика</h3>
-                  <div class="stats-grid">
-                    <div class="stat-item">
-                      <div class="stat-icon">
-                        <i class="fas fa-images"></i>
-                      </div>
-                      <div class="stat-content">
-                        <span class="stat-number">{{ stats.arts }}</span>
-                        <span class="stat-label">Артов</span>
-                        <div class="stat-progress">
-                          <div class="progress-bar" :style="{ width: '75%' }"></div>
-                        </div>
-                      </div>
+                  <div class="stat-compact">
+                    <i class="fas fa-palette"></i>
+                    <div>
+                      <div class="stat-num">{{ stats.artists }}</div>
+                      <div class="stat-lbl">Художников</div>
                     </div>
-                    
-                    <div class="stat-item">
-                      <div class="stat-icon artists">
-                        <i class="fas fa-palette"></i>
-                      </div>
-                      <div class="stat-content">
-                        <span class="stat-number">{{ stats.artists }}</span>
-                        <span class="stat-label">Художников</span>
-                        <div class="stat-progress">
-                          <div class="progress-bar artists" :style="{ width: '60%' }"></div>
-                        </div>
-                      </div>
+                  </div>
+                  <div class="stat-compact">
+                    <i class="fas fa-tags"></i>
+                    <div>
+                      <div class="stat-num">{{ stats.tags }}</div>
+                      <div class="stat-lbl">Тегов</div>
                     </div>
-                    
-                    <div class="stat-item">
-                      <div class="stat-icon tags">
-                        <i class="fas fa-tags"></i>
-                      </div>
-                      <div class="stat-content">
-                        <span class="stat-number">{{ stats.tags }}</span>
-                        <span class="stat-label">Тегов</span>
-                        <div class="stat-progress">
-                          <div class="progress-bar tags" :style="{ width: '45%' }"></div>
-                        </div>
-                      </div>
+                  </div>
+                  <div class="stat-compact">
+                    <i class="fas fa-server"></i>
+                    <div>
+                      <div class="stat-num">{{ uploadedFilesCount }}</div>
+                      <div class="stat-lbl">Файлов S3</div>
                     </div>
                   </div>
                 </div>
 
-                <div class="dashboard-card">
-                  <h3><i class="fas fa-server"></i> Хранилище S3</h3>
-                  <div class="storage-overview">
-                    <div class="storage-status">
-                      <div class="status-indicator active">
-                        <div class="status-dot"></div>
-                        <span>Подключено</span>
-                      </div>
-                      <div class="storage-stats">
-                        <span class="storage-count">{{ uploadedFilesCount }}</span>
-                        <span class="storage-label">файлов в S3</span>
-                      </div>
+                <!-- Средняя секция: Арты и Контент -->
+                <div class="dashboard-middle">
+                  <div class="dashboard-card-mini">
+                    <div class="card-header-mini">
+                      <h3><i class="fas fa-clock"></i> Последние арты</h3>
+                      <button @click="activeTab = 'gallery'" class="view-btn-mini">
+                        <i class="fas fa-arrow-right"></i>
+                      </button>
                     </div>
-                    
-                    <div class="storage-details">
-                      <div class="storage-item">
-                        <i class="fas fa-database"></i>
-                        <div>
-                          <span>Supabase Storage</span>
-                          <small>Провайдер хранилища</small>
-                        </div>
-                      </div>
-                      <div class="storage-item">
-                        <i class="fas fa-folder"></i>
-                        <div>
-                          <span>gallery</span>
-                          <small>Основной bucket</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="dashboard-card">
-                  <h3><i class="fas fa-shield-alt"></i> Контент</h3>
-                  <div class="content-stats">
-                    <div class="content-item sfw">
-                      <div class="content-icon">
-                        <i class="fas fa-check-circle"></i>
-                      </div>
-                      <div class="content-info">
-                        <span class="content-number">{{ sfwArtsCount }}</span>
-                        <span class="content-label">SFW артов</span>
-                        <div class="content-percentage">{{ Math.round((sfwArtsCount / stats.arts) * 100) }}%</div>
-                      </div>
-                    </div>
-                    
-                    <div class="content-item nsfw">
-                      <div class="content-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
-                      </div>
-                      <div class="content-info">
-                        <span class="content-number">{{ nsfwArtsCount }}</span>
-                        <span class="content-label">NSFW артов</span>
-                        <div class="content-percentage">{{ Math.round((nsfwArtsCount / stats.arts) * 100) }}%</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="dashboard-card full-width">
-                  <div class="card-header">
-                    <h3><i class="fas fa-clock"></i> Последние арты</h3>
-                    <button @click="activeTab = 'gallery'" class="view-all-btn">
-                      <span>Смотреть все</span>
-                      <i class="fas fa-arrow-right"></i>
-                    </button>
-                  </div>
-                  <div class="recent-arts">
-                    <div 
-                      v-for="art in recentArts.slice(0, 8)" 
-                      :key="art.id" 
-                      class="recent-art"
-                      @click="viewArt(art)"
-                    >
-                      <div class="art-image-container">
+                    <div class="recent-arts-mini">
+                      <div
+                        v-for="art in recentArts.slice(0, 4)"
+                        :key="art.id"
+                        class="art-mini"
+                        @click="viewArt(art)"
+                      >
                         <img :src="art.thumbnail_url || art.image_url" :alt="art.title">
-                        <div v-if="art.is_nsfw" class="nsfw-indicator">NSFW</div>
-                        <div v-if="isS3Url(art.image_url)" class="s3-indicator">S3</div>
-                        <div class="art-overlay">
+                        <div v-if="art.is_nsfw" class="nsfw-badge-mini">NSFW</div>
+                        <div class="art-overlay-mini">
                           <i class="fas fa-eye"></i>
                         </div>
                       </div>
-                      <div class="art-info">
-                        <h4>{{ art.title }}</h4>
-                        <p>{{ art.artist_name }}</p>
-                        <div class="art-date">{{ formatDate(art.created_date) }}</div>
+                    </div>
+                  </div>
+
+                  <div class="dashboard-right-column">
+                    <div class="dashboard-card-mini">
+                      <h3><i class="fas fa-shield-alt"></i> Контент</h3>
+                      <div class="content-mini">
+                        <div class="content-row">
+                          <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+                          <span>SFW: <strong>{{ sfwArtsCount }}</strong></span>
+                          <span class="percent-mini">{{ Math.round((sfwArtsCount / stats.arts) * 100) }}%</span>
+                        </div>
+                        <div class="content-row">
+                          <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+                          <span>NSFW: <strong>{{ nsfwArtsCount }}</strong></span>
+                          <span class="percent-mini">{{ Math.round((nsfwArtsCount / stats.arts) * 100) }}%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="dashboard-card-mini activity-heatmap-card">
+                      <h3><i class="fas fa-chart-line"></i> Активность</h3>
+                      <div class="heatmap-container">
+                        <div class="heatmap-grid">
+                          <div
+                            v-for="(month, index) in activityHeatmap"
+                            :key="index"
+                            class="heatmap-cell"
+                            :class="'level-' + month.level"
+                            :title="`${month.month}: ${month.count} артов`"
+                          >
+                          </div>
+                        </div>
+                        <div class="heatmap-legend">
+                          <span class="legend-label">Меньше</span>
+                          <div class="legend-cell level-0"></div>
+                          <div class="legend-cell level-1"></div>
+                          <div class="legend-cell level-2"></div>
+                          <div class="legend-cell level-3"></div>
+                          <div class="legend-cell level-4"></div>
+                          <span class="legend-label">Больше</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div class="dashboard-card">
-                  <h3><i class="fas fa-crown"></i> Топ художники</h3>
-                  <div class="top-artists">
-                    <div 
-                      v-for="(artist, index) in topArtists.slice(0, 5)" 
-                      :key="artist.id"
-                      class="top-artist-item"
-                    >
-                      <div class="artist-rank">{{ index + 1 }}</div>
-                      <img 
-                        :src="artist.avatar_url || getDefaultAvatar(artist.name)"
-                        :alt="artist.name"
-                        class="artist-mini-avatar"
+                <!-- Нижняя секция: Художники и Теги -->
+                <div class="dashboard-bottom">
+                  <div class="dashboard-card-mini">
+                    <h3><i class="fas fa-crown"></i> Топ художники</h3>
+                    <div class="top-list-mini">
+                      <div
+                        v-for="(artist, index) in topArtists.slice(0, 3)"
+                        :key="artist.id"
+                        class="list-item-mini"
                       >
-                      <div class="artist-details">
-                        <span class="artist-name">{{ artist.name }}</span>
-                        <span class="artist-count">{{ artist.count }} артов</span>
-                      </div>
-                      <div v-if="artist.is_friend" class="friend-mini-badge">
-                        <i class="fas fa-star"></i>
+                        <div class="rank-mini">{{ index + 1 }}</div>
+                        <img
+                          :src="artist.avatar_url || getDefaultAvatar(artist.name)"
+                          :alt="artist.name"
+                          class="avatar-mini"
+                        >
+                        <div class="info-mini">
+                          <div class="name-mini">{{ artist.name }}</div>
+                          <div class="count-mini">{{ artist.count }}</div>
+                        </div>
+                        <i v-if="artist.is_friend" class="fas fa-star star-mini"></i>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div class="dashboard-card">
-                  <h3><i class="fas fa-fire"></i> Популярные теги</h3>
-                  <div class="popular-tags">
-                    <div 
-                      v-for="tag in popularTags.slice(0, 10)" 
-                      :key="tag.id"
-                      class="popular-tag"
-                    >
-                      <span class="tag-name">{{ tag.name }}</span>
-                      <span class="tag-uses">{{ tag.count }}</span>
+                  <div class="dashboard-card-mini">
+                    <h3><i class="fas fa-fire"></i> Популярные теги</h3>
+                    <div class="tags-mini-grid">
+                      <div
+                        v-for="tag in popularTags.slice(0, 9)"
+                        :key="tag.id"
+                        class="tag-mini"
+                      >
+                        <span>{{ tag.name }}</span>
+                        <span>{{ tag.count }}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -420,11 +312,12 @@
                             class="selector-item artist-item"
                             :class="{ selected: selectedArtist === artist.name }"
                           >
-                            <input 
+                            <input
                               type="radio"
                               :value="artist.name"
                               v-model="selectedArtist"
                               name="artist"
+                              @change="showArtistSelector = false"
                             >
                             <img 
                               :src="artist.avatar_url || getDefaultAvatar(artist.name)"
@@ -933,6 +826,9 @@
                       <button @click="viewArt(art)" class="overlay-btn">
                         <i class="fas fa-eye"></i>
                       </button>
+                      <button @click="editArt(art)" class="overlay-btn edit">
+                        <i class="fas fa-edit"></i>
+                      </button>
                       <button @click="confirmDelete('art', art)" class="overlay-btn danger">
                         <i class="fas fa-trash"></i>
                       </button>
@@ -986,20 +882,18 @@
                   </div>
                   
                   <div class="form-group">
-                    <label>Аватар (URL)</label>
-                    <input 
+                    <AvatarUploader
                       v-model="modal.data.avatar_url"
-                      type="url" 
-                      placeholder="https://example.com/avatar.jpg"
-                      class="form-input"
-                    >
+                      label="Аватар"
+                      folder="avatars"
+                    />
                   </div>
-                  
+
                   <div class="form-group">
                     <label class="checkbox-label">
-                      <input 
+                      <input
                         v-model="modal.data.is_friend"
-                        type="checkbox" 
+                        type="checkbox"
                         class="checkbox"
                       >
                       <span class="checkmark"></span>
@@ -1029,23 +923,212 @@
                 <div v-if="modal.type === 'character'">
                   <div class="form-group">
                     <label>Имя персонажа *</label>
-                    <input 
+                    <input
                       v-model="modal.data.name"
-                      type="text" 
-                      placeholder="Введите имя персонажа..."
+                      type="text"
+                      placeholder="Например: Felix"
                       class="form-input"
                       required
                     >
                   </div>
-                  
+
                   <div class="form-group">
-                    <label>Аватар (URL)</label>
-                    <input 
+                    <AvatarUploader
                       v-model="modal.data.avatar_url"
-                      type="url" 
-                      placeholder="https://example.com/character.jpg"
+                      label="Аватар персонажа"
+                      folder="avatars"
+                    />
+                  </div>
+                </div>
+
+                <!-- Поля для арта -->
+                <div v-if="modal.type === 'art'">
+                  <div class="form-group">
+                    <label>Название арта *</label>
+                    <input
+                      v-model="modal.data.title"
+                      type="text"
+                      placeholder="Введите название арта..."
+                      class="form-input"
+                      required
+                    >
+                  </div>
+
+                  <div class="form-group">
+                    <label>
+                      Художник *
+                      <span v-if="modal.data.artist_nickname" class="selected-count">
+                        (выбран)
+                      </span>
+                    </label>
+
+                    <button
+                      type="button"
+                      @click="modalArtistSelectorOpen = !modalArtistSelectorOpen"
+                      class="selector-btn"
+                      :class="{ active: modalArtistSelectorOpen }"
+                    >
+                      <div class="selector-btn-content">
+                        <i class="fas fa-palette"></i>
+                        <span v-if="modal.data.artist_nickname">{{ modal.data.artist_nickname }}</span>
+                        <span v-else>Выбрать художника</span>
+                      </div>
+                      <i class="fas fa-chevron-down" :class="{ rotated: modalArtistSelectorOpen }"></i>
+                    </button>
+
+                    <div v-if="modalArtistSelectorOpen" class="selector-dropdown">
+                      <div class="selector-header">
+                        <input
+                          v-model="modalArtistSearch"
+                          type="text"
+                          placeholder="Поиск художников..."
+                          class="search-input"
+                        >
+                        <div class="selector-actions">
+                          <button type="button" @click="modal.data.artist_nickname = ''; modalArtistSearch = ''">Очистить</button>
+                        </div>
+                      </div>
+
+                      <div class="selector-list">
+                        <label
+                          v-for="artist in filteredModalArtists"
+                          :key="artist.id"
+                          class="selector-item artist-item"
+                          :class="{ selected: modal.data.artist_nickname === artist.name }"
+                        >
+                          <input
+                            type="radio"
+                            :value="artist.name"
+                            v-model="modal.data.artist_nickname"
+                            name="modal-artist"
+                            @change="modalArtistSelectorOpen = false"
+                          >
+                          <img
+                            :src="artist.avatar_url || getDefaultAvatar(artist.name)"
+                            :alt="artist.name"
+                            class="item-avatar"
+                          >
+                          <div class="artist-info">
+                            <span class="item-name">{{ artist.name }}</span>
+                            <div class="artist-meta">
+                              <span class="item-count">{{ artist.count || 0 }} артов</span>
+                              <div v-if="artist.is_friend" class="friend-indicator">
+                                <i class="fas fa-star"></i>
+                                <span>Друг</span>
+                              </div>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Дата создания</label>
+                    <input
+                      v-model="modal.data.created_date"
+                      type="date"
                       class="form-input"
                     >
+                  </div>
+
+                  <div class="form-group">
+                    <label>Теги</label>
+                    <div class="tags-selector">
+                      <label
+                        v-for="tag in availableTags"
+                        :key="tag.id"
+                        class="tag-checkbox"
+                        :class="{ selected: modal.data.tags?.includes(tag.name) }"
+                      >
+                        <input
+                          type="checkbox"
+                          :value="tag.name"
+                          v-model="modal.data.tags"
+                        >
+                        <span class="tag-label">{{ tag.name }}</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>
+                      Персонажи
+                      <span v-if="modal.data.characters?.length" class="selected-count">
+                        ({{ modal.data.characters.length }} выбрано)
+                      </span>
+                    </label>
+
+                    <button
+                      type="button"
+                      @click="modalCharacterSelectorOpen = !modalCharacterSelectorOpen"
+                      class="selector-btn"
+                      :class="{ active: modalCharacterSelectorOpen }"
+                    >
+                      <div class="selector-btn-content">
+                        <i class="fas fa-paw"></i>
+                        <span v-if="modal.data.characters?.length">
+                          {{ modal.data.characters.length }} персонаж{{ modal.data.characters.length === 1 ? '' : (modal.data.characters.length < 5 ? 'а' : 'ей') }}
+                        </span>
+                        <span v-else>Выбрать персонажей</span>
+                      </div>
+                      <i class="fas fa-chevron-down" :class="{ rotated: modalCharacterSelectorOpen }"></i>
+                    </button>
+
+                    <div v-if="modalCharacterSelectorOpen" class="selector-dropdown">
+                      <div class="selector-header">
+                        <input
+                          v-model="modalCharacterSearch"
+                          type="text"
+                          placeholder="Поиск персонажей..."
+                          class="search-input"
+                        >
+                        <div class="selector-actions">
+                          <button type="button" @click="modal.data.characters = []; modalCharacterSearch = ''">Очистить</button>
+                        </div>
+                      </div>
+
+                      <div class="selector-list">
+                        <label
+                          v-for="character in filteredModalCharacters"
+                          :key="character.id"
+                          class="selector-item character-item"
+                          :class="{ selected: modal.data.characters?.includes(character.name) }"
+                        >
+                          <input
+                            type="checkbox"
+                            :value="character.name"
+                            v-model="modal.data.characters"
+                          >
+                          <img
+                            :src="character.avatar_url || getDefaultCharacterAvatar(character.name)"
+                            :alt="character.name"
+                            class="item-avatar"
+                          >
+                          <div class="character-info">
+                            <span class="item-name">{{ character.name }}</span>
+                            <div class="character-meta">
+                              <span class="item-count">{{ character.count || 0 }} появлений</span>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="checkbox-label">
+                      <input
+                        v-model="modal.data.is_nsfw"
+                        type="checkbox"
+                        class="checkbox"
+                      >
+                      <span class="checkmark"></span>
+                      <span class="checkbox-text">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        NSFW контент
+                      </span>
+                    </label>
                   </div>
                 </div>
               </div>
@@ -1138,6 +1221,46 @@
           </div>
         </div>
       </Transition>
+
+      <!-- Модальное окно подтверждения выхода -->
+      <Transition name="modal">
+        <div v-if="confirmExitModal.show" class="modal-overlay" @click.self="cancelExit">
+          <div class="modal-content confirm-exit-modal" @click.stop>
+            <div class="modal-header">
+              <h3>
+                <i class="fas fa-exclamation-circle"></i>
+                Несохраненные изменения
+              </h3>
+              <button @click="cancelExit" class="modal-close">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+
+            <div class="modal-body">
+              <div class="confirm-exit-content">
+                <div class="confirm-exit-icon">
+                  <i class="fas fa-save"></i>
+                </div>
+                <div class="confirm-exit-text">
+                  <h4>У вас есть несохраненные данные</h4>
+                  <p>Вы заполнили форму добавления арта, но не сохранили её. Если вы покинете эту страницу, все введенные данные будут потеряны.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button @click="cancelExit" class="btn secondary">
+                <i class="fas fa-arrow-left"></i>
+                Вернуться к форме
+              </button>
+              <button @click="confirmExit" class="btn danger">
+                <i class="fas fa-trash"></i>
+                Покинуть без сохранения
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
     </Teleport>
 
     <!-- Уведомления -->
@@ -1163,6 +1286,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { furryApi } from '@/config/supabase.js'
 import FileUploader from '@/components/FileUploader.vue'
+import AvatarUploader from '@/components/AvatarUploader.vue'
 
 // Константы
 const ADMIN_CODE = import.meta.env.VITE_ADMIN_SECRET_CODE || 'FoxTaffy621'
@@ -1225,7 +1349,18 @@ const modal = reactive({
   type: '',
   title: '',
   icon: '',
-  data: {},
+  data: {
+    nickname: '',
+    avatar_url: '',
+    is_friend: false,
+    name: '',
+    title: '',
+    artist_nickname: '',
+    is_nsfw: false,
+    created_date: '',
+    tags: [],
+    characters: []
+  },
   editing: null
 })
 
@@ -1234,6 +1369,18 @@ const deleteModal = reactive({
   type: '',
   item: null
 })
+
+// Модальное окно подтверждения выхода
+const confirmExitModal = reactive({
+  show: false,
+  pendingTab: ''
+})
+
+// Селекторы в модальном окне
+const modalArtistSelectorOpen = ref(false)
+const modalArtistSearch = ref('')
+const modalCharacterSelectorOpen = ref(false)
+const modalCharacterSearch = ref('')
 
 // Уведомления
 const notification = reactive({
@@ -1291,6 +1438,61 @@ const popularTags = computed(() => {
     .slice(0, 15)
 })
 
+// Регулярность публикаций
+const artsPerMonth = computed(() => {
+  if (recentArts.value.length === 0) return 0
+
+  const now = new Date()
+  const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
+
+  const artsThisMonth = recentArts.value.filter(art => {
+    const artDate = new Date(art.created_date || art.upload_date)
+    return artDate >= oneMonthAgo
+  }).length
+
+  return artsThisMonth
+})
+
+const artsPerYear = computed(() => {
+  if (recentArts.value.length === 0) return 0
+
+  const now = new Date()
+  const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+
+  const artsThisYear = recentArts.value.filter(art => {
+    const artDate = new Date(art.created_date || art.upload_date)
+    return artDate >= oneYearAgo
+  }).length
+
+  return artsThisYear
+})
+
+// Тепловая карта активности по месяцам
+const activityHeatmap = computed(() => {
+  const months = []
+  const now = new Date()
+
+  // Генерируем данные за последние 12 месяцев
+  for (let i = 11; i >= 0; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const monthStart = new Date(date.getFullYear(), date.getMonth(), 1)
+    const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0)
+
+    const count = recentArts.value.filter(art => {
+      const artDate = new Date(art.created_date || art.upload_date)
+      return artDate >= monthStart && artDate <= monthEnd
+    }).length
+
+    months.push({
+      month: date.toLocaleDateString('ru-RU', { month: 'short' }),
+      count: count,
+      level: count === 0 ? 0 : count <= 2 ? 1 : count <= 5 ? 2 : count <= 10 ? 3 : 4
+    })
+  }
+
+  return months
+})
+
 const isFormValid = computed(() => {
   return newArt.title.trim().length >= 3 &&
          selectedArtist.value &&
@@ -1298,9 +1500,19 @@ const isFormValid = computed(() => {
          (uploadMethod.value === 's3' ? uploadedFileInfo.value : isValidImageUrl.value)
 })
 
+// Проверка наличия несохраненных изменений в форме добавления арта
+const hasUnsavedChanges = computed(() => {
+  return newArt.title.trim() !== '' ||
+         selectedArtist.value !== '' ||
+         newArt.imageUrl.trim() !== '' ||
+         selectedTags.value.length > 0 ||
+         selectedCharacters.value.length > 0 ||
+         newArt.isNsfw === true
+})
+
 const isModalFormValid = computed(() => {
   if (!modal.show) return false
-  
+
   switch (modal.type) {
     case 'artist':
       return modal.data.nickname && modal.data.nickname.trim()
@@ -1308,6 +1520,8 @@ const isModalFormValid = computed(() => {
       return modal.data.name && modal.data.name.trim()
     case 'character':
       return modal.data.name && modal.data.name.trim()
+    case 'art':
+      return modal.data.title && modal.data.title.trim() && modal.data.artist_nickname
     default:
       return false
   }
@@ -1330,8 +1544,22 @@ const filteredCharacters = computed(() => {
 
 const filteredArtistsForSelector = computed(() => {
   if (!artistSearchQuery.value) return availableArtists.value
-  return availableArtists.value.filter(artist => 
+  return availableArtists.value.filter(artist =>
     artist.name.toLowerCase().includes(artistSearchQuery.value.toLowerCase())
+  )
+})
+
+const filteredModalArtists = computed(() => {
+  if (!modalArtistSearch.value) return availableArtists.value
+  return availableArtists.value.filter(artist =>
+    artist.name.toLowerCase().includes(modalArtistSearch.value.toLowerCase())
+  )
+})
+
+const filteredModalCharacters = computed(() => {
+  if (!modalCharacterSearch.value) return availableCharacters.value
+  return availableCharacters.value.filter(character =>
+    character.name.toLowerCase().includes(modalCharacterSearch.value.toLowerCase())
   )
 })
 
@@ -1702,60 +1930,93 @@ const resetForm = () => {
 }
 
 // Модальные окна
-const openModal = (type, item = null) => {
+const openModal = async (type, item = null) => {
   modal.type = type
   modal.editing = item
-  modal.show = true
+
+  // Сбрасываем свойства перед заполнением (не заменяя весь объект!)
+  modal.data.nickname = ''
+  modal.data.avatar_url = ''
+  modal.data.is_friend = false
+  modal.data.name = ''
+  modal.data.title = ''
+  modal.data.artist_nickname = ''
+  modal.data.is_nsfw = false
+  modal.data.created_date = ''
+  modal.data.tags = []
+  modal.data.characters = []
 
   switch (type) {
     case 'artist':
       modal.title = item ? 'Редактировать художника' : 'Добавить художника'
       modal.icon = 'fas fa-palette'
-      modal.data = item ? {
-        nickname: item.name,
-        avatar_url: item.avatar_url || '',
-        is_friend: item.is_friend || false
-      } : {
-        nickname: '',
-        avatar_url: '',
-        is_friend: false
-      }
+      // Явное присваивание свойств для правильной реактивности
+      modal.data.nickname = item ? item.name : ''
+      modal.data.avatar_url = item ? (item.avatar_url || '') : ''
+      modal.data.is_friend = item ? (item.is_friend || false) : false
       break
-      
+
     case 'tag':
       modal.title = item ? 'Редактировать тег' : 'Добавить тег'
       modal.icon = 'fas fa-tags'
-      modal.data = item ? {
-        name: item.name
-      } : {
-        name: ''
-      }
+      modal.data.name = item ? item.name : ''
       break
-      
+
     case 'character':
       modal.title = item ? 'Редактировать персонажа' : 'Добавить персонажа'
       modal.icon = 'fas fa-paw'
-      modal.data = item ? {
-        name: item.name,
-        avatar_url: item.avatar_url || ''
-      } : {
-        name: '',
-        avatar_url: ''
-      }
+      modal.data.name = item ? item.name : ''
+      modal.data.avatar_url = item ? (item.avatar_url || '') : ''
+      break
+
+    case 'art':
+      modal.title = 'Редактировать арт'
+      modal.icon = 'fas fa-image'
+
+      // Загружаем теги и персонажей арта
+      const [artTags, artCharacters] = await Promise.all([
+        furryApi.getArtTags(item.id),
+        furryApi.getArtCharacters(item.id)
+      ])
+
+      modal.data.title = item.title || ''
+      modal.data.artist_nickname = item.artist_name || ''
+      modal.data.is_nsfw = item.is_nsfw || false
+      modal.data.created_date = item.upload_date ? new Date(item.upload_date).toISOString().split('T')[0] : ''
+      modal.data.tags = artTags || []
+      modal.data.characters = artCharacters || []
       break
   }
+
+  // Открываем модальное окно только после заполнения данных
+  modal.show = true
 }
 
 const closeModal = () => {
   modal.show = false
   modal.type = ''
   modal.editing = null
-  modal.data = {}
+  // Сбрасываем свойства, не заменяя весь объект (для сохранения реактивности)
+  modal.data.nickname = ''
+  modal.data.avatar_url = ''
+  modal.data.is_friend = false
+  modal.data.name = ''
+  modal.data.title = ''
+  modal.data.artist_nickname = ''
+  modal.data.is_nsfw = false
+  modal.data.created_date = ''
+  modal.data.tags = []
+  modal.data.characters = []
+  modalArtistSelectorOpen.value = false
+  modalArtistSearch.value = ''
+  modalCharacterSelectorOpen.value = false
+  modalCharacterSearch.value = ''
 }
 
 const editArtist = (artist) => openModal('artist', artist)
 const editTag = (tag) => openModal('tag', tag)
 const editCharacter = (character) => openModal('character', character)
+const editArt = (art) => openModal('art', art)
 
 const saveData = async () => {
   submitting.value = true
@@ -1838,8 +2099,24 @@ const saveData = async () => {
           stats.characters = availableCharacters.value.length
         }
         break
+
+      case 'art':
+        result = await furryApi.updateArt(modal.editing.id, modal.data)
+        showNotification('Арт обновлен! 🎨', 'success')
+        const artIndex = recentArts.value.findIndex(item => item.id === modal.editing.id)
+        if (artIndex !== -1) {
+          recentArts.value[artIndex] = {
+            ...recentArts.value[artIndex],
+            title: modal.data.title,
+            artist_name: modal.data.artist_nickname,
+            is_nsfw: modal.data.is_nsfw,
+            created_date: modal.data.created_date || recentArts.value[artIndex].created_date
+          }
+        }
+        await loadRecentArts()
+        break
     }
-    
+
     closeModal()
   } catch (error) {
     console.error('❌ Ошибка сохранения:', error)
@@ -1987,6 +2264,28 @@ const getDeleteWarning = () => {
   }
 }
 
+// Функции для подтверждения выхода из формы
+const tryChangeTab = (tabId) => {
+  if (activeTab.value === 'add-art' && hasUnsavedChanges.value && tabId !== 'add-art') {
+    confirmExitModal.pendingTab = tabId
+    confirmExitModal.show = true
+  } else {
+    activeTab.value = tabId
+  }
+}
+
+const confirmExit = () => {
+  resetForm()
+  activeTab.value = confirmExitModal.pendingTab
+  confirmExitModal.show = false
+  confirmExitModal.pendingTab = ''
+}
+
+const cancelExit = () => {
+  confirmExitModal.show = false
+  confirmExitModal.pendingTab = ''
+}
+
 const viewArt = (art) => {
   const imageUrl = art.image_url || art.thumbnail_url
   if (imageUrl) {
@@ -2031,11 +2330,13 @@ onMounted(() => {
   document.addEventListener('click', (event) => {
     const selectorElements = document.querySelectorAll('.selector-btn, .selector-dropdown')
     const clickedInside = Array.from(selectorElements).some(el => el.contains(event.target))
-    
+
     if (!clickedInside) {
       showTagSelector.value = false
       showCharacterSelector.value = false
       showArtistSelector.value = false
+      modalArtistSelectorOpen.value = false
+      modalCharacterSelectorOpen.value = false
     }
   })
 })
@@ -2203,7 +2504,7 @@ watch(activeTab, () => {
 
 /* Боковая панель */
 .sidebar {
-  width: 280px;
+  width: 220px;
   background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(20px);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
@@ -2216,66 +2517,69 @@ watch(activeTab, () => {
 }
 
 .sidebar-header {
-  padding: 2rem 1.5rem;
+  padding: 0.75rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .logo {
-  width: 50px;
-  height: 50px;
+  width: 32px;
+  height: 32px;
   background: linear-gradient(135deg, #ff6b35, #f7931e);
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   color: white;
 }
 
 .brand h2 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: 700;
 }
 
 .brand span {
   color: #888;
-  font-size: 0.8rem;
+  font-size: 0.65rem;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: 1.5rem 0;
+  padding: 0.5rem 0;
+  overflow-y: auto;
+  max-height: calc(100vh - 140px);
 }
 
 .nav-section {
-  margin-bottom: 2rem;
+  margin-bottom: 0.75rem;
 }
 
 .nav-section h3 {
-  font-size: 0.7rem;
+  font-size: 0.55rem;
   font-weight: 600;
   color: #666;
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin: 0 0 1rem 0;
-  padding: 0 1.5rem;
+  margin: 0 0 0.35rem 0;
+  padding: 0 0.85rem;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1.5rem;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
   background: none;
   border: none;
   color: #888;
   cursor: pointer;
   font-family: inherit;
   font-weight: 500;
+  font-size: 0.8rem;
   transition: all 0.3s ease;
   width: 100%;
   text-align: left;
@@ -2303,30 +2607,31 @@ watch(activeTab, () => {
 }
 
 .nav-item i {
-  width: 20px;
+  width: 18px;
   text-align: center;
+  font-size: 0.85rem;
 }
 
 .count-badge {
   background: #ff6b35;
   color: white;
-  font-size: 0.7rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 10px;
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 8px;
   margin-left: auto;
 }
 
 .sidebar-footer {
-  padding: 1.5rem;
+  padding: 0.75rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .footer-btn {
   flex: 1;
-  height: 45px;
-  border-radius: 12px;
+  height: 32px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.05);
   color: #888;
@@ -2417,38 +2722,503 @@ watch(activeTab, () => {
 
 /* Контент вкладок */
 .tab-content {
-  padding: 2rem;
+  padding: 0.75rem;
+  overflow: hidden;
 }
 
-/* Dashboard */
-.dashboard-grid {
+/* Dashboard Compact */
+.dashboard-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+}
+
+.stats-compact-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.75rem;
 }
 
-.dashboard-card {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
-  padding: 2rem;
+.stat-compact {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border-radius: 16px;
+  padding: 1.25rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.dashboard-card.full-width {
-  grid-column: 1 / -1;
-}
-
-.dashboard-card h3 {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin: 0 0 1.5rem 0;
-  font-size: 1.3rem;
+  gap: 1rem;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-compact::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stat-compact:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(255, 107, 53, 0.15);
+  border-color: rgba(255, 107, 53, 0.3);
+}
+
+.stat-compact:hover::before {
+  opacity: 1;
+}
+
+.stat-compact i {
+  font-size: 2rem;
+  color: #ff6b35;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(247, 147, 30, 0.2) 100%);
+  border-radius: 14px;
+  flex-shrink: 0;
+  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.15);
+}
+
+.stat-num {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.stat-lbl {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 0.35rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dashboard-middle {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+}
+
+.dashboard-right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dashboard-bottom {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+}
+
+.dashboard-card-mini {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border-radius: 16px;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-card-mini::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.05), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.dashboard-card-mini:hover::before {
+  opacity: 1;
+}
+
+.dashboard-card-mini:hover {
+  border-color: rgba(255, 107, 53, 0.2);
+  box-shadow: 0 8px 32px rgba(255, 107, 53, 0.1);
+}
+
+.dashboard-card-mini h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: white;
+}
+
+.dashboard-card-mini h3 i {
+  color: #ff6b35;
+  font-size: 0.9rem;
+}
+
+.card-header-mini {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.card-header-mini h3 {
+  margin: 0;
+}
+
+.view-btn-mini {
+  background: rgba(255, 107, 53, 0.1);
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  color: #ff6b35;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-btn-mini:hover {
+  background: rgba(255, 107, 53, 0.2);
+}
+
+.recent-arts-mini {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.art-mini {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.art-mini img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.art-mini:hover img {
+  transform: scale(1.05);
+}
+
+.nsfw-badge-mini {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
   font-weight: 600;
 }
 
-.dashboard-card h3 i {
-  color: #ff6b35;
+.art-overlay-mini {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.9), rgba(247, 147, 30, 0.9));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: white;
+  font-size: 1.5rem;
+  backdrop-filter: blur(4px);
+}
+
+.art-mini:hover .art-overlay-mini {
+  opacity: 1;
+}
+
+.content-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.content-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.content-row:hover {
+  background: linear-gradient(90deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
+  border-color: rgba(255, 107, 53, 0.2);
+}
+
+.content-row i {
+  font-size: 1.1rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 107, 53, 0.1);
+  border-radius: 8px;
+}
+
+.percent-mini {
+  margin-left: auto;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.5rem;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(247, 147, 30, 0.2));
+  border-radius: 6px;
+  border: 1px solid rgba(255, 107, 53, 0.3);
+}
+
+/* Activity Heatmap */
+.heatmap-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 2px;
+}
+
+.heatmap-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.heatmap-cell:hover {
+  transform: scale(1.3);
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4);
+  z-index: 10;
+  border-radius: 3px;
+}
+
+.heatmap-cell.level-0 {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.heatmap-cell.level-1 {
+  background: rgba(34, 197, 94, 0.3);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.heatmap-cell.level-2 {
+  background: rgba(34, 197, 94, 0.5);
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.heatmap-cell.level-3 {
+  background: rgba(34, 197, 94, 0.7);
+  border-color: rgba(34, 197, 94, 0.6);
+}
+
+.heatmap-cell.level-4 {
+  background: rgba(34, 197, 94, 0.9);
+  border-color: rgba(34, 197, 94, 0.8);
+  box-shadow: 0 0 4px rgba(34, 197, 94, 0.4);
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.legend-label {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0.25rem;
+}
+
+.legend-cell {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legend-cell.level-0 {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.legend-cell.level-1 {
+  background: rgba(34, 197, 94, 0.3);
+}
+
+.legend-cell.level-2 {
+  background: rgba(34, 197, 94, 0.5);
+}
+
+.legend-cell.level-3 {
+  background: rgba(34, 197, 94, 0.7);
+}
+
+.legend-cell.level-4 {
+  background: rgba(34, 197, 94, 0.9);
+}
+
+.top-list-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.list-item-mini {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border-radius: 10px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.list-item-mini:hover {
+  background: linear-gradient(90deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%);
+  border-color: rgba(255, 107, 53, 0.2);
+  transform: translateX(4px);
+}
+
+.rank-mini {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.avatar-mini {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: none;
+  position: relative;
+  box-shadow:
+    0 0 0 2px rgba(255, 107, 53, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.avatar-mini:hover {
+  transform: scale(1.1) rotate(2deg);
+  box-shadow:
+    0 0 0 2px rgba(255, 107, 53, 0.8),
+    0 8px 24px rgba(255, 107, 53, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.info-mini {
+  flex: 1;
+  min-width: 0;
+}
+
+.name-mini {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.count-mini {
+  font-size: 0.75rem;
+  color: rgba(255, 107, 53, 0.8);
+  font-weight: 500;
+}
+
+.star-mini {
+  color: #ffd700;
+  font-size: 0.75rem;
+}
+
+.tags-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.tag-mini {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.65rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 10px;
+  color: #818cf8;
+  font-size: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+}
+
+.tag-mini:hover {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(59, 130, 246, 0.25) 100%);
+  border-color: rgba(99, 102, 241, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
+}
+
+.tag-mini span:first-child {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tag-mini span:last-child {
+  font-weight: 700;
+  font-size: 0.7rem;
+  margin-left: 0.35rem;
+  padding: 0.15rem 0.35rem;
+  background: rgba(99, 102, 241, 0.2);
+  border-radius: 6px;
 }
 .quick-actions-card {
   background: rgba(255, 255, 255, 0.05);
@@ -2767,12 +3537,12 @@ watch(activeTab, () => {
 }
 
 .art-info {
-  padding: 1rem;
+  padding: 0.65rem;
 }
 
 .art-info h4 {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.9rem;
+  margin: 0 0 0.35rem 0;
+  font-size: 0.85rem;
   font-weight: 600;
 }
 
@@ -2795,15 +3565,21 @@ watch(activeTab, () => {
 
 /* Формы */
 .art-form {
-  max-width: 800px;
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
 }
 
 .form-section {
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
-  padding: 2rem;
-  margin-bottom: 2rem;
+  border-radius: 16px;
+  padding: 1.5rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-section:first-child {
+  grid-column: 1 / -1;
 }
 
 .form-section h3 {
@@ -2828,33 +3604,96 @@ watch(activeTab, () => {
 }
 
 .form-group {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.6rem;
 }
 
 .form-group label {
   font-weight: 600;
-  color: white;
-  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .selected-count {
   color: #ff6b35;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .form-input,
 .form-select {
-  padding: 1rem 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 0.85rem 1.1rem;
+  border: 1px solid rgba(255, 107, 53, 0.15);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
   color: white;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-family: inherit;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: rgba(255, 107, 53, 0.4);
+  background: rgba(255, 107, 53, 0.08);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.form-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.tags-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.tag-checkbox {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tag-checkbox input[type="checkbox"] {
+  display: none;
+}
+
+.tag-checkbox .tag-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+}
+
+.tag-checkbox:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 123, 37, 0.3);
+}
+
+.tag-checkbox.selected {
+  background: rgba(255, 123, 37, 0.2);
+  border-color: rgba(255, 123, 37, 0.5);
+}
+
+.tag-checkbox.selected .tag-label {
+  color: #ff7b25;
+  font-weight: 600;
 }
 
 .form-input:focus,
@@ -2958,17 +3797,34 @@ watch(activeTab, () => {
 .checkbox-label {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.85rem;
   cursor: pointer;
-  padding: 1rem;
-  border-radius: 12px;
-  transition: background 0.3s ease;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.08) 0%, rgba(247, 147, 30, 0.08) 100%);
+  border: 1px solid rgba(255, 107, 53, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.checkbox-label::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .checkbox-label:hover {
-  background: rgba(239, 68, 68, 0.15);
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.12) 0%, rgba(247, 147, 30, 0.12) 100%);
+  border-color: rgba(255, 107, 53, 0.3);
+  transform: translateY(-1px);
+}
+
+.checkbox-label:hover::before {
+  opacity: 1;
 }
 
 .checkbox {
@@ -2981,11 +3837,12 @@ watch(activeTab, () => {
 .checkmark {
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 107, 53, 0.3);
   border-radius: 6px;
   position: relative;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .checkmark::after {
@@ -2993,22 +3850,23 @@ watch(activeTab, () => {
   position: absolute;
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  width: 6px;
-  height: 10px;
+  transform: translate(-50%, -50%) scale(0) rotate(45deg);
+  width: 5px;
+  height: 9px;
   border: solid white;
-  border-width: 0 2px 2px 0;
+  border-width: 0 2.5px 2.5px 0;
   transform-origin: center;
-  transition: transform 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .checkbox:checked + .checkmark {
   background: linear-gradient(135deg, #ff6b35, #f7931e);
   border-color: #ff6b35;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
 
 .checkbox:checked + .checkmark::after {
-  transform: translate(-50%, -50%) scale(1) rotate(45deg);
+  transform: translate(-50%, -60%) scale(1) rotate(45deg);
 }
 
 .checkbox-text {
@@ -3016,20 +3874,37 @@ watch(activeTab, () => {
   align-items: center;
   gap: 0.5rem;
   font-weight: 500;
-  color: white;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.9rem;
 }
 
 .nsfw-warning {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   margin-top: 0.75rem;
-  padding: 0.75rem;
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(234, 88, 12, 0.12) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 10px;
   color: #f59e0b;
   font-size: 0.85rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.nsfw-warning::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #f59e0b 0%, #ea580c 100%);
+}
+
+.nsfw-warning i {
+  font-size: 1rem;
 }
 
 /* Селекторы - базовые стили */
@@ -3136,11 +4011,25 @@ watch(activeTab, () => {
 }
 
 .selected-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   object-fit: cover;
-  border: 2px solid rgba(255, 107, 53, 0.3);
+  border: none;
+  position: relative;
+  box-shadow:
+    0 0 0 3px rgba(255, 107, 53, 0.5),
+    0 6px 20px rgba(255, 107, 53, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.15);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.selected-avatar:hover {
+  transform: scale(1.08);
+  box-shadow:
+    0 0 0 3px rgba(255, 107, 53, 0.9),
+    0 10px 32px rgba(255, 107, 53, 0.5),
+    inset 0 2px 0 rgba(255, 255, 255, 0.25);
 }
 
 .selected-artist-info {
@@ -3193,13 +4082,6 @@ watch(activeTab, () => {
 .clear-artist-btn:hover {
   background: rgba(255, 107, 53, 0.2);
   transform: scale(1.1);
-}
-
-/* Dashboard - улучшенные стили */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 2rem;
 }
 
 .dashboard-card.full-width {
@@ -3380,15 +4262,15 @@ watch(activeTab, () => {
 .content-stats {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.75rem;
 }
 
 .content-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  border-radius: 12px;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 10px;
   border: 1px solid;
 }
 
@@ -3403,9 +4285,9 @@ watch(activeTab, () => {
 }
 
 .content-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3431,14 +4313,14 @@ watch(activeTab, () => {
 }
 
 .content-number {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: white;
   line-height: 1;
 }
 
 .content-label {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #888;
 }
 
@@ -3464,13 +4346,13 @@ watch(activeTab, () => {
 /* Последние арты */
 .recent-arts {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
 }
 
 .recent-art {
   background: rgba(255, 255, 255, 0.03);
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
@@ -3478,9 +4360,9 @@ watch(activeTab, () => {
 }
 
 .recent-art:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 .art-image-container {
@@ -3500,22 +4382,6 @@ watch(activeTab, () => {
   transform: scale(1.05);
 }
 
-.art-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  color: white;
-  font-size: 1.5rem;
-}
-
 .recent-art:hover .art-overlay {
   opacity: 1;
 }
@@ -3530,32 +4396,32 @@ watch(activeTab, () => {
 .top-artists {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .top-artist-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
+  gap: 0.65rem;
+  padding: 0.5rem;
   background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.3s ease;
 }
 
 .top-artist-item:hover {
   background: rgba(255, 255, 255, 0.08);
-  transform: translateX(4px);
+  transform: translateX(2px);
 }
 
 .artist-rank {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: linear-gradient(135deg, #ff6b35, #f7931e);
   color: white;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -3564,8 +4430,8 @@ watch(activeTab, () => {
 }
 
 .artist-mini-avatar {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid rgba(255, 255, 255, 0.1);
@@ -3582,11 +4448,11 @@ watch(activeTab, () => {
 .artist-name {
   font-weight: 600;
   color: white;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .artist-count {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #888;
 }
 
@@ -3602,20 +4468,20 @@ watch(activeTab, () => {
 .popular-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .popular-tag {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 0.75rem;
+  padding: 0.35rem 0.6rem;
   background: rgba(59, 130, 246, 0.1);
   border: 1px solid rgba(59, 130, 246, 0.2);
-  border-radius: 20px;
+  border-radius: 16px;
   color: #3b82f6;
-  font-size: 0.8rem;
-  min-width: 80px;
+  font-size: 0.75rem;
+  min-width: 70px;
   transition: all 0.3s ease;
 }
 
@@ -3658,34 +4524,62 @@ watch(activeTab, () => {
 }
 
 .selector-dropdown {
-  margin-top: 0.75rem;
-  background: rgba(15, 15, 15, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.5rem;
+  background: rgba(15, 15, 15, 0.98);
+  border: 1px solid rgba(255, 123, 37, 0.3);
   border-radius: 12px;
   backdrop-filter: blur(20px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-  max-height: 400px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 123, 37, 0.1);
+  max-height: min(400px, calc(100vh - 300px));
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  z-index: 1000;
+  animation: slideDown 0.2s ease-out;
+}
+
+/* Dropdown внутри модального окна - ограничиваем позиционирование */
+.modal-body .selector-dropdown {
+  position: absolute;
+  max-height: min(280px, calc(100vh - 400px));
+}
+
+.modal-body .form-group {
+  position: relative;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .selector-header {
-  padding: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.02);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.01);
 }
 
 .search-input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
   color: white;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-family: inherit;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
 }
 
 .search-input:focus {
@@ -3696,17 +4590,17 @@ watch(activeTab, () => {
 
 .selector-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .selector-actions button {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 0.35rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
   color: #888;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-family: inherit;
   transition: all 0.3s ease;
 }
@@ -3714,6 +4608,7 @@ watch(activeTab, () => {
 .selector-actions button:hover {
   background: rgba(255, 107, 53, 0.1);
   color: #ff6b35;
+  border-color: rgba(255, 107, 53, 0.3);
 }
 
 .selector-list {
@@ -3744,12 +4639,26 @@ watch(activeTab, () => {
 }
 
 .item-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: none;
   flex-shrink: 0;
+  position: relative;
+  box-shadow:
+    0 0 0 2px rgba(255, 107, 53, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.item-avatar:hover {
+  transform: scale(1.12) rotate(-2deg);
+  box-shadow:
+    0 0 0 2px rgba(255, 107, 53, 0.7),
+    0 8px 24px rgba(255, 107, 53, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .item-name {
@@ -3848,11 +4757,24 @@ watch(activeTab, () => {
 }
 
 .character-avatar {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
   object-fit: cover;
-  border: 1px solid rgba(147, 51, 234, 0.3);
+  border: none;
+  box-shadow:
+    0 0 0 2px rgba(147, 51, 234, 0.5),
+    0 2px 8px rgba(147, 51, 234, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.character-avatar:hover {
+  transform: scale(1.15);
+  box-shadow:
+    0 0 0 2px rgba(147, 51, 234, 0.8),
+    0 4px 16px rgba(147, 51, 234, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .selected-character i {
@@ -3899,14 +4821,15 @@ watch(activeTab, () => {
 }
 
 .btn.secondary {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #888;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .btn.danger {
@@ -3936,7 +4859,8 @@ watch(activeTab, () => {
 
 /* Страницы управления */
 .management-page {
-  max-width: 1200px;
+  max-width: 100%;
+  width: 100%;
 }
 
 .management-header {
@@ -4010,12 +4934,25 @@ watch(activeTab, () => {
   margin-bottom: 1rem;
 }
 
-.item-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+.item-card .item-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 18px;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: none;
+  box-shadow:
+    0 0 0 3px rgba(255, 107, 53, 0.4),
+    0 8px 24px rgba(0, 0, 0, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.12);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.item-card:hover .item-avatar {
+  transform: scale(1.08) rotate(-3deg);
+  box-shadow:
+    0 0 0 3px rgba(255, 107, 53, 0.8),
+    0 12px 36px rgba(255, 107, 53, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
 }
 
 .tag-icon {
@@ -4092,7 +5029,8 @@ watch(activeTab, () => {
 
 /* Галерея */
 .gallery-page {
-  max-width: 1200px;
+  max-width: 100%;
+  width: 100%;
 }
 
 .gallery-header {
@@ -4187,9 +5125,9 @@ watch(activeTab, () => {
 }
 
 .art-card:hover {
-  transform: translateY(-5px);
   background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 107, 53, 0.3);
 }
 
 .art-card.nsfw {
@@ -4206,6 +5144,11 @@ watch(activeTab, () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.art-card:hover .art-image img {
+  transform: scale(1.05);
 }
 
 .nsfw-indicator {
@@ -4248,6 +5191,8 @@ watch(activeTab, () => {
   opacity: 0;
   transition: opacity 0.3s ease;
   backdrop-filter: blur(5px);
+  color: white;
+  font-size: 1.5rem;
 }
 
 .art-card:hover .art-overlay {
@@ -4284,6 +5229,15 @@ watch(activeTab, () => {
   background: #ef4444;
 }
 
+.overlay-btn.edit {
+  background: rgba(59, 130, 246, 0.9);
+  color: white;
+}
+
+.overlay-btn.edit:hover {
+  background: #3b82f6;
+}
+
 .art-meta {
   display: flex;
   align-items: center;
@@ -4300,25 +5254,45 @@ watch(activeTab, () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 10000;
-  backdrop-filter: blur(10px);
-  padding: 2rem;
+  backdrop-filter: blur(12px);
+  padding: 2rem 1rem;
+  overflow-y: auto;
 }
 
 .modal-content {
-  background: rgba(15, 15, 15, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  max-width: 500px;
+  background: linear-gradient(135deg, rgba(20, 20, 20, 0.98) 0%, rgba(15, 15, 15, 0.98) 100%);
+  border: 1px solid rgba(255, 107, 53, 0.2);
+  border-radius: 24px;
+  max-width: 480px;
   width: 100%;
-  max-height: 90vh;
+  max-height: calc(100vh - 4rem);
   overflow-y: auto;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(24px);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 107, 53, 0.1) inset,
+    0 10px 40px rgba(255, 107, 53, 0.15);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .delete-modal {
@@ -4329,42 +5303,62 @@ watch(activeTab, () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 2rem 2rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.5rem 1.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 107, 53, 0.15);
+  flex-shrink: 0;
+  background: linear-gradient(180deg, rgba(255, 107, 53, 0.05) 0%, transparent 100%);
 }
 
 .modal-header h3 {
   margin: 0;
-  font-weight: 600;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
   color: #ff6b35;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
+}
+
+.modal-header h3 i {
+  font-size: 1.1rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(247, 147, 30, 0.2) 100%);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.15);
 }
 
 .modal-close {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #888;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
-  font-size: 1.1rem;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-size: 1rem;
 }
 
 .modal-close:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: rgba(255, 107, 53, 0.1);
+  border-color: rgba(255, 107, 53, 0.3);
+  color: #ff6b35;
+  transform: rotate(90deg);
 }
 
 .modal-body {
-  padding: 2rem;
+  padding: 1.5rem 1.75rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .modal-form {
@@ -4374,31 +5368,92 @@ watch(activeTab, () => {
 
 .modal-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   justify-content: flex-end;
-  padding: 1rem 2rem 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1rem 1.75rem 1.5rem;
+  border-top: 1px solid rgba(255, 107, 53, 0.1);
+  flex-shrink: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 107, 53, 0.03) 100%);
+}
+
+.modal-actions .btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 120px;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-actions .btn.primary {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25);
+}
+
+.modal-actions .btn.primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 107, 53, 0.35);
+}
+
+.modal-actions .btn.secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.modal-actions .btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: white;
+}
+
+.modal-actions .btn.danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.modal-actions .btn.danger:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.35);
+}
+
+.modal-actions .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
 }
 
 /* Удаление */
 .delete-warning {
   display: flex;
-  gap: 1.5rem;
+  gap: 1.25rem;
   align-items: flex-start;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .delete-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: rgba(239, 68, 68, 0.15);
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.2) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   color: #ef4444;
   flex-shrink: 0;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.delete-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), transparent);
 }
 
 .delete-text {
@@ -4406,47 +5461,68 @@ watch(activeTab, () => {
 }
 
 .delete-text h4 {
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 0.6rem 0;
   color: white;
-  font-weight: 600;
-  font-size: 1.2rem;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
 }
 
 .delete-text p {
-  margin: 0 0 1.5rem 0;
-  color: #888;
-  line-height: 1.5;
+  margin: 0 0 1.25rem 0;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  font-size: 0.9rem;
 }
 
 .delete-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: rgba(239, 68, 68, 0.05);
-  border: 1px solid rgba(239, 68, 68, 0.15);
-  border-radius: 12px;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.08) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.delete-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
 }
 
 .delete-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   object-fit: cover;
-  border: 2px solid rgba(239, 68, 68, 0.3);
+  border: none;
   flex-shrink: 0;
+  box-shadow:
+    0 0 0 3px rgba(239, 68, 68, 0.5),
+    0 6px 20px rgba(239, 68, 68, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.1);
 }
 
 .delete-placeholder {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(239, 68, 68, 0.2);
   color: #ef4444;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
+  box-shadow:
+    0 0 0 3px rgba(239, 68, 68, 0.4),
+    0 6px 20px rgba(239, 68, 68, 0.2);
 }
 
 .delete-name {
@@ -4458,6 +5534,47 @@ watch(activeTab, () => {
 .delete-type {
   color: #888;
   font-size: 0.85rem;
+}
+
+/* Модальное окно подтверждения выхода */
+.confirm-exit-modal {
+  max-width: 480px;
+}
+
+.confirm-exit-content {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.confirm-exit-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(245, 158, 11, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.confirm-exit-text {
+  flex: 1;
+}
+
+.confirm-exit-text h4 {
+  margin: 0 0 0.75rem 0;
+  color: white;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.confirm-exit-text p {
+  margin: 0;
+  color: #888;
+  line-height: 1.6;
 }
 
 /* Уведомления */
@@ -4707,19 +5824,26 @@ watch(activeTab, () => {
   }
   
   .modal-overlay {
-    padding: 1rem;
+    padding: 0.5rem;
   }
-  
+
   .modal-content {
     max-width: none;
     width: 100%;
+    max-height: calc(100vh - 1rem);
+    border-radius: 16px;
   }
-  
-  .modal-header,
-  .modal-body,
+
+  .modal-header {
+    padding: 1.5rem 1.5rem 1rem;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
   .modal-actions {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+    padding: 1rem 1.5rem 1.5rem;
   }
   
   .notifications {

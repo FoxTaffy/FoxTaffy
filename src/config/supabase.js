@@ -54,12 +54,11 @@ export const furryApi = {
    */
   async getEvents(options = {}) {
     const {
-      status = 'all', // 'upcoming', 'completed', 'all', 'featured'
+      status = 'all', // 'upcoming', 'completed', 'all'
       event_type,
       attendance_status,
       city,
       search,
-      featured = false,
       limit = 20,
       offset = 0,
       sort = 'date_desc' // 'date_desc', 'date_asc', 'name_asc', 'name_desc', 'rating_desc', 'created_desc'
@@ -67,17 +66,17 @@ export const furryApi = {
 
     try {
       console.log('🎪 getEvents: Загружаем мероприятия с опциями:', options)
-      
-      // Сначала пробуем использовать представление с полной статистикой
-      let query = supabase.from('cons').select('*')
+
+      // Загружаем мероприятия с подсчетом фотографий и особенностями
+      let query = supabase
+        .from('cons')
+        .select('*, con_photos(count), con_features(id, title, icon_class, feature_type)')
 
       // Фильтрация по статусу
       if (status === 'upcoming') {
         query = query.gt('event_date', new Date().toISOString().split('T')[0])
       } else if (status === 'completed') {
         query = query.lt('event_date', new Date().toISOString().split('T')[0])
-      } else if (status === 'featured') {
-        query = query.eq('is_featured', true)
       }
 
       // Фильтрация по типу мероприятия
@@ -128,8 +127,27 @@ export const furryApi = {
 
       if (error) throw error
 
-      console.log('✅ getEvents: Мероприятия загружены:', data?.length || 0)
-      return data || []
+      // Обработка данных: добавляем photos_count из агрегации
+      const eventsWithPhotos = (data || []).map(event => {
+        const photosCount = event.con_photos?.[0]?.count || 0
+        const { con_photos, ...eventData } = event
+        return {
+          ...eventData,
+          photos_count: photosCount
+        }
+      })
+
+      console.log('✅ getEvents: Мероприятия загружены:', eventsWithPhotos.length)
+
+      // Отладка con_features
+      console.log('🔍 Проверка con_features:')
+      eventsWithPhotos.forEach(event => {
+        if (event.con_features && event.con_features.length > 0) {
+          console.log(`  - ${event.name}: ${event.con_features.length} особенностей`)
+        }
+      })
+
+      return eventsWithPhotos
 
     } catch (error) {
       console.error('❌ getEvents: Ошибка загрузки мероприятий:', error)
@@ -168,6 +186,36 @@ export const furryApi = {
   },
 
   /**
+   * Получить мероприятие по ID
+   */
+  async getEventById(id) {
+    try {
+      console.log('🔍 getEventById: Ищем мероприятие по ID:', id)
+
+      const { data, error } = await supabase
+        .from('cons')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          console.log('⚠️ getEventById: Мероприятие не найдено')
+          return null
+        }
+        throw error
+      }
+
+      console.log('✅ getEventById: Мероприятие найдено:', data.name)
+      return data
+
+    } catch (error) {
+      console.error('❌ getEventById: Ошибка поиска мероприятия:', error)
+      throw new Error(`Ошибка поиска мероприятия: ${error.message}`)
+    }
+  },
+
+  /**
    * Получить статистику мероприятий
    */
   async getEventsStats() {
@@ -176,25 +224,23 @@ export const furryApi = {
       
       const { data, error } = await supabase
         .from('cons')
-        .select('id, event_date, my_rating, total_spent, attendees_count, is_featured')
+        .select('id, event_date, my_rating, total_spent, attendees_count')
 
       if (error) throw error
 
       const now = new Date()
       const todayISO = now.toISOString().split('T')[0]
-      
+
       const upcoming = data.filter(e => e.event_date > todayISO)
       const completed = data.filter(e => e.event_date <= todayISO)
-      const featured = data.filter(e => e.is_featured)
 
       const stats = {
         total: data.length,
         upcoming: upcoming.length,
         completed: completed.length,
-        featured: featured.length,
         totalSpent: data.reduce((sum, e) => sum + (e.total_spent || 0), 0),
-        averageRating: data.filter(e => e.my_rating).length > 0 
-          ? data.reduce((sum, e) => sum + (e.my_rating || 0), 0) / data.filter(e => e.my_rating).length 
+        averageRating: data.filter(e => e.my_rating).length > 0
+          ? data.reduce((sum, e) => sum + (e.my_rating || 0), 0) / data.filter(e => e.my_rating).length
           : 0,
         totalAttendees: data.reduce((sum, e) => sum + (e.attendees_count || 0), 0)
       }
@@ -205,7 +251,7 @@ export const furryApi = {
     } catch (error) {
       console.error('❌ getEventsStats: Ошибка получения статистики:', error)
       return {
-        total: 0, upcoming: 0, completed: 0, featured: 0,
+        total: 0, upcoming: 0, completed: 0,
         totalSpent: 0, averageRating: 0, totalAttendees: 0
       }
     }
@@ -219,6 +265,9 @@ export const furryApi = {
       console.log('➕ createEvent: Создаём новое мероприятие:', eventData.name)
       
       const cleanData = this._cleanEventData(eventData)
+      if (cleanData.event_date === '') {
+        cleanData.event_date = null
+      }
       
       // Проверяем уникальность slug
       if (cleanData.slug) {
@@ -259,6 +308,10 @@ export const furryApi = {
       const cleanData = this._cleanEventData(updateData)
       cleanData.updated_at = new Date().toISOString()
       
+      if (cleanData.event_date === '') {
+        cleanData.event_date = null
+      }
+
       // Проверяем уникальность slug если он изменился
       if (cleanData.slug) {
         const existingEvent = await this.getEventById(eventId)
@@ -294,26 +347,41 @@ export const furryApi = {
   async deleteEvent(eventId) {
     try {
       console.log('🗑️ deleteEvent: Удаляем мероприятие:', eventId)
-      
-      // Сначала удаляем связанные данные
+
+      // Сначала получаем информацию о событии (нужно для удаления файлов)
+      const event = await this.getEventById(eventId)
+
+      // Удаляем файлы из Storage
+      if (event) {
+        try {
+          const { s3Api } = await import('./s3.js')
+          await s3Api.deleteEventFiles(event)
+          console.log('✅ deleteEvent: Файлы мероприятия удалены из Storage')
+        } catch (storageError) {
+          console.error('⚠️ deleteEvent: Ошибка удаления файлов из Storage:', storageError)
+          // Продолжаем удаление даже если файлы не удалились
+        }
+      }
+
+      // Удаляем связанные данные из БД
       await Promise.all([
         supabase.from('con_links').delete().eq('con_id', eventId),
         supabase.from('con_features').delete().eq('con_id', eventId),
         supabase.from('con_photos').delete().eq('con_id', eventId),
         supabase.from('con_purchases').delete().eq('con_id', eventId)
       ])
-      
+
       // Затем удаляем само мероприятие
       const { error } = await supabase
         .from('cons')
         .delete()
         .eq('id', eventId)
-      
+
       if (error) throw error
-      
+
       console.log('✅ deleteEvent: Мероприятие и все связанные данные удалены')
       return true
-      
+
     } catch (error) {
       console.error('❌ deleteEvent: Ошибка удаления мероприятия:', error)
       throw new Error(`Ошибка удаления мероприятия: ${error.message}`)
@@ -357,10 +425,386 @@ export const furryApi = {
 
       if (error) throw error
       return !!data
-      
+
     } catch (error) {
       console.error('❌ checkEventSlugExists: Ошибка проверки slug:', error)
       return false
+    }
+  },
+
+  /**
+   * Получить ссылки мероприятия
+   */
+  async getEventLinks(eventId) {
+    try {
+      // Проверяем что eventId валидный
+      if (!eventId) {
+        return []
+      }
+
+      const { data, error } = await supabase
+        .from('con_links')
+        .select('*')
+        .eq('con_id', eventId)
+        .order('sort_order', { ascending: true, nullsFirst: false })
+
+      // Если ошибка - просто возвращаем пустой массив
+      // Таблица con_links опциональна и может не существовать
+      if (error) {
+        return []
+      }
+
+      return data || []
+
+    } catch (error) {
+      // Не логируем ошибку, так как таблица опциональна
+      return []
+    }
+  },
+
+  /**
+   * Получить особенности мероприятия
+   */
+  async getEventFeatures(eventId) {
+    try {
+      if (!eventId) {
+        return []
+      }
+
+      const { data, error } = await supabase
+        .from('con_features')
+        .select('*')
+        .eq('con_id', eventId)
+        .order('sort_order', { ascending: true })
+
+      // Таблица опциональна
+      if (error) {
+        return []
+      }
+
+      return data || []
+
+    } catch (error) {
+      return []
+    }
+  },
+
+  /**
+   * Получить фотографии мероприятия
+   */
+  async getEventPhotos(eventId) {
+    try {
+      if (!eventId) {
+        return []
+      }
+
+      const { data, error } = await supabase
+        .from('con_photos')
+        .select('*')
+        .eq('con_id', eventId)
+        .order('display_order', { ascending: true })
+
+      // Таблица опциональна
+      if (error) {
+        return []
+      }
+
+      // Фильтруем дубликаты: оставляем только записи где есть разница между image_url и thumbnail_url
+      // Или где image_url не содержит 'thumb_' (не является миниатюрой)
+      const uniquePhotos = (data || []).filter((photo, index, self) => {
+        // Пропускаем если image_url указывает на миниатюру (содержит thumb_ или /thumbnails/)
+        if (photo.image_url && (photo.image_url.includes('thumb_') || photo.image_url.includes('/thumbnails/'))) {
+          return false
+        }
+
+        // Проверяем что нет дубликата с таким же файлом
+        const fileName = photo.image_url ? photo.image_url.split('/').pop().replace('thumb_', '') : ''
+        const isDuplicate = self.slice(0, index).some(p => {
+          const pFileName = p.image_url ? p.image_url.split('/').pop().replace('thumb_', '') : ''
+          return pFileName === fileName && pFileName !== ''
+        })
+
+        return !isDuplicate
+      })
+
+      return uniquePhotos
+
+    } catch (error) {
+      return []
+    }
+  },
+
+  /**
+   * Получить фотографии для нескольких событий (для превью)
+   */
+  async getPhotosForEvents(eventIds, limit = 5) {
+    try {
+      if (!eventIds || eventIds.length === 0) {
+        return []
+      }
+
+      const { data, error } = await supabase
+        .from('con_photos')
+        .select('id, con_id, image_url, thumbnail_url, caption')
+        .in('con_id', eventIds)
+        .order('display_order', { ascending: true })
+        .limit(limit * eventIds.length) // Загружаем максимум limit*N фотографий
+
+      // Таблица опциональна
+      if (error) {
+        return []
+      }
+
+      // Фильтруем дубликаты для каждого мероприятия
+      const uniquePhotos = (data || []).filter((photo, index, self) => {
+        // Пропускаем если image_url указывает на миниатюру
+        if (photo.image_url && (photo.image_url.includes('thumb_') || photo.image_url.includes('/thumbnails/'))) {
+          return false
+        }
+
+        // Проверяем дубликаты в рамках одного мероприятия
+        const fileName = photo.image_url ? photo.image_url.split('/').pop().replace('thumb_', '') : ''
+        const isDuplicate = self.slice(0, index).some(p => {
+          if (p.con_id !== photo.con_id) return false // Сравниваем только в рамках одного события
+          const pFileName = p.image_url ? p.image_url.split('/').pop().replace('thumb_', '') : ''
+          return pFileName === fileName && pFileName !== ''
+        })
+
+        return !isDuplicate
+      })
+
+      return uniquePhotos
+
+    } catch (error) {
+      return []
+    }
+  },
+
+  /**
+   * Получить покупки на мероприятии
+   */
+  async getEventPurchases(eventId) {
+    try {
+      console.log('🛍️ getEventPurchases: Загружаем покупки для мероприятия:', eventId)
+
+      const { data, error } = await supabase
+        .from('con_purchases')
+        .select('*')
+        .eq('con_id', eventId)
+
+      if (error) throw error
+
+      console.log('✅ getEventPurchases: Покупки загружены:', data?.length || 0)
+      return data || []
+
+    } catch (error) {
+      console.error('❌ getEventPurchases: Ошибка загрузки покупок:', error)
+      return []
+    }
+  },
+
+  /**
+   * Сохранить покупки мероприятия
+   */
+  async saveEventPurchases(eventId, purchases) {
+    try {
+      console.log('🛍️ saveEventPurchases: Сохраняем покупки для мероприятия:', eventId)
+
+      // Удаляем старые покупки
+      const { error: deleteError } = await supabase
+        .from('con_purchases')
+        .delete()
+        .eq('con_id', eventId)
+
+      if (deleteError) throw deleteError
+
+      // Добавляем новые покупки
+      if (purchases && purchases.length > 0) {
+        const purchasesToInsert = purchases
+          .filter(p => p.name && p.name.trim())
+          .map(p => ({
+            con_id: eventId,
+            item_name: p.name.trim(),
+            title: p.name.trim(),
+            price: String(p.price || 0),
+            image_url: p.image || null
+          }))
+
+        if (purchasesToInsert.length > 0) {
+          console.log('📦 Данные для вставки в con_purchases:', JSON.stringify(purchasesToInsert, null, 2))
+          const { error: insertError } = await supabase
+            .from('con_purchases')
+            .insert(purchasesToInsert)
+
+          if (insertError) throw insertError
+        }
+      }
+
+      console.log('✅ saveEventPurchases: Покупки сохранены:', purchases?.length || 0)
+      return true
+
+    } catch (error) {
+      console.error('❌ saveEventPurchases: Ошибка сохранения покупок:', error)
+      throw error
+    }
+  },
+
+  async saveEventPhotos(eventId, photos) {
+    try {
+      console.log('📸 saveEventPhotos: Сохраняем фотографии для мероприятия:', eventId)
+
+      // Не удаляем старые фотографии, только добавляем новые (append mode)
+      // Если нужно полностью заменить - вызовите deleteEventPhotos сначала
+
+      // Добавляем новые фотографии
+      if (photos && photos.length > 0) {
+        // Получаем текущий максимальный display_order
+        const { data: existingPhotos } = await supabase
+          .from('con_photos')
+          .select('display_order')
+          .eq('con_id', eventId)
+          .order('display_order', { ascending: false })
+          .limit(1)
+
+        const startOrder = existingPhotos && existingPhotos.length > 0
+          ? existingPhotos[0].display_order + 1
+          : 0
+
+        // Подготавливаем данные для вставки
+        const photosToInsert = photos
+          .map((photo, index) => {
+            // Поддержка старого формата (простые URL) и нового (объекты)
+            if (typeof photo === 'string') {
+              return {
+                con_id: eventId,
+                image_url: photo,
+                thumbnail_url: photo,
+                display_order: startOrder + index
+              }
+            } else {
+              return {
+                con_id: eventId,
+                image_url: photo.image_url || null,
+                thumbnail_url: photo.thumbnail_url || photo.image_url || null,
+                file_path: photo.file_path || null,
+                thumbnail_path: photo.thumbnail_path || null,
+                file_size: photo.file_size || null,
+                file_name: photo.file_name || null,
+                caption: photo.caption || null,
+                is_featured: photo.is_featured || false,
+                display_order: startOrder + index
+              }
+            }
+          })
+          // Фильтруем фотографии: должен быть хотя бы image_url или file_path
+          .filter(photo => {
+            const hasUrl = photo.image_url && photo.image_url.trim() !== ''
+            const hasPath = photo.file_path && photo.file_path.trim() !== ''
+
+            if (!hasUrl && !hasPath) {
+              console.warn('⚠️ Пропускаем фото без URL и пути:', photo)
+              return false
+            }
+
+            return true
+          })
+
+        const { error: insertError } = await supabase
+          .from('con_photos')
+          .insert(photosToInsert)
+
+        if (insertError) throw insertError
+      }
+
+      console.log('✅ saveEventPhotos: Фотографии сохранены:', photos?.length || 0)
+      return true
+
+    } catch (error) {
+      console.error('❌ saveEventPhotos: Ошибка сохранения фотографий:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Удалить все фотографии мероприятия
+   * @param {number} eventId - ID мероприятия
+   * @returns {Promise<boolean>} Успешность удаления
+   */
+  async deleteEventPhotos(eventId) {
+    try {
+      console.log('🗑️ deleteEventPhotos: Удаляем фотографии мероприятия:', eventId)
+
+      const { error } = await supabase
+        .from('con_photos')
+        .delete()
+        .eq('con_id', eventId)
+
+      if (error) throw error
+
+      console.log('✅ deleteEventPhotos: Фотографии удалены')
+      return true
+
+    } catch (error) {
+      console.error('❌ deleteEventPhotos: Ошибка удаления фотографий:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Удалить одну конкретную фотографию
+   * @param {number} photoId - ID фотографии
+   * @returns {Promise<Object>} Данные удаленной фотографии (для удаления файлов из Storage)
+   */
+  async deleteEventPhoto(photoId) {
+    try {
+      console.log('🗑️ deleteEventPhoto: Удаляем фотографию:', photoId)
+
+      // Сначала получаем данные фотографии (нужны пути к файлам)
+      const { data: photo, error: selectError } = await supabase
+        .from('con_photos')
+        .select('*')
+        .eq('id', photoId)
+        .single()
+
+      if (selectError) throw selectError
+
+      // Удаляем запись из БД
+      const { error: deleteError } = await supabase
+        .from('con_photos')
+        .delete()
+        .eq('id', photoId)
+
+      if (deleteError) throw deleteError
+
+      console.log('✅ deleteEventPhoto: Фотография удалена из БД')
+
+      // Удаляем файлы из Storage если есть пути
+      if (photo.file_path || photo.thumbnail_path) {
+        try {
+          const { s3Api } = await import('./s3.js')
+
+          // Удаляем оригинал
+          if (photo.file_path) {
+            await s3Api.deleteFile(photo.file_path, 'Convent')
+            console.log('✅ Удален оригинал:', photo.file_path)
+          }
+
+          // Удаляем миниатюру
+          if (photo.thumbnail_path) {
+            await s3Api.deleteFile(photo.thumbnail_path, 'Convent')
+            console.log('✅ Удалена миниатюра:', photo.thumbnail_path)
+          }
+        } catch (storageError) {
+          console.warn('⚠️ Не удалось удалить файлы из Storage:', storageError)
+          // Не бросаем ошибку, т.к. запись из БД уже удалена
+        }
+      }
+
+      return photo
+
+    } catch (error) {
+      console.error('❌ deleteEventPhoto: Ошибка удаления фотографии:', error)
+      throw error
     }
   },
 
@@ -1121,6 +1565,339 @@ export const furryApi = {
   },
 
   // ============================================
+  // ✏️ ОБНОВЛЕНИЕ ДАННЫХ
+  // ============================================
+
+  /**
+   * Обновить художника
+   */
+  async updateArtist(artistId, artistData) {
+    try {
+      console.log('📝 updateArtist: Обновляем художника:', artistId)
+
+      const { data, error } = await supabase
+        .from('persons')
+        .update({
+          nickname: artistData.nickname.trim(),
+          avatar_url: artistData.avatar_url || null,
+          is_friend: artistData.is_friend || false
+        })
+        .eq('id', artistId)
+        .select()
+        .single()
+
+      if (error) throw error
+      console.log('✅ updateArtist: Художник обновлен:', data)
+      return data
+    } catch (error) {
+      console.error('❌ updateArtist: Ошибка обновления художника:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Обновить тег
+   */
+  async updateTag(tagId, tagData) {
+    try {
+      console.log('📝 updateTag: Обновляем тег:', tagId)
+
+      const { data, error } = await supabase
+        .from('tags')
+        .update({
+          name: tagData.name.trim()
+        })
+        .eq('id', tagId)
+        .select()
+        .single()
+
+      if (error) throw error
+      console.log('✅ updateTag: Тег обновлен:', data)
+      return data
+    } catch (error) {
+      console.error('❌ updateTag: Ошибка обновления тега:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Обновить персонажа
+   */
+  async updateCharacter(characterId, characterData) {
+    try {
+      console.log('📝 updateCharacter: Обновляем персонажа:', characterId)
+
+      const { data, error } = await supabase
+        .from('fursonas')
+        .update({
+          name: characterData.name.trim(),
+          avatar_url: characterData.avatar_url || null
+        })
+        .eq('id', characterId)
+        .select()
+        .single()
+
+      if (error) throw error
+      console.log('✅ updateCharacter: Персонаж обновлен:', data)
+      return data
+    } catch (error) {
+      console.error('❌ updateCharacter: Ошибка обновления персонажа:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Обновить арт
+   */
+  async updateArt(artId, artData) {
+    try {
+      console.log('📝 updateArt: Обновляем арт:', artId)
+
+      const updateData = {
+        title: artData.title.trim(),
+        is_nsfw: artData.is_nsfw || false
+      }
+
+      if (artData.created_date) {
+        updateData.upload_date = artData.created_date
+      }
+
+      const { data, error } = await supabase
+        .from('arts')
+        .update(updateData)
+        .eq('id', artId)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      // Обновляем художника если изменился
+      if (artData.artist_nickname) {
+        // Находим artist_id
+        const { data: artist, error: artistError } = await supabase
+          .from('persons')
+          .select('id')
+          .eq('nickname', artData.artist_nickname)
+          .maybeSingle()
+
+        if (artistError) throw artistError
+
+        if (artist) {
+          // Обновляем связь с художником
+          await supabase
+            .from('art_collaborators')
+            .delete()
+            .eq('art_id', artId)
+            .eq('role', 'main_artist')
+
+          await supabase
+            .from('art_collaborators')
+            .insert({
+              art_id: artId,
+              person_id: artist.id,
+              role: 'main_artist'
+            })
+        }
+      }
+
+      // Обновляем теги если переданы
+      if (artData.tags !== undefined) {
+        await this.updateArtTags(artId, artData.tags)
+      }
+
+      // Обновляем персонажей если переданы
+      if (artData.characters !== undefined) {
+        await this.updateArtCharacters(artId, artData.characters)
+      }
+
+      console.log('✅ updateArt: Арт обновлен:', data)
+      return data
+    } catch (error) {
+      console.error('❌ updateArt: Ошибка обновления арта:', error)
+      throw error
+    }
+  },
+
+  // ============================================
+  // 🗑️ УДАЛЕНИЕ ДАННЫХ
+  // ============================================
+
+  /**
+   * Удалить художника
+   */
+  async deleteArtist(artistId) {
+    try {
+      console.log('🗑️ deleteArtist: Удаляем художника:', artistId)
+
+      const { error } = await supabase
+        .from('persons')
+        .delete()
+        .eq('id', artistId)
+
+      if (error) throw error
+      console.log('✅ deleteArtist: Художник удален')
+    } catch (error) {
+      console.error('❌ deleteArtist: Ошибка удаления художника:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Удалить тег
+   */
+  async deleteTag(tagId) {
+    try {
+      console.log('🗑️ deleteTag: Удаляем тег:', tagId)
+
+      const { error } = await supabase
+        .from('tags')
+        .delete()
+        .eq('id', tagId)
+
+      if (error) throw error
+      console.log('✅ deleteTag: Тег удален')
+    } catch (error) {
+      console.error('❌ deleteTag: Ошибка удаления тега:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Удалить персонажа
+   */
+  async deleteCharacter(characterId) {
+    try {
+      console.log('🗑️ deleteCharacter: Удаляем персонажа:', characterId)
+
+      const { error } = await supabase
+        .from('fursonas')
+        .delete()
+        .eq('id', characterId)
+
+      if (error) throw error
+      console.log('✅ deleteCharacter: Персонаж удален')
+    } catch (error) {
+      console.error('❌ deleteCharacter: Ошибка удаления персонажа:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Удалить арт
+   */
+  async deleteArt(artId) {
+    try {
+      console.log('🗑️ deleteArt: Удаляем арт:', artId)
+
+      // Сначала удаляем связи
+      await supabase
+        .from('art_collaborators')
+        .delete()
+        .eq('art_id', artId)
+
+      await supabase
+        .from('art_tags')
+        .delete()
+        .eq('art_id', artId)
+
+      await supabase
+        .from('art_fursonas')
+        .delete()
+        .eq('art_id', artId)
+
+      // Затем удаляем сам арт
+      const { error } = await supabase
+        .from('arts')
+        .delete()
+        .eq('id', artId)
+
+      if (error) throw error
+      console.log('✅ deleteArt: Арт удален')
+    } catch (error) {
+      console.error('❌ deleteArt: Ошибка удаления арта:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Получить теги арта
+   */
+  async getArtTags(artId) {
+    try {
+      const { data, error } = await supabase
+        .from('art_tags')
+        .select('tag_id, tags(name)')
+        .eq('art_id', artId)
+
+      if (error) throw error
+      return data.map(item => item.tags.name)
+    } catch (error) {
+      console.error('❌ getArtTags: Ошибка получения тегов арта:', error)
+      return []
+    }
+  },
+
+  /**
+   * Получить персонажей арта
+   */
+  async getArtCharacters(artId) {
+    try {
+      const { data, error } = await supabase
+        .from('art_fursonas')
+        .select('fursona_id, fursonas(name)')
+        .eq('art_id', artId)
+
+      if (error) throw error
+      return data.map(item => item.fursonas.name)
+    } catch (error) {
+      console.error('❌ getArtCharacters: Ошибка получения персонажей арта:', error)
+      return []
+    }
+  },
+
+  /**
+   * Обновить теги арта
+   */
+  async updateArtTags(artId, tagNames) {
+    try {
+      // Удаляем старые теги
+      await supabase
+        .from('art_tags')
+        .delete()
+        .eq('art_id', artId)
+
+      // Добавляем новые теги
+      if (tagNames && tagNames.length > 0) {
+        await this.addArtTags(artId, tagNames)
+      }
+    } catch (error) {
+      console.error('❌ updateArtTags: Ошибка обновления тегов:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Обновить персонажей арта
+   */
+  async updateArtCharacters(artId, characterNames) {
+    try {
+      // Удаляем старых персонажей
+      await supabase
+        .from('art_fursonas')
+        .delete()
+        .eq('art_id', artId)
+
+      // Добавляем новых персонажей
+      if (characterNames && characterNames.length > 0) {
+        await this.addArtCharacters(artId, characterNames)
+      }
+    } catch (error) {
+      console.error('❌ updateArtCharacters: Ошибка обновления персонажей:', error)
+      throw error
+    }
+  },
+
+  // ============================================
   // 📊 СТАТИСТИКА И АНАЛИТИКА
   // ============================================
 
@@ -1180,11 +1957,24 @@ export const furryApi = {
    */
   _cleanEventData(data) {
     const cleaned = { ...data }
-    
+
     // Удаляем системные поля
     delete cleaned.id
     delete cleaned.created_at
     delete cleaned.updated_at
+
+    // Удаляем вычисляемые/агрегированные поля (не являются колонками в таблице cons)
+    delete cleaned.photos_count
+    delete cleaned.featured_photos_count
+    delete cleaned.purchases_count
+    delete cleaned.average_rating
+
+    // Удаляем связанные объекты из join запросов
+    delete cleaned.con_photos
+    delete cleaned.con_purchases
+    delete cleaned.con_links
+    delete cleaned.con_features
+    delete cleaned.purchase_items
     
     // Конвертируем числовые поля
     const numericFields = [
@@ -1201,7 +1991,7 @@ export const furryApi = {
     
     // Конвертируем булевы поля
     const booleanFields = [
-      'is_featured', 'has_dealers_den', 
+      'has_dealers_den',
       'has_art_show', 'has_fursuit_parade'
     ]
     
@@ -1225,15 +2015,22 @@ export const furryApi = {
     })
     
     // Валидация дат
-    const dateFields = ['event_date', 'announced_date']
-    
+    const dateFields = ['event_date', 'event_end_date', 'announced_date']
+
     dateFields.forEach(field => {
-      if (cleaned[field]) {
+      // Конвертируем пустые строки в null
+      if (cleaned[field] === '' || cleaned[field] === undefined) {
+        cleaned[field] = null
+      }
+      // Валидируем и форматируем непустые даты
+      else if (cleaned[field]) {
         const date = new Date(cleaned[field])
         if (isNaN(date.getTime())) {
           throw new Error(`Неверный формат даты в поле ${field}`)
         }
-        cleaned[field] = date.toISOString().split('T')[0] // Только дата, без времени
+      } else if (cleaned[field] === '') {
+        // Обрабатываем явно пустые строки
+        cleaned[field] = null
       }
     })
     

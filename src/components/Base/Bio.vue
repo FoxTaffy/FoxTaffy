@@ -250,6 +250,28 @@ export default {
           }
         }
       ],
+      stats: [
+        {
+          icon: 'fas fa-calendar',
+          value: '5',
+          label: 'Лет в сообществе'
+        },
+        {
+          icon: 'fas fa-users',
+          value: '150',
+          label: 'Друзей и знакомых'
+        },
+        {
+          icon: 'fas fa-images',
+          value: '100',
+          label: 'Работ в портфолио'
+        },
+        {
+          icon: 'fas fa-code',
+          value: '15',
+          label: 'Проектов разработано'
+        }
+      ]
     }
   },
   methods: {

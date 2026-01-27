@@ -4,8 +4,8 @@
       <!-- Логотип -->
       <router-link to="/" class="nav-logo" @click="closeMobileMenu">
         <div class="logo-avatar">
-          <img src="https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery//Avatar.jpg" 
-               alt="Fox Taffy Avatar" 
+          <img :src="AvatarImage"
+               alt="Fox Taffy Avatar"
                class="avatar-img">
           <div class="logo-status"></div>
         </div>
@@ -139,9 +139,13 @@
 </template>
 
 <script>
+import AvatarImage from '@/assets/Image/Avatar.jpg'
+
 export default {
   name: 'NavigationBar',
   data() {
+    return {
+      AvatarImage,
     return {
       isScrolled: false,
       isMobileMenuOpen: false,
@@ -211,7 +215,7 @@ export default {
           name: 'О Felix',
           description: 'История нашей любви',
           path: '/felix',
-          icon: 'fas fa-heart-circle'
+          icon: 'fas fa-heart'
         }
       ],
 
@@ -593,8 +597,11 @@ export default {
 
 .dropdown-item i {
   width: 20px;
+  min-width: 20px;
+  font-size: 1.1rem;
   text-align: center;
   color: var(--accent-orange);
+  display: inline-block;
 }
 
 .dropdown-item-content {
@@ -879,8 +886,21 @@ export default {
 }
 
 /* ===============================================
-   ✨ ДОПОЛНИТЕЛЬНЫЕ АНИМАЦИИ
+   ✨ ОПТИМИЗАЦИЯ ПРОИЗВОДИТЕЛЬНОСТИ
    =============================================== */
+/* Улучшение производительности анимаций */
+.nav-link,
+.social-link,
+.mobile-toggle,
+.dropdown-menu {
+  will-change: transform;
+}
+
+.avatar-img {
+  will-change: transform;
+}
+
+/* Простая анимация появления навбара */
 @keyframes slideDown {
   from {
     opacity: 0;
@@ -895,24 +915,4 @@ export default {
 .navbar {
   animation: slideDown 0.3s ease;
 }
-
-/* Плавное появление элементов меню */
-.nav-link,
-.social-link {
-  animation: slideDown 0.3s ease;
-  animation-fill-mode: both;
-}
-
-.nav-link:nth-child(1) { animation-delay: 0.1s; }
-.nav-link:nth-child(2) { animation-delay: 0.2s; }
-.nav-link:nth-child(3) { animation-delay: 0.3s; }
-.nav-link:nth-child(4) { animation-delay: 0.4s; }
-.nav-link:nth-child(5) { animation-delay: 0.5s; }
-.nav-link:nth-child(6) { animation-delay: 0.6s; }
-.nav-link:nth-child(7) { animation-delay: 0.7s; }
-
-.social-link:nth-child(1) { animation-delay: 0.8s; }
-.social-link:nth-child(2) { animation-delay: 0.9s; }
-.social-link:nth-child(3) { animation-delay: 1.0s; }
-.social-link:nth-child(4) { animation-delay: 1.1s; }
 </style>
