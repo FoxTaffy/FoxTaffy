@@ -976,9 +976,15 @@ export default {
 
     isEventInPast() {
       if (!this.eventForm.event_date) return false
-      const eventDate = new Date(this.eventForm.event_date)
-      if (isNaN(eventDate.getTime())) return false
-      return eventDate < new Date()
+
+      try {
+        const eventDate = new Date(this.eventForm.event_date)
+        if (isNaN(eventDate.getTime()) || !isFinite(eventDate.getTime())) return false
+        return eventDate < new Date()
+      } catch (error) {
+        console.error('Ошибка проверки даты:', error)
+        return false
+      }
     },
 
     upcomingPercent() {
@@ -1018,11 +1024,16 @@ export default {
 
     eventsNeedingReview() {
       return this.events.filter(e => {
-        if (!e.event_date) return false
-        const eventDate = new Date(e.event_date)
-        if (isNaN(eventDate.getTime())) return false
-        const isPast = eventDate < new Date()
-        return isPast && !e.review_completed
+        if (!e || !e.event_date) return false
+
+        try {
+          const eventDate = new Date(e.event_date)
+          if (isNaN(eventDate.getTime()) || !isFinite(eventDate.getTime())) return false
+          const isPast = eventDate < new Date()
+          return isPast && !e.review_completed
+        } catch (error) {
+          return false
+        }
       })
     },
 
@@ -1156,18 +1167,76 @@ export default {
     async loadEvents() {
       try {
         console.log('🎪 AdminEvents: Загружаем мероприятия...')
-        
+
         const events = await furryApi.getEvents({
           status: this.statusFilter === 'all' ? undefined : this.statusFilter,
           sort: this.sortBy,
           limit: 100,
           search: this.searchQuery.trim() || undefined
         })
-        
-        this.events = events || []
-        
-        console.log('✅ AdminEvents: Мероприятия загружены:', this.events.length)
-        
+
+        // Нормализуем даты для всех событий
+        // Это решает проблему разных форматов дат между preview и production
+        const normalizedEvents = (events || []).map(event => {
+          const normalized = { ...event }
+
+          // Нормализуем основные даты
+          if (event.event_date !== null && event.event_date !== undefined) {
+            try {
+              const date = new Date(event.event_date)
+              if (!isNaN(date.getTime()) && isFinite(date.getTime())) {
+                // Преобразуем в ISO строку для консистентности
+                normalized.event_date = date.toISOString()
+              } else {
+                normalized.event_date = null
+              }
+            } catch (e) {
+              console.warn('⚠️ Некорректная event_date для события', event.id, ':', event.event_date)
+              normalized.event_date = null
+            }
+          } else {
+            normalized.event_date = null
+          }
+
+          if (event.event_end_date !== null && event.event_end_date !== undefined) {
+            try {
+              const date = new Date(event.event_end_date)
+              if (!isNaN(date.getTime()) && isFinite(date.getTime())) {
+                normalized.event_end_date = date.toISOString()
+              } else {
+                normalized.event_end_date = null
+              }
+            } catch (e) {
+              console.warn('⚠️ Некорректная event_end_date для события', event.id, ':', event.event_end_date)
+              normalized.event_end_date = null
+            }
+          } else {
+            normalized.event_end_date = null
+          }
+
+          if (event.announced_date !== null && event.announced_date !== undefined) {
+            try {
+              const date = new Date(event.announced_date)
+              if (!isNaN(date.getTime()) && isFinite(date.getTime())) {
+                normalized.announced_date = date.toISOString()
+              } else {
+                normalized.announced_date = null
+              }
+            } catch (e) {
+              console.warn('⚠️ Некорректная announced_date для события', event.id, ':', event.announced_date)
+              normalized.announced_date = null
+            }
+          } else {
+            normalized.announced_date = null
+          }
+
+          return normalized
+        })
+
+        this.events = normalizedEvents
+
+        console.log('✅ AdminEvents: Мероприятия загружены и нормализованы:', this.events.length)
+
       } catch (error) {
         console.error('❌ AdminEvents: Ошибка загрузки мероприятий:', error)
         throw error
@@ -1562,10 +1631,33 @@ export default {
 
       // Конвертируем дату из ISO формата в YYYY-MM-DD для input[type="date"]
       if (this.eventForm.event_date) {
-        this.eventForm.event_date = this.eventForm.event_date.split('T')[0]
+        if (typeof this.eventForm.event_date === 'string') {
+          this.eventForm.event_date = this.eventForm.event_date.split('T')[0]
+        } else if (this.eventForm.event_date instanceof Date) {
+          this.eventForm.event_date = this.eventForm.event_date.toISOString().split('T')[0]
+        } else {
+          this.eventForm.event_date = null
+        }
       }
+
+      if (this.eventForm.event_end_date) {
+        if (typeof this.eventForm.event_end_date === 'string') {
+          this.eventForm.event_end_date = this.eventForm.event_end_date.split('T')[0]
+        } else if (this.eventForm.event_end_date instanceof Date) {
+          this.eventForm.event_end_date = this.eventForm.event_end_date.toISOString().split('T')[0]
+        } else {
+          this.eventForm.event_end_date = null
+        }
+      }
+
       if (this.eventForm.announced_date) {
-        this.eventForm.announced_date = this.eventForm.announced_date.split('T')[0]
+        if (typeof this.eventForm.announced_date === 'string') {
+          this.eventForm.announced_date = this.eventForm.announced_date.split('T')[0]
+        } else if (this.eventForm.announced_date instanceof Date) {
+          this.eventForm.announced_date = this.eventForm.announced_date.toISOString().split('T')[0]
+        } else {
+          this.eventForm.announced_date = null
+        }
       }
 
       // Инициализируем массивы если они null
@@ -1867,14 +1959,39 @@ export default {
     },
     
     formatEventDate(dateString) {
+      // Максимально строгая проверка
       if (!dateString) return 'Дата не указана'
-      const date = new Date(dateString)
-      if (isNaN(date.getTime())) return 'Некорректная дата'
-      return date.toLocaleDateString('ru-RU', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
+
+      // Проверяем что это строка
+      if (typeof dateString !== 'string') {
+        // Если это Date объект, конвертируем
+        if (dateString instanceof Date) {
+          if (isNaN(dateString.getTime())) return 'Некорректная дата'
+          dateString = dateString.toISOString()
+        } else {
+          return 'Некорректный формат даты'
+        }
+      }
+
+      // Проверка на пустую строку
+      if (dateString.trim() === '') return 'Дата не указана'
+
+      try {
+        const date = new Date(dateString)
+        // Двойная проверка валидности
+        if (isNaN(date.getTime()) || !isFinite(date.getTime())) {
+          return 'Некорректная дата'
+        }
+
+        return date.toLocaleDateString('ru-RU', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      } catch (error) {
+        console.error('Ошибка форматирования даты:', dateString, error)
+        return 'Ошибка даты'
+      }
     },
     
     formatMoney(amount) {
