@@ -1138,18 +1138,76 @@ export default {
     async loadEvents() {
       try {
         console.log('🎪 AdminEvents: Загружаем мероприятия...')
-        
+
         const events = await furryApi.getEvents({
           status: this.statusFilter === 'all' ? undefined : this.statusFilter,
           sort: this.sortBy,
           limit: 100,
           search: this.searchQuery.trim() || undefined
         })
-        
-        this.events = events || []
-        
-        console.log('✅ AdminEvents: Мероприятия загружены:', this.events.length)
-        
+
+        // Нормализуем даты для всех событий
+        // Это решает проблему разных форматов дат между preview и production
+        const normalizedEvents = (events || []).map(event => {
+          const normalized = { ...event }
+
+          // Нормализуем основные даты
+          if (event.event_date !== null && event.event_date !== undefined) {
+            try {
+              const date = new Date(event.event_date)
+              if (!isNaN(date.getTime()) && isFinite(date.getTime())) {
+                // Преобразуем в ISO строку для консистентности
+                normalized.event_date = date.toISOString()
+              } else {
+                normalized.event_date = null
+              }
+            } catch (e) {
+              console.warn('⚠️ Некорректная event_date для события', event.id, ':', event.event_date)
+              normalized.event_date = null
+            }
+          } else {
+            normalized.event_date = null
+          }
+
+          if (event.event_end_date !== null && event.event_end_date !== undefined) {
+            try {
+              const date = new Date(event.event_end_date)
+              if (!isNaN(date.getTime()) && isFinite(date.getTime())) {
+                normalized.event_end_date = date.toISOString()
+              } else {
+                normalized.event_end_date = null
+              }
+            } catch (e) {
+              console.warn('⚠️ Некорректная event_end_date для события', event.id, ':', event.event_end_date)
+              normalized.event_end_date = null
+            }
+          } else {
+            normalized.event_end_date = null
+          }
+
+          if (event.announced_date !== null && event.announced_date !== undefined) {
+            try {
+              const date = new Date(event.announced_date)
+              if (!isNaN(date.getTime()) && isFinite(date.getTime())) {
+                normalized.announced_date = date.toISOString()
+              } else {
+                normalized.announced_date = null
+              }
+            } catch (e) {
+              console.warn('⚠️ Некорректная announced_date для события', event.id, ':', event.announced_date)
+              normalized.announced_date = null
+            }
+          } else {
+            normalized.announced_date = null
+          }
+
+          return normalized
+        })
+
+        this.events = normalizedEvents
+
+        console.log('✅ AdminEvents: Мероприятия загружены и нормализованы:', this.events.length)
+
       } catch (error) {
         console.error('❌ AdminEvents: Ошибка загрузки мероприятий:', error)
         throw error
