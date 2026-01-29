@@ -2793,89 +2793,117 @@
   
   @media (max-width: 480px) {
     .container {
-      padding: 0 1rem;
+      padding: 0 clamp(0.75rem, 2vw, 1rem);
     }
-    
+
     .hero-title {
-      font-size: 2.5rem;
+      font-size: clamp(2rem, 8vw, 2.5rem);
+      line-height: 1.2;
     }
-    
+
     .hero-subtitle {
-      font-size: 1rem;
+      font-size: clamp(0.9rem, 3vw, 1rem);
     }
-    
+
     .card-inner {
-      padding: 2rem 1.5rem;
+      padding: clamp(1.5rem, 4vw, 2rem) clamp(1rem, 3vw, 1.5rem);
     }
-    
+
     .section-title {
-      font-size: 1.8rem;
+      font-size: clamp(1.6rem, 5vw, 1.8rem);
     }
-    
+
     .biography-card {
-      padding: 1.5rem;
+      padding: clamp(1.2rem, 3.5vw, 1.5rem);
     }
-    
+
     .bio-text {
-      font-size: 1rem;
+      font-size: clamp(0.9rem, 2.5vw, 1rem);
+      line-height: 1.7;
     }
-    
+
     .model-image {
       max-width: 100%;
+      height: auto;
     }
-    
+
     .details-card {
-      border-radius: 1rem;
+      border-radius: clamp(0.8rem, 2vw, 1rem);
     }
-    
+
     .card-header {
       flex-direction: column;
       text-align: center;
-      padding: 1.5rem;
+      padding: clamp(1.2rem, 3.5vw, 1.5rem);
+      gap: 1rem;
     }
-    
+
     .header-icon {
-      width: 60px;
-      height: 60px;
-      font-size: 1.5rem;
+      width: clamp(50px, 12vw, 60px);
+      height: clamp(50px, 12vw, 60px);
+      font-size: clamp(1.3rem, 3.5vw, 1.5rem);
     }
-    
+
     .header-content h3 {
-      font-size: 1.5rem;
+      font-size: clamp(1.3rem, 4vw, 1.5rem);
     }
-    
+
     .card-body {
-      padding: 1.5rem;
+      padding: clamp(1.2rem, 3.5vw, 1.5rem);
     }
-    
+
     .card-body p {
-      font-size: 1rem;
+      font-size: clamp(0.9rem, 2.5vw, 1rem);
+      line-height: 1.7;
     }
-    
+
     .event-quote p {
-      font-size: 1.1rem;
+      font-size: clamp(1rem, 3vw, 1.1rem);
     }
-    
+
     .gallery-grid {
       grid-template-columns: 1fr;
+      gap: 1rem;
     }
-    
+
     .gallery-item {
-      height: 200px;
+      height: clamp(180px, 45vw, 220px);
+      border-radius: 1rem;
     }
-    
+
     .book-cover {
-      padding: 2rem;
+      padding: clamp(1.5rem, 4vw, 2rem);
     }
-    
+
     .book-pages {
-      padding: 2rem 1.5rem;
+      padding: clamp(1.5rem, 4vw, 2rem) clamp(1rem, 3vw, 1.5rem);
     }
-    
+
     .traditions-wheel {
-      transform: scale(0.8);
+      transform: scale(0.75);
     }
-    
+
+    /* Touch optimization for mobile */
+    .trait-card,
+    .gallery-item,
+    .timeline-point,
+    .nav-link,
+    .scroll-top,
+    .info-button {
+      -webkit-tap-highlight-color: rgba(102, 126, 234, 0.2);
+      touch-action: manipulation;
+    }
+
+    /* Improve tap targets */
+    button,
+    a {
+      min-width: 44px;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .tradition-tooltip {
       min-width: 150px;
       top: -100px;
