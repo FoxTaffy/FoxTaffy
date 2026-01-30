@@ -150,106 +150,73 @@
       </section>
 
       <!-- 2. Наши путешествия -->
-      <section id="travels" class="story-chapter travels-new-section">
+      <section id="travels" class="story-chapter">
         <div class="chapter-container">
           <div class="chapter-header">
             <div class="chapter-number">02</div>
             <h2 class="chapter-title">Наши путешествия</h2>
-            <div class="chapter-subtitle">Карта наших приключений • {{ journeys.length }} мест</div>
+            <div class="chapter-subtitle">{{ journeys.length }} незабываемых мест</div>
           </div>
 
-          <!-- Timeline with horizontal scroll -->
-          <div class="travels-timeline-wrapper">
-            <div class="timeline-nav">
-              <button
-                class="timeline-nav-btn prev"
-                @click="scrollTimeline('left')"
-                aria-label="Прокрутить влево"
-              >
-                <i class="fas fa-chevron-left"></i>
-              </button>
-              <button
-                class="timeline-nav-btn next"
-                @click="scrollTimeline('right')"
-                aria-label="Прокрутить вправо"
-              >
-                <i class="fas fa-chevron-right"></i>
-              </button>
-            </div>
-
-            <div
-              class="travels-timeline"
-              ref="timelineRef"
-              @touchstart="handleTimelineTouchStart"
-              @touchmove="handleTimelineTouchMove"
-              @touchend="handleTimelineTouchEnd"
+          <!-- Simple Carousel -->
+          <div class="simple-carousel">
+            <!-- Navigation Arrows -->
+            <button
+              class="carousel-arrow prev"
+              @click="prevJourney"
+              aria-label="Предыдущее путешествие"
             >
+              <i class="fas fa-chevron-left"></i>
+            </button>
+
+            <!-- Single Card Display -->
+            <div class="carousel-content">
               <div
-                v-for="(journey, index) in journeys"
-                :key="`journey-${index}-${journey.year}`"
-                class="timeline-card"
-                :class="{
-                  active: currentJourneyIndex === index,
-                  'is-past': index < currentJourneyIndex,
-                  'is-future': index > currentJourneyIndex
-                }"
-                @click="selectJourney(index)"
+                class="journey-card-simple"
+                :key="`journey-${currentJourneyIndex}`"
               >
-                <div class="timeline-card-inner">
-                  <!-- Image with forced reload -->
-                  <div class="timeline-card-image">
-                    <img
-                      :key="`img-${index}-${journey.year}-${currentJourneyIndex}`"
-                      :src="journey.image"
-                      :alt="journey.title"
-                      loading="eager"
-                      @load="handleImageLoad(index)"
-                      @error="handleImageError(index)"
-                    >
-                    <div class="image-overlay"></div>
-                    <div class="timeline-year-badge">{{ journey.year }}</div>
+                <div class="journey-image-simple">
+                  <img
+                    :key="`img-${currentJourneyIndex}-${journeys[currentJourneyIndex].year}`"
+                    :src="journeys[currentJourneyIndex].image"
+                    :alt="journeys[currentJourneyIndex].title"
+                    loading="eager"
+                  >
+                </div>
+                <div class="journey-info-simple">
+                  <div class="journey-meta">
+                    <span class="journey-year">{{ journeys[currentJourneyIndex].year }}</span>
+                    <span class="journey-date">{{ journeys[currentJourneyIndex].date }}</span>
                   </div>
-
-                  <!-- Content -->
-                  <div class="timeline-card-content">
-                    <div class="timeline-date">
-                      <i class="fas fa-calendar-alt"></i>
-                      {{ journey.date }}
-                    </div>
-                    <h3 class="timeline-card-title">{{ journey.title }}</h3>
-
-                    <transition name="expand">
-                      <div v-if="currentJourneyIndex === index" class="timeline-card-details">
-                        <p class="timeline-description">{{ journey.description }}</p>
-                        <div v-if="journey.highlight" class="timeline-highlight">
-                          <div class="highlight-icon-new">✨</div>
-                          <p class="highlight-text-new">{{ journey.highlight }}</p>
-                        </div>
-                      </div>
-                    </transition>
-                  </div>
-
-                  <!-- Active indicator -->
-                  <div class="active-indicator">
-                    <i class="fas fa-map-marker-alt"></i>
+                  <h3 class="journey-title-simple">{{ journeys[currentJourneyIndex].title }}</h3>
+                  <p class="journey-desc-simple">{{ journeys[currentJourneyIndex].description }}</p>
+                  <div v-if="journeys[currentJourneyIndex].highlight" class="journey-quote">
+                    <i class="fas fa-quote-left"></i>
+                    <p>{{ journeys[currentJourneyIndex].highlight }}</p>
                   </div>
                 </div>
               </div>
             </div>
+
+            <button
+              class="carousel-arrow next"
+              @click="nextJourney"
+              aria-label="Следующее путешествие"
+            >
+              <i class="fas fa-chevron-right"></i>
+            </button>
           </div>
 
-          <!-- Year navigation -->
-          <div class="year-navigation">
+          <!-- Simple Dots Navigation -->
+          <div class="carousel-dots">
             <button
               v-for="(journey, index) in journeys"
-              :key="`year-${index}`"
-              class="year-nav-item"
+              :key="`dot-${index}`"
+              class="dot"
               :class="{ active: currentJourneyIndex === index }"
               @click="selectJourney(index)"
-            >
-              <span class="year-label">{{ journey.year }}</span>
-              <span class="year-title">{{ journey.title }}</span>
-            </button>
+              :aria-label="`Путешествие ${index + 1}`"
+            ></button>
           </div>
         </div>
       </section>
@@ -579,11 +546,6 @@ const currentJourneyIndex = ref<number>(0)
 const currentFellyIndex = ref<number>(0)
 const selectedFactIndex = ref<number | null>(null)
 
-// Refs для timeline
-const timelineRef = ref<HTMLElement | null>(null)
-const timelineTouchStartX = ref<number>(0)
-const timelineTouchEndX = ref<number>(0)
-
 // Состояние галереи
 const isGalleryLoading = ref<boolean>(true)
 const galleryError = ref<string | null>(null)
@@ -893,7 +855,6 @@ const prevJourney = () => {
   } else {
     currentJourneyIndex.value = journeys.value.length - 1
   }
-  scrollToActiveCard()
 }
 
 const nextJourney = () => {
@@ -902,86 +863,10 @@ const nextJourney = () => {
   } else {
     currentJourneyIndex.value = 0
   }
-  scrollToActiveCard()
 }
 
 const selectJourney = (index: number) => {
   currentJourneyIndex.value = index
-  scrollToActiveCard()
-}
-
-const scrollTimeline = (direction: 'left' | 'right') => {
-  if (!timelineRef.value) return
-
-  const scrollAmount = 400
-  const currentScroll = timelineRef.value.scrollLeft
-
-  if (direction === 'left') {
-    timelineRef.value.scrollTo({
-      left: currentScroll - scrollAmount,
-      behavior: 'smooth'
-    })
-  } else {
-    timelineRef.value.scrollTo({
-      left: currentScroll + scrollAmount,
-      behavior: 'smooth'
-    })
-  }
-}
-
-const scrollToActiveCard = () => {
-  if (!timelineRef.value) return
-
-  nextTick(() => {
-    const cards = timelineRef.value?.querySelectorAll('.timeline-card')
-    const activeCard = cards?.[currentJourneyIndex.value] as HTMLElement
-
-    if (activeCard) {
-      const containerWidth = timelineRef.value?.offsetWidth || 0
-      const cardLeft = activeCard.offsetLeft
-      const cardWidth = activeCard.offsetWidth
-      const scrollLeft = cardLeft - (containerWidth / 2) + (cardWidth / 2)
-
-      timelineRef.value?.scrollTo({
-        left: scrollLeft,
-        behavior: 'smooth'
-      })
-    }
-  })
-}
-
-const handleTimelineTouchStart = (e: TouchEvent) => {
-  timelineTouchStartX.value = e.touches[0].clientX
-}
-
-const handleTimelineTouchMove = (e: TouchEvent) => {
-  timelineTouchEndX.value = e.touches[0].clientX
-}
-
-const handleTimelineTouchEnd = () => {
-  const diff = timelineTouchStartX.value - timelineTouchEndX.value
-  const threshold = 50
-
-  if (Math.abs(diff) > threshold) {
-    if (diff > 0 && currentJourneyIndex.value < journeys.value.length - 1) {
-      nextJourney()
-    } else if (diff < 0 && currentJourneyIndex.value > 0) {
-      prevJourney()
-    }
-  }
-
-  timelineTouchStartX.value = 0
-  timelineTouchEndX.value = 0
-}
-
-const handleImageLoad = (index: number) => {
-  // Обработка успешной загрузки изображения
-  console.log(`Image loaded for journey ${index}`)
-}
-
-const handleImageError = (index: number) => {
-  // Обработка ошибки загрузки изображения
-  console.error(`Failed to load image for journey ${index}`)
 }
 
 const prevMoment = () => {
@@ -1723,39 +1608,23 @@ html, body {
   max-width: 600px;
 }
 
-/* Путешествия */
-/* ===== NEW TRAVELS SECTION STYLES ===== */
-.travels-new-section {
-  padding: 4rem 0;
-}
-
-.travels-timeline-wrapper {
+/* Путешествия - Простой стиль */
+.simple-carousel {
   position: relative;
-  width: 100%;
-  margin-top: 3rem;
-  margin-bottom: 3rem;
-}
-
-/* Timeline Navigation Buttons */
-.timeline-nav {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  transform: translateY(-50%);
+  max-width: 900px;
+  margin: 3rem auto;
   display: flex;
-  justify-content: space-between;
-  pointer-events: none;
-  z-index: 10;
+  align-items: center;
+  gap: 2rem;
   padding: 0 1rem;
 }
 
-.timeline-nav-btn {
+.carousel-arrow {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: rgba(102, 126, 234, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: white;
   font-size: 1.2rem;
   cursor: pointer;
@@ -1763,323 +1632,136 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
-  pointer-events: all;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-}
-
-.timeline-nav-btn:hover {
-  background: rgba(102, 126, 234, 1);
-  transform: scale(1.1);
-  box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
-}
-
-/* Timeline Container */
-.travels-timeline {
-  display: flex;
-  gap: 2rem;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-behavior: smooth;
-  padding: 2rem 2rem 3rem;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(102, 126, 234, 0.6) rgba(255, 255, 255, 0.05);
-}
-
-.travels-timeline::-webkit-scrollbar {
-  height: 8px;
-}
-
-.travels-timeline::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
-}
-
-.travels-timeline::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.6) 100%);
-  border-radius: 4px;
-}
-
-.travels-timeline::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
-}
-
-/* Timeline Card */
-.timeline-card {
   flex-shrink: 0;
-  width: clamp(320px, 40vw, 450px);
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  opacity: 0.7;
-  transform: scale(0.95);
 }
 
-.timeline-card.active {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.timeline-card.is-past,
-.timeline-card.is-future {
-  opacity: 0.5;
-}
-
-.timeline-card:hover:not(.active) {
-  opacity: 0.85;
-  transform: scale(0.97);
-}
-
-.timeline-card-inner {
-  position: relative;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(15px);
-  border-radius: 24px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.4s ease;
-  height: 100%;
-}
-
-.timeline-card.active .timeline-card-inner {
-  background: rgba(255, 255, 255, 0.05);
+.carousel-arrow:hover {
+  background: rgba(102, 126, 234, 0.2);
   border-color: rgba(102, 126, 234, 0.4);
-  box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+  transform: scale(1.1);
 }
 
-/* Card Image */
-.timeline-card-image {
-  position: relative;
-  width: 100%;
-  height: 280px;
+.carousel-content {
+  flex: 1;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
 }
 
-.timeline-card-image img {
+.journey-card-simple {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.journey-image-simple {
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.journey-image-simple img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s ease, opacity 0.3s ease;
-  opacity: 0;
+  display: block;
 }
 
-.timeline-card-image img[src] {
-  opacity: 1;
+.journey-info-simple {
+  padding: 2rem;
 }
 
-.timeline-card.active .timeline-card-image img {
-  transform: scale(1.05);
-}
-
-.timeline-card:hover .timeline-card-image img {
-  transform: scale(1.08);
-}
-
-.image-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
-  pointer-events: none;
-}
-
-.timeline-year-badge {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  background: rgba(102, 126, 234, 0.95);
-  color: white;
-  padding: 0.6rem 1.2rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 700;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  z-index: 2;
-}
-
-/* Card Content */
-.timeline-card-content {
-  padding: 1.5rem;
-}
-
-.timeline-date {
+.journey-meta {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: rgba(102, 126, 234, 0.9);
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-bottom: 0.8rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.timeline-card-title {
-  font-size: 1.4rem;
+.journey-year {
+  background: rgba(102, 126, 234, 0.2);
+  color: rgba(102, 126, 234, 1);
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.journey-date {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+}
+
+.journey-title-simple {
+  font-size: 1.8rem;
   font-weight: 700;
   color: white;
   margin-bottom: 1rem;
   line-height: 1.3;
 }
 
-.timeline-card.active .timeline-card-title {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Card Details (expanded content) */
-.timeline-card-details {
-  margin-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 1rem;
-}
-
-.timeline-description {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.95rem;
+.journey-desc-simple {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
   line-height: 1.7;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.timeline-highlight {
-  background: rgba(102, 126, 234, 0.15);
-  border-radius: 12px;
-  padding: 1rem;
-  border-left: 3px solid rgba(102, 126, 234, 0.8);
+.journey-quote {
+  background: rgba(102, 126, 234, 0.1);
+  border-left: 3px solid rgba(102, 126, 234, 0.6);
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
   display: flex;
-  gap: 0.8rem;
+  gap: 1rem;
   align-items: flex-start;
 }
 
-.highlight-icon-new {
+.journey-quote i {
+  color: rgba(102, 126, 234, 0.6);
   font-size: 1.2rem;
+  margin-top: 0.2rem;
   flex-shrink: 0;
 }
 
-.highlight-text-new {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.9);
+.journey-quote p {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
   line-height: 1.6;
   font-style: italic;
+  margin: 0;
 }
 
-/* Active Indicator */
-.active-indicator {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 40px;
-  height: 40px;
-  background: rgba(102, 126, 234, 0.95);
-  border-radius: 50%;
+/* Dots Navigation */
+.carousel-dots {
   display: flex;
-  align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 1.1rem;
-  opacity: 0;
-  transform: scale(0);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  z-index: 3;
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.6);
-}
-
-.timeline-card.active .active-indicator {
-  opacity: 1;
-  transform: scale(1);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.6);
-  }
-  50% {
-    box-shadow: 0 4px 30px rgba(102, 126, 234, 0.9);
-  }
-}
-
-/* Year Navigation */
-.year-navigation {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  justify-content: center;
+  gap: 0.8rem;
   margin-top: 2rem;
   padding: 0 1rem;
 }
 
-.year-nav-item {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 1rem 1.5rem;
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.3rem;
-  min-width: 120px;
+  padding: 0;
 }
 
-.year-nav-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(102, 126, 234, 0.3);
-  transform: translateY(-2px);
+.dot:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.2);
 }
 
-.year-nav-item.active {
-  background: rgba(102, 126, 234, 0.2);
-  border-color: rgba(102, 126, 234, 0.6);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-.year-label {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: rgba(102, 126, 234, 0.9);
-}
-
-.year-nav-item.active .year-label {
-  color: white;
-}
-
-.year-title {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
-  text-align: center;
-  font-weight: 500;
-}
-
-.year-nav-item.active .year-title {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-/* Expand Transition */
-.expand-enter-active,
-.expand-leave-active {
-  transition: all 0.4s ease;
-  overflow: hidden;
-}
-
-.expand-enter-from,
-.expand-leave-to {
-  max-height: 0;
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-.expand-enter-to,
-.expand-leave-from {
-  max-height: 1000px;
-  opacity: 1;
-  transform: translateY(0);
+.dot.active {
+  width: 30px;
+  border-radius: 5px;
+  background: rgba(102, 126, 234, 0.8);
 }
 
 /* ФЕЛЛИ СЕКЦИЯ БЕЗ HOVER ЭФФЕКТОВ */
@@ -2941,74 +2623,75 @@ html, body {
     font-size: clamp(1.1rem, 3vw, 1.2rem);
   }
 
-  /* New travels section mobile styles */
-  .travels-timeline-wrapper {
-    margin-top: 2rem;
-    margin-bottom: 2rem;
-  }
-
-  .timeline-nav {
-    display: none;
-  }
-
-  .travels-timeline {
-    padding: 1.5rem 1rem 2rem;
+  /* Simple Carousel Mobile Styles */
+  .simple-carousel {
+    flex-direction: column;
     gap: 1.5rem;
+    margin: 2rem auto;
   }
 
-  .timeline-card {
-    width: clamp(280px, 85vw, 380px);
+  .carousel-arrow {
+    width: 45px;
+    height: 45px;
+    font-size: 1rem;
   }
 
-  .timeline-card-image {
-    height: 220px;
+  .carousel-arrow.prev,
+  .carousel-arrow.next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
   }
 
-  .timeline-card-content {
-    padding: 1.2rem;
+  .carousel-arrow.prev {
+    left: 0.5rem;
   }
 
-  .timeline-card-title {
-    font-size: 1.2rem;
+  .carousel-arrow.next {
+    right: 0.5rem;
   }
 
-  .timeline-date {
-    font-size: 0.8rem;
+  .carousel-content {
+    width: 100%;
   }
 
-  .timeline-description {
+  .journey-image-simple {
+    height: 300px;
+  }
+
+  .journey-info-simple {
+    padding: 1.5rem;
+  }
+
+  .journey-title-simple {
+    font-size: 1.4rem;
+  }
+
+  .journey-desc-simple {
+    font-size: 0.95rem;
+  }
+
+  .journey-quote {
+    padding: 0.8rem 1rem;
+  }
+
+  .journey-quote p {
     font-size: 0.9rem;
   }
 
-  .timeline-highlight {
-    padding: 0.8rem;
+  .carousel-dots {
+    gap: 0.6rem;
+    margin-top: 1.5rem;
   }
 
-  .highlight-text-new {
-    font-size: 0.85rem;
+  .dot {
+    width: 8px;
+    height: 8px;
   }
 
-  .year-navigation {
-    gap: 0.8rem;
-  }
-
-  .year-nav-item {
-    padding: 0.8rem 1.2rem;
-    min-width: 100px;
-  }
-
-  .year-label {
-    font-size: 1rem;
-  }
-
-  .year-title {
-    font-size: 0.7rem;
-  }
-
-  .active-indicator {
-    width: 35px;
-    height: 35px;
-    font-size: 1rem;
+  .dot.active {
+    width: 24px;
   }
 
   
