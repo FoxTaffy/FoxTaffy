@@ -315,42 +315,13 @@
             <span class="gallery-count">{{ galleryPhotos.length }} воспоминаний</span>
           </div>
           <div class="gallery-buttons">
-            <a
-              href="https://foxtaffy.fun/gallery"
-              target="_blank"
+            <router-link
+              to="/gallery"
               class="gallery-btn external"
-              rel="noopener noreferrer"
             >
-              <i class="fas fa-external-link-alt"></i>
+              <i class="fas fa-images"></i>
               <span>Полная галерея</span>
-            </a>
-              <div class="gallery-image">
-                <img 
-                  :src="photo.src" 
-                  :alt="photo.caption"
-                  loading="lazy"
-                  decoding="async"
-                >
-              </div>
-              <div class="gallery-caption">
-                <p>{{ photo.caption }}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div class="gallery-controls">
-            <div class="gallery-info">
-              <span class="gallery-count">{{ galleryPhotos.length }} воспоминаний</span>
-            </div>
-            <div class="gallery-buttons">
-              <router-link
-                to="/gallery"
-                class="gallery-btn external"
-              >
-                <i class="fas fa-images"></i>
-                <span>Полная галерея</span>
-              </router-link>
-            </div>
+            </router-link>
           </div>
         </div>
       </section>
