@@ -1,27 +1,19 @@
 <template>
   <!-- Интерактивная история любви Felix & Taffy с максимальной оптимизацией -->
-  
-  <!-- ПРОСТЕЙШАЯ ЗАКРЕПЛЕННАЯ НАВИГАЦИЯ -->
-  <div style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 99999; background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.2);">
-    <div style="display: flex; gap: 10px;">
-      <button
-        v-for="navItem in navigationItems"
-        :key="navItem.id"
-        :style="{ 
-          background: activeSection === navItem.id ? 'rgba(102, 126, 234, 0.3)' : 'transparent',
-          border: activeSection === navItem.id ? '1px solid #667eea' : '1px solid transparent',
-          color: 'white',
-          padding: '8px 15px',
-          borderRadius: '20px',
-          cursor: 'pointer',
-          fontSize: '14px'
-        }"
-        @click="navigateToSection(navItem.id)"
-      >
-        <i :class="navItem.icon" style="margin-right: 5px;"></i>
-        <span>{{ navItem.label }}</span>
-      </button>
-    </div>
+
+  <!-- БОКОВАЯ НАВИГАЦИЯ СПРАВА (NOTION STYLE) -->
+  <div class="side-navigation">
+    <button
+      v-for="navItem in navigationItems"
+      :key="navItem.id"
+      class="nav-item"
+      :class="{ active: activeSection === navItem.id }"
+      @click="navigateToSection(navItem.id)"
+      :title="navItem.label"
+    >
+      <i :class="navItem.icon"></i>
+      <span class="nav-label">{{ navItem.label }}</span>
+    </button>
   </div>
 
   <div class="felix-universe">
@@ -1093,6 +1085,75 @@ html, body {
   overflow-x: hidden;
   width: 100%;
   height: 100%;
+}
+
+/* БОКОВАЯ НАВИГАЦИЯ (NOTION STYLE) */
+.side-navigation {
+  position: fixed;
+  right: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(20px);
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  min-width: 50px;
+}
+
+.nav-item i {
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.nav-label {
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.nav-item:hover .nav-label,
+.nav-item.active .nav-label {
+  opacity: 1;
+  max-width: 200px;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+  transform: translateX(-5px);
+}
+
+.nav-item.active {
+  background: rgba(102, 126, 234, 0.2);
+  color: white;
+  border-left: 3px solid rgba(102, 126, 234, 1);
+}
+
+.nav-item.active i {
+  color: rgba(102, 126, 234, 1);
 }
 
 .felix-universe {
@@ -2575,6 +2636,30 @@ html, body {
   }
 
 @media (max-width: 768px) {
+  /* Side Navigation Mobile */
+  .side-navigation {
+    right: 1rem;
+    padding: 0.8rem;
+    gap: 0.4rem;
+  }
+
+  .nav-item {
+    padding: 0.6rem 0.8rem;
+  }
+
+  .nav-item i {
+    font-size: 1.1rem;
+  }
+
+  .nav-label {
+    display: none;
+  }
+
+  .nav-item:hover .nav-label,
+  .nav-item.active .nav-label {
+    display: none;
+  }
+
   .moment-content {
     flex-direction: column;
     text-align: center;
