@@ -1,27 +1,19 @@
 <template>
   <!-- Интерактивная история любви Felix & Taffy с максимальной оптимизацией -->
-  
-  <!-- ПРОСТЕЙШАЯ ЗАКРЕПЛЕННАЯ НАВИГАЦИЯ -->
-  <div style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 99999; background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.2);">
-    <div style="display: flex; gap: 10px;">
-      <button
-        v-for="navItem in navigationItems"
-        :key="navItem.id"
-        :style="{ 
-          background: activeSection === navItem.id ? 'rgba(102, 126, 234, 0.3)' : 'transparent',
-          border: activeSection === navItem.id ? '1px solid #667eea' : '1px solid transparent',
-          color: 'white',
-          padding: '8px 15px',
-          borderRadius: '20px',
-          cursor: 'pointer',
-          fontSize: '14px'
-        }"
-        @click="navigateToSection(navItem.id)"
-      >
-        <i :class="navItem.icon" style="margin-right: 5px;"></i>
-        <span>{{ navItem.label }}</span>
-      </button>
-    </div>
+
+  <!-- БОКОВАЯ НАВИГАЦИЯ СПРАВА (NOTION STYLE) -->
+  <div class="side-navigation">
+    <button
+      v-for="navItem in navigationItems"
+      :key="navItem.id"
+      class="nav-item"
+      :class="{ active: activeSection === navItem.id }"
+      @click="navigateToSection(navItem.id)"
+      :title="navItem.label"
+    >
+      <i :class="navItem.icon"></i>
+      <span class="nav-label">{{ navItem.label }}</span>
+    </button>
   </div>
 
   <div class="felix-universe">
@@ -91,23 +83,57 @@
             <h2 class="chapter-title">Как всё начиналось</h2>
             <div class="chapter-subtitle">Discord • CS:GO • 2020</div>
           </div>
-          
-          <div class="story-flow">
-            <div 
-              v-for="(moment, index) in storyMoments" 
-              :key="`moment-${index}`"
-              class="story-moment"
-              :class="{ 'quote-moment': moment.isQuote }"
-            >
-              <div class="moment-content glass-panel" :class="{ 'quote-panel': moment.isQuote }">
-                <div v-if="!moment.isQuote" class="moment-icon">
-                  <i :class="moment.icon"></i>
+
+          <div class="beginning-showcase">
+            <div class="beginning-controls">
+              <button
+                class="control-btn prev"
+                @click="prevMoment"
+                :disabled="currentMomentIndex === 0"
+                aria-label="Previous moment"
+              >
+                <i class="fas fa-chevron-left"></i>
+              </button>
+
+              <div class="beginning-dots">
+                <button
+                  v-for="(moment, index) in storyMoments"
+                  :key="`dot-${index}`"
+                  class="moment-dot"
+                  :class="{ active: currentMomentIndex === index }"
+                  @click="currentMomentIndex = index"
+                  :aria-label="`Moment ${index + 1}`"
+                >
+                  <i :class="moment.icon || 'fas fa-heart'"></i>
+                </button>
+              </div>
+
+              <button
+                class="control-btn next"
+                @click="nextMoment"
+                :disabled="currentMomentIndex === storyMoments.length - 1"
+                aria-label="Next moment"
+              >
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+
+            <div class="moment-display">
+              <div class="moment-card glass-panel" :class="{ 'quote-card': storyMoments[currentMomentIndex].isQuote }">
+                <div v-if="!storyMoments[currentMomentIndex].isQuote" class="moment-icon-large">
+                  <i :class="storyMoments[currentMomentIndex].icon"></i>
                 </div>
-                <div v-if="moment.isQuote" class="quote-mark">"</div>
-                <div class="moment-text">
-                  <h3 v-if="!moment.isQuote">{{ moment.title }}</h3>
-                  <blockquote v-if="moment.isQuote">{{ moment.text }}</blockquote>
-                  <p v-else>{{ moment.text }}</p>
+                <div v-if="storyMoments[currentMomentIndex].isQuote" class="quote-mark-large">"</div>
+                <div class="moment-content-new">
+                  <h3 v-if="!storyMoments[currentMomentIndex].isQuote" class="moment-title">
+                    {{ storyMoments[currentMomentIndex].title }}
+                  </h3>
+                  <div class="moment-text-new">
+                    <blockquote v-if="storyMoments[currentMomentIndex].isQuote">
+                      {{ storyMoments[currentMomentIndex].text }}
+                    </blockquote>
+                    <p v-else>{{ storyMoments[currentMomentIndex].text }}</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -121,65 +147,68 @@
           <div class="chapter-header">
             <div class="chapter-number">02</div>
             <h2 class="chapter-title">Наши путешествия</h2>
-            <div class="chapter-subtitle">Карта наших приключений</div>
+            <div class="chapter-subtitle">{{ journeys.length }} незабываемых мест</div>
           </div>
-          
-          <div class="travels-showcase">
-            <div class="travels-controls">
-              <button 
-                class="control-btn prev" 
-                @click="prevJourney" 
-                :disabled="currentJourneyIndex === 0"
-                aria-label="Previous journey"
+
+          <!-- Simple Carousel -->
+          <div class="simple-carousel">
+            <!-- Navigation Arrows -->
+            <button
+              class="carousel-arrow prev"
+              @click="prevJourney"
+              aria-label="Предыдущее путешествие"
+            >
+              <i class="fas fa-chevron-left"></i>
+            </button>
+
+            <!-- Single Card Display -->
+            <div class="carousel-content">
+              <div
+                class="journey-card-simple"
+                :key="`journey-${currentJourneyIndex}`"
               >
-                <i class="fas fa-chevron-left"></i>
-              </button>
-              
-              <div class="travels-dots">
-                <button 
-                  v-for="(journey, index) in journeys" 
-                  :key="`dot-${index}`"
-                  class="travel-dot" 
-                  :class="{ active: currentJourneyIndex === index }"
-                  @click="currentJourneyIndex = index"
-                  :aria-label="`Journey ${journey.year}`"
-                >
-                  {{ journey.year }}
-                </button>
-              </div>
-              
-              <button 
-                class="control-btn next" 
-                @click="nextJourney" 
-                :disabled="currentJourneyIndex === journeys.length - 1"
-                aria-label="Next journey"
-              >
-                <i class="fas fa-chevron-right"></i>
-              </button>
-            </div>
-            
-            <div class="journey-display">
-              <div class="journey-card glass-panel">
-                <div class="journey-image">
-                  <img 
-                    :src="journeys[currentJourneyIndex].image" 
+                <div class="journey-image-simple">
+                  <img
+                    :key="`img-${currentJourneyIndex}-${journeys[currentJourneyIndex].year}`"
+                    :src="journeys[currentJourneyIndex].image"
                     :alt="journeys[currentJourneyIndex].title"
-                    loading="lazy"
+                    loading="eager"
                   >
-                  <div class="journey-badge">{{ journeys[currentJourneyIndex].date }}</div>
                 </div>
-                <div class="journey-content">
-                  <h3 class="journey-title">{{ journeys[currentJourneyIndex].title }}</h3>
-                  <div class="journey-text">
-                    <p class="journey-description">{{ journeys[currentJourneyIndex].description }}</p>
-                    <div v-if="journeys[currentJourneyIndex].highlight" class="journey-highlight">
-                      <div class="highlight-icon">✨</div>
-                      <p class="highlight-text">{{ journeys[currentJourneyIndex].highlight }}</p>
-                    </div>
+                <div class="journey-info-simple">
+                  <div class="journey-meta">
+                    <span class="journey-year">{{ journeys[currentJourneyIndex].year }}</span>
+                    <span class="journey-date">{{ journeys[currentJourneyIndex].date }}</span>
+                  </div>
+                  <h3 class="journey-title-simple">{{ journeys[currentJourneyIndex].title }}</h3>
+                  <p class="journey-desc-simple">{{ journeys[currentJourneyIndex].description }}</p>
+                  <div v-if="journeys[currentJourneyIndex].highlight" class="journey-quote">
+                    <i class="fas fa-quote-left"></i>
+                    <p>{{ journeys[currentJourneyIndex].highlight }}</p>
                   </div>
                 </div>
               </div>
             </div>
+
+            <button
+              class="carousel-arrow next"
+              @click="nextJourney"
+              aria-label="Следующее путешествие"
+            >
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+
+          <!-- Simple Dots Navigation -->
+          <div class="carousel-dots">
+            <button
+              v-for="(journey, index) in journeys"
+              :key="`dot-${index}`"
+              class="dot"
+              :class="{ active: currentJourneyIndex === index }"
+              @click="selectJourney(index)"
+              :aria-label="`Путешествие ${index + 1}`"
+            ></button>
           </div>
         </div>
       </section>
@@ -303,11 +332,13 @@
           <p class="error-subtext">Используем резервные изображения</p>
         </div>
 
-        <BentoGallery
+        <MemoriesCarousel
           v-else
           :imageItems="bentoGalleryItems"
           title="Галерея воспоминаний"
-          description="Наши особенные моменты в интерактивном формате. Перетащите для исследования, нажмите для увеличения."
+          description="Наши особенные моменты в интерактивном формате. Пролистывайте для просмотра, нажмите для увеличения."
+          :autoplay="false"
+          :infinite="true"
         />
 
         <div v-if="!isGalleryLoading" class="gallery-controls">
@@ -321,6 +352,7 @@
             >
               <i class="fas fa-images"></i>
               <span>Полная галерея</span>
+            </a>
             </router-link>
           </div>
         </div>
@@ -429,7 +461,7 @@
             <span class="separator">|</span>
             <a href="https://foxtaffy.fun" target="_blank" rel="noopener noreferrer">FoxTaffy.fun</a>
             <span class="separator">|</span>
-            <span class="version">v.2.2</span>
+            <span class="version">v.3.0</span>
           </div>
           <div class="footer-subtitle">
             Сделано с любовью для лучшего человека в моей жизни 💕
@@ -445,7 +477,7 @@ import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useHead } from '@vueuse/head'
 import FelixImage from '@/assets/Felix/Felix.jpg'
 import { furryApi } from '../config/supabase.js'
-import BentoGallery from '@/components/ui/BentoGallery.vue'
+import MemoriesCarousel from '@/components/ui/MemoriesCarousel.vue'
 
 // Интерфейсы
 interface NavigationItem {
@@ -500,6 +532,7 @@ interface GalleryPhoto {
 // Состояние навигации
 const activeSection = ref<string>('beginning')
 const showNavigation = ref<boolean>(true) // НАВИГАЦИЯ ВИДНА ВСЕГДА
+const currentMomentIndex = ref<number>(0)
 const currentJourneyIndex = ref<number>(0)
 const currentFellyIndex = ref<number>(0)
 const selectedFactIndex = ref<number | null>(null)
@@ -823,6 +856,26 @@ const nextJourney = () => {
   }
 }
 
+const selectJourney = (index: number) => {
+  currentJourneyIndex.value = index
+}
+
+const prevMoment = () => {
+  if (currentMomentIndex.value > 0) {
+    currentMomentIndex.value--
+  } else {
+    currentMomentIndex.value = storyMoments.value.length - 1
+  }
+}
+
+const nextMoment = () => {
+  if (currentMomentIndex.value < storyMoments.value.length - 1) {
+    currentMomentIndex.value++
+  } else {
+    currentMomentIndex.value = 0
+  }
+}
+
 const toggleFact = (index: number) => {
   selectedFactIndex.value = selectedFactIndex.value === index ? null : index
 }
@@ -1031,6 +1084,75 @@ html, body {
   overflow-x: hidden;
   width: 100%;
   height: 100%;
+}
+
+/* БОКОВАЯ НАВИГАЦИЯ (NOTION STYLE) */
+.side-navigation {
+  position: fixed;
+  right: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(20px);
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  min-width: 50px;
+}
+
+.nav-item i {
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.nav-label {
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.nav-item:hover .nav-label,
+.nav-item.active .nav-label {
+  opacity: 1;
+  max-width: 200px;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+  transform: translateX(-5px);
+}
+
+.nav-item.active {
+  background: rgba(102, 126, 234, 0.2);
+  color: white;
+  border-left: 3px solid rgba(102, 126, 234, 1);
+}
+
+.nav-item.active i {
+  color: rgba(102, 126, 234, 1);
 }
 
 .felix-universe {
@@ -1398,59 +1520,140 @@ html, body {
 }
 
 /* История */
-.story-flow {
-  display: flex;
-  flex-direction: column;
-  gap: 2.5rem;
-  max-width: 900px;
+/* Beginning Showcase - Carousel Style */
+.beginning-showcase {
+  max-width: 850px;
   margin: 0 auto;
 }
 
-.story-moment {
-  opacity: 1;
-  transform: translateX(0);
-  transition: all 0.5s ease;
-}
-
-.moment-content {
-  padding: 2rem;
+.beginning-controls {
   display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 1.5rem;
-  align-items: flex-start;
+  margin-bottom: 2.5rem;
 }
 
-.moment-icon {
-  width: 60px;
-  height: 60px;
+.beginning-dots {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.moment-dot {
+  background: rgba(102, 126, 234, 0.15);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0.6rem 0.8rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.moment-dot:hover {
+  background: rgba(102, 126, 234, 0.25);
+  color: rgba(255, 255, 255, 0.8);
+  transform: translateY(-2px);
+}
+
+.moment-dot.active {
+  background: rgba(102, 126, 234, 0.3);
+  border-color: rgba(102, 126, 234, 0.6);
+  color: white;
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+}
+
+.moment-display {
+  width: 100%;
+  min-height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.moment-card {
+  width: 100%;
+  padding: 3rem 2.5rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(15px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s ease;
+}
+
+.moment-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(102, 126, 234, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px rgba(102, 126, 234, 0.15);
+}
+
+.moment-icon-large {
+  width: 80px;
+  height: 80px;
   background: linear-gradient(135deg, #667eea, #764ba2);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 2rem;
   color: white;
-  flex-shrink: 0;
+  margin: 0 auto 1.5rem;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
 }
 
-.moment-text h3 {
-  font-size: 1.6rem;
-  margin-bottom: 0.8rem;
-  color: white;
+.quote-mark-large {
+  font-size: 5rem;
+  color: rgba(102, 126, 234, 0.3);
+  font-family: Georgia, serif;
+  line-height: 1;
+  margin-bottom: 1rem;
 }
 
-.moment-text p {
-  font-size: 1rem;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.quote-panel {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+.quote-card {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
   border-color: rgba(102, 126, 234, 0.2);
-  text-align: center;
-  flex-direction: column;
 }
 
+.moment-content-new {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.moment-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 1.2rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.moment-text-new p,
+.moment-text-new blockquote {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+.moment-text-new blockquote {
+  font-style: italic;
+  font-size: 1.3rem;
+  color: rgba(255, 255, 255, 0.9);
+  quotes: """ """ "'" "'";
+}
+
+/* Старые стили (для совместимости) */
 .quote-mark {
   font-size: 3rem;
   color: #667eea;
@@ -1465,158 +1668,160 @@ html, body {
   max-width: 600px;
 }
 
-/* Путешествия */
-.travels-showcase {
-  max-width: 850px;
-  margin: 0 auto;
-}
-
-.travels-controls {
+/* Путешествия - Простой стиль */
+.simple-carousel {
+  position: relative;
+  max-width: 900px;
+  margin: 3rem auto;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
+  gap: 2rem;
+  padding: 0 1rem;
 }
 
-.control-btn {
-  background: rgba(102, 126, 234, 0.1);
-  border: 1px solid rgba(102, 126, 234, 0.3);
-  color: white;
-  width: 45px;
-  height: 45px;
+.carousel-arrow {
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(5px);
-}
-
-.control-btn:hover:not(:disabled) {
-  background: rgba(102, 126, 234, 0.2);
-  transform: scale(1.05);
-}
-
-.control-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.travels-dots {
-  display: flex;
-  gap: 0.8rem;
-}
-
-.travel-dot {
-  padding: 0.6rem 1rem;
-  border-radius: 15px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
+  color: white;
+  font-size: 1.2rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  backdrop-filter: blur(5px);
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-
-.travel-dot.active {
-  background: rgba(102, 126, 234, 0.2);
-  border-color: #667eea;
-  color: white;
-  transform: translateY(-1px);
-}
-
-.journey-display {
-  max-width: 750px;
-  margin: 0 auto;
-}
-
-.journey-card {
-  padding: 0;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.journey-card:hover {
-  transform: translateY(-3px);
-}
-
-.journey-image {
-  position: relative;
-  height: 350px;
-  overflow: hidden;
-}
-
-.journey-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.4s ease;
-}
-
-.journey-card:hover .journey-image img {
-  transform: scale(1.03);
-}
-
-.journey-badge {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: rgba(102, 126, 234, 0.9);
-  color: white;
-  padding: 0.6rem 1.2rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  backdrop-filter: blur(5px);
-}
-
-.journey-content {
-  padding: 2rem;
-}
-
-.journey-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: white;
-  margin-bottom: 1.2rem;
-}
-
-.journey-text {
   display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-}
-
-.journey-description {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1rem;
-  line-height: 1.6;
-}
-
-.journey-highlight {
-  background: rgba(102, 126, 234, 0.15);
-  border-radius: 12px;
-  padding: 1.2rem;
-  border-left: 3px solid #667eea;
-  display: flex;
-  gap: 0.8rem;
-  align-items: flex-start;
-}
-
-.highlight-icon {
-  font-size: 1.1rem;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-.highlight-text {
+.carousel-arrow:hover {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.4);
+  transform: scale(1.1);
+}
+
+.carousel-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.journey-card-simple {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.journey-image-simple {
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.journey-image-simple img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.journey-info-simple {
+  padding: 2rem;
+}
+
+.journey-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.journey-year {
+  background: rgba(102, 126, 234, 0.2);
+  color: rgba(102, 126, 234, 1);
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.journey-date {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+}
+
+.journey-title-simple {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+.journey-desc-simple {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+
+.journey-quote {
+  background: rgba(102, 126, 234, 0.1);
+  border-left: 3px solid rgba(102, 126, 234, 0.6);
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.journey-quote i {
+  color: rgba(102, 126, 234, 0.6);
+  font-size: 1.2rem;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.journey-quote p {
+  color: rgba(255, 255, 255, 0.85);
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.95);
-  line-height: 1.5;
+  line-height: 1.6;
   font-style: italic;
+  margin: 0;
+}
+
+/* Dots Navigation */
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 2rem;
+  padding: 0 1rem;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.dot:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.2);
+}
+
+.dot.active {
+  width: 30px;
+  border-radius: 5px;
+  background: rgba(102, 126, 234, 0.8);
 }
 
 /* ФЕЛЛИ СЕКЦИЯ БЕЗ HOVER ЭФФЕКТОВ */
@@ -2430,48 +2635,149 @@ html, body {
   }
 
 @media (max-width: 768px) {
+  /* Side Navigation Mobile */
+  .side-navigation {
+    right: 1rem;
+    padding: 0.8rem;
+    gap: 0.4rem;
+  }
+
+  .nav-item {
+    padding: 0.6rem 0.8rem;
+  }
+
+  .nav-item i {
+    font-size: 1.1rem;
+  }
+
+  .nav-label {
+    display: none;
+  }
+
+  .nav-item:hover .nav-label,
+  .nav-item.active .nav-label {
+    display: none;
+  }
+
   .moment-content {
     flex-direction: column;
     text-align: center;
     padding: clamp(1rem, 3vw, 1.5rem);
   }
-  
-  .travels-controls {
+
+  /* Beginning showcase mobile styles */
+  .beginning-controls {
     flex-direction: column;
     gap: clamp(1rem, 2.5vw, 1.2rem);
   }
-  
-  .control-btn {
-    width: clamp(35px, 6vw, 40px);
-    height: clamp(35px, 6vw, 40px);
-  }
-  
-  .travels-dots {
-    flex-wrap: wrap;
-    justify-content: center;
+
+  .beginning-dots {
     gap: clamp(0.4rem, 1.5vw, 0.6rem);
   }
-  
-  .travel-dot {
+
+  .moment-dot {
     padding: clamp(0.4rem, 1.2vw, 0.5rem) clamp(0.6rem, 2vw, 0.8rem);
-    font-size: clamp(0.75rem, 1.8vw, 0.8rem);
+    font-size: clamp(0.75rem, 1.8vw, 0.85rem);
   }
-  
-  .journey-content {
-    padding: clamp(1.2rem, 3vw, 1.5rem);
+
+  .moment-card {
+    padding: clamp(2rem, 5vw, 2.5rem) clamp(1.5rem, 4vw, 2rem);
   }
-  
-  .journey-title {
-    font-size: clamp(1.3rem, 4vw, 1.5rem);
+
+  .moment-icon-large {
+    width: clamp(60px, 15vw, 70px);
+    height: clamp(60px, 15vw, 70px);
+    font-size: clamp(1.5rem, 4vw, 1.8rem);
   }
-  
-  .journey-description {
-    font-size: clamp(0.9rem, 2.2vw, 0.95rem);
+
+  .quote-mark-large {
+    font-size: clamp(3rem, 10vw, 4rem);
   }
-  
-  .journey-highlight {
-    padding: clamp(0.8rem, 2.5vw, 1rem);
+
+  .moment-title {
+    font-size: clamp(1.4rem, 4.5vw, 1.6rem);
   }
+
+  .moment-text-new p,
+  .moment-text-new blockquote {
+    font-size: clamp(0.95rem, 2.5vw, 1rem);
+  }
+
+  .moment-text-new blockquote {
+    font-size: clamp(1.1rem, 3vw, 1.2rem);
+  }
+
+  /* Simple Carousel Mobile Styles */
+  .simple-carousel {
+    flex-direction: column;
+    gap: 1.5rem;
+    margin: 2rem auto;
+  }
+
+  .carousel-arrow {
+    width: 45px;
+    height: 45px;
+    font-size: 1rem;
+  }
+
+  .carousel-arrow.prev,
+  .carousel-arrow.next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+  }
+
+  .carousel-arrow.prev {
+    left: 0.5rem;
+  }
+
+  .carousel-arrow.next {
+    right: 0.5rem;
+  }
+
+  .carousel-content {
+    width: 100%;
+  }
+
+  .journey-image-simple {
+    height: 300px;
+  }
+
+  .journey-info-simple {
+    padding: 1.5rem;
+  }
+
+  .journey-title-simple {
+    font-size: 1.4rem;
+  }
+
+  .journey-desc-simple {
+    font-size: 0.95rem;
+  }
+
+  .journey-quote {
+    padding: 0.8rem 1rem;
+  }
+
+  .journey-quote p {
+    font-size: 0.9rem;
+  }
+
+  .carousel-dots {
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .dot.active {
+    width: 24px;
+  }
+
   
   .portrait-container {
     width: clamp(160px, 35vw, 200px);
@@ -2509,45 +2815,6 @@ html, body {
     padding: clamp(1rem, 3vw, 1.2rem);
   }
   
-  .travels-showcase {
-    padding: 0 clamp(0.5rem, 2vw, 0.8rem);
-  }
-  
-  .control-btn {
-    width: clamp(30px, 5vw, 35px);
-    height: clamp(30px, 5vw, 35px);
-  }
-  
-  .travels-dots {
-    gap: clamp(0.3rem, 1vw, 0.4rem);
-  }
-  
-  .travel-dot {
-    padding: clamp(0.3rem, 1vw, 0.4rem) clamp(0.5rem, 1.5vw, 0.6rem);
-    font-size: clamp(0.7rem, 1.5vw, 0.75rem);
-  }
-  
-  .journey-content {
-    padding: clamp(1rem, 2.5vw, 1.2rem);
-  }
-  
-  .journey-title {
-    font-size: clamp(1.2rem, 3.5vw, 1.3rem);
-  }
-  
-  .journey-description {
-    font-size: clamp(0.85rem, 2vw, 0.9rem);
-  }
-  
-  .journey-highlight {
-    padding: clamp(0.6rem, 2vw, 0.8rem);
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .highlight-text {
-    font-size: clamp(0.8rem, 1.8vw, 0.85rem);
-  }
   
   .portrait-container {
     width: clamp(140px, 30vw, 160px);
