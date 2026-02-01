@@ -16,6 +16,7 @@
     "@fortawesome/vue-fontawesome": "^3.0.8",
     "@supabase/supabase-js": "^2.50.0",
     "@unhead/vue": "^2.0.12",
+    "@vercel/analytics": "^1.6.1",
     "@vueuse/head": "^2.0.0",
     "lodash-es": "^4.17.21",
     "tslib": "^2.8.1",
