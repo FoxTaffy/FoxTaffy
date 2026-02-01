@@ -352,7 +352,6 @@
             >
               <i class="fas fa-images"></i>
               <span>Полная галерея</span>
-            </a>
             </router-link>
           </div>
         </div>
