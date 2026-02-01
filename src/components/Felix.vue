@@ -352,7 +352,6 @@
             >
               <i class="fas fa-images"></i>
               <span>Полная галерея</span>
-            </a>
             </router-link>
           </div>
         </div>
@@ -606,7 +605,7 @@ const navigationItems = ref<NavigationItem[]>([
   { id: 'felli', label: 'Фелли', icon: 'fas fa-paw' },
   { id: 'gallery', label: 'Галерея', icon: 'fas fa-images' },
   { id: 'facts', label: 'Факты', icon: 'fas fa-star' },
-  { id: 'letter', label: 'Послание', icon: 'fas fa-heart' }
+  { id: 'letter', label: 'Пос��ание', icon: 'fas fa-heart' }
 ])
 
 const storyMoments = ref<StoryMoment[]>([
@@ -694,7 +693,7 @@ const fellyArtworks = ref<FellyArtwork[]>([
   },
   { 
     src: "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/Felly1.jpg",
-    title: "Игривая версия",
+    title: "Игрив��я версия",
     author: "Fox Taffy",
     caption: "Фелли в игривом настроении, показывает свой характер"
   },
@@ -1165,7 +1164,7 @@ html, body {
   min-height: 100vh;
 }
 
-/* ВОССТАНОВЛЕННЫЙ космический фон */
+/* ВОС��ТАНОВЛЕННЫЙ космический фон */
 .cosmic-background {
   position: fixed;
   top: 0;
