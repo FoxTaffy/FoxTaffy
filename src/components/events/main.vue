@@ -1157,15 +1157,15 @@ export default {
     },
 
     updateMetaTags() {
-      document.title = 'Все мероприятия | FoxTaffy.fun'
-      
+      document.title = 'Все мероприятия | FoxTaffy.gay'
+
       // Обновляем мета-теги через Vue Router или другим способом
       if (this.$updateMetaTags) {
         this.$updateMetaTags({
-          title: 'Все мероприятия | FoxTaffy.fun',
+          title: 'Все мероприятия | FoxTaffy.gay',
           description: `Полная коллекция из ${this.stats.total} конвентов и мероприятий, которые посетил Fox Taffy. Отчеты, фотографии и впечатления от каждого события.`,
           image: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/aff5.jpg',
-          url: 'https://foxtaffy.fun/events'
+          url: 'https://foxtaffy.gay/events'
         })
       }
     },

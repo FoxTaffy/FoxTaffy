@@ -14,7 +14,7 @@
           </div>
           <div class="logo-text">
             <h3>Fox Taffy</h3>
-            <span>FoxTaffy.fun</span>
+            <span>FoxTaffy.gay</span>
           </div>
         </router-link>
 

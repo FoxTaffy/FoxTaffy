@@ -1,5 +1,5 @@
 // ===============================================
-// 🎪 FOXTAFFY.FUN - ОБЪЕДИНЁННЫЙ SUPABASE API
+// 🎪 FOXTAFFY.GAY - ОБЪЕДИНЁННЫЙ SUPABASE API
 // Система управления мероприятиями и галереей
 // ===============================================
 
@@ -34,7 +34,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   global: {
     headers: {
-      'User-Agent': 'FoxTaffy.fun/2.0'
+      'User-Agent': 'FoxTaffy.gay/2.0'
     }
   }
 })

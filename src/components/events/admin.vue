@@ -6,7 +6,7 @@
           <div class="auth-header">
             <div class="logo">🎪</div>
             <h2>Админ мероприятий</h2>
-            <p>Управление событиями FoxTaffy.fun</p>
+            <p>Управление событиями FoxTaffy.gay</p>
           </div>
           
           <form @submit.prevent="authenticate" class="auth-form">
@@ -128,7 +128,7 @@
       }
       
       // Устанавливаем заголовок страницы
-      document.title = 'Админ мероприятий | FoxTaffy.fun'
+      document.title = 'Админ мероприятий | FoxTaffy.gay'
     },
     
     methods: {
