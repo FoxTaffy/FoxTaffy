@@ -263,7 +263,7 @@ export default {
   },
 
   mounted() {
-    document.title = `${this.event.name} | FoxTaffy.fun`
+    document.title = `${this.event.name} | FoxTaffy.gay`
   },
 
   methods: {

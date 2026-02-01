@@ -458,7 +458,7 @@
           <div class="copyright-text">
             <span>© 2025 Fox Taffy</span>
             <span class="separator">|</span>
-            <a href="https://foxtaffy.fun" target="_blank" rel="noopener noreferrer">FoxTaffy.fun</a>
+            <a href="https://foxtaffy.gay" target="_blank" rel="noopener noreferrer">FoxTaffy.gay</a>
             <span class="separator">|</span>
             <span class="version">v.3.0</span>
           </div>
@@ -572,7 +572,7 @@ useHead({
     },
     {
       property: "og:site_name",
-      content: "FoxTaffy.fun"
+      content: "FoxTaffy.gay"
     },
     {
       name: "twitter:card",
@@ -594,7 +594,7 @@ useHead({
   link: [
     {
       rel: "canonical",
-      href: "https://foxtaffy.fun/felix"
+      href: "https://foxtaffy.gay/felix"
     }
   ]
 })

@@ -68,7 +68,7 @@ const routes = [
     name: 'Events',
     component: () => import('./components/events/main.vue'),
     meta: {
-      title: 'Все мероприятия | FoxTaffy.fun',
+      title: 'Все мероприятия | FoxTaffy.gay',
       description: 'Полная коллекция конвентов, встреч и мероприятий, которые посетил Fox Taffy'
     }
   },
@@ -79,7 +79,7 @@ const routes = [
     name: 'EventsAdmin',
     component: () => import('./components/events/admin.vue'),
     meta: {
-      title: 'Админ мероприятий | FoxTaffy.fun',
+      title: 'Админ мероприятий | FoxTaffy.gay',
       description: 'Панель управления мероприятиями',
       requiresAuth: false // Авторизация внутри компонента
     }
@@ -94,7 +94,7 @@ const routes = [
     name: 'FoxWood2000s',
     component: () => import('./components/events/FW2000.vue'),
     meta: {
-      title: 'FoxWood: Back to 2000s | FoxTaffy.fun',
+      title: 'FoxWood: Back to 2000s | FoxTaffy.gay',
       description: 'Вечеринка FoxWood: Back to 2000s'
     }
   },
@@ -109,7 +109,7 @@ const routes = [
     name: 'EventDetail',
     component: () => import('./components/events/EventDetailPage.vue'),
     meta: {
-      title: 'Мероприятие | FoxTaffy.fun',
+      title: 'Мероприятие | FoxTaffy.gay',
       description: 'Подробная информация о мероприятии'
     },
     beforeEnter: (to, from, next) => {
@@ -143,7 +143,7 @@ const routes = [
     name: 'NotFound',
     component: () => import('./components/Error404.vue'),
     meta: {
-      title: 'Страница не найдена | FoxTaffy.fun',
+      title: 'Страница не найдена | FoxTaffy.gay',
       description: 'Запрашиваемая страница не существует'
     }
   },
@@ -254,7 +254,7 @@ router.afterEach((to, from) => {
   // Обновляем канонический URL
   const canonical = document.querySelector('link[rel="canonical"]')
   if (canonical) {
-    canonical.setAttribute('href', `https://foxtaffy.fun${to.path}`)
+    canonical.setAttribute('href', `https://foxtaffy.gay${to.path}`)
   }
   
   // Логирование в режиме разработки
@@ -337,6 +337,6 @@ export const createEventLink = (slug) => {
   return `/events/${cleanSlug}`
 }
 
-console.log('✅ Роутер FoxTaffy.fun инициализирован!')
+console.log('✅ Роутер FoxTaffy.gay инициализирован!')
 console.log(`📍 Всего маршрутов: ${routes.length}`)
 console.log('🎪 Система мероприятий: ИСПРАВЛЕНА и готова к работе!')

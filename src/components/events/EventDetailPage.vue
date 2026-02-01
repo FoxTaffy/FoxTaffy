@@ -579,7 +579,7 @@ export default {
         })
         
         // Устанавливаем заголовок страницы
-        document.title = `${this.event.name} | FoxTaffy.fun`
+        document.title = `${this.event.name} | FoxTaffy.gay`
         
       } catch (error) {
         console.error('❌ Ошибка загрузки мероприятия:', error)
