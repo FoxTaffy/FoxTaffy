@@ -2,39 +2,27 @@
   <div class="admin-events-panel">
     <!-- Заголовок панели с градиентом -->
     <div class="panel-header">
-      <div class="header-content">
-        <div class="header-text">
-          <h2 class="panel-title">
-            <i class="fas fa-calendar-star"></i>
-            Управление мероприятиями
-          </h2>
-          <p class="panel-description">
-            Создание, редактирование и управление всеми мероприятиями Fox Taffy
-          </p>
+      <div class="ph-brand">
+        <div class="ph-icon-wrap">
+          <i class="fas fa-calendar-star"></i>
         </div>
-
-        <!-- Быстрая статистика в заголовке -->
-        <div class="quick-stats" v-if="!loading && stats">
-          <div class="quick-stat">
-            <span class="quick-stat-number">{{ stats.total || 0 }}</span>
-            <span class="quick-stat-label">событий</span>
-          </div>
-          <div class="quick-stat-divider"></div>
-          <div class="quick-stat">
-            <span class="quick-stat-number">{{ stats.upcoming || 0 }}</span>
-            <span class="quick-stat-label">предстоящих</span>
-          </div>
+        <div class="ph-text">
+          <h1 class="ph-title">Мероприятия</h1>
+          <p class="ph-sub">FoxTaffy.gay · управление событиями</p>
         </div>
       </div>
 
-      <div class="header-actions">
-        <button @click="refreshData" class="refresh-btn" :disabled="loading">
-          <i class="fas fa-sync-alt" :class="{ 'spinning': loading }"></i>
-          <span>Обновить</span>
+      <div class="ph-actions">
+        <div class="ph-status" v-if="!loading && stats">
+          <span class="status-dot"></span>
+          <span>{{ stats.total || 0 }} событий</span>
+        </div>
+        <button @click="refreshData" class="btn-icon" :disabled="loading" title="Обновить данные">
+          <i class="fas fa-sync-alt" :class="{ spinning: loading }"></i>
         </button>
-        <button @click="openCreateModal" class="add-btn" :disabled="loading">
+        <button @click="openCreateModal" class="btn-create" :disabled="loading">
           <i class="fas fa-plus"></i>
-          <span>Новое мероприятие</span>
+          <span>Создать</span>
         </button>
       </div>
     </div>
@@ -62,92 +50,78 @@
 
     <!-- Статистическая панель с графиком -->
     <div v-if="!loading && stats" class="stats-section">
-      <div class="stats-grid">
-        <div class="stat-card total">
-          <div class="stat-icon">
-            <i class="fas fa-calendar-alt"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-number">{{ stats.total || 0 }}</div>
-            <div class="stat-label">Всего событий</div>
-          </div>
-          <div class="stat-trend up">
-            <i class="fas fa-arrow-up"></i>
-          </div>
+
+      <!-- 4 карточки -->
+      <div class="scard-row">
+        <div class="scard total">
+          <div class="scard-icon"><i class="fas fa-layer-group"></i></div>
+          <div class="scard-num">{{ stats.total || 0 }}</div>
+          <div class="scard-label">Всего событий</div>
+          <div class="scard-glow"></div>
         </div>
 
-        <div class="stat-card upcoming">
-          <div class="stat-icon">
-            <i class="fas fa-clock"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-number">{{ stats.upcoming || 0 }}</div>
-            <div class="stat-label">Предстоящих</div>
-          </div>
-          <div class="stat-progress">
-            <div class="progress-fill" :style="{ width: upcomingPercent + '%' }"></div>
-          </div>
+        <div class="scard upcoming">
+          <div class="scard-icon"><i class="fas fa-hourglass-half"></i></div>
+          <div class="scard-num">{{ stats.upcoming || 0 }}</div>
+          <div class="scard-label">Предстоящих</div>
+          <div class="scard-sub">{{ upcomingPercent }}% от всех</div>
+          <div class="scard-glow"></div>
         </div>
 
-        <div class="stat-card completed">
-          <div class="stat-icon">
-            <i class="fas fa-check-circle"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-number">{{ stats.completed || 0 }}</div>
-            <div class="stat-label">Завершённых</div>
-          </div>
-          <div class="stat-progress">
-            <div class="progress-fill" :style="{ width: completedPercent + '%' }"></div>
-          </div>
+        <div class="scard completed">
+          <div class="scard-icon"><i class="fas fa-flag-checkered"></i></div>
+          <div class="scard-num">{{ stats.completed || 0 }}</div>
+          <div class="scard-label">Завершённых</div>
+          <div class="scard-sub">{{ completedPercent }}% от всех</div>
+          <div class="scard-glow"></div>
         </div>
-        <div class="stat-glow"></div>
+
+        <div class="scard review" :class="{ 'has-alerts': eventsNeedingReview.length > 0 }">
+          <div class="scard-icon"><i class="fas fa-pen-nib"></i></div>
+          <div class="scard-num">{{ eventsNeedingReview.length }}</div>
+          <div class="scard-label">Ждут обзора</div>
+          <div class="scard-sub" v-if="eventsNeedingReview.length > 0">Требуют внимания</div>
+          <div class="scard-sub" v-else>Всё написано</div>
+          <div class="scard-glow"></div>
+        </div>
       </div>
 
-      <!-- Визуальная диаграмма распределения -->
-      <div class="chart-section">
-        <h3 class="chart-title">
-          <i class="fas fa-chart-pie"></i>
-          Распределение мероприятий
-        </h3>
-        <div class="donut-chart">
-          <svg viewBox="0 0 100 100" class="chart-svg">
-            <circle
-              cx="50" cy="50" r="40"
-              fill="none"
-              stroke="rgba(255, 123, 37, 0.8)"
-              stroke-width="8"
-              :stroke-dasharray="upcomingArc + ' ' + (251.2 - upcomingArc)"
-              stroke-dashoffset="0"
-              transform="rotate(-90 50 50)"
-            />
-            <circle
-              cx="50" cy="50" r="40"
-              fill="none"
-              stroke="rgba(76, 175, 80, 0.8)"
-              stroke-width="8"
-              :stroke-dasharray="completedArc + ' ' + (251.2 - completedArc)"
-              :stroke-dashoffset="-upcomingArc"
-              transform="rotate(-90 50 50)"
-            />
-          </svg>
-          <div class="chart-center">
-            <span class="chart-total">{{ stats.total || 0 }}</span>
-            <span class="chart-label">всего</span>
+      <!-- Полоска распределения -->
+      <div class="dist-section">
+        <div class="dist-head">
+          <span class="dist-title">
+            <i class="fas fa-chart-bar"></i>
+            Распределение событий
+          </span>
+          <div class="dist-legend">
+            <div class="dl-item">
+              <span class="dl-dot upcoming"></span>
+              <span class="dl-label">Предстоящие</span>
+              <span class="dl-val">{{ stats.upcoming || 0 }}</span>
+              <span class="dl-pct">{{ upcomingPercent }}%</span>
+            </div>
+            <div class="dl-item">
+              <span class="dl-dot completed"></span>
+              <span class="dl-label">Завершённые</span>
+              <span class="dl-val">{{ stats.completed || 0 }}</span>
+              <span class="dl-pct">{{ completedPercent }}%</span>
+            </div>
           </div>
         </div>
-        <div class="chart-legend">
-          <div class="legend-item">
-            <span class="legend-dot upcoming"></span>
-            <span>Предстоящие ({{ stats.upcoming || 0 }})</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-dot completed"></span>
-            <span>Завершённые ({{ stats.completed || 0 }})</span>
-          </div>
+        <div class="dist-track">
+          <div
+            class="dist-seg upcoming"
+            :style="{ width: upcomingPercent + '%' }"
+            :title="`Предстоящие: ${stats.upcoming}`"
+          ></div>
+          <div
+            class="dist-seg completed"
+            :style="{ width: completedPercent + '%' }"
+            :title="`Завершённые: ${stats.completed}`"
+          ></div>
         </div>
-        <div class="stat-glow"></div>
       </div>
+
     </div>
 
     <!-- Панель управления и фильтры -->
@@ -2104,158 +2078,145 @@ export default {
 }
 
 /* ===============================================
-   📋 ЗАГОЛОВОК ПАНЕЛИ С ГРАДИЕНТОМ
+   📋 ЗАГОЛОВОК ПАНЕЛИ
    =============================================== */
 
 .panel-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  margin-bottom: 1.75rem;
-  background: linear-gradient(135deg, rgba(255, 123, 37, 0.1) 0%, rgba(76, 175, 80, 0.08) 100%);
-  border-radius: var(--border-radius-xl);
-  border: 1px solid rgba(255, 123, 37, 0.15);
-  backdrop-filter: blur(10px);
-  position: relative;
-  overflow: hidden;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-light);
 }
 
-.panel-header::after {
-  content: '';
-  position: absolute;
-  right: -60px;
-  top: -60px;
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(255,123,37,0.1) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.header-content {
+.ph-brand {
   display: flex;
   align-items: center;
-  gap: 3rem;
-  flex: 1;
+  gap: 1rem;
 }
 
-.header-text {
-  flex: 1;
+.ph-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #ff7b25, #c4500a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: white;
+  box-shadow: 0 6px 24px rgba(255, 123, 37, 0.45);
+  flex-shrink: 0;
 }
 
-h2.panel-title {
-  font-size: 2rem;
-  font-weight: 800;
+.ph-title {
+  font-size: 1.55rem;
+  font-weight: 900;
   color: var(--text-light);
-  margin: 0 0 0.5rem 0;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: linear-gradient(135deg, var(--accent-orange), var(--accent-green));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.panel-title i {
-  -webkit-text-fill-color: var(--accent-orange);
-}
-
-.panel-description {
-  font-size: 1rem;
-  color: var(--text-muted);
   margin: 0;
-  line-height: 1.4;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
 }
 
-/* Быстрая статистика в заголовке */
-.quick-stats {
+.ph-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0.2rem 0 0;
+  font-weight: 500;
+}
+
+.ph-actions {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 1rem 1.5rem;
-  border-radius: var(--border-radius-large);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 0.6rem;
 }
 
-.quick-stat {
-  text-align: center;
-}
-
-.quick-stat-number {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--accent-orange);
-}
-
-.quick-stat-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.quick-stat-divider {
-  width: 1px;
-  height: 30px;
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.header-actions {
+.ph-status {
   display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.85rem;
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  border-radius: 2rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #81c784;
+  white-space: nowrap;
 }
 
-.refresh-btn, .add-btn {
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4caf50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.7);
+  flex-shrink: 0;
+  animation: statusPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(76,175,80,0.7); }
+  50% { opacity: 0.5; box-shadow: 0 0 3px rgba(76,175,80,0.3); }
+}
+
+.btn-icon {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-light);
+  border-radius: 0.6rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-light);
+  border-color: rgba(255, 123, 37, 0.35);
+  transform: rotate(30deg);
+}
+
+.btn-create {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.65rem 1.1rem;
-  border-radius: var(--border-radius-medium);
-  cursor: pointer;
-  transition: all 0.25s ease;
-  font-family: inherit;
+  padding: 0.6rem 1.15rem;
+  background: linear-gradient(135deg, #ff7b25, #c4500a);
+  border: none;
+  border-radius: 0.6rem;
+  color: white;
   font-size: 0.875rem;
   font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(255, 123, 37, 0.4);
+  transition: all 0.25s ease;
+  white-space: nowrap;
 }
 
-.refresh-btn {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--border-light);
-  color: var(--text-muted);
-}
-
-.add-btn {
-  background: linear-gradient(135deg, var(--accent-orange), #e5640a);
-  border: none;
-  color: white;
-  box-shadow: 0 4px 16px rgba(255,123,37,0.35);
-}
-
-.refresh-btn:hover {
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(255,123,37,0.3);
-  color: var(--text-light);
-  transform: translateY(-1px);
-}
-
-.add-btn:hover {
+.btn-create:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255,123,37,0.45);
+  box-shadow: 0 8px 28px rgba(255, 123, 37, 0.55);
 }
 
-.refresh-btn:disabled,
-.add-btn:disabled {
-  opacity: 0.6;
+.btn-icon:disabled,
+.btn-create:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
-  transform: none;
+  transform: none !important;
+  box-shadow: none;
 }
 
 .spinning {
-  animation: spin 1s linear infinite;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
@@ -2331,268 +2292,222 @@ h2.panel-title {
 }
 
 /* ===============================================
-   📊 СТАТИСТИЧЕСКИЕ КАРТОЧКИ — НОВЫЙ ДИЗАЙН
+   📊 СТАТИСТИЧЕСКАЯ ПАНЕЛЬ — НОВЫЙ ДИЗАЙН
    =============================================== */
 
-/* Stats section layout */
 .stats-section {
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-  align-content: start;
-}
-
-.stat-card {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--border-radius-large);
-  padding: 1.5rem 1.5rem 1.25rem;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+/* ── 4 карточки ── */
+.scard-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.scard {
   position: relative;
+  border-radius: 1rem;
+  padding: 1.4rem 1.4rem 1.2rem;
   overflow: hidden;
+  border: 1px solid transparent;
+  transition: transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1),
+              box-shadow 0.28s ease;
+  cursor: default;
 }
 
-/* Цветная полоска сверху */
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  border-radius: var(--border-radius-large) var(--border-radius-large) 0 0;
+.scard.total     { background: linear-gradient(150deg, #162645 0%, #0e1a30 100%); border-color: rgba(33,150,243,0.18); }
+.scard.upcoming  { background: linear-gradient(150deg, #3a1e09 0%, #261205 100%); border-color: rgba(255,123,37,0.2); }
+.scard.completed { background: linear-gradient(150deg, #0a2814 0%, #061b0d 100%); border-color: rgba(76,175,80,0.18); }
+.scard.review    { background: linear-gradient(150deg, #28103a 0%, #1b0a28 100%); border-color: rgba(156,39,176,0.18); }
+.scard.review.has-alerts {
+  background: linear-gradient(150deg, #3a2805 0%, #261b03 100%);
+  border-color: rgba(255,193,7,0.3);
 }
 
-.stat-card.total::before  { background: linear-gradient(90deg, var(--accent-blue), #64b5f6); }
-.stat-card.upcoming::before { background: linear-gradient(90deg, var(--accent-orange), #ffb74d); }
-.stat-card.completed::before { background: linear-gradient(90deg, var(--accent-green), #81c784); }
-.stat-card.featured::before { background: linear-gradient(90deg, var(--accent-purple), #ce93d8); }
-
-.stat-card:hover {
-  background: var(--bg-card-hover);
-  transform: translateY(-5px);
-  box-shadow: 0 16px 40px rgba(0,0,0,0.25);
-  border-color: var(--border-medium);
+.scard:hover {
+  transform: translateY(-5px) scale(1.015);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.35);
 }
 
-.stat-glow {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  pointer-events: none;
-  opacity: 0.6;
-  transition: opacity 0.3s ease;
-}
-
-.stat-card.total    .stat-glow { background: radial-gradient(circle, rgba(33,150,243,0.15) 0%, transparent 70%); }
-.stat-card.upcoming .stat-glow { background: radial-gradient(circle, rgba(255,123,37,0.15) 0%, transparent 70%); }
-.stat-card.completed .stat-glow { background: radial-gradient(circle, rgba(76,175,80,0.15) 0%, transparent 70%); }
-.stat-card.featured  .stat-glow { background: radial-gradient(circle, rgba(156,39,176,0.15) 0%, transparent 70%); }
-
-.stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 0.75rem;
+/* Иконка */
+.scard-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 0.7rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
-  color: white;
+  font-size: 1.1rem;
   margin-bottom: 1rem;
   position: relative;
   z-index: 1;
 }
 
-.stat-card.total    .stat-icon { background: linear-gradient(135deg, #2196f3, #1565c0); box-shadow: 0 6px 20px rgba(33,150,243,0.4); }
-.stat-card.upcoming .stat-icon { background: linear-gradient(135deg, #ff7b25, #e55a00); box-shadow: 0 6px 20px rgba(255,123,37,0.4); }
-.stat-card.completed .stat-icon { background: linear-gradient(135deg, #4caf50, #2e7d32); box-shadow: 0 6px 20px rgba(76,175,80,0.4); }
-.stat-card.featured  .stat-icon { background: linear-gradient(135deg, #9c27b0, #6a1b9a); box-shadow: 0 6px 20px rgba(156,39,176,0.4); }
+.scard.total     .scard-icon { background: rgba(33,150,243,0.18);  color: #64b5f6; border: 1px solid rgba(33,150,243,0.25); }
+.scard.upcoming  .scard-icon { background: rgba(255,123,37,0.18);  color: #ffb74d; border: 1px solid rgba(255,123,37,0.25); }
+.scard.completed .scard-icon { background: rgba(76,175,80,0.18);   color: #81c784; border: 1px solid rgba(76,175,80,0.25); }
+.scard.review    .scard-icon { background: rgba(156,39,176,0.18);  color: #ce93d8; border: 1px solid rgba(156,39,176,0.25); }
+.scard.review.has-alerts .scard-icon { background: rgba(255,193,7,0.18); color: #ffd54f; border-color: rgba(255,193,7,0.3); }
 
-.stat-info {
-  flex: 1;
-  position: relative;
-  z-index: 1;
-}
-
-.stat-number {
-  font-size: 2.4rem;
+/* Большое число */
+.scard-num {
+  font-size: 3rem;
   font-weight: 900;
   line-height: 1;
-  margin-bottom: 0.3rem;
-  letter-spacing: -0.02em;
-}
-
-.stat-card.total    .stat-number { color: #64b5f6; }
-.stat-card.upcoming .stat-number { color: #ffb74d; }
-.stat-card.completed .stat-number { color: #81c784; }
-.stat-card.featured  .stat-number { color: #ce93d8; }
-
-.stat-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.stat-trend {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
-  z-index: 1;
-}
-
-.stat-trend.up {
-  background: rgba(76, 175, 80, 0.2);
-  color: var(--accent-green);
-  border: 1px solid rgba(76,175,80,0.25);
-}
-
-.stat-progress {
-  width: 100%;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 3px;
-  margin-top: 1rem;
-  overflow: hidden;
+  letter-spacing: -0.04em;
+  margin-bottom: 0.25rem;
   position: relative;
   z-index: 1;
 }
 
-.stat-progress .progress-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+.scard.total     .scard-num { color: #64b5f6; }
+.scard.upcoming  .scard-num { color: #ffb74d; }
+.scard.completed .scard-num { color: #81c784; }
+.scard.review    .scard-num { color: #ce93d8; }
+.scard.review.has-alerts .scard-num { color: #ffd54f; }
+
+/* Подпись */
+.scard-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.35);
+  position: relative;
+  z-index: 1;
 }
 
-.stat-card.upcoming  .progress-fill { background: linear-gradient(90deg, var(--accent-orange), #ffb74d); }
-.stat-card.completed .progress-fill { background: linear-gradient(90deg, var(--accent-green), #81c784); }
+/* Доп текст */
+.scard-sub {
+  margin-top: 0.55rem;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.25);
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+}
 
-/* Chart section */
-.chart-section {
+/* Glow-пятно */
+.scard-glow {
+  position: absolute;
+  bottom: -40px;
+  right: -40px;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.scard.total     .scard-glow { background: radial-gradient(circle, rgba(33,150,243,0.18) 0%, transparent 70%); }
+.scard.upcoming  .scard-glow { background: radial-gradient(circle, rgba(255,123,37,0.18) 0%, transparent 70%); }
+.scard.completed .scard-glow { background: radial-gradient(circle, rgba(76,175,80,0.18) 0%, transparent 70%); }
+.scard.review    .scard-glow { background: radial-gradient(circle, rgba(156,39,176,0.18) 0%, transparent 70%); }
+.scard.review.has-alerts .scard-glow { background: radial-gradient(circle, rgba(255,193,7,0.18) 0%, transparent 70%); }
+
+/* ── Полоска распределения ── */
+.dist-section {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
-  border-radius: var(--border-radius-large);
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
+  border-radius: 1rem;
+  padding: 1.1rem 1.4rem;
 }
 
-.chart-section::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent-orange), var(--accent-green));
-  border-radius: var(--border-radius-large) var(--border-radius-large) 0 0;
-}
-
-.chart-title {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text-light);
-  margin: 0 0 1.25rem 0;
+.dist-head {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
 }
 
-.chart-title i {
-  color: var(--accent-orange);
-}
-
-.donut-chart {
-  position: relative;
-  width: 140px;
-  height: 140px;
-  margin: 0 auto 1.25rem;
-}
-
-.chart-svg {
-  width: 100%;
-  height: 100%;
-}
-
-.chart-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-}
-
-.chart-total {
-  display: block;
-  font-size: 1.8rem;
+.dist-title {
+  font-size: 0.72rem;
   font-weight: 800;
-  color: var(--text-light);
-  line-height: 1;
-}
-
-.chart-label {
-  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--text-muted);
-}
-
-.chart-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.legend-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--text-muted);
+  gap: 0.45rem;
 }
 
-.legend-dot {
-  width: 10px;
-  height: 10px;
+.dist-title i { color: var(--accent-orange); font-size: 0.8rem; }
+
+.dist-legend {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.dl-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+}
+
+.dl-dot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.legend-dot.upcoming {
-  background: var(--accent-orange);
+.dl-dot.upcoming  { background: #ff7b25; box-shadow: 0 0 6px rgba(255,123,37,0.6); }
+.dl-dot.completed { background: #4caf50; box-shadow: 0 0 6px rgba(76,175,80,0.6); }
+
+.dl-label { color: var(--text-muted); }
+.dl-val   { color: var(--text-light); font-weight: 800; }
+.dl-pct   { color: var(--text-dim); font-size: 0.7rem; }
+
+/* Трек */
+.dist-track {
+  height: 12px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
-.legend-dot.completed {
-  background: var(--accent-green);
+.dist-seg {
+  height: 100%;
+  transition: width 1s cubic-bezier(0.34, 1.3, 0.64, 1);
+  min-width: 0;
+  position: relative;
 }
 
+.dist-seg.upcoming  {
+  background: linear-gradient(90deg, #c4500a, #ff7b25, #ffb74d);
+}
+.dist-seg.completed {
+  background: linear-gradient(90deg, #2e7d32, #4caf50, #81c784);
+}
+
+/* ── Адаптивность ── */
 @media (max-width: 1024px) {
-  .stats-section {
-    grid-template-columns: 1fr;
+  .scard-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .scard-row {
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  .chart-section {
-    order: -1;
+  .scard-num { font-size: 2.2rem; }
+
+  .dist-head {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
@@ -3529,39 +3444,20 @@ h2.panel-title {
    📱 АДАПТИВНЫЙ ДИЗАЙН
    =============================================== */
 
-@media (max-width: 1024px) {
-  .header-content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1.5rem;
-  }
-
-  .quick-stats {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
 @media (max-width: 768px) {
   .panel-header {
     flex-direction: column;
-    gap: 1.5rem;
-    padding: 1.5rem;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-bottom: 1.25rem;
   }
 
-  .header-actions {
+  .ph-actions {
     width: 100%;
+    justify-content: flex-end;
   }
 
-  .refresh-btn,
-  .add-btn {
-    flex: 1;
-    justify-content: center;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .ph-status { display: none; }
 
   .filters-row {
     flex-direction: column;
