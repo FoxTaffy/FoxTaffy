@@ -35,29 +35,31 @@
           <i class="fas fa-chevron-down" :class="{ rotated: showDropdowns.tags }"></i>
         </button>
         
-        <div v-if="showDropdowns.tags" class="dropdown-content">
-          <div class="dropdown-header">
-            <span>Выберите теги</span>
-            <button @click="clearTags" class="clear-btn">Очистить</button>
-          </div>
-          <div class="dropdown-list">
-            <label 
-              v-for="tag in availableTags" 
-              :key="tag.id" 
-              class="dropdown-item"
-            >
-              <input 
-                type="checkbox" 
-                :value="tag.name" 
-                :checked="selectedTags.includes(tag.name)"
-                @change="handleTagChange($event, tag.name)"
+        <Transition name="ft-dropdown">
+          <div v-if="showDropdowns.tags" class="dropdown-content">
+            <div class="dropdown-header">
+              <span>Выберите теги</span>
+              <button @click="clearTags" class="clear-btn">Очистить</button>
+            </div>
+            <div class="dropdown-list">
+              <label
+                v-for="tag in availableTags"
+                :key="tag.id"
+                class="dropdown-item"
               >
-              <div class="tag-color"></div>
-              <span class="item-name">{{ tag.name }}</span>
-              <span class="item-count">({{ tag.count || 0 }})</span>
-            </label>
+                <input
+                  type="checkbox"
+                  :value="tag.name"
+                  :checked="selectedTags.includes(tag.name)"
+                  @change="handleTagChange($event, tag.name)"
+                >
+                <div class="tag-color"></div>
+                <span class="item-name">{{ tag.name }}</span>
+                <span class="item-count">({{ tag.count || 0 }})</span>
+              </label>
+            </div>
           </div>
-        </div>
+        </Transition>
       </div>
 
       <!-- Фильтр по художникам -->
@@ -73,34 +75,36 @@
           <i class="fas fa-chevron-down" :class="{ rotated: showDropdowns.artists }"></i>
         </button>
         
-        <div v-if="showDropdowns.artists" class="dropdown-content">
-          <div class="dropdown-header">
-            <span>Выберите художников</span>
-            <button @click="clearArtists" class="clear-btn">Очистить</button>
-          </div>
-          <div class="dropdown-list">
-            <label 
-              v-for="artist in availableArtists" 
-              :key="artist.id" 
-              class="dropdown-item"
-            >
-              <input 
-                type="checkbox" 
-                :value="artist.name" 
-                :checked="selectedArtists.includes(artist.name)"
-                @change="handleArtistChange($event, artist.name)"
+        <Transition name="ft-dropdown">
+          <div v-if="showDropdowns.artists" class="dropdown-content">
+            <div class="dropdown-header">
+              <span>Выберите художников</span>
+              <button @click="clearArtists" class="clear-btn">Очистить</button>
+            </div>
+            <div class="dropdown-list">
+              <label
+                v-for="artist in availableArtists"
+                :key="artist.id"
+                class="dropdown-item"
               >
-              <img 
-                :src="artist.avatar_url || getDefaultAvatar(artist.name)" 
-                :alt="artist.name" 
-                class="item-avatar"
-              >
-              <span class="item-name">{{ artist.name }}</span>
-              <i v-if="artist.is_friend" class="fas fa-star friend-star"></i>
-              <span class="item-count">({{ artist.count || 0 }})</span>
-            </label>
+                <input
+                  type="checkbox"
+                  :value="artist.name"
+                  :checked="selectedArtists.includes(artist.name)"
+                  @change="handleArtistChange($event, artist.name)"
+                >
+                <img
+                  :src="artist.avatar_url || getDefaultAvatar(artist.name)"
+                  :alt="artist.name"
+                  class="item-avatar"
+                >
+                <span class="item-name">{{ artist.name }}</span>
+                <i v-if="artist.is_friend" class="fas fa-star friend-star"></i>
+                <span class="item-count">({{ artist.count || 0 }})</span>
+              </label>
+            </div>
           </div>
-        </div>
+        </Transition>
       </div>
 
       <!-- Фильтр по персонажам -->
@@ -116,33 +120,35 @@
           <i class="fas fa-chevron-down" :class="{ rotated: showDropdowns.characters }"></i>
         </button>
         
-        <div v-if="showDropdowns.characters" class="dropdown-content">
-          <div class="dropdown-header">
-            <span>Выберите персонажей</span>
-            <button @click="clearCharacters" class="clear-btn">Очистить</button>
-          </div>
-          <div class="dropdown-list">
-            <label 
-              v-for="character in availableCharacters" 
-              :key="character.id" 
-              class="dropdown-item"
-            >
-              <input 
-                type="checkbox" 
-                :value="character.name" 
-                :checked="selectedCharacters.includes(character.name)"
-                @change="handleCharacterChange($event, character.name)"
+        <Transition name="ft-dropdown">
+          <div v-if="showDropdowns.characters" class="dropdown-content">
+            <div class="dropdown-header">
+              <span>Выберите персонажей</span>
+              <button @click="clearCharacters" class="clear-btn">Очистить</button>
+            </div>
+            <div class="dropdown-list">
+              <label
+                v-for="character in availableCharacters"
+                :key="character.id"
+                class="dropdown-item"
               >
-              <img 
-                :src="character.avatar_url || getDefaultCharacterAvatar(character.name)" 
-                :alt="character.name" 
-                class="item-avatar"
-              >
-              <span class="item-name">{{ character.name }}</span>
-              <span class="item-count">({{ character.count || 0 }})</span>
-            </label>
+                <input
+                  type="checkbox"
+                  :value="character.name"
+                  :checked="selectedCharacters.includes(character.name)"
+                  @change="handleCharacterChange($event, character.name)"
+                >
+                <img
+                  :src="character.avatar_url || getDefaultCharacterAvatar(character.name)"
+                  :alt="character.name"
+                  class="item-avatar"
+                >
+                <span class="item-name">{{ character.name }}</span>
+                <span class="item-count">({{ character.count || 0 }})</span>
+              </label>
+            </div>
           </div>
-        </div>
+        </Transition>
       </div>
 
       <!-- Сортировка -->
@@ -156,24 +162,26 @@
           <i class="fas fa-chevron-down" :class="{ rotated: showDropdowns.sort }"></i>
         </button>
         
-        <div v-if="showDropdowns.sort" class="dropdown-content">
-          <div class="dropdown-header">
-            <span>Сортировать по</span>
+        <Transition name="ft-dropdown">
+          <div v-if="showDropdowns.sort" class="dropdown-content">
+            <div class="dropdown-header">
+              <span>Сортировать по</span>
+            </div>
+            <div class="dropdown-list">
+              <button
+                v-for="option in sortOptions"
+                :key="option.value"
+                class="dropdown-item sort-item"
+                :class="{ active: currentSort === option.value }"
+                @click="setSort(option.value)"
+              >
+                <i :class="option.icon"></i>
+                <span class="item-name">{{ option.label }}</span>
+                <i v-if="currentSort === option.value" class="fas fa-check"></i>
+              </button>
+            </div>
           </div>
-          <div class="dropdown-list">
-            <button 
-              v-for="option in sortOptions" 
-              :key="option.value" 
-              class="dropdown-item sort-item"
-              :class="{ active: currentSort === option.value }"
-              @click="setSort(option.value)"
-            >
-              <i :class="option.icon"></i>
-              <span class="item-name">{{ option.label }}</span>
-              <i v-if="currentSort === option.value" class="fas fa-check"></i>
-            </button>
-          </div>
-        </div>
+        </Transition>
       </div>
 
       <!-- Кнопка сброса -->
@@ -188,6 +196,7 @@
     </div>
 
     <!-- Активные фильтры -->
+    <Transition name="ft-filters-panel">
     <div v-if="hasActiveFilters" class="active-filters">
       <div class="active-filters-header">
         <i class="fas fa-filter"></i>
@@ -238,6 +247,7 @@
         </div>
       </div>
     </div>
+    </Transition>
   </section>
 </template>
 
@@ -916,12 +926,12 @@ onBeforeUnmount(() => {
     align-items: stretch;
     gap: 0.5rem;
   }
-  
+
   .filter-btn {
     justify-content: space-between;
     width: 100%;
   }
-  
+
   .dropdown-content {
     position: fixed;
     top: 50%;
@@ -931,14 +941,59 @@ onBeforeUnmount(() => {
     max-width: 400px;
     max-height: 70vh;
   }
-  
+
   .clear-all-btn {
     margin-left: 0;
     justify-content: center;
   }
-  
+
   .active-filter-pills {
     justify-content: center;
   }
+}
+
+/* ===================================================
+   АНИМАЦИИ ДРОПДАУНОВ
+   =================================================== */
+
+/* Открытие/закрытие дропдауна */
+.ft-dropdown-enter-active {
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.ft-dropdown-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.ft-dropdown-enter-from {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.97);
+}
+.ft-dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+}
+
+/* Панель активных фильтров */
+.ft-filters-panel-enter-active {
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              max-height 0.3s ease;
+  overflow: hidden;
+}
+.ft-filters-panel-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease,
+              max-height 0.25s ease;
+  overflow: hidden;
+}
+.ft-filters-panel-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+  max-height: 0;
+}
+.ft-filters-panel-enter-to {
+  max-height: 200px;
+}
+.ft-filters-panel-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+  max-height: 0;
 }
 </style>
