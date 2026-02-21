@@ -112,28 +112,42 @@
               <div class="dashboard-compact">
                 <!-- Компактная строка статистики -->
                 <div class="stats-compact-row">
-                  <div class="stat-compact">
+                  <div class="stat-compact stat-arts">
                     <i class="fas fa-images"></i>
                     <div>
                       <div class="stat-num">{{ stats.arts }}</div>
                       <div class="stat-lbl">Артов</div>
                     </div>
                   </div>
-                  <div class="stat-compact">
+                  <div class="stat-compact stat-artists">
                     <i class="fas fa-palette"></i>
                     <div>
                       <div class="stat-num">{{ stats.artists }}</div>
                       <div class="stat-lbl">Художников</div>
                     </div>
                   </div>
-                  <div class="stat-compact">
+                  <div class="stat-compact stat-tags">
                     <i class="fas fa-tags"></i>
                     <div>
                       <div class="stat-num">{{ stats.tags }}</div>
                       <div class="stat-lbl">Тегов</div>
                     </div>
                   </div>
-                  <div class="stat-compact">
+                  <div class="stat-compact stat-chars">
+                    <i class="fas fa-paw"></i>
+                    <div>
+                      <div class="stat-num">{{ stats.characters }}</div>
+                      <div class="stat-lbl">Персонажей</div>
+                    </div>
+                  </div>
+                  <div class="stat-compact stat-monthly">
+                    <i class="fas fa-calendar-alt"></i>
+                    <div>
+                      <div class="stat-num">{{ artsPerMonth }}</div>
+                      <div class="stat-lbl">За месяц</div>
+                    </div>
+                  </div>
+                  <div class="stat-compact stat-s3">
                     <i class="fas fa-server"></i>
                     <div>
                       <div class="stat-num">{{ uploadedFilesCount }}</div>
@@ -174,37 +188,93 @@
                         <div class="content-row">
                           <i class="fas fa-check-circle" style="color: #22c55e;"></i>
                           <span>SFW: <strong>{{ sfwArtsCount }}</strong></span>
-                          <span class="percent-mini">{{ Math.round((sfwArtsCount / stats.arts) * 100) }}%</span>
+                          <div class="content-progress-wrap">
+                            <div
+                              class="content-progress-bar sfw-bar"
+                              :style="{ width: Math.round((sfwArtsCount / Math.max(stats.arts, 1)) * 100) + '%' }"
+                            ></div>
+                          </div>
+                          <span class="percent-mini">{{ Math.round((sfwArtsCount / Math.max(stats.arts, 1)) * 100) }}%</span>
                         </div>
                         <div class="content-row">
                           <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
                           <span>NSFW: <strong>{{ nsfwArtsCount }}</strong></span>
-                          <span class="percent-mini">{{ Math.round((nsfwArtsCount / stats.arts) * 100) }}%</span>
+                          <div class="content-progress-wrap">
+                            <div
+                              class="content-progress-bar nsfw-bar"
+                              :style="{ width: Math.round((nsfwArtsCount / Math.max(stats.arts, 1)) * 100) + '%' }"
+                            ></div>
+                          </div>
+                          <span class="percent-mini">{{ Math.round((nsfwArtsCount / Math.max(stats.arts, 1)) * 100) }}%</span>
                         </div>
                       </div>
                     </div>
 
-                    <div class="dashboard-card-mini activity-heatmap-card">
-                      <h3><i class="fas fa-chart-line"></i> Активность</h3>
-                      <div class="heatmap-container">
-                        <div class="heatmap-grid">
-                          <div
-                            v-for="(month, index) in activityHeatmap"
-                            :key="index"
-                            class="heatmap-cell"
-                            :class="'level-' + month.level"
-                            :title="`${month.month}: ${month.count} артов`"
+                    <div class="dashboard-card-mini activity-chart-card">
+                      <h3><i class="fas fa-chart-area"></i> Активность (12 мес.)</h3>
+                      <div class="activity-chart-wrap">
+                        <!-- SVG Line Chart with Bezier curves + gradient fill -->
+                        <svg
+                          class="activity-chart-svg"
+                          viewBox="0 0 300 68"
+                          preserveAspectRatio="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <defs>
+                            <!-- Vertical gradient for the fill area -->
+                            <linearGradient id="actFill" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stop-color="#ff6b35" stop-opacity="0.5"/>
+                              <stop offset="70%" stop-color="#f7931e" stop-opacity="0.12"/>
+                              <stop offset="100%" stop-color="#ff6b35" stop-opacity="0"/>
+                            </linearGradient>
+                            <!-- Horizontal gradient for the line -->
+                            <linearGradient id="actLine" x1="0" y1="0" x2="1" y2="0">
+                              <stop offset="0%" stop-color="#f7931e"/>
+                              <stop offset="100%" stop-color="#ff6b35"/>
+                            </linearGradient>
+                          </defs>
+
+                          <!-- Horizontal guide lines -->
+                          <line x1="0" y1="50" x2="300" y2="50" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                          <line x1="0" y1="32" x2="300" y2="32" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                          <line x1="0" y1="14" x2="300" y2="14" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+
+                          <!-- Gradient fill area under the curve -->
+                          <path :d="activityChartArea" fill="url(#actFill)"/>
+
+                          <!-- Smooth Bezier curve line -->
+                          <path
+                            :d="activityChartPath"
+                            fill="none"
+                            stroke="url(#actLine)"
+                            stroke-width="2.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+
+                          <!-- Interactive data points -->
+                          <circle
+                            v-for="(pt, i) in activityChartPoints"
+                            :key="'pt-' + i"
+                            :cx="pt.x"
+                            :cy="pt.y"
+                            r="3.5"
+                            fill="#ff6b35"
+                            stroke="rgba(15,15,15,0.9)"
+                            stroke-width="1.5"
+                            class="chart-dot"
                           >
-                          </div>
-                        </div>
-                        <div class="heatmap-legend">
-                          <span class="legend-label">Меньше</span>
-                          <div class="legend-cell level-0"></div>
-                          <div class="legend-cell level-1"></div>
-                          <div class="legend-cell level-2"></div>
-                          <div class="legend-cell level-3"></div>
-                          <div class="legend-cell level-4"></div>
-                          <span class="legend-label">Больше</span>
+                            <title>{{ activityHeatmap[i].month }}: {{ activityHeatmap[i].count }} артов</title>
+                          </circle>
+                        </svg>
+
+                        <!-- Month labels on X-axis -->
+                        <div class="chart-months-row">
+                          <span
+                            v-for="(item, i) in activityHeatmap"
+                            :key="'lbl-' + i"
+                            class="chart-month-lbl"
+                          >{{ item.month }}</span>
                         </div>
                       </div>
                     </div>
@@ -217,11 +287,11 @@
                     <h3><i class="fas fa-crown"></i> Топ художники</h3>
                     <div class="top-list-mini">
                       <div
-                        v-for="(artist, index) in topArtists.slice(0, 3)"
+                        v-for="(artist, index) in topArtists.slice(0, 5)"
                         :key="artist.id"
                         class="list-item-mini"
                       >
-                        <div class="rank-mini">{{ index + 1 }}</div>
+                        <div class="rank-mini" :class="'rank-' + (index + 1)">{{ index + 1 }}</div>
                         <img
                           :src="artist.avatar_url || getDefaultAvatar(artist.name)"
                           :alt="artist.name"
@@ -229,8 +299,15 @@
                         >
                         <div class="info-mini">
                           <div class="name-mini">{{ artist.name }}</div>
-                          <div class="count-mini">{{ artist.count }}</div>
+                          <!-- Mini progress bar relative to top artist -->
+                          <div class="artist-bar-wrap">
+                            <div
+                              class="artist-bar"
+                              :style="{ width: Math.round((artist.count / Math.max(topArtists[0]?.count, 1)) * 100) + '%' }"
+                            ></div>
+                          </div>
                         </div>
+                        <span class="count-mini-badge">{{ artist.count }}</span>
                         <i v-if="artist.is_friend" class="fas fa-star star-mini"></i>
                       </div>
                     </div>
@@ -1493,6 +1570,69 @@ const activityHeatmap = computed(() => {
   return months
 })
 
+// ============================================
+// SVG ACTIVITY CHART — Bezier curve data
+// ============================================
+// Chart dimensions (matches viewBox="0 0 300 68")
+const CHART_W = 300
+const CHART_H = 58   // plot area height (bottom 10px reserved for baseline)
+const CHART_PAD_X = 12
+const CHART_PAD_TOP = 8
+const CHART_BOTTOM_Y = 62  // y coordinate of the baseline for gradient fill
+
+const activityChartPoints = computed(() => {
+  const data = activityHeatmap.value
+  const usableW = CHART_W - CHART_PAD_X * 2
+  const maxCount = Math.max(...data.map(d => d.count), 1)
+
+  return data.map((d, i) => ({
+    x: CHART_PAD_X + (i / (data.length - 1)) * usableW,
+    y: CHART_PAD_TOP + (1 - d.count / maxCount) * (CHART_H - CHART_PAD_TOP)
+  }))
+})
+
+// Generate smooth Bezier SVG path through all points (Catmull-Rom → Cubic Bezier)
+const _bezierPath = (pts) => {
+  if (pts.length < 2) return ''
+  let d = `M ${pts[0].x.toFixed(2)} ${pts[0].y.toFixed(2)}`
+  for (let i = 1; i < pts.length; i++) {
+    const p0 = pts[i - 2] ?? pts[i - 1]
+    const p1 = pts[i - 1]
+    const p2 = pts[i]
+    const p3 = pts[i + 1] ?? pts[i]
+    const cp1x = p1.x + (p2.x - p0.x) / 6
+    const cp1y = p1.y + (p2.y - p0.y) / 6
+    const cp2x = p2.x - (p3.x - p1.x) / 6
+    const cp2y = p2.y - (p3.y - p1.y) / 6
+    d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`
+  }
+  return d
+}
+
+const activityChartPath = computed(() => _bezierPath(activityChartPoints.value))
+
+const activityChartArea = computed(() => {
+  const pts = activityChartPoints.value
+  if (pts.length < 2) return ''
+  const first = pts[0]
+  const last = pts[pts.length - 1]
+  // Start at baseline-left, up to first data point, trace the curve, close at baseline-right
+  let d = `M ${first.x.toFixed(2)} ${CHART_BOTTOM_Y} L ${first.x.toFixed(2)} ${first.y.toFixed(2)}`
+  for (let i = 1; i < pts.length; i++) {
+    const p0 = pts[i - 2] ?? pts[i - 1]
+    const p1 = pts[i - 1]
+    const p2 = pts[i]
+    const p3 = pts[i + 1] ?? pts[i]
+    const cp1x = p1.x + (p2.x - p0.x) / 6
+    const cp1y = p1.y + (p2.y - p0.y) / 6
+    const cp2x = p2.x - (p3.x - p1.x) / 6
+    const cp2y = p2.y - (p3.y - p1.y) / 6
+    d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`
+  }
+  d += ` L ${last.x.toFixed(2)} ${CHART_BOTTOM_Y} Z`
+  return d
+})
+
 const isFormValid = computed(() => {
   return newArt.title.trim().length >= 3 &&
          selectedArtist.value &&
@@ -2740,6 +2880,28 @@ watch(activeTab, () => {
   gap: 0.75rem;
 }
 
+/* Accent top-border per stat card type */
+.stat-compact::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 16px 16px 0 0;
+  background: linear-gradient(90deg, #ff6b35, #f7931e);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.stat-compact:hover::after { opacity: 1; }
+
+.stat-arts    i { color: #ff6b35; }
+.stat-artists i { color: #4caf50; background: linear-gradient(135deg, rgba(76,175,80,0.2), rgba(76,175,80,0.1)) !important; }
+.stat-tags    i { color: #ff7b25; }
+.stat-chars   i { color: #ff7b25; background: linear-gradient(135deg, rgba(255,123,37,0.2), rgba(255,123,37,0.1)) !important; }
+.stat-monthly i { color: #2196f3; background: linear-gradient(135deg, rgba(33,150,243,0.2), rgba(33,150,243,0.1)) !important; }
+.stat-s3      i { color: #9c27b0; background: linear-gradient(135deg, rgba(156,39,176,0.2), rgba(156,39,176,0.1)) !important; }
+
 .stat-compact {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
   border-radius: 16px;
@@ -2995,103 +3157,81 @@ watch(activeTab, () => {
   background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(247, 147, 30, 0.2));
   border-radius: 6px;
   border: 1px solid rgba(255, 107, 53, 0.3);
+  flex-shrink: 0;
 }
 
-/* Activity Heatmap */
-.heatmap-container {
+/* Animated progress bars for content section */
+.content-progress-wrap {
+  flex: 1;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 0 0.5rem;
+}
+
+.content-progress-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: left;
+}
+
+.sfw-bar {
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+}
+
+.nsfw-bar {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
+/* ===================================================
+   SVG ACTIVITY LINE CHART
+   =================================================== */
+
+.activity-chart-card {
+  /* inherits dashboard-card-mini */
+}
+
+.activity-chart-wrap {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.3rem;
 }
 
-.heatmap-grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 2px;
+.activity-chart-svg {
+  width: 100%;
+  height: 75px;
+  display: block;
+  overflow: visible;
 }
 
-.heatmap-cell {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.05);
-  transition: all 0.2s ease;
+/* Smooth dot pulse on hover via CSS (SVG circle) */
+.chart-dot {
+  transition: r 0.2s ease;
   cursor: pointer;
-  position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.heatmap-cell:hover {
-  transform: scale(1.3);
-  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4);
-  z-index: 10;
-  border-radius: 3px;
+.chart-dot:hover {
+  r: 5.5;
+  filter: drop-shadow(0 0 6px rgba(255, 107, 53, 0.8));
 }
 
-.heatmap-cell.level-0 {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.heatmap-cell.level-1 {
-  background: rgba(34, 197, 94, 0.3);
-  border-color: rgba(34, 197, 94, 0.3);
-}
-
-.heatmap-cell.level-2 {
-  background: rgba(34, 197, 94, 0.5);
-  border-color: rgba(34, 197, 94, 0.5);
-}
-
-.heatmap-cell.level-3 {
-  background: rgba(34, 197, 94, 0.7);
-  border-color: rgba(34, 197, 94, 0.6);
-}
-
-.heatmap-cell.level-4 {
-  background: rgba(34, 197, 94, 0.9);
-  border-color: rgba(34, 197, 94, 0.8);
-  box-shadow: 0 0 4px rgba(34, 197, 94, 0.4);
-}
-
-.heatmap-legend {
+/* Month label row */
+.chart-months-row {
   display: flex;
-  align-items: center;
-  gap: 3px;
-  justify-content: flex-end;
-  margin-top: 0.5rem;
+  justify-content: space-between;
+  padding: 0 12px;
 }
 
-.legend-label {
-  font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.5);
-  margin: 0 0.25rem;
-}
-
-.legend-cell {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.legend-cell.level-0 {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.legend-cell.level-1 {
-  background: rgba(34, 197, 94, 0.3);
-}
-
-.legend-cell.level-2 {
-  background: rgba(34, 197, 94, 0.5);
-}
-
-.legend-cell.level-3 {
-  background: rgba(34, 197, 94, 0.7);
-}
-
-.legend-cell.level-4 {
-  background: rgba(34, 197, 94, 0.9);
+.chart-month-lbl {
+  font-size: 0.58rem;
+  color: rgba(255, 255, 255, 0.35);
+  text-align: center;
+  line-height: 1;
+  text-transform: lowercase;
 }
 
 .top-list-mini {
@@ -3176,6 +3316,37 @@ watch(activeTab, () => {
 .star-mini {
   color: #ffd700;
   font-size: 0.75rem;
+}
+
+/* Artist rank medal colors */
+.rank-1 { background: linear-gradient(135deg, #ffd700, #ffaa00); box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4); }
+.rank-2 { background: linear-gradient(135deg, #c0c0c0, #a8a8a8); box-shadow: 0 4px 12px rgba(192, 192, 192, 0.3); }
+.rank-3 { background: linear-gradient(135deg, #cd7f32, #a0522d); box-shadow: 0 4px 12px rgba(205, 127, 50, 0.3); }
+.rank-4, .rank-5 { background: linear-gradient(135deg, rgba(255,107,53,0.4), rgba(247,147,30,0.4)); box-shadow: none; }
+
+/* Mini progress bar relative to top artist */
+.artist-bar-wrap {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 3px;
+}
+
+.artist-bar {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #ff6b35, #f7931e);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Count badge next to artist name */
+.count-mini-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(255, 107, 53, 0.9);
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .tags-mini-grid {
