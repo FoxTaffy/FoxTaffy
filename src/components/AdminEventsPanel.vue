@@ -2,39 +2,27 @@
   <div class="admin-events-panel">
     <!-- Заголовок панели с градиентом -->
     <div class="panel-header">
-      <div class="header-content">
-        <div class="header-text">
-          <h2 class="panel-title">
-            <i class="fas fa-calendar-star"></i>
-            Управление мероприятиями
-          </h2>
-          <p class="panel-description">
-            Создание, редактирование и управление всеми мероприятиями Fox Taffy
-          </p>
+      <div class="ph-brand">
+        <div class="ph-icon-wrap">
+          <i class="fas fa-calendar-star"></i>
         </div>
-
-        <!-- Быстрая статистика в заголовке -->
-        <div class="quick-stats" v-if="!loading && stats">
-          <div class="quick-stat">
-            <span class="quick-stat-number">{{ stats.total || 0 }}</span>
-            <span class="quick-stat-label">событий</span>
-          </div>
-          <div class="quick-stat-divider"></div>
-          <div class="quick-stat">
-            <span class="quick-stat-number">{{ stats.upcoming || 0 }}</span>
-            <span class="quick-stat-label">предстоящих</span>
-          </div>
+        <div class="ph-text">
+          <h1 class="ph-title">Мероприятия</h1>
+          <p class="ph-sub">FoxTaffy.gay · управление событиями</p>
         </div>
       </div>
 
-      <div class="header-actions">
-        <button @click="refreshData" class="refresh-btn" :disabled="loading">
-          <i class="fas fa-sync-alt" :class="{ 'spinning': loading }"></i>
-          <span>Обновить</span>
+      <div class="ph-actions">
+        <div class="ph-status" v-if="!loading && stats">
+          <span class="status-dot"></span>
+          <span>{{ stats.total || 0 }} событий</span>
+        </div>
+        <button @click="refreshData" class="btn-icon" :disabled="loading" title="Обновить данные">
+          <i class="fas fa-sync-alt" :class="{ spinning: loading }"></i>
         </button>
-        <button @click="openCreateModal" class="add-btn" :disabled="loading">
+        <button @click="openCreateModal" class="btn-create" :disabled="loading">
           <i class="fas fa-plus"></i>
-          <span>Новое мероприятие</span>
+          <span>Создать</span>
         </button>
       </div>
     </div>
@@ -62,92 +50,78 @@
 
     <!-- Статистическая панель с графиком -->
     <div v-if="!loading && stats" class="stats-section">
-      <div class="stats-grid">
-        <div class="stat-card total">
-          <div class="stat-icon">
-            <i class="fas fa-calendar-alt"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-number">{{ stats.total || 0 }}</div>
-            <div class="stat-label">Всего событий</div>
-          </div>
-          <div class="stat-trend up">
-            <i class="fas fa-arrow-up"></i>
-          </div>
+
+      <!-- 4 карточки -->
+      <div class="scard-row">
+        <div class="scard total">
+          <div class="scard-icon"><i class="fas fa-layer-group"></i></div>
+          <div class="scard-num">{{ stats.total || 0 }}</div>
+          <div class="scard-label">Всего событий</div>
+          <div class="scard-glow"></div>
         </div>
 
-        <div class="stat-card upcoming">
-          <div class="stat-icon">
-            <i class="fas fa-clock"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-number">{{ stats.upcoming || 0 }}</div>
-            <div class="stat-label">Предстоящих</div>
-          </div>
-          <div class="stat-progress">
-            <div class="progress-fill" :style="{ width: upcomingPercent + '%' }"></div>
-          </div>
+        <div class="scard upcoming">
+          <div class="scard-icon"><i class="fas fa-hourglass-half"></i></div>
+          <div class="scard-num">{{ stats.upcoming || 0 }}</div>
+          <div class="scard-label">Предстоящих</div>
+          <div class="scard-sub">{{ upcomingPercent }}% от всех</div>
+          <div class="scard-glow"></div>
         </div>
 
-        <div class="stat-card completed">
-          <div class="stat-icon">
-            <i class="fas fa-check-circle"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-number">{{ stats.completed || 0 }}</div>
-            <div class="stat-label">Завершённых</div>
-          </div>
-          <div class="stat-progress">
-            <div class="progress-fill" :style="{ width: completedPercent + '%' }"></div>
-          </div>
+        <div class="scard completed">
+          <div class="scard-icon"><i class="fas fa-flag-checkered"></i></div>
+          <div class="scard-num">{{ stats.completed || 0 }}</div>
+          <div class="scard-label">Завершённых</div>
+          <div class="scard-sub">{{ completedPercent }}% от всех</div>
+          <div class="scard-glow"></div>
         </div>
-        <div class="stat-glow"></div>
+
+        <div class="scard review" :class="{ 'has-alerts': eventsNeedingReview.length > 0 }">
+          <div class="scard-icon"><i class="fas fa-pen-nib"></i></div>
+          <div class="scard-num">{{ eventsNeedingReview.length }}</div>
+          <div class="scard-label">Ждут обзора</div>
+          <div class="scard-sub" v-if="eventsNeedingReview.length > 0">Требуют внимания</div>
+          <div class="scard-sub" v-else>Всё написано</div>
+          <div class="scard-glow"></div>
+        </div>
       </div>
 
-      <!-- Визуальная диаграмма распределения -->
-      <div class="chart-section">
-        <h3 class="chart-title">
-          <i class="fas fa-chart-pie"></i>
-          Распределение мероприятий
-        </h3>
-        <div class="donut-chart">
-          <svg viewBox="0 0 100 100" class="chart-svg">
-            <circle
-              cx="50" cy="50" r="40"
-              fill="none"
-              stroke="rgba(255, 123, 37, 0.8)"
-              stroke-width="8"
-              :stroke-dasharray="upcomingArc + ' ' + (251.2 - upcomingArc)"
-              stroke-dashoffset="0"
-              transform="rotate(-90 50 50)"
-            />
-            <circle
-              cx="50" cy="50" r="40"
-              fill="none"
-              stroke="rgba(76, 175, 80, 0.8)"
-              stroke-width="8"
-              :stroke-dasharray="completedArc + ' ' + (251.2 - completedArc)"
-              :stroke-dashoffset="-upcomingArc"
-              transform="rotate(-90 50 50)"
-            />
-          </svg>
-          <div class="chart-center">
-            <span class="chart-total">{{ stats.total || 0 }}</span>
-            <span class="chart-label">всего</span>
+      <!-- Полоска распределения -->
+      <div class="dist-section">
+        <div class="dist-head">
+          <span class="dist-title">
+            <i class="fas fa-chart-bar"></i>
+            Распределение событий
+          </span>
+          <div class="dist-legend">
+            <div class="dl-item">
+              <span class="dl-dot upcoming"></span>
+              <span class="dl-label">Предстоящие</span>
+              <span class="dl-val">{{ stats.upcoming || 0 }}</span>
+              <span class="dl-pct">{{ upcomingPercent }}%</span>
+            </div>
+            <div class="dl-item">
+              <span class="dl-dot completed"></span>
+              <span class="dl-label">Завершённые</span>
+              <span class="dl-val">{{ stats.completed || 0 }}</span>
+              <span class="dl-pct">{{ completedPercent }}%</span>
+            </div>
           </div>
         </div>
-        <div class="chart-legend">
-          <div class="legend-item">
-            <span class="legend-dot upcoming"></span>
-            <span>Предстоящие ({{ stats.upcoming || 0 }})</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-dot completed"></span>
-            <span>Завершённые ({{ stats.completed || 0 }})</span>
-          </div>
+        <div class="dist-track">
+          <div
+            class="dist-seg upcoming"
+            :style="{ width: upcomingPercent + '%' }"
+            :title="`Предстоящие: ${stats.upcoming}`"
+          ></div>
+          <div
+            class="dist-seg completed"
+            :style="{ width: completedPercent + '%' }"
+            :title="`Завершённые: ${stats.completed}`"
+          ></div>
         </div>
-        <div class="stat-glow"></div>
       </div>
+
     </div>
 
     <!-- Панель управления и фильтры -->
@@ -2067,14 +2041,14 @@ export default {
    =============================================== */
 
 .admin-events-panel {
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #2a2a2a;
-  --bg-card: rgba(255, 255, 255, 0.05);
-  --bg-card-hover: rgba(255, 255, 255, 0.08);
+  --bg-primary: #111114;
+  --bg-secondary: #1a1a1f;
+  --bg-card: rgba(255, 255, 255, 0.04);
+  --bg-card-hover: rgba(255, 255, 255, 0.07);
 
-  --text-light: #f2f2f2;
-  --text-muted: #a0a0a0;
-  --text-dim: #666666;
+  --text-light: #f2f2f7;
+  --text-muted: #8e8e9a;
+  --text-dim: #555560;
 
   --accent-green: #4caf50;
   --accent-orange: #ff7b25;
@@ -2083,11 +2057,11 @@ export default {
   --accent-purple: #9c27b0;
   --accent-gold: #ffd700;
 
-  --border-light: rgba(255, 255, 255, 0.1);
-  --border-medium: rgba(255, 255, 255, 0.2);
+  --border-light: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.16);
 
-  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.15);
-  --shadow-strong: 0 8px 32px rgba(0, 0, 0, 0.25);
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.2);
+  --shadow-strong: 0 12px 40px rgba(0, 0, 0, 0.3);
   --shadow-glow-orange: 0 0 30px rgba(255, 123, 37, 0.3);
   --shadow-glow-green: 0 0 30px rgba(76, 175, 80, 0.3);
 
@@ -2100,145 +2074,149 @@ export default {
   background: var(--bg-primary);
   color: var(--text-light);
   font-family: 'Nunito', sans-serif;
+  padding: 1.5rem 2rem;
 }
 
 /* ===============================================
-   📋 ЗАГОЛОВОК ПАНЕЛИ С ГРАДИЕНТОМ
+   📋 ЗАГОЛОВОК ПАНЕЛИ
    =============================================== */
 
 .panel-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  background: linear-gradient(135deg, rgba(255, 123, 37, 0.15) 0%, rgba(76, 175, 80, 0.15) 100%);
-  border-radius: var(--border-radius-xl);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-light);
 }
 
-.header-content {
+.ph-brand {
   display: flex;
   align-items: center;
-  gap: 3rem;
-  flex: 1;
+  gap: 1rem;
 }
 
-.header-text {
-  flex: 1;
+.ph-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #ff7b25, #c4500a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: white;
+  box-shadow: 0 6px 24px rgba(255, 123, 37, 0.45);
+  flex-shrink: 0;
 }
 
-h2.panel-title {
-  font-size: 2rem;
-  font-weight: 800;
+.ph-title {
+  font-size: 1.55rem;
+  font-weight: 900;
   color: var(--text-light);
-  margin: 0 0 0.5rem 0;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: linear-gradient(135deg, var(--accent-orange), var(--accent-green));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.panel-title i {
-  -webkit-text-fill-color: var(--accent-orange);
-}
-
-.panel-description {
-  font-size: 1rem;
-  color: var(--text-muted);
   margin: 0;
-  line-height: 1.4;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
 }
 
-/* Быстрая статистика в заголовке */
-.quick-stats {
+.ph-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0.2rem 0 0;
+  font-weight: 500;
+}
+
+.ph-actions {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 1rem 1.5rem;
-  border-radius: var(--border-radius-large);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 0.6rem;
 }
 
-.quick-stat {
-  text-align: center;
-}
-
-.quick-stat-number {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--accent-orange);
-}
-
-.quick-stat-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.quick-stat-divider {
-  width: 1px;
-  height: 30px;
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.header-actions {
+.ph-status {
   display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.85rem;
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  border-radius: 2rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #81c784;
+  white-space: nowrap;
 }
 
-.refresh-btn, .add-btn {
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4caf50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.7);
+  flex-shrink: 0;
+  animation: statusPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(76,175,80,0.7); }
+  50% { opacity: 0.5; box-shadow: 0 0 3px rgba(76,175,80,0.3); }
+}
+
+.btn-icon {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-light);
+  border-radius: 0.6rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-light);
+  border-color: rgba(255, 123, 37, 0.35);
+  transform: rotate(30deg);
+}
+
+.btn-create {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--border-radius-medium);
-  color: var(--text-light);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.refresh-btn:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--accent-orange);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-soft);
-}
-
-.add-btn {
-  background: linear-gradient(135deg, var(--accent-green), #45a049);
-  border-color: transparent;
+  padding: 0.6rem 1.15rem;
+  background: linear-gradient(135deg, #ff7b25, #c4500a);
+  border: none;
+  border-radius: 0.6rem;
   color: white;
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(255, 123, 37, 0.4);
+  transition: all 0.25s ease;
+  white-space: nowrap;
 }
 
-.add-btn:hover {
-  background: linear-gradient(135deg, #45a049, #3d8b40);
+.btn-create:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-glow-green);
+  box-shadow: 0 8px 28px rgba(255, 123, 37, 0.55);
 }
 
-.refresh-btn:disabled,
-.add-btn:disabled {
-  opacity: 0.6;
+.btn-icon:disabled,
+.btn-create:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
-  transform: none;
+  transform: none !important;
+  box-shadow: none;
 }
 
 .spinning {
-  animation: spin 1s linear infinite;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
@@ -2314,252 +2292,222 @@ h2.panel-title {
 }
 
 /* ===============================================
-   📊 СТАТИСТИЧЕСКИЕ КАРТОЧКИ
+   📊 СТАТИСТИЧЕСКАЯ ПАНЕЛЬ — НОВЫЙ ДИЗАЙН
    =============================================== */
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+.stats-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
 }
 
-.stat-card {
+/* ── 4 карточки ── */
+.scard-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.scard {
+  position: relative;
+  border-radius: 1rem;
+  padding: 1.4rem 1.4rem 1.2rem;
+  overflow: hidden;
+  border: 1px solid transparent;
+  transition: transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1),
+              box-shadow 0.28s ease;
+  cursor: default;
+}
+
+.scard.total     { background: linear-gradient(150deg, #162645 0%, #0e1a30 100%); border-color: rgba(33,150,243,0.18); }
+.scard.upcoming  { background: linear-gradient(150deg, #3a1e09 0%, #261205 100%); border-color: rgba(255,123,37,0.2); }
+.scard.completed { background: linear-gradient(150deg, #0a2814 0%, #061b0d 100%); border-color: rgba(76,175,80,0.18); }
+.scard.review    { background: linear-gradient(150deg, #28103a 0%, #1b0a28 100%); border-color: rgba(156,39,176,0.18); }
+.scard.review.has-alerts {
+  background: linear-gradient(150deg, #3a2805 0%, #261b03 100%);
+  border-color: rgba(255,193,7,0.3);
+}
+
+.scard:hover {
+  transform: translateY(-5px) scale(1.015);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.35);
+}
+
+/* Иконка */
+.scard-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 0.7rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.scard.total     .scard-icon { background: rgba(33,150,243,0.18);  color: #64b5f6; border: 1px solid rgba(33,150,243,0.25); }
+.scard.upcoming  .scard-icon { background: rgba(255,123,37,0.18);  color: #ffb74d; border: 1px solid rgba(255,123,37,0.25); }
+.scard.completed .scard-icon { background: rgba(76,175,80,0.18);   color: #81c784; border: 1px solid rgba(76,175,80,0.25); }
+.scard.review    .scard-icon { background: rgba(156,39,176,0.18);  color: #ce93d8; border: 1px solid rgba(156,39,176,0.25); }
+.scard.review.has-alerts .scard-icon { background: rgba(255,193,7,0.18); color: #ffd54f; border-color: rgba(255,193,7,0.3); }
+
+/* Большое число */
+.scard-num {
+  font-size: 3rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  margin-bottom: 0.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.scard.total     .scard-num { color: #64b5f6; }
+.scard.upcoming  .scard-num { color: #ffb74d; }
+.scard.completed .scard-num { color: #81c784; }
+.scard.review    .scard-num { color: #ce93d8; }
+.scard.review.has-alerts .scard-num { color: #ffd54f; }
+
+/* Подпись */
+.scard-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.35);
+  position: relative;
+  z-index: 1;
+}
+
+/* Доп текст */
+.scard-sub {
+  margin-top: 0.55rem;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.25);
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+}
+
+/* Glow-пятно */
+.scard-glow {
+  position: absolute;
+  bottom: -40px;
+  right: -40px;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.scard.total     .scard-glow { background: radial-gradient(circle, rgba(33,150,243,0.18) 0%, transparent 70%); }
+.scard.upcoming  .scard-glow { background: radial-gradient(circle, rgba(255,123,37,0.18) 0%, transparent 70%); }
+.scard.completed .scard-glow { background: radial-gradient(circle, rgba(76,175,80,0.18) 0%, transparent 70%); }
+.scard.review    .scard-glow { background: radial-gradient(circle, rgba(156,39,176,0.18) 0%, transparent 70%); }
+.scard.review.has-alerts .scard-glow { background: radial-gradient(circle, rgba(255,193,7,0.18) 0%, transparent 70%); }
+
+/* ── Полоска распределения ── */
+.dist-section {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
-  border-radius: var(--border-radius-large);
-  padding: 1.5rem;
-  transition: all 0.3s ease;
-  position: relative;
+  border-radius: 1rem;
+  padding: 1.1rem 1.4rem;
+}
+
+.dist-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
   flex-wrap: wrap;
 }
 
-.stat-card:hover {
-  background: var(--bg-card-hover);
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-soft);
-}
-
-.stat-card:hover .stat-glow {
-  opacity: 1;
-}
-
-.stat-glow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.stat-card.total .stat-glow {
-  background: radial-gradient(circle at center, rgba(33, 150, 243, 0.15), transparent 70%);
-}
-
-.stat-card.upcoming .stat-glow {
-  background: radial-gradient(circle at center, rgba(255, 123, 37, 0.15), transparent 70%);
-}
-
-.stat-card.completed .stat-glow {
-  background: radial-gradient(circle at center, rgba(76, 175, 80, 0.15), transparent 70%);
-}
-
-.stat-card.featured .stat-glow {
-  background: radial-gradient(circle at center, rgba(156, 39, 176, 0.15), transparent 70%);
-}
-
-.stat-icon {
-  width: 55px;
-  height: 55px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
-  color: white;
-  position: relative;
-  z-index: 1;
-}
-
-.stat-card.total .stat-icon {
-  background: linear-gradient(135deg, var(--accent-blue), #1976d2);
-  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
-}
-
-.stat-card.upcoming .stat-icon {
-  background: linear-gradient(135deg, var(--accent-orange), #e6691f);
-  box-shadow: 0 4px 15px rgba(255, 123, 37, 0.3);
-}
-
-.stat-card.completed .stat-icon {
-  background: linear-gradient(135deg, var(--accent-green), #45a049);
-  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-}
-
-.stat-info {
-  flex: 1;
-  position: relative;
-  z-index: 1;
-}
-
-.stat-number {
-  font-size: 2rem;
+.dist-title {
+  font-size: 0.72rem;
   font-weight: 800;
-  color: var(--text-light);
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--text-muted);
-  margin-top: 0.25rem;
-}
-
-.stat-trend {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
+  gap: 0.45rem;
 }
 
-.stat-trend.up {
-  background: rgba(76, 175, 80, 0.2);
-  color: var(--accent-green);
+.dist-title i { color: var(--accent-orange); font-size: 0.8rem; }
+
+.dist-legend {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
 }
 
-.stat-progress {
-  width: 100%;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-  margin-top: 0.75rem;
+.dl-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+}
+
+.dl-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dl-dot.upcoming  { background: #ff7b25; box-shadow: 0 0 6px rgba(255,123,37,0.6); }
+.dl-dot.completed { background: #4caf50; box-shadow: 0 0 6px rgba(76,175,80,0.6); }
+
+.dl-label { color: var(--text-muted); }
+.dl-val   { color: var(--text-light); font-weight: 800; }
+.dl-pct   { color: var(--text-dim); font-size: 0.7rem; }
+
+/* Трек */
+.dist-track {
+  height: 12px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 6px;
   overflow: hidden;
-}
-
-.stat-progress .progress-fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.5s ease;
-}
-
-.stat-card.upcoming .progress-fill {
-  background: var(--accent-orange);
-}
-
-.stat-card.completed .progress-fill {
-  background: var(--accent-green);
-}
-
-/* Stats section layout */
-.stats-section {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 2rem;
-  margin-bottom: 2rem;
-}
-
-/* Chart section */
-.chart-section {
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--border-radius-large);
-  padding: 1.5rem;
-}
-
-.chart-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-light);
-  margin: 0 0 1.5rem 0;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
-.chart-title i {
-  color: var(--accent-orange);
-}
-
-.donut-chart {
+.dist-seg {
+  height: 100%;
+  transition: width 1s cubic-bezier(0.34, 1.3, 0.64, 1);
+  min-width: 0;
   position: relative;
-  width: 150px;
-  height: 150px;
-  margin: 0 auto 1.5rem;
 }
 
-.chart-svg {
-  width: 100%;
-  height: 100%;
+.dist-seg.upcoming  {
+  background: linear-gradient(90deg, #c4500a, #ff7b25, #ffb74d);
+}
+.dist-seg.completed {
+  background: linear-gradient(90deg, #2e7d32, #4caf50, #81c784);
 }
 
-.chart-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-}
-
-.chart-total {
-  display: block;
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: var(--text-light);
-  line-height: 1;
-}
-
-.chart-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.chart-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.legend-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.legend-dot.upcoming {
-  background: var(--accent-orange);
-}
-
-.legend-dot.completed {
-  background: var(--accent-green);
-}
-
+/* ── Адаптивность ── */
 @media (max-width: 1024px) {
-  .stats-section {
-    grid-template-columns: 1fr;
+  .scard-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .scard-row {
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  .chart-section {
-    order: -1;
+  .scard-num { font-size: 2.2rem; }
+
+  .dist-head {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
@@ -2782,55 +2730,88 @@ h2.panel-title {
 }
 
 /* ===============================================
-   📅 СПИСОК МЕРОПРИЯТИЙ - НОВЫЙ ДИЗАЙН
+   📅 СПИСОК МЕРОПРИЯТИЙ — НОВЫЙ ДИЗАЙН
    =============================================== */
 
 .events-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .event-card {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   background: var(--bg-card);
   border-radius: var(--border-radius-large);
   overflow: hidden;
   border: 1px solid var(--border-light);
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
   position: relative;
+  min-height: 140px;
 }
+
+/* Левый акцент-бордер по статусу */
+.event-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  border-radius: var(--border-radius-large) 0 0 var(--border-radius-large);
+}
+
+.event-card.upcoming::before { background: var(--accent-orange); }
+.event-card.high-rating::before { background: var(--accent-green); }
+.event-card:not(.upcoming):not(.high-rating)::before { background: var(--border-medium); }
 
 .event-card:hover {
   background: var(--bg-card-hover);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-}
-
-.event-card.high-rating {
-  border-color: var(--accent-green);
+  transform: translateX(4px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  border-color: var(--border-medium);
 }
 
 .event-card.upcoming {
-  border-color: var(--accent-orange);
+  border-color: rgba(255,123,37,0.2);
+}
+
+.event-card.high-rating {
+  border-color: rgba(76,175,80,0.2);
 }
 
 .event-preview {
-  width: 100%;
   flex-shrink: 0;
+  width: 180px;
+  position: relative;
 }
 
 .event-banner {
   width: 100%;
-  height: 160px;
+  height: 100%;
+  min-height: 140px;
   background-size: cover;
   background-position: center;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.event-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,0,0,0.3), transparent);
+}
+
+.no-image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: rgba(255,255,255,0.15);
+  font-size: 2.5rem;
 }
 
 .event-avatar {
@@ -2865,53 +2846,95 @@ h2.panel-title {
   font-size: 1.5rem;
 }
 
-.event-status {
+/* Дата-бейдж */
+.event-date-badge {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(10px);
-  z-index: 2;
   top: 0.75rem;
   left: 0.75rem;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.1);
+  z-index: 2;
+}
+
+.event-date-badge.upcoming-badge {
+  background: rgba(255,123,37,0.85);
+  border-color: rgba(255,123,37,0.4);
 }
 
 .date-day {
-  font-size: 1rem;
+  font-size: 1.1rem;
+  font-weight: 800;
   line-height: 1;
   color: white;
+  display: block;
 }
 
 .date-month {
   font-size: 0.6rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+/* Избранное */
+.featured-star {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 28px;
+  height: 28px;
+  background: rgba(255,215,0,0.2);
+  border: 1px solid rgba(255,215,0,0.4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffd700;
+  font-size: 0.75rem;
+  z-index: 2;
 }
 
 /* Статус бейдж */
+.event-status {
+  display: none; /* скрываем дублирующий */
+}
+
 .event-status-badge {
   position: absolute;
-  bottom: 0.5rem;
-  left: 0.5rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 1rem;
-  font-size: 0.65rem;
-  font-weight: 600;
+  bottom: 0.6rem;
+  left: 0.6rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 0.4rem;
+  font-size: 0.6rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
+  z-index: 2;
 }
 
 .event-status-badge.upcoming {
-  background: var(--accent-orange);
+  background: rgba(255,123,37,0.9);
   color: white;
 }
 
+.event-status-badge.completed {
+  background: rgba(76,175,80,0.85);
+  color: white;
+}
+
+/* Блок информации */
 .event-info {
   flex: 1;
-  padding: 1.25rem;
+  padding: 1.1rem 1.25rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0;
+  min-width: 0;
 }
 
 .event-main-info {
@@ -2919,50 +2942,58 @@ h2.panel-title {
 }
 
 .event-header {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
 }
 
 .event-title {
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-weight: 800;
   color: var(--text-light);
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 0.2rem 0;
   line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .event-subtitle {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
   line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .event-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.5rem 1rem;
   margin-bottom: 0.5rem;
 }
 
 .event-meta-item {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
 
 .event-meta-item i {
   color: var(--accent-orange);
-  width: 1rem;
+  width: 0.9rem;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
 }
 
 .event-meta-item.type {
   background: rgba(255, 123, 37, 0.1);
-  padding: 0.2rem 0.5rem;
-  border-radius: 1rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.4rem;
   border: 1px solid rgba(255, 123, 37, 0.2);
+  color: #ffb74d;
+  font-weight: 600;
 }
 
 .event-rating {
@@ -2999,78 +3030,82 @@ h2.panel-title {
   flex-wrap: wrap;
 }
 
+/* Дополнительная информация */
+.event-extras {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
 .event-attendees,
 .event-photos {
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  padding: 0.3rem 0.6rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: var(--border-radius-small);
+  padding: 0.2rem 0.55rem;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 0.4rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text-muted);
 }
 
-.event-attendees i {
-  color: var(--accent-blue);
-}
-
-.event-stat.photos {
-  color: var(--accent-purple);
-}
+.event-attendees i { color: var(--accent-blue); }
+.event-photos i { color: var(--accent-purple); }
 
 /* Кнопки действий */
 .event-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
   margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-light);
 }
 
 .action-btn {
-  width: 36px;
-  height: 36px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-light);
-  border-radius: 50%;
+  border-radius: 0.5rem;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
   transition: all 0.2s ease;
 }
 
 .action-btn:hover {
-  transform: scale(1.1);
+  transform: translateY(-1px);
 }
 
 .action-btn.view:hover {
-  color: var(--accent-blue);
-  border-color: var(--accent-blue);
-  background: rgba(33, 150, 243, 0.15);
-  box-shadow: 0 0 10px rgba(33, 150, 243, 0.3);
+  color: #64b5f6;
+  border-color: rgba(33, 150, 243, 0.35);
+  background: rgba(33, 150, 243, 0.1);
 }
 
 .action-btn.edit:hover {
-  color: var(--accent-orange);
-  border-color: var(--accent-orange);
-  background: rgba(255, 123, 37, 0.15);
-  box-shadow: 0 0 10px rgba(255, 123, 37, 0.3);
+  color: #ffb74d;
+  border-color: rgba(255, 123, 37, 0.35);
+  background: rgba(255, 123, 37, 0.1);
 }
 
 .action-btn.duplicate:hover {
-  color: var(--accent-purple);
-  border-color: var(--accent-purple);
-  background: rgba(156, 39, 176, 0.15);
-  box-shadow: 0 0 10px rgba(156, 39, 176, 0.3);
+  color: #ce93d8;
+  border-color: rgba(156, 39, 176, 0.35);
+  background: rgba(156, 39, 176, 0.1);
 }
 
 .action-btn.delete:hover {
-  color: var(--accent-red);
-  border-color: var(--accent-red);
-  background: rgba(244, 67, 54, 0.15);
-  box-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
+  color: #ef9a9a;
+  border-color: rgba(244, 67, 54, 0.35);
+  background: rgba(244, 67, 54, 0.1);
 }
 
 /* ===============================================
@@ -3409,39 +3444,20 @@ h2.panel-title {
    📱 АДАПТИВНЫЙ ДИЗАЙН
    =============================================== */
 
-@media (max-width: 1024px) {
-  .header-content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1.5rem;
-  }
-
-  .quick-stats {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
 @media (max-width: 768px) {
   .panel-header {
     flex-direction: column;
-    gap: 1.5rem;
-    padding: 1.5rem;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-bottom: 1.25rem;
   }
 
-  .header-actions {
+  .ph-actions {
     width: 100%;
+    justify-content: flex-end;
   }
 
-  .refresh-btn,
-  .add-btn {
-    flex: 1;
-    justify-content: center;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .ph-status { display: none; }
 
   .filters-row {
     flex-direction: column;
@@ -3456,6 +3472,15 @@ h2.panel-title {
 
   .event-card {
     flex-direction: column;
+  }
+
+  .event-preview {
+    width: 100%;
+    height: 160px;
+  }
+
+  .event-banner {
+    min-height: 160px;
   }
 
   .event-avatar-section {

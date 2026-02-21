@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <Analytics />
     <!-- Навигационная панель -->
     <nav class="navbar" :class="{ 'scrolled': isScrolled, 'mobile-open': isMobileMenuOpen }">
       <div class="nav-container">
@@ -13,7 +14,7 @@
           </div>
           <div class="logo-text">
             <h3>Fox Taffy</h3>
-            <span>FoxTaffy.fun</span>
+            <span>FoxTaffy.gay</span>
           </div>
         </router-link>
 
@@ -150,8 +151,13 @@
 </template>
 
 <script>
+import { Analytics } from '@vercel/analytics/vue';
+
 export default {
   name: 'App',
+  components: {
+    Analytics
+  },
   data() {
     return {
       isScrolled: false,

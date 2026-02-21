@@ -52,7 +52,7 @@
 
       <!-- Контент с артами -->
       <div v-else>
-        <!-- Отладочная информация (компактная) -->
+        <!-- Панель результатов -->
         <div class="ft-results-bar">
           <div class="ft-results-count">
             <i class="fas fa-images"></i>
@@ -74,17 +74,20 @@
           </div>
         </div>
 
-        <!-- Pinterest-style сетка артов -->
-        <GalleryGrid
-          :arts="arts"
-          :show-nsfw="showNsfw"
-          :is-nsfw-unlocked="filters.isNsfwArtUnlocked"
-          @open-lightbox="lightbox.openLightbox"
-          @unlock-nsfw="handleUnlockNsfw"
-          @filter-artist="quickFilterByArtist"
-          @filter-character="quickFilterBySpecies"
-          @filter-tag="quickFilterByTag"
-        />
+        <!-- Masonry-сетка артов: filterKey вызывает re-render с анимацией при смене фильтров -->
+        <Transition name="ft-grid-switch" mode="out-in">
+          <GalleryGrid
+            :key="filterKey"
+            :arts="arts"
+            :show-nsfw="showNsfw"
+            :is-nsfw-unlocked="filters.isNsfwArtUnlocked"
+            @open-lightbox="lightbox.openLightbox"
+            @unlock-nsfw="handleUnlockNsfw"
+            @filter-artist="quickFilterByArtist"
+            @filter-character="quickFilterBySpecies"
+            @filter-tag="quickFilterByTag"
+          />
+        </Transition>
       </div>
 
       <!-- Кнопка "Загрузить ещё" -->
@@ -149,6 +152,11 @@ const loadingMore = ref(false)
 const error = ref('')
 const hasMoreArts = ref(false)
 const currentOffset = ref(0)
+
+// filterKey меняется при каждой смене фильтров — вызывает re-mount GalleryGrid
+// с анимацией появления карточек
+const filterKey = ref(0)
+const bumpFilterKey = () => { filterKey.value++ }
 
 // Лайтбокс
 const lightbox = useLightbox(arts)
@@ -297,6 +305,7 @@ const handleSearch = (query) => {
   filters.debouncedApplyFilters(() => {
     if (initialLoadComplete.value) {
       loadArts()
+      bumpFilterKey()
     }
   })
 }
@@ -307,6 +316,7 @@ const handleTagFilter = (tagNames) => {
   filters.debouncedApplyFilters(() => {
     if (initialLoadComplete.value) {
       loadArts()
+      bumpFilterKey()
     }
   })
 }
@@ -317,6 +327,7 @@ const handleArtistFilter = (artistNames) => {
   filters.debouncedApplyFilters(() => {
     if (initialLoadComplete.value) {
       loadArts()
+      bumpFilterKey()
     }
   })
 }
@@ -327,6 +338,7 @@ const handleCharacterFilter = (characterNames) => {
   filters.debouncedApplyFilters(() => {
     if (initialLoadComplete.value) {
       loadArts()
+      bumpFilterKey()
     }
   })
 }
@@ -337,6 +349,7 @@ const handleSortChange = (sort) => {
   filters.debouncedApplyFilters(() => {
     if (initialLoadComplete.value) {
       loadArts()
+      bumpFilterKey()
     }
   })
 }
@@ -347,6 +360,7 @@ const handleClearFilters = () => {
   filters.debouncedApplyFilters(() => {
     if (initialLoadComplete.value) {
       loadArts()
+      bumpFilterKey()
     }
   })
   notifications.showNotification('Все фильтры сброшены! 🧹', 'success')
@@ -361,6 +375,7 @@ const quickFilterByTag = (tagName) => {
   filters.debouncedApplyFilters(() => {
     if (initialLoadComplete.value) {
       loadArts()
+      bumpFilterKey()
     }
   })
   notifications.showNotification(`Фильтр по тегу: ${tagName} 🏷️`, 'info')
@@ -374,6 +389,7 @@ const quickFilterByArtist = (artistName) => {
   filters.debouncedApplyFilters(() => {
     if (initialLoadComplete.value) {
       loadArts()
+      bumpFilterKey()
     }
   })
   notifications.showNotification(`Фильтр по художнику: ${artistName} 🎨`, 'info')
@@ -387,6 +403,7 @@ const quickFilterBySpecies = (speciesName) => {
   filters.debouncedApplyFilters(() => {
     if (initialLoadComplete.value) {
       loadArts()
+      bumpFilterKey()
     }
   })
   notifications.showNotification(`Фильтр по персонажу: ${speciesName} 🦊`, 'info')
@@ -419,6 +436,7 @@ watch(showNsfw, (newValue, oldValue) => {
       'info'
     )
     loadArts()
+    bumpFilterKey()
   } else if (!initialLoadComplete.value) {
     console.log(`⏳ Начальная загрузка еще не завершена, пропускаем перезагрузку`)
   }
@@ -657,6 +675,28 @@ onBeforeUnmount(() => {
     opacity: 1;
     transform: translateX(0);
   }
+}
+
+/* ===================================================
+   Анимация переключения галереи при смене фильтров
+   =================================================== */
+
+.ft-grid-switch-enter-active {
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ft-grid-switch-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.ft-grid-switch-enter-from {
+  opacity: 0;
+  transform: translateY(10px) scale(0.99);
+}
+
+.ft-grid-switch-leave-to {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.99);
 }
 
 /* Адаптивность */
