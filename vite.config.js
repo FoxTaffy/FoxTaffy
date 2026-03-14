@@ -48,6 +48,25 @@ export default defineConfig({
     host: true,
     fs: {
       strict: false
+    },
+    proxy: {
+      // PostgREST (local dev)
+      '/rest/v1': {
+        target: 'http://localhost:3001',
+        rewrite: path => path,
+        changeOrigin: true
+      },
+      // Upload API (local dev)
+      '/upload': {
+        target: 'http://localhost:3002',
+        changeOrigin: true
+      },
+      // MinIO public files (local dev)
+      '/s3': {
+        target: 'http://localhost:9000',
+        rewrite: path => path.replace(/^\/s3/, ''),
+        changeOrigin: true
+      }
     }
   },
   preview: {

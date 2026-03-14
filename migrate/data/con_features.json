@@ -1,0 +1,22 @@
+[
+  {
+    "id": "58cc0206-0fcd-4a2a-8ecd-13d2d321f8e0",
+    "con_id": "5fd24c3d-7672-4017-b7cc-0fcd2f44bb51",
+    "feature_type": "guest",
+    "title": "Звёздные гости",
+    "description": "Приглашённые художники и создатели контента мирового уровня",
+    "icon_class": "fas fa-star",
+    "is_featured": true,
+    "display_order": 1
+  },
+  {
+    "id": "6b265faa-8835-4d0d-a547-cf46cc1a8282",
+    "con_id": "5fd24c3d-7672-4017-b7cc-0fcd2f44bb51",
+    "feature_type": "activity",
+    "title": "Масштабный Dealers Den",
+    "description": "Огромная торговая зона с сотнями мастеров со всей России",
+    "icon_class": "fas fa-store",
+    "is_featured": true,
+    "display_order": 2
+  }
+]

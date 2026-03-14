@@ -1,25 +1,37 @@
 // ============================================
-// FOX TAFFY - SUPABASE STORAGE CONFIGURATION
+// FOX TAFFY - MINIO STORAGE (self-hosted)
 // С автоматической генерацией миниатюр и организованной структурой папок
 // ============================================
-
-import { supabase } from '@/config/supabase.js'
 
 // ============================================
 // КОНСТАНТЫ
 // ============================================
-const DEFAULT_BUCKET = 'Convent'
+const DEFAULT_BUCKET = 'convent'
 const THUMBNAIL_MAX_WIDTH = 300
 const THUMBNAIL_MAX_HEIGHT = 300
 const THUMBNAIL_QUALITY = 0.7
+
+// URL публичного доступа к MinIO (через nginx /s3/)
+const MINIO_PUBLIC_URL = import.meta.env.VITE_MINIO_PUBLIC_URL || '/s3'
+
+// Upload API endpoint и ключ
+const UPLOAD_API_URL = import.meta.env.VITE_UPLOAD_API_URL || '/upload'
+const UPLOAD_API_KEY = import.meta.env.VITE_UPLOAD_API_KEY || ''
+
+/**
+ * Заголовки для обращения к Upload API
+ */
+const apiHeaders = () => ({
+  'X-API-Key': UPLOAD_API_KEY
+})
 
 // ============================================
 // ОПРЕДЕЛЕНИЕ БАКЕТА И СТРУКТУРЫ ПАПОК
 // ============================================
 const getBucketName = (folder) => {
-  // Все мероприятия хранятся в бакете Convent
+  // Все мероприятия хранятся в бакете convent
   if (folder.startsWith('events/')) {
-    return 'Convent'
+    return 'convent'
   }
   // Для остального контента - gallery
   return 'gallery'
@@ -277,7 +289,7 @@ export const s3Api = {
       const randomString = Math.random().toString(36).substring(2, 15)
       const fileName = `${folder}/${timestamp}_${randomString}.${fileExtension}`
 
-      console.log(`📤 Загружаем файл в Supabase Storage [${bucketName}]:`, fileName)
+      console.log(`📤 Загружаем файл в MinIO [${bucketName}]:`, fileName)
 
       // Проверяем размер файла (максимум 5MB)
       const maxSize = 5 * 1024 * 1024
@@ -288,42 +300,37 @@ export const s3Api = {
       // Симуляция прогресса
       if (onProgress) onProgress(10)
 
-      // Загружаем файл
-      const { data, error } = await supabase.storage
-        .from(bucketName)
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: file.type || 'image/jpeg'
-        })
+      // Загружаем через Upload API
+      const formData = new FormData()
+      formData.append('file', file, file.name || 'upload.jpg')
+      formData.append('path', fileName)
 
-      if (error) {
-        console.error('❌ Ошибка загрузки в Supabase Storage:', error)
+      const uploadResponse = await fetch(`${UPLOAD_API_URL}/${bucketName}`, {
+        method: 'POST',
+        headers: apiHeaders(),
+        body: formData
+      })
 
-        if (error.message.includes('row-level security policy') || error.message.includes('RLS')) {
-          throw new Error('Ошибка доступа: необходимо настроить политики безопасности в Supabase. Проверьте Storage настройки.')
-        }
-
-        throw new Error(`Ошибка загрузки: ${error.message}`)
+      if (!uploadResponse.ok) {
+        const errData = await uploadResponse.json().catch(() => ({}))
+        throw new Error(`Ошибка загрузки: ${errData.error || uploadResponse.statusText}`)
       }
 
       if (onProgress) onProgress(90)
 
-      // Получаем публичный URL
-      const { data: urlData } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(fileName)
+      const uploadData = await uploadResponse.json()
+      const publicUrl = `${MINIO_PUBLIC_URL}/${bucketName}/${fileName}`
 
       if (onProgress) onProgress(100)
 
-      console.log(`✅ Файл успешно загружен в Supabase Storage [${bucketName}]:`, urlData.publicUrl)
+      console.log(`✅ Файл успешно загружен в MinIO [${bucketName}]:`, publicUrl)
 
       return {
-        url: urlData.publicUrl,
+        url: publicUrl,
         fileName: fileName,
         size: file.size,
         type: file.type || 'image/jpeg',
-        path: data.path,
+        path: uploadData.path || fileName,
         bucket: bucketName
       }
 
@@ -521,22 +528,24 @@ export const s3Api = {
    */
   async deleteFile(filePath, bucketName = DEFAULT_BUCKET) {
     try {
-      console.log(`🗑️ Удаляем файл из Supabase Storage [${bucketName}]:`, filePath)
+      console.log(`🗑️ Удаляем файл из MinIO [${bucketName}]:`, filePath)
 
-      const { error } = await supabase.storage
-        .from(bucketName)
-        .remove([filePath])
+      const response = await fetch(`${UPLOAD_API_URL}/${bucketName}`, {
+        method: 'DELETE',
+        headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: filePath })
+      })
 
-      if (error) {
-        console.error('❌ Ошибка удаления из Supabase Storage:', error)
-        throw new Error(`Ошибка удаления: ${error.message}`)
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}))
+        throw new Error(`Ошибка удаления: ${errData.error || response.statusText}`)
       }
 
-      console.log('✅ Файл успешно удален из Supabase Storage')
+      console.log('✅ Файл успешно удален из MinIO')
       return true
 
     } catch (error) {
-      console.error('❌ Ошибка удаления из Supabase Storage:', error)
+      console.error('❌ Ошибка удаления из MinIO:', error)
       throw error
     }
   },
@@ -553,7 +562,7 @@ export const s3Api = {
         : eventIdentifier
       console.log(`🗑️ Удаляем все файлы мероприятия ${displayName}...`)
 
-      const bucketName = 'Convent'
+      const bucketName = 'convent'
 
       // Получаем имя папки из идентификатора
       let folderName = ''
@@ -575,17 +584,17 @@ export const s3Api = {
       const eventFolder = `events/${folderName}`
 
       // Получаем список всех файлов в папке мероприятия
-      const { data: files, error: listError } = await supabase.storage
-        .from(bucketName)
-        .list(eventFolder, {
-          limit: 1000,
-          sortBy: { column: 'name', order: 'asc' }
-        })
+      const listResponse = await fetch(
+        `${UPLOAD_API_URL}/${bucketName}/list?prefix=${encodeURIComponent(eventFolder + '/')}&limit=1000`,
+        { headers: apiHeaders() }
+      )
 
-      if (listError) {
-        console.error('❌ Ошибка получения списка файлов:', listError)
+      if (!listResponse.ok) {
+        console.error('❌ Ошибка получения списка файлов')
         return false
       }
+
+      const files = await listResponse.json()
 
       if (!files || files.length === 0) {
         console.log('📁 Нет файлов для удаления')
@@ -596,12 +605,14 @@ export const s3Api = {
       const filePaths = files.map(file => `${eventFolder}/${file.name}`)
 
       // Удаляем все файлы
-      const { error: deleteError } = await supabase.storage
-        .from(bucketName)
-        .remove(filePaths)
+      const deleteResponse = await fetch(`${UPLOAD_API_URL}/${bucketName}`, {
+        method: 'DELETE',
+        headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paths: filePaths })
+      })
 
-      if (deleteError) {
-        console.error('❌ Ошибка удаления файлов:', deleteError)
+      if (!deleteResponse.ok) {
+        console.error('❌ Ошибка удаления файлов')
         return false
       }
 
@@ -649,16 +660,11 @@ export const s3Api = {
    */
   async checkBucketExists(bucketName = DEFAULT_BUCKET) {
     try {
-      const { data, error } = await supabase.storage.listBuckets()
-
-      if (error) {
-        console.error('❌ Ошибка проверки bucket:', error)
-        return false
-      }
-
-      const bucketExists = data.some(bucket => bucket.name === bucketName)
+      const response = await fetch(`${UPLOAD_API_URL}/buckets`, { headers: apiHeaders() })
+      if (!response.ok) return false
+      const data = await response.json()
+      const bucketExists = data.some(b => b.name === bucketName)
       console.log(`🪣 Bucket "${bucketName}" ${bucketExists ? 'существует' : 'не найден'}`)
-
       return bucketExists
     } catch (error) {
       console.error('❌ Ошибка проверки bucket:', error)
@@ -700,8 +706,8 @@ export const isFileApiSupported = () => {
 export default s3Api
 export { sanitizeFolderName, getEventFolderPath }
 
-console.log('✅ Supabase Storage API с автоматической генерацией миниатюр загружен!')
+console.log('✅ MinIO Storage API с автоматической генерацией миниатюр загружен!')
 console.log('📁 Структура хранения: events/{event-name}/original/ и events/{event-name}/thumbnails/')
 console.log('🖼️ Размер миниатюр: максимум 300x300px')
-console.log('📦 Bucket по умолчанию: Convent')
+console.log('📦 Bucket по умолчанию: convent (MinIO self-hosted)')
 console.log('⚡ Оптимизация: макс. 2MB на файл, качество 80%, макс. размер 2000px')

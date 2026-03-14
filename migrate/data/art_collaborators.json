@@ -1,0 +1,342 @@
+[
+  {
+    "art_id": "177bdf0d-cb2f-46fc-894b-3bcff72b0efa",
+    "person_id": "4783d492-2cf6-4209-b019-e728bb13859a",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "914cd97c-1dbc-4732-b079-7c941bc9eb43",
+    "person_id": "4783d492-2cf6-4209-b019-e728bb13859a",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "01c71cd7-ac1a-40f6-b0b1-c0fdfe0ad410",
+    "person_id": "4783d492-2cf6-4209-b019-e728bb13859a",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "01f03e9b-dcbc-44b9-8f35-b31e46536449",
+    "person_id": "4783d492-2cf6-4209-b019-e728bb13859a",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "0682893d-7e97-419d-bb9e-9960777ccc6f",
+    "person_id": "2cafaf80-f01e-4f3a-be6b-f9bc43fa2758",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "ef4d4927-061f-4c31-9710-6d14bb7d6399",
+    "person_id": "427a3f05-555a-4982-a860-ec4576aae0da",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "99868e82-8dd1-47e0-8d3d-b2504754429e",
+    "person_id": "427a3f05-555a-4982-a860-ec4576aae0da",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "0de349da-09de-4fb7-bc7c-36bdb8d79cf8",
+    "person_id": "427a3f05-555a-4982-a860-ec4576aae0da",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "fdf7e9d1-ca29-4a0a-8e09-1ff07edb4fd1",
+    "person_id": "3406085a-2abe-4026-9876-834cacf43b46",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "766e7ff4-6944-45bb-ad60-0b418c06120f",
+    "person_id": "cc124cb6-69ae-44ad-8f24-a665bab545ce",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "9fa9281d-1d24-40b7-bfc5-bdf032e84056",
+    "person_id": "0a2af683-95d7-4e0d-9a93-73d9ac9a3fd8",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "ae9d9a81-962e-4fcd-a4f2-36dda8d12e24",
+    "person_id": "0a2af683-95d7-4e0d-9a93-73d9ac9a3fd8",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "7b44430d-a175-4f05-9fad-49b2fc63a967",
+    "person_id": "7c3f2684-d010-4030-848a-539d69a97ee7",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "f48640d3-e44b-4699-994b-711a65959280",
+    "person_id": "4944963e-a96e-4ff2-a288-10a9d65c5165",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "7e576d23-bc1c-478f-a7cb-f5d23ceab878",
+    "person_id": "7de56641-8aac-4153-92f2-266079feb13a",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "80d70f6f-7e1f-4ef0-845d-6d90872a1d7e",
+    "person_id": "9fd35e84-4660-4c5e-9873-e56beaa8db20",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "ef9d4df6-94d8-4cbe-b73f-65d18c136d7d",
+    "person_id": "8499e863-4b68-4547-bc64-375088e38df4",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "817319e4-0d19-445f-89cb-e59d16bfdd27",
+    "person_id": "8499e863-4b68-4547-bc64-375088e38df4",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "6a7183fe-8272-4ba6-94b7-4a3fd21eaa6b",
+    "person_id": "3406085a-2abe-4026-9876-834cacf43b46",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "664d2e74-da49-439b-ab84-ae03dc7ade55",
+    "person_id": "3406085a-2abe-4026-9876-834cacf43b46",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "01994806-b225-42fa-8460-8eb21db94471",
+    "person_id": "8499e863-4b68-4547-bc64-375088e38df4",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "e85d6704-b9cd-439f-8ab0-7d93130bc7e6",
+    "person_id": "8499e863-4b68-4547-bc64-375088e38df4",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "07516655-0957-4452-b1ec-ff9291b0fe81",
+    "person_id": "8499e863-4b68-4547-bc64-375088e38df4",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "0ba054c9-18d5-4a4e-a44e-de2c8e24bd25",
+    "person_id": "8499e863-4b68-4547-bc64-375088e38df4",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "766132b8-730a-4d90-8e04-c72bef02d9a8",
+    "person_id": "cc124cb6-69ae-44ad-8f24-a665bab545ce",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "e27fcf30-80d5-4dd7-842c-d70ba35d0565",
+    "person_id": "8abacf32-ebc0-4e79-867b-5adc8016cf94",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "acdc4b1b-93b7-4044-800d-1235444f71d3",
+    "person_id": "427a3f05-555a-4982-a860-ec4576aae0da",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "0969d6ef-1b19-42c3-bc3b-c7ab7d2f8d1b",
+    "person_id": "7de56641-8aac-4153-92f2-266079feb13a",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "7d83e02a-3872-4658-a87b-a381361e793a",
+    "person_id": "8abacf32-ebc0-4e79-867b-5adc8016cf94",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "3db20e70-a63b-4e76-ace9-17070e61d127",
+    "person_id": "766ab820-8dcd-491a-8b9a-161106d32151",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "0b7b1ee6-c0fe-4c8a-90a3-f2ff5d5a5b32",
+    "person_id": "2cafaf80-f01e-4f3a-be6b-f9bc43fa2758",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "f26537b6-7a2f-41f9-9aa3-d5f2bcbe1417",
+    "person_id": "de0c6f57-1ee1-4e67-aa4c-051268ac1a7d",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "0c6f4fc7-dc2c-4baa-a19b-d10349b121cf",
+    "person_id": "8abacf32-ebc0-4e79-867b-5adc8016cf94",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "e5945a4f-51c7-426e-b8d3-ee1e3e4cc60b",
+    "person_id": "427a3f05-555a-4982-a860-ec4576aae0da",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "0785c48d-4412-4af4-adae-8e74cc417529",
+    "person_id": "7581bfc6-349e-4e99-91e0-f832b8b98abc",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "6fc12485-fa0b-462a-a9c5-7a1ec19f9b5c",
+    "person_id": "cc124cb6-69ae-44ad-8f24-a665bab545ce",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "b1b8b467-4c73-4441-8336-e12655fd5863",
+    "person_id": "8499e863-4b68-4547-bc64-375088e38df4",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "bba929bb-98a1-48bf-a7e8-49ef4e2e6272",
+    "person_id": "8499e863-4b68-4547-bc64-375088e38df4",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "d7261638-454a-4041-8a88-a88c9ff5efd0",
+    "person_id": "8abacf32-ebc0-4e79-867b-5adc8016cf94",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "84baab3a-30ee-4aaf-a2e4-364a27cede2f",
+    "person_id": "e6ae5fbb-6b7b-4979-b7da-db267f3c4486",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "83b0607e-ae11-46d5-96aa-2f42dd728de9",
+    "person_id": "8499e863-4b68-4547-bc64-375088e38df4",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "24803de6-8730-4b59-b3a6-7428d0ffe482",
+    "person_id": "0a2af683-95d7-4e0d-9a93-73d9ac9a3fd8",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "1820c2d6-d2db-427c-92c7-3fe350452ffb",
+    "person_id": "478c418f-6f3f-4c8f-b7a8-b0facf33dae8",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "3bfd2bcf-df68-4b97-9cf8-88517eb2cc4b",
+    "person_id": "7c3f2684-d010-4030-848a-539d69a97ee7",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "841d1956-5e8e-4ff7-af94-ef171a07eff4",
+    "person_id": "7de56641-8aac-4153-92f2-266079feb13a",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "b8c4dc9e-3e9a-4ca9-848f-b986b160a239",
+    "person_id": "346e0717-a56d-4dba-871e-8d15a1f8cc77",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "b50a0147-e449-4a8c-a716-59b3a205dfc3",
+    "person_id": "8499e863-4b68-4547-bc64-375088e38df4",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "929fbb2d-bb84-4e27-84e3-1908392cba71",
+    "person_id": "15cf7c80-eb20-4595-b99a-21e5d19c24e3",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "aed91152-f217-47b5-83fc-82e45a418ed7",
+    "person_id": "1b65e707-fb07-4464-a60a-855dc2a37814",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "8f00ac08-429f-47d8-843c-9f72cb222ace",
+    "person_id": "1b65e707-fb07-4464-a60a-855dc2a37814",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "998e60b2-8164-4dc5-9823-4f1777461daf",
+    "person_id": "e10d638c-b582-434a-95b5-b2e7c751c0d0",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "613c45bb-7dfe-4ef6-892f-594e57160847",
+    "person_id": "e10d638c-b582-434a-95b5-b2e7c751c0d0",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "38aa58cc-a61b-4335-9149-a16a492d8c09",
+    "person_id": "e10d638c-b582-434a-95b5-b2e7c751c0d0",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "2ec9f645-8ca9-4b17-b66d-5a245281ea64",
+    "person_id": "e10d638c-b582-434a-95b5-b2e7c751c0d0",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "2ea14b10-01be-4832-9624-18422e99bde8",
+    "person_id": "e10d638c-b582-434a-95b5-b2e7c751c0d0",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "a56a7f0d-6865-4f8d-b1e2-29d05e88298b",
+    "person_id": "e10d638c-b582-434a-95b5-b2e7c751c0d0",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "2163b0f7-2df4-4d7b-b483-7070678f4fd0",
+    "person_id": "e10d638c-b582-434a-95b5-b2e7c751c0d0",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "a4e24d04-cf8c-49d8-bfc7-556cdfb3593a",
+    "person_id": "9fd35e84-4660-4c5e-9873-e56beaa8db20",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "9ea2c318-9fcd-47fe-b80a-5648f6fa81b2",
+    "person_id": "9fd35e84-4660-4c5e-9873-e56beaa8db20",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "531325bb-c45d-45ac-8fc1-c026780002e9",
+    "person_id": "092ba2ed-dc7c-435a-81a0-6c22fddae856",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "bc955fbb-1696-41a4-ba4c-2c0df395da01",
+    "person_id": "3406085a-2abe-4026-9876-834cacf43b46",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "3a26eeae-87da-4b08-a9cc-9804e97de0f6",
+    "person_id": "346e0717-a56d-4dba-871e-8d15a1f8cc77",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "2f350bb7-12cc-4e23-a9f3-af7361cd61ef",
+    "person_id": "e10d638c-b582-434a-95b5-b2e7c751c0d0",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "29950774-e726-4f3e-9d59-49bebfcbfec3",
+    "person_id": "0a2af683-95d7-4e0d-9a93-73d9ac9a3fd8",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "b213ab6d-e962-4568-a349-7e7de6a33850",
+    "person_id": "346e0717-a56d-4dba-871e-8d15a1f8cc77",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "2c7c94a6-246e-4627-a24d-b3bcfff60400",
+    "person_id": "3406085a-2abe-4026-9876-834cacf43b46",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "ffc19c05-7455-4789-8dc0-02989882b5ab",
+    "person_id": "f36aa4c7-c905-42a9-a2ae-c9820d805301",
+    "role": "main_artist"
+  },
+  {
+    "art_id": "9ce874e3-faaf-45d7-b1d5-362ca7ba1969",
+    "person_id": "8499e863-4b68-4547-bc64-375088e38df4",
+    "role": "main_artist"
+  }
+]

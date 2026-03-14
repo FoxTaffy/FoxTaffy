@@ -1,0 +1,191 @@
+[
+  {
+    "id": "003f4ca2-71b1-4c31-bf93-2ce88159ef3a",
+    "con_id": "5fd24c3d-7672-4017-b7cc-0fcd2f44bb51",
+    "title": "Стикеры",
+    "price": "1000",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/5fd24c3d-7672-4017-b7cc-0fcd2f44bb51/purchases/1764943985934_w2gmlf0igqb.jpg",
+    "purchased_at": "2025-12-09T14:10:20.278339+00:00",
+    "item_name": "Стикеры"
+  },
+  {
+    "id": "39cc225a-6b1a-48b0-900c-8e6a1f4b7b07",
+    "con_id": "5fd24c3d-7672-4017-b7cc-0fcd2f44bb51",
+    "title": "Значки",
+    "price": "1500",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/5fd24c3d-7672-4017-b7cc-0fcd2f44bb51/purchases/1764944003116_qhbw8jp9dx.jpg",
+    "purchased_at": "2025-12-09T14:10:20.278339+00:00",
+    "item_name": "Значки"
+  },
+  {
+    "id": "862b0869-ae20-46d9-bde3-97a0f8566f07",
+    "con_id": "5fd24c3d-7672-4017-b7cc-0fcd2f44bb51",
+    "title": "Футболки",
+    "price": "2500",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/5fd24c3d-7672-4017-b7cc-0fcd2f44bb51/purchases/1764944029058_mm6qxiyii5.jpg",
+    "purchased_at": "2025-12-09T14:10:20.278339+00:00",
+    "item_name": "Футболки"
+  },
+  {
+    "id": "7a81d8d4-7b02-40a6-9192-462dddcb58f5",
+    "con_id": "3d49b41e-c624-43c6-8f20-95c431182ae4",
+    "title": "Чай Орса",
+    "price": "400",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/anyfurry-fest-vi/buy.jpg",
+    "purchased_at": "2025-12-13T13:04:43.369646+00:00",
+    "item_name": "Чай Орса"
+  },
+  {
+    "id": "2ea783e2-bfa1-444d-8aa5-22f64a44c2c5",
+    "con_id": "3d49b41e-c624-43c6-8f20-95c431182ae4",
+    "title": "Морковка",
+    "price": "500",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/anyfurry-fest-vi/Buy2.jpg",
+    "purchased_at": "2025-12-13T13:04:43.369646+00:00",
+    "item_name": "Морковка"
+  },
+  {
+    "id": "748dab59-09aa-472d-9f91-ce2e166d4401",
+    "con_id": "7c5b5e33-5b5d-40eb-91a3-9d84894e9328",
+    "title": "Брелок",
+    "price": "200",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/7c5b5e33-5b5d-40eb-91a3-9d84894e9328/purchases/1765631740654_hu45scxe1ju.jpg",
+    "purchased_at": "2025-12-17T06:47:37.847465+00:00",
+    "item_name": "Брелок"
+  },
+  {
+    "id": "5a001eae-2372-448b-8568-84d7d6afb7d7",
+    "con_id": "7c5b5e33-5b5d-40eb-91a3-9d84894e9328",
+    "title": "Ошейник",
+    "price": "1000",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/7c5b5e33-5b5d-40eb-91a3-9d84894e9328/purchases/1765632627057_8e064kkeoap.jpg",
+    "purchased_at": "2025-12-17T06:47:37.847465+00:00",
+    "item_name": "Ошейник"
+  },
+  {
+    "id": "e668dfc4-52c8-4de0-ac06-025c062c3f35",
+    "con_id": "7c5b5e33-5b5d-40eb-91a3-9d84894e9328",
+    "title": "Чай орса",
+    "price": "500",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/7c5b5e33-5b5d-40eb-91a3-9d84894e9328/purchases/1765631557951_9cfduulqaju.jpg",
+    "purchased_at": "2025-12-17T06:47:37.847465+00:00",
+    "item_name": "Чай орса"
+  },
+  {
+    "id": "a7e3b235-3dd5-404a-b63b-7f5151c17eba",
+    "con_id": "7c5b5e33-5b5d-40eb-91a3-9d84894e9328",
+    "title": "Кружка",
+    "price": "0",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/7c5b5e33-5b5d-40eb-91a3-9d84894e9328/purchases/1765631579062_yfdwn8wvgb.jpg",
+    "purchased_at": "2025-12-17T06:47:37.847465+00:00",
+    "item_name": "Кружка"
+  },
+  {
+    "id": "501561a1-71c4-4db7-b39e-019cef23aa06",
+    "con_id": "7c5b5e33-5b5d-40eb-91a3-9d84894e9328",
+    "title": "Стикер-пак",
+    "price": "500",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/7c5b5e33-5b5d-40eb-91a3-9d84894e9328/purchases/1765631596021_l4z37knifn.jpg",
+    "purchased_at": "2025-12-17T06:47:37.847465+00:00",
+    "item_name": "Стикер-пак"
+  },
+  {
+    "id": "8e50c0dc-509d-452b-b3b1-63f82c5f61c2",
+    "con_id": "7c5b5e33-5b5d-40eb-91a3-9d84894e9328",
+    "title": "Стикер-пак",
+    "price": "300",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/7c5b5e33-5b5d-40eb-91a3-9d84894e9328/purchases/1765631620112_io94m0q762o.jpg",
+    "purchased_at": "2025-12-17T06:47:37.847465+00:00",
+    "item_name": "Стикер-пак"
+  },
+  {
+    "id": "431d8b52-512d-4925-9468-ebe14350b03b",
+    "con_id": "7c5b5e33-5b5d-40eb-91a3-9d84894e9328",
+    "title": "Стикер-пак",
+    "price": "400",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/7c5b5e33-5b5d-40eb-91a3-9d84894e9328/purchases/1765631628492_y3j9eom4q2.jpg",
+    "purchased_at": "2025-12-17T06:47:37.847465+00:00",
+    "item_name": "Стикер-пак"
+  },
+  {
+    "id": "01805b51-32ca-4c53-80df-4788f5064a5b",
+    "con_id": "7c5b5e33-5b5d-40eb-91a3-9d84894e9328",
+    "title": "Стикер-пак",
+    "price": "400",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/7c5b5e33-5b5d-40eb-91a3-9d84894e9328/purchases/1765631642162_x0fnrr48exs.jpg",
+    "purchased_at": "2025-12-17T06:47:37.847465+00:00",
+    "item_name": "Стикер-пак"
+  },
+  {
+    "id": "6f914a42-657c-4538-acfd-6268107fc20d",
+    "con_id": "7c5b5e33-5b5d-40eb-91a3-9d84894e9328",
+    "title": "Стикер-пак",
+    "price": "400",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/7c5b5e33-5b5d-40eb-91a3-9d84894e9328/purchases/1765631653348_m5mwburwrke.jpg",
+    "purchased_at": "2025-12-17T06:47:37.847465+00:00",
+    "item_name": "Стикер-пак"
+  },
+  {
+    "id": "98ddafef-ad35-4da7-8037-353708f95025",
+    "con_id": "7c5b5e33-5b5d-40eb-91a3-9d84894e9328",
+    "title": "Стикер-пак",
+    "price": "400",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/7c5b5e33-5b5d-40eb-91a3-9d84894e9328/purchases/1765631660353_djj8r0vgy3o.jpg",
+    "purchased_at": "2025-12-17T06:47:37.847465+00:00",
+    "item_name": "Стикер-пак"
+  },
+  {
+    "id": "a1d8bc80-0e07-4bf0-acd4-6e441a7ec248",
+    "con_id": "7c5b5e33-5b5d-40eb-91a3-9d84894e9328",
+    "title": "Зночок",
+    "price": "400",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/7c5b5e33-5b5d-40eb-91a3-9d84894e9328/purchases/1765631675942_z3s8r2n4x3.jpg",
+    "purchased_at": "2025-12-17T06:47:37.847465+00:00",
+    "item_name": "Зночок"
+  },
+  {
+    "id": "394499b0-6a07-4e8e-8ef8-bb4465aebaa3",
+    "con_id": "7c5b5e33-5b5d-40eb-91a3-9d84894e9328",
+    "title": "Зночок",
+    "price": "0",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/7c5b5e33-5b5d-40eb-91a3-9d84894e9328/purchases/1765631683440_ejf6h3x8n9q.jpg",
+    "purchased_at": "2025-12-17T06:47:37.847465+00:00",
+    "item_name": "Зночок"
+  },
+  {
+    "id": "824b260c-a41f-4923-9260-03ae62233903",
+    "con_id": "7c5b5e33-5b5d-40eb-91a3-9d84894e9328",
+    "title": "Зночок",
+    "price": "200",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/7c5b5e33-5b5d-40eb-91a3-9d84894e9328/purchases/1765631691015_eesur7lsv.jpg",
+    "purchased_at": "2025-12-17T06:47:37.847465+00:00",
+    "item_name": "Зночок"
+  },
+  {
+    "id": "a19d8e70-6802-45dc-a46b-ef08db9078de",
+    "con_id": "7c5b5e33-5b5d-40eb-91a3-9d84894e9328",
+    "title": "Подарок",
+    "price": "0",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/7c5b5e33-5b5d-40eb-91a3-9d84894e9328/purchases/1765631696125_efkmy0otfq.jpg",
+    "purchased_at": "2025-12-17T06:47:37.847465+00:00",
+    "item_name": "Подарок"
+  },
+  {
+    "id": "36ff583d-032e-46e8-af45-1789072a1ef9",
+    "con_id": "7c5b5e33-5b5d-40eb-91a3-9d84894e9328",
+    "title": "Подарок",
+    "price": "0",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/7c5b5e33-5b5d-40eb-91a3-9d84894e9328/purchases/1765631699529_43q5o7j7gjq.jpg",
+    "purchased_at": "2025-12-17T06:47:37.847465+00:00",
+    "item_name": "Подарок"
+  },
+  {
+    "id": "5a8d9d21-5edf-429a-b4c7-695844c4929a",
+    "con_id": "7c5b5e33-5b5d-40eb-91a3-9d84894e9328",
+    "title": "Брелок",
+    "price": "500",
+    "image_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Convent/events/7c5b5e33-5b5d-40eb-91a3-9d84894e9328/purchases/1765631736183_u26j7e1u17.jpg",
+    "purchased_at": "2025-12-17T06:47:37.847465+00:00",
+    "item_name": "Брелок"
+  }
+]

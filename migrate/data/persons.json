@@ -1,0 +1,170 @@
+[
+  {
+    "id": "2cafaf80-f01e-4f3a-be6b-f9bc43fa2758",
+    "nickname": "Sparky",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/Sparky.jpg",
+    "is_friend": false,
+    "created_at": "2025-07-03T15:39:48.815899+00:00"
+  },
+  {
+    "id": "427a3f05-555a-4982-a860-ec4576aae0da",
+    "nickname": "Reifor",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/Reifor.jpg",
+    "is_friend": false,
+    "created_at": "2025-07-03T16:00:08.804763+00:00"
+  },
+  {
+    "id": "cc124cb6-69ae-44ad-8f24-a665bab545ce",
+    "nickname": "SOYKA",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/SOYKA.jpg",
+    "is_friend": false,
+    "created_at": "2025-08-18T16:38:30.511731+00:00"
+  },
+  {
+    "id": "766ab820-8dcd-491a-8b9a-161106d32151",
+    "nickname": "yoshi_ruko",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/yoshi_ruko.jpg",
+    "is_friend": false,
+    "created_at": "2025-08-23T17:24:02.003606+00:00"
+  },
+  {
+    "id": "9fd35e84-4660-4c5e-9873-e56beaa8db20",
+    "nickname": "НН",
+    "avatar_url": null,
+    "is_friend": false,
+    "created_at": "2025-11-18T17:01:16.326602+00:00"
+  },
+  {
+    "id": "7581bfc6-349e-4e99-91e0-f832b8b98abc",
+    "nickname": "Liam",
+    "avatar_url": null,
+    "is_friend": false,
+    "created_at": "2025-11-18T17:39:29.473004+00:00"
+  },
+  {
+    "id": "e6ae5fbb-6b7b-4979-b7da-db267f3c4486",
+    "nickname": "Попуг",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1764866343977_ycpf0uupmhh.jpg",
+    "is_friend": false,
+    "created_at": "2025-11-18T17:20:47.348138+00:00"
+  },
+  {
+    "id": "de0c6f57-1ee1-4e67-aa4c-051268ac1a7d",
+    "nickname": "Коробка Лисы",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1764866409924_xdfunskhrqb.jpg",
+    "is_friend": false,
+    "created_at": "2025-11-18T17:11:57.393766+00:00"
+  },
+  {
+    "id": "8499e863-4b68-4547-bc64-375088e38df4",
+    "nickname": "Fosmin",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1766076294022_i555jdvsbnb.jpg",
+    "is_friend": true,
+    "created_at": "2025-06-30T14:56:59.060701+00:00"
+  },
+  {
+    "id": "4783d492-2cf6-4209-b019-e728bb13859a",
+    "nickname": "Mema",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1766076300008_59rfdyzg79k.jpg",
+    "is_friend": false,
+    "created_at": "2025-06-30T14:55:58.155443+00:00"
+  },
+  {
+    "id": "478c418f-6f3f-4c8f-b7a8-b0facf33dae8",
+    "nickname": "MAFI-MAKEN",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1766076328909_g0l59nkcyce.jpg",
+    "is_friend": false,
+    "created_at": "2025-11-04T14:40:25.247515+00:00"
+  },
+  {
+    "id": "7de56641-8aac-4153-92f2-266079feb13a",
+    "nickname": "Lafi",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1766076414942_oa6jcez8jvs.jpg",
+    "is_friend": false,
+    "created_at": "2025-11-18T16:47:07.916982+00:00"
+  },
+  {
+    "id": "8abacf32-ebc0-4e79-867b-5adc8016cf94",
+    "nickname": "James",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1766076650091_tx65ppwb04n.jpg",
+    "is_friend": false,
+    "created_at": "2025-06-30T06:48:07.2783+00:00"
+  },
+  {
+    "id": "4944963e-a96e-4ff2-a288-10a9d65c5165",
+    "nickname": "KraKEN",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1766157790174_m9l9ah9idbh.jpg",
+    "is_friend": false,
+    "created_at": "2025-11-04T14:24:43.653111+00:00"
+  },
+  {
+    "id": "9aa5b99f-4982-4791-871f-b8608dff84ae",
+    "nickname": "Fox Taffy",
+    "avatar_url": null,
+    "is_friend": false,
+    "created_at": "2025-12-23T04:17:45.84014+00:00"
+  },
+  {
+    "id": "f36aa4c7-c905-42a9-a2ae-c9820d805301",
+    "nickname": "Гавка",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1769277664716_6307rlz279x.jpg",
+    "is_friend": false,
+    "created_at": "2026-01-24T17:54:36.087751+00:00"
+  },
+  {
+    "id": "092ba2ed-dc7c-435a-81a0-6c22fddae856",
+    "nickname": "=Джойк=",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1769277715216_g7faybrkpra.jpg",
+    "is_friend": false,
+    "created_at": "2025-12-27T03:53:51.992344+00:00"
+  },
+  {
+    "id": "0a2af683-95d7-4e0d-9a93-73d9ac9a3fd8",
+    "nickname": "Umka",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1769277751191_y3bizo76xk.jpg",
+    "is_friend": true,
+    "created_at": "2025-06-30T14:57:26.188464+00:00"
+  },
+  {
+    "id": "1b65e707-fb07-4464-a60a-855dc2a37814",
+    "nickname": "Koff :)",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1769277796641_7gjxov6rlt6.jpg",
+    "is_friend": false,
+    "created_at": "2025-12-23T04:12:41.68015+00:00"
+  },
+  {
+    "id": "7c3f2684-d010-4030-848a-539d69a97ee7",
+    "nickname": "Моё УвОжение",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1769277983120_0i5x7a0zq1ud.jpg",
+    "is_friend": false,
+    "created_at": "2025-09-14T15:37:33.815314+00:00"
+  },
+  {
+    "id": "346e0717-a56d-4dba-871e-8d15a1f8cc77",
+    "nickname": "Confy",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1769278004892_yk46te57hd.jpg",
+    "is_friend": true,
+    "created_at": "2025-12-23T03:57:52.468761+00:00"
+  },
+  {
+    "id": "15cf7c80-eb20-4595-b99a-21e5d19c24e3",
+    "nickname": "Koul",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1769278033083_01775in1i8j9g.jpg",
+    "is_friend": false,
+    "created_at": "2025-12-23T04:09:19.475142+00:00"
+  },
+  {
+    "id": "e10d638c-b582-434a-95b5-b2e7c751c0d0",
+    "nickname": "Цера",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1769278057076_ffph7anrefd.jpg",
+    "is_friend": false,
+    "created_at": "2025-12-23T04:03:53.525086+00:00"
+  },
+  {
+    "id": "3406085a-2abe-4026-9876-834cacf43b46",
+    "nickname": "KODY",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1769278089784_wemgx856h6.jpg",
+    "is_friend": true,
+    "created_at": "2025-06-30T14:56:20.973891+00:00"
+  }
+]

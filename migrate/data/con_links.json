@@ -1,0 +1,22 @@
+[
+  {
+    "id": "93ecab46-20fe-4c20-9b37-04bec71783cd",
+    "con_id": "5fd24c3d-7672-4017-b7cc-0fcd2f44bb51",
+    "link_type": "website",
+    "title": "Официальный сайт",
+    "url": "https://anyfurryfest.ru",
+    "icon_class": "fas fa-globe",
+    "display_order": 1,
+    "is_active": true
+  },
+  {
+    "id": "a3a2b522-f1e9-4935-a778-d1abb022de0f",
+    "con_id": "5fd24c3d-7672-4017-b7cc-0fcd2f44bb51",
+    "link_type": "telegram",
+    "title": "Telegram канал",
+    "url": "https://t.me/anyfurryfest",
+    "icon_class": "fab fa-telegram",
+    "display_order": 2,
+    "is_active": true
+  }
+]

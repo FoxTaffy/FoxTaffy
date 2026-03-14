@@ -1,0 +1,51 @@
+[
+  {
+    "id": "e973710c-c04f-4c51-b9e8-99d749ee7c3a",
+    "person_id": null,
+    "name": "Prostix",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/Prostix.jpg",
+    "created_at": "2025-07-03T16:01:06.261065+00:00"
+  },
+  {
+    "id": "1585ac14-a5f3-4200-ba09-aa1c03433c5d",
+    "person_id": null,
+    "name": "Dani",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/Dani.jpg",
+    "created_at": "2025-07-03T16:08:45.129899+00:00"
+  },
+  {
+    "id": "e24426b8-9c06-4364-8a81-47c64015ddb0",
+    "person_id": null,
+    "name": "Felix Felicitas",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1764866229642_iitu5dln29.jpg",
+    "created_at": "2025-11-18T16:45:06.459647+00:00"
+  },
+  {
+    "id": "d245a435-7d7c-4dd0-9a59-48e161d1aa7f",
+    "person_id": null,
+    "name": "Fosmin",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1764866257948_k07i4ca02m.jpg",
+    "created_at": "2025-11-18T17:23:34.061088+00:00"
+  },
+  {
+    "id": "caebd859-4d8c-4cf7-af12-2afe964867a2",
+    "person_id": null,
+    "name": "Felix",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1766076951153_wu8n98wxlaf.jpg",
+    "created_at": "2025-06-30T06:48:07.2783+00:00"
+  },
+  {
+    "id": "c4353c2e-4a1d-4cab-bbf3-53f17a3d1c79",
+    "person_id": "9aa5b99f-4982-4791-871f-b8608dff84ae",
+    "name": "Филя",
+    "avatar_url": null,
+    "created_at": "2025-12-27T03:56:10.24389+00:00"
+  },
+  {
+    "id": "f69caf81-d518-4b5b-a629-a4a083bf3068",
+    "person_id": null,
+    "name": "Xuxlix",
+    "avatar_url": "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/1769278186200_s99apo77jsk.jpg",
+    "created_at": "2025-06-30T15:00:00.711795+00:00"
+  }
+]
