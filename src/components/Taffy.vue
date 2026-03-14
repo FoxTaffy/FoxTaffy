@@ -265,7 +265,7 @@ const character = reactive({
 })
 
 // Base URL для изображений в Main бакете S3
-const MAIN_BUCKET_URL = 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/Main/Taffy/'
+const MAIN_BUCKET_URL = '/s3/main/Taffy/'
 
 const evolutionSteps = reactive([
   {

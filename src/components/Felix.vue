@@ -37,7 +37,7 @@
     <section class="hero-universe">
       <div class="hero-background">
         <img 
-          src="https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/arts/1755535026253_tqx7wooiy3.png" 
+          :src="'/s3/gallery/arts/1755535026253_tqx7wooiy3.png'" 
           alt="Felix & Fox Taffy" 
           class="hero-bg-image"
           loading="lazy"
@@ -686,19 +686,19 @@ const journeys = ref<Journey[]>([
 
 const fellyArtworks = ref<FellyArtwork[]>([
   { 
-    src: "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/Felly.jpg",
+    src: "/s3/gallery/avatars/Felly.jpg",
     title: "Основной дизайн",
     author: "Fox Taffy & Felix",
     caption: "Первый официальный арт нашего персонажа Фелли"
   },
   { 
-    src: "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/Felly1.jpg",
+    src: "/s3/gallery/avatars/Felly1.jpg",
     title: "Игрив��я версия",
     author: "Fox Taffy",
     caption: "Фелли в игривом настроении, показывает свой характер"
   },
   { 
-    src: "https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/avatars/Felly3.jpg",
+    src: "/s3/gallery/avatars/Felly3.jpg",
     title: "Милый стиль",
     author: "Felix",
     caption: "Более мягкая и милая интерпретация персонажа"

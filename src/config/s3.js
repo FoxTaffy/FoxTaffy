@@ -14,15 +14,18 @@ const THUMBNAIL_QUALITY = 0.7
 // URL публичного доступа к MinIO (через nginx /s3/)
 const MINIO_PUBLIC_URL = import.meta.env.VITE_MINIO_PUBLIC_URL || '/s3'
 
-// Upload API endpoint и ключ
+// Upload API endpoint
 const UPLOAD_API_URL = import.meta.env.VITE_UPLOAD_API_URL || '/upload'
-const UPLOAD_API_KEY = import.meta.env.VITE_UPLOAD_API_KEY || ''
 
 /**
  * Заголовки для обращения к Upload API
  */
-const apiHeaders = () => ({
-  'X-API-Key': UPLOAD_API_KEY
+const apiFetchOptions = (options = {}) => ({
+  credentials: 'include',
+  ...options,
+  headers: {
+    ...(options.headers || {})
+  }
 })
 
 // ============================================
@@ -307,7 +310,7 @@ export const s3Api = {
 
       const uploadResponse = await fetch(`${UPLOAD_API_URL}/${bucketName}`, {
         method: 'POST',
-        headers: apiHeaders(),
+        ...apiFetchOptions(),
         body: formData
       })
 
@@ -532,7 +535,7 @@ export const s3Api = {
 
       const response = await fetch(`${UPLOAD_API_URL}/${bucketName}`, {
         method: 'DELETE',
-        headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+        ...apiFetchOptions({ headers: { 'Content-Type': 'application/json' } }),
         body: JSON.stringify({ path: filePath })
       })
 
@@ -586,7 +589,7 @@ export const s3Api = {
       // Получаем список всех файлов в папке мероприятия
       const listResponse = await fetch(
         `${UPLOAD_API_URL}/${bucketName}/list?prefix=${encodeURIComponent(eventFolder + '/')}&limit=1000`,
-        { headers: apiHeaders() }
+        apiFetchOptions()
       )
 
       if (!listResponse.ok) {
@@ -607,7 +610,7 @@ export const s3Api = {
       // Удаляем все файлы
       const deleteResponse = await fetch(`${UPLOAD_API_URL}/${bucketName}`, {
         method: 'DELETE',
-        headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+        ...apiFetchOptions({ headers: { 'Content-Type': 'application/json' } }),
         body: JSON.stringify({ paths: filePaths })
       })
 
@@ -660,7 +663,7 @@ export const s3Api = {
    */
   async checkBucketExists(bucketName = DEFAULT_BUCKET) {
     try {
-      const response = await fetch(`${UPLOAD_API_URL}/buckets`, { headers: apiHeaders() })
+      const response = await fetch(`${UPLOAD_API_URL}/buckets`, apiFetchOptions())
       if (!response.ok) return false
       const data = await response.json()
       const bucketExists = data.some(b => b.name === bucketName)

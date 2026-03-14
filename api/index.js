@@ -1,8 +1,9 @@
 // ================================================
-// FOXTAFFY.GAY — Upload API
-// Прокси для загрузки файлов из браузера в MinIO
+// FOXTAFFY.GAY — Upload + Admin API
+// Безопасная загрузка файлов и серверная админ-аутентификация
 // ================================================
 
+import crypto from 'node:crypto'
 import express from 'express'
 import cors from 'cors'
 import busboy from 'busboy'
@@ -18,7 +19,6 @@ import {
 const app = express()
 const PORT = process.env.PORT || 3002
 
-// ── S3 / MinIO клиент ────────────────────────────
 const s3 = new S3Client({
   endpoint: `http://${process.env.MINIO_ENDPOINT || 'localhost'}:${process.env.MINIO_PORT || 9000}`,
   region: 'us-east-1',
@@ -26,39 +26,293 @@ const s3 = new S3Client({
     accessKeyId: process.env.MINIO_ACCESS_KEY || 'admin',
     secretAccessKey: process.env.MINIO_SECRET_KEY || 'changeme'
   },
-  forcePathStyle: true  // обязательно для MinIO
+  forcePathStyle: true
 })
 
 const PUBLIC_URL = process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'
-const API_KEY    = process.env.UPLOAD_API_KEY   || ''
+const API_KEY = process.env.UPLOAD_API_KEY || ''
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*'
+const ADMIN_SECRET_CODE = process.env.ADMIN_SECRET_CODE || ''
+const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || process.env.PGRST_JWT_SECRET || ADMIN_SECRET_CODE
+const PGRST_URL = process.env.PGRST_URL || 'http://localhost:3001'
+const PGRST_JWT_SECRET = process.env.PGRST_JWT_SECRET || ''
 
-// ── Middleware ───────────────────────────────────
-app.use(cors({
-  origin: ALLOWED_ORIGIN,
-  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'X-API-Key', 'Authorization']
-}))
-app.use(express.json())
+const ADMIN_COOKIE_NAME = 'foxtaffy_admin_session'
+const ADMIN_SESSION_TTL_SEC = 60 * 60 * 12
+const LOGIN_LOCK_MS = 15 * 60 * 1000
+const LOGIN_MAX_ATTEMPTS = 5
+const loginAttempts = new Map()
 
-// ── Auth guard ───────────────────────────────────
-function requireApiKey(req, res, next) {
-  const key = req.headers['x-api-key'] || req.query.api_key
-  if (API_KEY && key !== API_KEY) {
-    return res.status(401).json({ error: 'Unauthorized' })
+const allowedOrigins = ALLOWED_ORIGIN === '*'
+  ? ['*']
+  : ALLOWED_ORIGIN.split(',').map(origin => origin.trim()).filter(Boolean)
+
+const isProduction = process.env.NODE_ENV === 'production'
+const cookieSecure = process.env.ADMIN_COOKIE_SECURE
+  ? process.env.ADMIN_COOKIE_SECURE === 'true'
+  : isProduction
+
+const base64url = (input) => Buffer.from(input).toString('base64url')
+const fromBase64url = (input) => Buffer.from(input, 'base64url').toString('utf8')
+const sha256 = (value) => crypto.createHash('sha256').update(value).digest('hex')
+const signValue = (value, secret) => crypto.createHmac('sha256', secret).update(value).digest('base64url')
+
+const createJwt = (payload, secret) => {
+  const header = { alg: 'HS256', typ: 'JWT' }
+  const encodedHeader = base64url(JSON.stringify(header))
+  const encodedPayload = base64url(JSON.stringify(payload))
+  const signature = signValue(`${encodedHeader}.${encodedPayload}`, secret)
+  return `${encodedHeader}.${encodedPayload}.${signature}`
+}
+
+const parseCookies = (req) => {
+  const cookieHeader = req.headers.cookie || ''
+  return cookieHeader
+    .split(';')
+    .map(part => part.trim())
+    .filter(Boolean)
+    .reduce((acc, part) => {
+      const [name, ...rest] = part.split('=')
+      acc[name] = decodeURIComponent(rest.join('='))
+      return acc
+    }, {})
+}
+
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true
+  if (!isProduction && /^https?:\/\/localhost(?::\d+)?$/.test(origin)) return true
+  if (!isProduction && /^https?:\/\/127\.0\.0\.1(?::\d+)?$/.test(origin)) return true
+  if (allowedOrigins.includes('*')) return true
+  return allowedOrigins.includes(origin)
+}
+
+const ensureAllowedOrigin = (req, res) => {
+  const origin = req.headers.origin
+  if (!isAllowedOrigin(origin)) {
+    res.status(403).json({ error: 'Forbidden origin' })
+    return false
   }
+  return true
+}
+
+const setSecurityHeaders = (_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('X-Frame-Options', 'DENY')
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
   next()
 }
 
-// ── Health ───────────────────────────────────────
+const createAdminSessionToken = () => {
+  const now = Math.floor(Date.now() / 1000)
+  const payload = {
+    iat: now,
+    exp: now + ADMIN_SESSION_TTL_SEC,
+    scope: 'admin',
+    marker: sha256(ADMIN_SECRET_CODE).slice(0, 16)
+  }
+
+  return `${base64url(JSON.stringify(payload))}.${signValue(JSON.stringify(payload), ADMIN_SESSION_SECRET)}`
+}
+
+const validateAdminSessionToken = (token) => {
+  if (!token || !ADMIN_SECRET_CODE || !ADMIN_SESSION_SECRET) return false
+
+  const [encodedPayload, signature] = token.split('.')
+  if (!encodedPayload || !signature) return false
+
+  let payload
+  try {
+    payload = JSON.parse(fromBase64url(encodedPayload))
+  } catch {
+    return false
+  }
+
+  const expectedSignature = signValue(JSON.stringify(payload), ADMIN_SESSION_SECRET)
+  if (signature.length !== expectedSignature.length) return false
+
+  const validSignature = crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))
+  if (!validSignature) return false
+  if (payload.scope !== 'admin') return false
+  if (payload.marker !== sha256(ADMIN_SECRET_CODE).slice(0, 16)) return false
+  if (!payload.exp || payload.exp < Math.floor(Date.now() / 1000)) return false
+
+  return true
+}
+
+const getAdminAttemptState = (req) => {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown'
+  const state = loginAttempts.get(ip) || { attempts: 0, lockedUntil: 0 }
+
+  if (state.lockedUntil && state.lockedUntil < Date.now()) {
+    state.attempts = 0
+    state.lockedUntil = 0
+    loginAttempts.set(ip, state)
+  }
+
+  return { ip, state }
+}
+
+const hasValidAdminSession = (req) => {
+  const cookies = parseCookies(req)
+  return validateAdminSessionToken(cookies[ADMIN_COOKIE_NAME])
+}
+
+const requireAdmin = (req, res, next) => {
+  if (!hasValidAdminSession(req)) {
+    return res.status(401).json({ error: 'Admin authentication required' })
+  }
+
+  next()
+}
+
+const requireApiKeyOrAdmin = (req, res, next) => {
+  const key = req.headers['x-api-key'] || req.query.api_key
+  if (API_KEY && key === API_KEY) {
+    return next()
+  }
+
+  if (hasValidAdminSession(req)) {
+    return next()
+  }
+
+  return res.status(401).json({ error: 'Unauthorized' })
+}
+
+const adminCookieOptions = {
+  httpOnly: true,
+  sameSite: 'strict',
+  secure: cookieSecure,
+  path: '/',
+  maxAge: ADMIN_SESSION_TTL_SEC * 1000
+}
+
+const createPostgrestServiceToken = () => {
+  if (!PGRST_JWT_SECRET) {
+    throw new Error('PGRST_JWT_SECRET is not configured')
+  }
+
+  const now = Math.floor(Date.now() / 1000)
+  return createJwt({ role: 'service_role', iat: now, exp: now + 300 }, PGRST_JWT_SECRET)
+}
+
+app.use(setSecurityHeaders)
+app.use(cors({
+  origin(origin, callback) {
+    if (isAllowedOrigin(origin)) {
+      callback(null, true)
+      return
+    }
+
+    callback(new Error('Not allowed by CORS'))
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'X-API-Key', 'Authorization', 'Prefer']
+}))
+app.use(express.json({ limit: '10mb' }))
+
 app.get('/health', (_req, res) => res.json({ ok: true }))
 
-// ── POST /upload/:bucket — загрузить файл ────────
-app.post('/upload/:bucket', requireApiKey, async (req, res) => {
+app.get('/upload/admin/session', (req, res) => {
+  res.json({ authenticated: hasValidAdminSession(req) })
+})
+
+app.post('/upload/admin/login', (req, res) => {
+  if (!ensureAllowedOrigin(req, res)) return
+
+  if (!ADMIN_SECRET_CODE || !ADMIN_SESSION_SECRET) {
+    return res.status(503).json({ error: 'Admin auth is not configured' })
+  }
+
+  const { ip, state } = getAdminAttemptState(req)
+  if (state.lockedUntil > Date.now()) {
+    const retryAfter = Math.ceil((state.lockedUntil - Date.now()) / 1000)
+    return res.status(429).json({ error: 'Too many attempts', retryAfter })
+  }
+
+  const submittedCode = String(req.body?.code || '')
+  const expected = Buffer.from(ADMIN_SECRET_CODE)
+  const received = Buffer.from(submittedCode)
+  const isMatch = expected.length === received.length && crypto.timingSafeEqual(expected, received)
+
+  if (!isMatch) {
+    state.attempts += 1
+    if (state.attempts >= LOGIN_MAX_ATTEMPTS) {
+      state.lockedUntil = Date.now() + LOGIN_LOCK_MS
+    }
+    loginAttempts.set(ip, state)
+    return res.status(state.lockedUntil ? 429 : 401).json({
+      error: state.lockedUntil ? 'Too many attempts' : 'Invalid admin code',
+      retryAfter: state.lockedUntil ? Math.ceil((state.lockedUntil - Date.now()) / 1000) : undefined
+    })
+  }
+
+  loginAttempts.set(ip, { attempts: 0, lockedUntil: 0 })
+  res.cookie(ADMIN_COOKIE_NAME, createAdminSessionToken(), adminCookieOptions)
+  res.json({ ok: true })
+})
+
+app.post('/upload/admin/logout', (req, res) => {
+  if (!ensureAllowedOrigin(req, res)) return
+
+  res.clearCookie(ADMIN_COOKIE_NAME, {
+    httpOnly: true,
+    sameSite: 'strict',
+    secure: cookieSecure,
+    path: '/'
+  })
+  res.json({ ok: true })
+})
+
+app.all('/upload/admin/db/*', requireAdmin, async (req, res) => {
+  if (!ensureAllowedOrigin(req, res)) return
+
+  try {
+    const proxyPath = req.originalUrl.replace(/^\/upload\/admin\/db\//, '')
+    const targetUrl = `${PGRST_URL.replace(/\/$/, '')}/${proxyPath}`
+    const token = createPostgrestServiceToken()
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      Accept: req.headers.accept || 'application/json'
+    }
+
+    if (req.headers.prefer) {
+      headers.Prefer = req.headers.prefer
+    }
+
+    const isBodyMethod = !['GET', 'HEAD'].includes(req.method)
+    if (isBodyMethod) {
+      headers['Content-Type'] = 'application/json'
+    }
+
+    const response = await fetch(targetUrl, {
+      method: req.method,
+      headers,
+      body: isBodyMethod ? JSON.stringify(req.body ?? {}) : undefined
+    })
+
+    const contentType = response.headers.get('content-type')
+    const text = await response.text()
+
+    if (contentType) {
+      res.setHeader('Content-Type', contentType)
+    }
+
+    res.status(response.status).send(text)
+  } catch (error) {
+    console.error('Admin DB proxy error:', error)
+    res.status(500).json({ error: error.message || 'Admin DB proxy failed' })
+  }
+})
+
+app.post('/upload/:bucket', requireApiKeyOrAdmin, async (req, res) => {
+  if (!ensureAllowedOrigin(req, res)) return
+
   const { bucket } = req.params
 
   try {
-    // Проверяем bucket
     await s3.send(new HeadBucketCommand({ Bucket: bucket }))
   } catch {
     return res.status(404).json({ error: `Bucket "${bucket}" not found` })
@@ -72,26 +326,24 @@ app.post('/upload/:bucket', requireApiKey, async (req, res) => {
     await new Promise((resolve, reject) => {
       const bb = busboy({
         headers: req.headers,
-        limits: { fileSize: 50 * 1024 * 1024 } // 50 МБ max
+        limits: { fileSize: 50 * 1024 * 1024 }
       })
 
       bb.on('field', (name, val) => {
         if (name === 'path') uploadedPath = val
       })
 
-      bb.on('file', async (fieldname, stream, info) => {
+      bb.on('file', async (_fieldname, stream, info) => {
         const { filename, mimeType } = info
         contentType = mimeType || 'image/jpeg'
-
-        // Путь: либо из поля `path`, либо из имени файла
         const filePath = uploadedPath || filename
 
-        // Собираем chunks в память (до 50 МБ)
         const chunks = []
         for await (const chunk of stream) {
           chunks.push(chunk)
           fileSize += chunk.length
         }
+
         const body = Buffer.concat(chunks)
 
         try {
@@ -121,21 +373,20 @@ app.post('/upload/:bucket', requireApiKey, async (req, res) => {
       size: fileSize,
       bucket
     })
-
   } catch (err) {
     console.error('Upload error:', err)
     res.status(500).json({ error: err.message })
   }
 })
 
-// ── DELETE /upload/:bucket — удалить файл(ы) ─────
-app.delete('/upload/:bucket', requireApiKey, async (req, res) => {
+app.delete('/upload/:bucket', requireApiKeyOrAdmin, async (req, res) => {
+  if (!ensureAllowedOrigin(req, res)) return
+
   const { bucket } = req.params
   const { path: filePath, paths } = req.body
 
   try {
     if (paths && Array.isArray(paths)) {
-      // Удаляем несколько файлов
       await s3.send(new DeleteObjectsCommand({
         Bucket: bucket,
         Delete: { Objects: paths.map(p => ({ Key: p })) }
@@ -153,11 +404,10 @@ app.delete('/upload/:bucket', requireApiKey, async (req, res) => {
   }
 })
 
-// ── GET /upload/:bucket/list — список файлов ─────
-app.get('/upload/:bucket/list', requireApiKey, async (req, res) => {
+app.get('/upload/:bucket/list', requireApiKeyOrAdmin, async (req, res) => {
   const { bucket } = req.params
-  const prefix  = req.query.prefix || ''
-  const limit   = parseInt(req.query.limit || '1000', 10)
+  const prefix = req.query.prefix || ''
+  const limit = parseInt(req.query.limit || '1000', 10)
 
   try {
     const result = await s3.send(new ListObjectsV2Command({
@@ -167,11 +417,11 @@ app.get('/upload/:bucket/list', requireApiKey, async (req, res) => {
     }))
 
     const files = (result.Contents || []).map(obj => ({
-      name:         obj.Key.replace(prefix, '').replace(/^\//, ''),
-      id:           obj.ETag,
-      size:         obj.Size,
-      updated_at:   obj.LastModified?.toISOString(),
-      metadata:     { size: obj.Size, mimetype: 'image/jpeg' }
+      name: obj.Key.replace(prefix, '').replace(/^\//, ''),
+      id: obj.ETag,
+      size: obj.Size,
+      updated_at: obj.LastModified?.toISOString(),
+      metadata: { size: obj.Size, mimetype: 'image/jpeg' }
     }))
 
     res.json(files)
@@ -181,15 +431,13 @@ app.get('/upload/:bucket/list', requireApiKey, async (req, res) => {
   }
 })
 
-// ── GET /upload/buckets — список бакетов ─────────
-app.get('/upload/buckets', requireApiKey, async (_req, res) => {
+app.get('/upload/buckets', requireApiKeyOrAdmin, async (_req, res) => {
   res.json([
-    { id: 'convent',  name: 'convent',  public: true },
-    { id: 'gallery',  name: 'gallery',  public: true }
+    { id: 'convent', name: 'convent', public: true },
+    { id: 'gallery', name: 'gallery', public: true }
   ])
 })
 
-// ── Start ────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`🦊 FoxTaffy Upload API запущен на порту ${PORT}`)
 })

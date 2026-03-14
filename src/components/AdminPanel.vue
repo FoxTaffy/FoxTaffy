@@ -1364,9 +1364,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { furryApi } from '@/config/supabase.js'
 import FileUploader from '@/components/FileUploader.vue'
 import AvatarUploader from '@/components/AvatarUploader.vue'
-
-// Константы
-const ADMIN_CODE = import.meta.env.VITE_ADMIN_SECRET_CODE || 'FoxTaffy621'
+import { getAdminSession, loginAdmin, logoutAdmin as serverLogoutAdmin } from '@/utils/adminAuth.js'
 
 // Состояние авторизации
 const isAuthenticated = ref(false)
@@ -1779,22 +1777,27 @@ const isS3Url = (url) => {
 }
 
 // Авторизация
-const authenticate = () => {
-  if (authCode.value === ADMIN_CODE) {
-    isAuthenticated.value = true
+const authenticate = async () => {
+  try {
     authError.value = ''
-    localStorage.setItem('fox_admin_auth', 'true')
-    loadInitialData()
-  } else {
-    authError.value = 'Неверный код доступа!'
+    await loginAdmin(authCode.value.trim())
+    isAuthenticated.value = true
+    authCode.value = ''
+    await loadInitialData()
+  } catch (error) {
+    authError.value = error.message || 'Ошибка авторизации'
     authCode.value = ''
   }
 }
 
-const logout = () => {
+const logout = async () => {
+  try {
+    await serverLogoutAdmin()
+  } catch {
+    // игнорируем — локальное состояние всё равно очищаем
+  }
   isAuthenticated.value = false
   authCode.value = ''
-  localStorage.removeItem('fox_admin_auth')
   activeTab.value = 'dashboard'
 }
 const setActiveTab = (tabName) => {
@@ -2460,8 +2463,8 @@ const getNotificationIcon = () => {
 }
 
 // Жизненный цикл
-onMounted(() => {
-  if (localStorage.getItem('fox_admin_auth') === 'true') {
+onMounted(async () => {
+  if (await getAdminSession()) {
     isAuthenticated.value = true
     loadInitialData()
   }

@@ -4,10 +4,29 @@
     <h2 class="section-title">Мероприятия</h2>
     <p class="section-description">События, которые я посетил и планирую посетить.</p>
     
-    <!-- Состояния загрузки -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Загружаем последние события...</p>
+    <!-- Скелетон-заглушки при загрузке -->
+    <div v-if="loading" class="events-grid">
+      <div v-for="i in 3" :key="'skeleton-' + i" class="event-card skeleton-card">
+        <div class="skeleton-image">
+          <div class="skeleton-pulse"></div>
+          <div class="skeleton-date-badge">
+            <div class="skeleton-line short"></div>
+            <div class="skeleton-line bold"></div>
+            <div class="skeleton-line short"></div>
+          </div>
+          <div class="skeleton-status-badge skeleton-pulse"></div>
+        </div>
+        <div class="card-content skeleton-content">
+          <div class="skeleton-line title skeleton-pulse"></div>
+          <div class="skeleton-meta">
+            <div class="skeleton-line meta skeleton-pulse"></div>
+            <div class="skeleton-line meta-sm skeleton-pulse"></div>
+          </div>
+          <div class="skeleton-line desc skeleton-pulse"></div>
+          <div class="skeleton-line desc-short skeleton-pulse"></div>
+          <div class="skeleton-footer skeleton-pulse"></div>
+        </div>
+      </div>
     </div>
     
     <div v-else-if="error" class="error-state">
@@ -20,13 +39,14 @@
     </div>
     
     <!-- Карточки мероприятий -->
-    <div v-else class="events-grid">
+    <div v-else class="events-grid" ref="eventsGrid">
       <!-- Две основные карточки -->
       <div
-        v-for="event in mainEvents"
+        v-for="(event, index) in mainEvents"
         :key="event.id"
-        class="event-card"
-        :class="[getCardClass(event), { 'no-review': !hasReview(event) && !isUpcoming(event) }]"
+        class="event-card card-lazy"
+        :class="[getCardClass(event), { 'no-review': !hasReview(event) && !isUpcoming(event) }, { 'card-visible': visibleCards.has('main-' + index) }]"
+        :data-card-id="'main-' + index"
         @click="openEvent(event)"
       >
         <!-- Изображение -->
@@ -159,7 +179,12 @@
       </div>
       
       <!-- Карточка "Показать ещё" -->
-      <div class="event-card show-more-card" @click="showAllEvents">
+      <div
+        class="event-card show-more-card card-lazy"
+        :class="{ 'card-visible': visibleCards.has('more') }"
+        data-card-id="more"
+        @click="showAllEvents"
+      >
         <!-- Заблюренное изображение -->
         <div class="card-image blurred">
           <img
@@ -222,6 +247,7 @@
 
 <script>
 import { furryApi } from '@/config/supabase.js'
+import { getAdminSession } from '@/utils/adminAuth.js'
 import StarRating from '@/components/ui/StarRating.vue'
 
 export default {
@@ -240,7 +266,9 @@ export default {
         upcoming: 0,
         completed: 0
       },
-      isAdminMode: false
+      isAdminMode: false,
+      visibleCards: new Set(),
+      _cardsObserver: null
     }
   },
   
@@ -298,6 +326,12 @@ export default {
   async mounted() {
     this.checkAdminMode()
     await this.loadData()
+  },
+
+  beforeUnmount() {
+    if (this._cardsObserver) {
+      this._cardsObserver.disconnect()
+    }
   },
   
   methods: {
@@ -361,6 +395,7 @@ export default {
         
       } finally {
         this.loading = false
+        this.$nextTick(() => this.setupCardAnimations())
       }
     },
     
@@ -467,9 +502,11 @@ export default {
     },
 
     checkAdminMode() {
-      // Проверяем админ-код из localStorage
-      const adminCode = localStorage.getItem('fox_taffy_admin')
-      this.isAdminMode = adminCode === import.meta.env.VITE_ADMIN_SECRET_CODE
+      getAdminSession().then(isAdmin => {
+        this.isAdminMode = isAdmin
+      }).catch(() => {
+        this.isAdminMode = false
+      })
     },
 
     // =================== УТИЛИТЫ ===================
@@ -754,6 +791,46 @@ export default {
       return []
     },
 
+    // =================== ЛЕНИВАЯ ЗАГРУЗКА КАРТОЧЕК ===================
+    setupCardAnimations() {
+      // Сбрасываем старый observer и видимые карточки
+      if (this._cardsObserver) {
+        this._cardsObserver.disconnect()
+        this._cardsObserver = null
+      }
+      this.visibleCards = new Set()
+
+      if (typeof IntersectionObserver === 'undefined') {
+        // Fallback: показываем все сразу
+        this.visibleCards = new Set(['main-0', 'main-1', 'more'])
+        return
+      }
+
+      const options = {
+        root: null,
+        rootMargin: '0px 0px -40px 0px',
+        threshold: 0.08
+      }
+
+      this._cardsObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.dataset.cardId
+            if (id) {
+              this.visibleCards = new Set([...this.visibleCards, id])
+              this._cardsObserver.unobserve(entry.target)
+            }
+          }
+        })
+      }, options)
+
+      const grid = this.$refs.eventsGrid
+      if (!grid) return
+
+      const cards = grid.querySelectorAll('.card-lazy')
+      cards.forEach((card) => this._cardsObserver.observe(card))
+    },
+
     // Получение иконки для статуса участия
     getAttendanceIcon(status) {
       const icons = {
@@ -799,26 +876,111 @@ export default {
   line-height: 1.6;
 }
 
-/* ===== СОСТОЯНИЯ ЗАГРУЗКИ ===== */
-.loading-state, .error-state {
+/* ===== СОСТОЯНИЯ ЗАГРУЗКИ (СКЕЛЕТОН) ===== */
+.error-state {
   text-align: center;
   padding: 3rem 1rem;
   color: var(--text-muted);
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(255, 123, 37, 0.2);
-  border-top: 3px solid var(--accent-orange);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1.5rem;
+/* Скелетон-пульсация */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.skeleton-pulse {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.10) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.6s infinite linear;
+  border-radius: 6px;
+}
+
+/* Скелетон-карточка */
+.skeleton-card {
+  pointer-events: none;
+  cursor: default;
+  animation: skeleton-card-in 0.5s ease both;
+}
+
+.skeleton-card:nth-child(1) { animation-delay: 0s; }
+.skeleton-card:nth-child(2) { animation-delay: 0.1s; }
+.skeleton-card:nth-child(3) { animation-delay: 0.2s; }
+
+@keyframes skeleton-card-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.skeleton-image {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 1rem 1rem 0 0;
+  background: rgba(255,255,255,0.06);
+}
+
+.skeleton-image .skeleton-pulse {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.skeleton-date-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: rgba(0,0,0,0.5);
+  padding: 0.6rem;
+  border-radius: 0.6rem;
+  min-width: 65px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skeleton-status-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 80px;
+  height: 26px;
+  border-radius: 1.5rem;
+}
+
+.skeleton-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.skeleton-meta {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+}
+.skeleton-line.short  { width: 40px; height: 10px; }
+.skeleton-line.bold   { width: 30px; height: 20px; }
+.skeleton-line.title  { width: 70%; height: 18px; }
+.skeleton-line.meta   { width: 90px; }
+.skeleton-line.meta-sm { width: 60px; }
+.skeleton-line.desc   { width: 100%; height: 12px; }
+.skeleton-line.desc-short { width: 65%; height: 12px; }
+
+.skeleton-footer {
+  margin-top: 0.4rem;
+  height: 38px;
+  border-radius: 8px;
+  width: 100%;
 }
 
 .retry-button {
@@ -849,6 +1011,30 @@ export default {
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.5rem;
 }
+
+/* ===== ЛЕНИВАЯ ЗАГРУЗКА КАРТОЧЕК ===== */
+@keyframes card-enter {
+  0%   { opacity: 0; transform: translateY(40px) scale(0.97); }
+  60%  { opacity: 1; transform: translateY(-6px) scale(1.005); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.card-lazy {
+  opacity: 0;
+  transform: translateY(40px) scale(0.97);
+  transition: opacity 0s, transform 0s;
+}
+
+.card-lazy.card-visible {
+  animation: card-enter 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Stagger по data-card-id */
+.card-lazy[data-card-id="main-0"].card-visible { animation-delay: 0s; }
+.card-lazy[data-card-id="main-1"].card-visible { animation-delay: 0.12s; }
+.card-lazy[data-card-id="more"].card-visible   { animation-delay: 0.24s; }
 
 /* ===== КАРТОЧКИ СОБЫТИЙ ===== */
 .event-card {

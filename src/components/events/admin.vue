@@ -122,8 +122,7 @@
 
 <script>
 import AdminEventsPanel from '../AdminEventsPanel.vue'
-
-const ADMIN_CODE = import.meta.env.VITE_ADMIN_SECRET_CODE || 'defaultpass'
+import { getAdminSession, loginAdmin, logoutAdmin as serverLogoutAdmin } from '@/utils/adminAuth.js'
 
 export default {
   name: 'EventsAdmin',
@@ -142,32 +141,34 @@ export default {
     }
   },
 
-  mounted() {
-    const savedAuth = localStorage.getItem('fox_events_admin_auth')
-    if (savedAuth === 'true') {
-      this.isAuthenticated = true
-    }
+  async mounted() {
+    this.isAuthenticated = await getAdminSession()
     document.title = 'Админ мероприятий | FoxTaffy.gay'
   },
 
   methods: {
-    authenticate() {
-      if (this.authCode === ADMIN_CODE) {
-        this.isAuthenticated = true
+    async authenticate() {
+      try {
         this.authError = ''
-        localStorage.setItem('fox_events_admin_auth', 'true')
-        this.showNotification('Авторизация успешна!', 'success')
-      } else {
-        this.authError = 'Неверный код доступа!'
+        await loginAdmin(this.authCode.trim())
+        this.isAuthenticated = true
         this.authCode = ''
-        setTimeout(() => { this.authError = '' }, 3000)
+        this.showNotification('Авторизация успешна!', 'success')
+      } catch (error) {
+        this.authError = error.message || 'Ошибка авторизации'
+        this.authCode = ''
+        setTimeout(() => { this.authError = '' }, 4000)
       }
     },
 
-    logout() {
+    async logout() {
+      try {
+        await serverLogoutAdmin()
+      } catch {
+        // игнорируем — локальное состояние всё равно очищаем
+      }
       this.isAuthenticated = false
       this.authCode = ''
-      localStorage.removeItem('fox_events_admin_auth')
       this.showNotification('Вы вышли из системы', 'info')
     },
 

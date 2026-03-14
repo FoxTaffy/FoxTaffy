@@ -114,6 +114,10 @@ services:
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
       MINIO_PUBLIC_URL: "https://foxtaffy.gay/s3"
       UPLOAD_API_KEY: ${UPLOAD_API_KEY}
+      ADMIN_SECRET_CODE: ${ADMIN_SECRET_CODE}
+      ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET}
+      PGRST_URL: "http://postgrest:3000"
+      PGRST_JWT_SECRET: ${PGRST_JWT_SECRET}
       ALLOWED_ORIGIN: "https://foxtaffy.gay"
     depends_on:
       minio:

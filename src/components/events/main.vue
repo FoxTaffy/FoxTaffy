@@ -2,7 +2,7 @@
   <div class="events-main-page">
     <!-- Шапка страницы -->
     <div class="page-header">
-      <div class="header-background" style="background-image: url('https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/SFB/2025-08-05%2009-21-25.JPG')"></div>
+      <div class="header-background" style="background-image: url('/s3/gallery/events/SFB/2025-08-05%2009-21-25.JPG')"></div>
       <div class="header-overlay"></div>
       <div class="container">
         <div class="header-content">
@@ -470,6 +470,7 @@
 
 <script>
 import { furryApi } from '@/config/supabase.js'
+import { getAdminSession } from '@/utils/adminAuth.js'
 import StarRating from '@/components/ui/StarRating.vue'
 
 export default {
@@ -759,9 +760,11 @@ export default {
     },
     
     checkAdminMode() {
-      // Проверяем админ-код из localStorage
-      const adminCode = localStorage.getItem('fox_taffy_admin')
-      this.isAdminMode = adminCode === import.meta.env.VITE_ADMIN_SECRET_CODE
+      getAdminSession().then(isAdmin => {
+        this.isAdminMode = isAdmin
+      }).catch(() => {
+        this.isAdminMode = false
+      })
     },
     
     // ============================================
@@ -1164,7 +1167,7 @@ export default {
         this.$updateMetaTags({
           title: 'Все мероприятия | FoxTaffy.gay',
           description: `Полная коллекция из ${this.stats.total} конвентов и мероприятий, которые посетил Fox Taffy. Отчеты, фотографии и впечатления от каждого события.`,
-          image: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/aff5.jpg',
+          image: 'https://foxtaffy.gay/s3/gallery/events/aff5.jpg',
           url: 'https://foxtaffy.gay/events'
         })
       }

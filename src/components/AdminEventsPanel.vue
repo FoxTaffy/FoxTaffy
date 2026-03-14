@@ -288,6 +288,22 @@
             </div>
           </div>
 
+          <!-- Особенности мероприятия -->
+          <div v-if="event.con_features && event.con_features.length > 0" class="event-features">
+            <div
+              v-for="feature in event.con_features.slice(0, 3)"
+              :key="feature.id"
+              class="feature-badge"
+              :title="feature.title"
+            >
+              <i :class="feature.icon_class || 'fas fa-star'"></i>
+              <span>{{ feature.title }}</span>
+            </div>
+            <div v-if="event.con_features.length > 3" class="feature-badge more-features">
+              +{{ event.con_features.length - 3 }}
+            </div>
+          </div>
+
           <!-- Действия -->
           <div class="event-actions">
             <button @click="viewEvent(event)" class="action-btn view" title="Посмотреть на сайте">
@@ -3054,6 +3070,39 @@ export default {
 
 .event-attendees i { color: var(--accent-blue); }
 .event-photos i { color: var(--accent-purple); }
+
+/* Особенности мероприятия */
+.event-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.feature-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #c4b5fd;
+  font-size: 0.72rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.feature-badge i {
+  font-size: 0.65rem;
+  opacity: 0.85;
+}
+
+.feature-badge.more-features {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--text-muted);
+}
 
 /* Кнопки действий */
 .event-actions {

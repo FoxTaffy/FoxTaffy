@@ -380,9 +380,8 @@ GRANT SELECT ON gallery_view TO anon;
 
 -- Разрешаем аутентифицированным пользователям добавлять данные
 GRANT USAGE ON SCHEMA public TO authenticated;
-GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
-GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
-GRANT EXECUTE ON FUNCTION add_simple_art(TEXT, TEXT, TEXT, TEXT) TO authenticated;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO authenticated;
+GRANT EXECUTE ON FUNCTION add_simple_art(TEXT, TEXT, TEXT, TEXT) TO service_role;
 
 -- ============================================
 -- КОММЕНТАРИИ К БЕЗОПАСНОСТИ

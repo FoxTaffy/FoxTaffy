@@ -4,6 +4,7 @@
 // ===============================================
 
 import { createClient } from '@supabase/supabase-js'
+import { adminApiRequest } from '@/utils/adminAuth.js'
 
 // ===============================================
 // 🔧 КОНФИГУРАЦИЯ SUPABASE
@@ -17,14 +18,38 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Ошибка: Переменные окружения Supabase не найдены!')
 }
 
-console.log('🔧 Инициализация Supabase:', {
-  url: supabaseUrl,
-  hasKey: !!supabaseAnonKey,
-  keyLength: supabaseAnonKey?.length,
-  environment: import.meta.env.MODE || process.env.NODE_ENV
-})
-
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+const buildAdminQuery = (params = {}) => {
+  const search = new URLSearchParams()
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return
+
+    if (Array.isArray(value)) {
+      value.forEach(item => search.append(key, String(item)))
+      return
+    }
+
+    search.set(key, String(value))
+  })
+
+  const query = search.toString()
+  return query ? `?${query}` : ''
+}
+
+const firstRow = (data) => Array.isArray(data) ? (data[0] || null) : data
+
+const adminDb = async (table, { method = 'GET', query = {}, body, prefer } = {}) => {
+  return adminApiRequest(`/admin/db/${table}${buildAdminQuery(query)}`, {
+    method,
+    headers: {
+      Accept: 'application/json',
+      ...(prefer ? { Prefer: prefer } : {})
+    },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {})
+  })
+}
 
 // ===============================================
 // 🎪 ОБЪЕДИНЁННЫЙ API КЛАСС
@@ -267,17 +292,19 @@ export const furryApi = {
       // Устанавливаем временные метки
       cleanData.created_at = new Date().toISOString()
       cleanData.updated_at = new Date().toISOString()
-      
-      const { data, error } = await supabase
-        .from('cons')
-        .insert(cleanData)
-        .select('*')
-        .single()
-      
-      if (error) throw error
-      
-      console.log('✅ createEvent: Мероприятие создано:', data.name)
-      return data
+
+      const data = await adminDb('cons', {
+        method: 'POST',
+        query: { select: '*' },
+        prefer: 'return=representation',
+        body: cleanData
+      })
+
+      const createdEvent = firstRow(data)
+      if (!createdEvent) throw new Error('Мероприятие не было создано')
+
+      console.log('✅ createEvent: Мероприятие создано:', createdEvent.name)
+      return createdEvent
       
     } catch (error) {
       console.error('❌ createEvent: Ошибка создания мероприятия:', error)
@@ -310,17 +337,18 @@ export const furryApi = {
         }
       }
       
-      const { data, error } = await supabase
-        .from('cons')
-        .update(cleanData)
-        .eq('id', eventId)
-        .select('*')
-        .single()
-      
-      if (error) throw error
-      
-      console.log('✅ updateEvent: Мероприятие обновлено:', data.name)
-      return data
+      const data = await adminDb('cons', {
+        method: 'PATCH',
+        query: { id: `eq.${eventId}`, select: '*' },
+        prefer: 'return=representation',
+        body: cleanData
+      })
+
+      const updatedEvent = firstRow(data)
+      if (!updatedEvent) throw new Error('Мероприятие не было обновлено')
+
+      console.log('✅ updateEvent: Мероприятие обновлено:', updatedEvent.name)
+      return updatedEvent
       
     } catch (error) {
       console.error('❌ updateEvent: Ошибка обновления мероприятия:', error)
@@ -352,19 +380,17 @@ export const furryApi = {
 
       // Удаляем связанные данные из БД
       await Promise.all([
-        supabase.from('con_links').delete().eq('con_id', eventId),
-        supabase.from('con_features').delete().eq('con_id', eventId),
-        supabase.from('con_photos').delete().eq('con_id', eventId),
-        supabase.from('con_purchases').delete().eq('con_id', eventId)
+        adminDb('con_links', { method: 'DELETE', query: { con_id: `eq.${eventId}` } }),
+        adminDb('con_features', { method: 'DELETE', query: { con_id: `eq.${eventId}` } }),
+        adminDb('con_photos', { method: 'DELETE', query: { con_id: `eq.${eventId}` } }),
+        adminDb('con_purchases', { method: 'DELETE', query: { con_id: `eq.${eventId}` } })
       ])
 
       // Затем удаляем само мероприятие
-      const { error } = await supabase
-        .from('cons')
-        .delete()
-        .eq('id', eventId)
-
-      if (error) throw error
+      await adminDb('cons', {
+        method: 'DELETE',
+        query: { id: `eq.${eventId}` }
+      })
 
       console.log('✅ deleteEvent: Мероприятие и все связанные данные удалены')
       return true
@@ -598,12 +624,10 @@ export const furryApi = {
       console.log('🛍️ saveEventPurchases: Сохраняем покупки для мероприятия:', eventId)
 
       // Удаляем старые покупки
-      const { error: deleteError } = await supabase
-        .from('con_purchases')
-        .delete()
-        .eq('con_id', eventId)
-
-      if (deleteError) throw deleteError
+      await adminDb('con_purchases', {
+        method: 'DELETE',
+        query: { con_id: `eq.${eventId}` }
+      })
 
       // Добавляем новые покупки
       if (purchases && purchases.length > 0) {
@@ -619,11 +643,10 @@ export const furryApi = {
 
         if (purchasesToInsert.length > 0) {
           console.log('📦 Данные для вставки в con_purchases:', JSON.stringify(purchasesToInsert, null, 2))
-          const { error: insertError } = await supabase
-            .from('con_purchases')
-            .insert(purchasesToInsert)
-
-          if (insertError) throw insertError
+          await adminDb('con_purchases', {
+            method: 'POST',
+            body: purchasesToInsert
+          })
         }
       }
 
@@ -646,12 +669,14 @@ export const furryApi = {
       // Добавляем новые фотографии
       if (photos && photos.length > 0) {
         // Получаем текущий максимальный display_order
-        const { data: existingPhotos } = await supabase
-          .from('con_photos')
-          .select('display_order')
-          .eq('con_id', eventId)
-          .order('display_order', { ascending: false })
-          .limit(1)
+        const existingPhotos = await adminDb('con_photos', {
+          query: {
+            select: 'display_order',
+            con_id: `eq.${eventId}`,
+            order: 'display_order.desc',
+            limit: 1
+          }
+        })
 
         const startOrder = existingPhotos && existingPhotos.length > 0
           ? existingPhotos[0].display_order + 1
@@ -696,11 +721,10 @@ export const furryApi = {
             return true
           })
 
-        const { error: insertError } = await supabase
-          .from('con_photos')
-          .insert(photosToInsert)
-
-        if (insertError) throw insertError
+        await adminDb('con_photos', {
+          method: 'POST',
+          body: photosToInsert
+        })
       }
 
       console.log('✅ saveEventPhotos: Фотографии сохранены:', photos?.length || 0)
@@ -721,12 +745,10 @@ export const furryApi = {
     try {
       console.log('🗑️ deleteEventPhotos: Удаляем фотографии мероприятия:', eventId)
 
-      const { error } = await supabase
-        .from('con_photos')
-        .delete()
-        .eq('con_id', eventId)
-
-      if (error) throw error
+      await adminDb('con_photos', {
+        method: 'DELETE',
+        query: { con_id: `eq.${eventId}` }
+      })
 
       console.log('✅ deleteEventPhotos: Фотографии удалены')
       return true
@@ -747,21 +769,17 @@ export const furryApi = {
       console.log('🗑️ deleteEventPhoto: Удаляем фотографию:', photoId)
 
       // Сначала получаем данные фотографии (нужны пути к файлам)
-      const { data: photo, error: selectError } = await supabase
-        .from('con_photos')
-        .select('*')
-        .eq('id', photoId)
-        .single()
+      const photo = firstRow(await adminDb('con_photos', {
+        query: { select: '*', id: `eq.${photoId}`, limit: 1 }
+      }))
 
-      if (selectError) throw selectError
+      if (!photo) throw new Error('Фотография не найдена')
 
       // Удаляем запись из БД
-      const { error: deleteError } = await supabase
-        .from('con_photos')
-        .delete()
-        .eq('id', photoId)
-
-      if (deleteError) throw deleteError
+      await adminDb('con_photos', {
+        method: 'DELETE',
+        query: { id: `eq.${photoId}` }
+      })
 
       console.log('✅ deleteEventPhoto: Фотография удалена из БД')
 
@@ -1012,45 +1030,46 @@ export const furryApi = {
       if (existingArtist) {
         artistId = existingArtist.id
       } else {
-        const { data: newArtist, error: createError } = await supabase
-          .from('persons')
-          .insert([{
+        const newArtist = firstRow(await adminDb('persons', {
+          method: 'POST',
+          query: { select: 'id' },
+          prefer: 'return=representation',
+          body: [{
             nickname: artData.artist_nickname,
             avatar_url: null,
             is_friend: false
-          }])
-          .select('id')
-          .single()
-          
-        if (createError) throw createError
+          }]
+        }))
+
+        if (!newArtist) throw new Error('Не удалось создать художника')
         artistId = newArtist.id
       }
       
       // Добавляем арт
-      const { data: artResult, error: artError } = await supabase
-        .from('arts')
-        .insert([{
+      const artResult = firstRow(await adminDb('arts', {
+        method: 'POST',
+        query: { select: '*' },
+        prefer: 'return=representation',
+        body: [{
           title: artData.title,
           image_url: artData.image_url,
           thumbnail_url: artData.thumbnail_url || artData.image_url,
           is_nsfw: artData.is_nsfw || false,
           upload_date: new Date().toISOString()
-        }])
-        .select()
-        .single()
-      
-      if (artError) throw artError
+        }]
+      }))
+
+      if (!artResult) throw new Error('Не удалось создать арт')
       
       // Связываем с художником
-      const { error: collabError } = await supabase
-        .from('art_collaborators')
-        .insert([{
+      await adminDb('art_collaborators', {
+        method: 'POST',
+        body: [{
           art_id: artResult.id,
           person_id: artistId,
           role: 'main_artist'
-        }])
-      
-      if (collabError) throw collabError
+        }]
+      })
       
       console.log('✅ addFurryArt: Арт добавлен:', artResult.title)
       return artResult
@@ -1082,27 +1101,25 @@ export const furryApi = {
         if (existingTag) {
           tagId = existingTag.id
         } else {
-          const { data: newTag, error: createError } = await supabase
-            .from('tags')
-            .insert([{ name: tagName }])
-            .select('id')
-            .single()
-            
-          if (createError) throw createError
+          const newTag = firstRow(await adminDb('tags', {
+            method: 'POST',
+            query: { select: 'id' },
+            prefer: 'return=representation',
+            body: [{ name: tagName }]
+          }))
+
+          if (!newTag) throw new Error('Не удалось создать тег')
           tagId = newTag.id
         }
         
         // Связываем тег с артом
-        const { error: linkError } = await supabase
-          .from('art_tags')
-          .insert([{
+        await adminDb('art_tags', {
+          method: 'POST',
+          body: [{
             art_id: artId,
             tag_id: tagId
-          }])
-        
-        if (linkError && linkError.code !== '23505') { // Игнорируем дублирование
-          throw linkError
-        }
+          }]
+        })
       }
       
       console.log('✅ addArtTags: Теги добавлены')
@@ -1134,17 +1151,18 @@ export const furryApi = {
       if (defaultPerson) {
         defaultPersonId = defaultPerson.id
       } else {
-        const { data: newPerson, error: createPersonError } = await supabase
-          .from('persons')
-          .insert([{
+        const newPerson = firstRow(await adminDb('persons', {
+          method: 'POST',
+          query: { select: 'id' },
+          prefer: 'return=representation',
+          body: [{
             nickname: 'Fox Taffy',
             avatar_url: null,
             is_friend: false
-          }])
-          .select('id')
-          .single()
-          
-        if (createPersonError) throw createPersonError
+          }]
+        }))
+
+        if (!newPerson) throw new Error('Не удалось создать персону по умолчанию')
         defaultPersonId = newPerson.id
       }
       
@@ -1162,30 +1180,28 @@ export const furryApi = {
         if (existingCharacter) {
           characterId = existingCharacter.id
         } else {
-          const { data: newCharacter, error: createError } = await supabase
-            .from('fursonas')
-            .insert([{ 
+          const newCharacter = firstRow(await adminDb('fursonas', {
+            method: 'POST',
+            query: { select: 'id' },
+            prefer: 'return=representation',
+            body: [{ 
               name: characterName,
               person_id: defaultPersonId // Связываем с персоной по умолчанию
-            }])
-            .select('id')
-            .single()
-            
-          if (createError) throw createError
+            }]
+          }))
+
+          if (!newCharacter) throw new Error('Не удалось создать персонажа')
           characterId = newCharacter.id
         }
         
         // Связываем персонажа с артом
-        const { error: linkError } = await supabase
-          .from('art_fursonas')
-          .insert([{
+        await adminDb('art_fursonas', {
+          method: 'POST',
+          body: [{
             art_id: artId,
             fursona_id: characterId
-          }])
-        
-        if (linkError && linkError.code !== '23505') { // Игнорируем дублирование
-          throw linkError
-        }
+          }]
+        })
       }
       
       console.log('✅ addArtCharacters: Персонажи добавлены')
@@ -1272,18 +1288,20 @@ export const furryApi = {
         throw new Error('Художник с таким никнеймом уже существует')
       }
 
-      const { data, error } = await supabase
-        .from('persons')
-        .insert([{
+      const data = await adminDb('persons', {
+        method: 'POST',
+        query: { select: '*' },
+        prefer: 'return=representation',
+        body: [{
           nickname: artistData.nickname.trim(),
           avatar_url: artistData.avatar_url || null,
           is_friend: artistData.is_friend || false
-        }])
-        .select()
+        }]
+      })
 
-      if (error) throw error
-      console.log('✅ createArtist: Художник создан:', data[0])
-      return data[0]
+      const createdArtist = firstRow(data)
+      console.log('✅ createArtist: Художник создан:', createdArtist)
+      return createdArtist
     } catch (error) {
       console.error('❌ createArtist: Ошибка создания художника:', error)
       throw error
@@ -1380,16 +1398,18 @@ export const furryApi = {
         throw new Error('Тег с таким названием уже существует')
       }
 
-      const { data, error } = await supabase
-        .from('tags')
-        .insert([{
+      const data = await adminDb('tags', {
+        method: 'POST',
+        query: { select: '*' },
+        prefer: 'return=representation',
+        body: [{
           name: tagData.name.trim()
-        }])
-        .select()
+        }]
+      })
 
-      if (error) throw error
-      console.log('✅ createTag: Тег создан:', data[0])
-      return data[0]
+      const createdTag = firstRow(data)
+      console.log('✅ createTag: Тег создан:', createdTag)
+      return createdTag
     } catch (error) {
       console.error('❌ createTag: Ошибка создания тега:', error)
       throw error
@@ -1500,32 +1520,35 @@ export const furryApi = {
       if (defaultPerson) {
         defaultPersonId = defaultPerson.id
       } else {
-        const { data: newPerson, error: createPersonError } = await supabase
-          .from('persons')
-          .insert([{
+        const newPerson = firstRow(await adminDb('persons', {
+          method: 'POST',
+          query: { select: 'id' },
+          prefer: 'return=representation',
+          body: [{
             nickname: 'Fox Taffy',
             avatar_url: null,
             is_friend: false
-          }])
-          .select('id')
-          .single()
-          
-        if (createPersonError) throw createPersonError
+          }]
+        }))
+
+        if (!newPerson) throw new Error('Не удалось создать персону по умолчанию')
         defaultPersonId = newPerson.id
       }
 
-      const { data, error } = await supabase
-        .from('fursonas')
-        .insert([{
+      const data = await adminDb('fursonas', {
+        method: 'POST',
+        query: { select: '*' },
+        prefer: 'return=representation',
+        body: [{
           name: characterData.name.trim(),
           avatar_url: characterData.avatar_url || null,
           person_id: defaultPersonId
-        }])
-        .select()
+        }]
+      })
 
-      if (error) throw error
-      console.log('✅ createCharacter: Персонаж создан:', data[0])
-      return data[0]
+      const createdCharacter = firstRow(data)
+      console.log('✅ createCharacter: Персонаж создан:', createdCharacter)
+      return createdCharacter
     } catch (error) {
       console.error('❌ createCharacter: Ошибка создания персонажа:', error)
       throw error
@@ -1562,20 +1585,20 @@ export const furryApi = {
     try {
       console.log('📝 updateArtist: Обновляем художника:', artistId)
 
-      const { data, error } = await supabase
-        .from('persons')
-        .update({
+      const data = await adminDb('persons', {
+        method: 'PATCH',
+        query: { id: `eq.${artistId}`, select: '*' },
+        prefer: 'return=representation',
+        body: {
           nickname: artistData.nickname.trim(),
           avatar_url: artistData.avatar_url || null,
           is_friend: artistData.is_friend || false
-        })
-        .eq('id', artistId)
-        .select()
-        .single()
+        }
+      })
 
-      if (error) throw error
-      console.log('✅ updateArtist: Художник обновлен:', data)
-      return data
+      const updatedArtist = firstRow(data)
+      console.log('✅ updateArtist: Художник обновлен:', updatedArtist)
+      return updatedArtist
     } catch (error) {
       console.error('❌ updateArtist: Ошибка обновления художника:', error)
       throw error
@@ -1589,18 +1612,18 @@ export const furryApi = {
     try {
       console.log('📝 updateTag: Обновляем тег:', tagId)
 
-      const { data, error } = await supabase
-        .from('tags')
-        .update({
+      const data = await adminDb('tags', {
+        method: 'PATCH',
+        query: { id: `eq.${tagId}`, select: '*' },
+        prefer: 'return=representation',
+        body: {
           name: tagData.name.trim()
-        })
-        .eq('id', tagId)
-        .select()
-        .single()
+        }
+      })
 
-      if (error) throw error
-      console.log('✅ updateTag: Тег обновлен:', data)
-      return data
+      const updatedTag = firstRow(data)
+      console.log('✅ updateTag: Тег обновлен:', updatedTag)
+      return updatedTag
     } catch (error) {
       console.error('❌ updateTag: Ошибка обновления тега:', error)
       throw error
@@ -1614,19 +1637,19 @@ export const furryApi = {
     try {
       console.log('📝 updateCharacter: Обновляем персонажа:', characterId)
 
-      const { data, error } = await supabase
-        .from('fursonas')
-        .update({
+      const data = await adminDb('fursonas', {
+        method: 'PATCH',
+        query: { id: `eq.${characterId}`, select: '*' },
+        prefer: 'return=representation',
+        body: {
           name: characterData.name.trim(),
           avatar_url: characterData.avatar_url || null
-        })
-        .eq('id', characterId)
-        .select()
-        .single()
+        }
+      })
 
-      if (error) throw error
-      console.log('✅ updateCharacter: Персонаж обновлен:', data)
-      return data
+      const updatedCharacter = firstRow(data)
+      console.log('✅ updateCharacter: Персонаж обновлен:', updatedCharacter)
+      return updatedCharacter
     } catch (error) {
       console.error('❌ updateCharacter: Ошибка обновления персонажа:', error)
       throw error
@@ -1649,14 +1672,14 @@ export const furryApi = {
         updateData.upload_date = artData.created_date
       }
 
-      const { data, error } = await supabase
-        .from('arts')
-        .update(updateData)
-        .eq('id', artId)
-        .select()
-        .single()
+      const data = firstRow(await adminDb('arts', {
+        method: 'PATCH',
+        query: { id: `eq.${artId}`, select: '*' },
+        prefer: 'return=representation',
+        body: updateData
+      }))
 
-      if (error) throw error
+      if (!data) throw new Error('Арт не был обновлен')
 
       // Обновляем художника если изменился
       if (artData.artist_nickname) {
@@ -1671,19 +1694,19 @@ export const furryApi = {
 
         if (artist) {
           // Обновляем связь с художником
-          await supabase
-            .from('art_collaborators')
-            .delete()
-            .eq('art_id', artId)
-            .eq('role', 'main_artist')
+          await adminDb('art_collaborators', {
+            method: 'DELETE',
+            query: { art_id: `eq.${artId}`, role: 'eq.main_artist' }
+          })
 
-          await supabase
-            .from('art_collaborators')
-            .insert({
+          await adminDb('art_collaborators', {
+            method: 'POST',
+            body: {
               art_id: artId,
               person_id: artist.id,
               role: 'main_artist'
-            })
+            }
+          })
         }
       }
 
@@ -1716,12 +1739,10 @@ export const furryApi = {
     try {
       console.log('🗑️ deleteArtist: Удаляем художника:', artistId)
 
-      const { error } = await supabase
-        .from('persons')
-        .delete()
-        .eq('id', artistId)
-
-      if (error) throw error
+      await adminDb('persons', {
+        method: 'DELETE',
+        query: { id: `eq.${artistId}` }
+      })
       console.log('✅ deleteArtist: Художник удален')
     } catch (error) {
       console.error('❌ deleteArtist: Ошибка удаления художника:', error)
@@ -1736,12 +1757,10 @@ export const furryApi = {
     try {
       console.log('🗑️ deleteTag: Удаляем тег:', tagId)
 
-      const { error } = await supabase
-        .from('tags')
-        .delete()
-        .eq('id', tagId)
-
-      if (error) throw error
+      await adminDb('tags', {
+        method: 'DELETE',
+        query: { id: `eq.${tagId}` }
+      })
       console.log('✅ deleteTag: Тег удален')
     } catch (error) {
       console.error('❌ deleteTag: Ошибка удаления тега:', error)
@@ -1756,12 +1775,10 @@ export const furryApi = {
     try {
       console.log('🗑️ deleteCharacter: Удаляем персонажа:', characterId)
 
-      const { error } = await supabase
-        .from('fursonas')
-        .delete()
-        .eq('id', characterId)
-
-      if (error) throw error
+      await adminDb('fursonas', {
+        method: 'DELETE',
+        query: { id: `eq.${characterId}` }
+      })
       console.log('✅ deleteCharacter: Персонаж удален')
     } catch (error) {
       console.error('❌ deleteCharacter: Ошибка удаления персонажа:', error)
@@ -1777,28 +1794,26 @@ export const furryApi = {
       console.log('🗑️ deleteArt: Удаляем арт:', artId)
 
       // Сначала удаляем связи
-      await supabase
-        .from('art_collaborators')
-        .delete()
-        .eq('art_id', artId)
+      await adminDb('art_collaborators', {
+        method: 'DELETE',
+        query: { art_id: `eq.${artId}` }
+      })
 
-      await supabase
-        .from('art_tags')
-        .delete()
-        .eq('art_id', artId)
+      await adminDb('art_tags', {
+        method: 'DELETE',
+        query: { art_id: `eq.${artId}` }
+      })
 
-      await supabase
-        .from('art_fursonas')
-        .delete()
-        .eq('art_id', artId)
+      await adminDb('art_fursonas', {
+        method: 'DELETE',
+        query: { art_id: `eq.${artId}` }
+      })
 
       // Затем удаляем сам арт
-      const { error } = await supabase
-        .from('arts')
-        .delete()
-        .eq('id', artId)
-
-      if (error) throw error
+      await adminDb('arts', {
+        method: 'DELETE',
+        query: { id: `eq.${artId}` }
+      })
       console.log('✅ deleteArt: Арт удален')
     } catch (error) {
       console.error('❌ deleteArt: Ошибка удаления арта:', error)
@@ -1848,10 +1863,10 @@ export const furryApi = {
   async updateArtTags(artId, tagNames) {
     try {
       // Удаляем старые теги
-      await supabase
-        .from('art_tags')
-        .delete()
-        .eq('art_id', artId)
+      await adminDb('art_tags', {
+        method: 'DELETE',
+        query: { art_id: `eq.${artId}` }
+      })
 
       // Добавляем новые теги
       if (tagNames && tagNames.length > 0) {
@@ -1869,10 +1884,10 @@ export const furryApi = {
   async updateArtCharacters(artId, characterNames) {
     try {
       // Удаляем старых персонажей
-      await supabase
-        .from('art_fursonas')
-        .delete()
-        .eq('art_id', artId)
+      await adminDb('art_fursonas', {
+        method: 'DELETE',
+        query: { art_id: `eq.${artId}` }
+      })
 
       // Добавляем новых персонажей
       if (characterNames && characterNames.length > 0) {
