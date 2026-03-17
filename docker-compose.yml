@@ -20,7 +20,8 @@ services:
       PGRST_DB_PASS: ${PGRST_DB_PASS}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docker/postgres/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
+      - ./docker/postgres/init.sh:/docker-entrypoint-initdb.d/01-init.sh:ro
+      - ./docker/postgres/02-schema.sql:/docker-entrypoint-initdb.d/02-schema.sql:ro
     ports:
       - "5433:5432"
     healthcheck:
@@ -107,6 +108,7 @@ services:
       - "3002:3002"
     environment:
       PORT: "3002"
+      NODE_ENV: "production"
       MINIO_ENDPOINT: "minio"
       MINIO_PORT: "9000"
       MINIO_USE_SSL: "false"
@@ -118,6 +120,7 @@ services:
       ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET}
       PGRST_URL: "http://postgrest:3000"
       PGRST_JWT_SECRET: ${PGRST_JWT_SECRET}
+      ADMIN_COOKIE_SECURE: "true"
       ALLOWED_ORIGIN: "https://foxtaffy.gay"
     depends_on:
       minio:

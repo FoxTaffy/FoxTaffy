@@ -829,7 +829,7 @@
 
 <script>
 import { furryApi } from '@/config/supabase.js'
-import FileUploader from '@/FileUploader.vue'
+import FileUploader from '@/components/FileUploader.vue'
 import StarRating from '@/components/ui/StarRating.vue'
 import CompactImageUploader from '@/components/CompactImageUploader.vue'
 

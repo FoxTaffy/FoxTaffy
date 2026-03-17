@@ -7,15 +7,14 @@ import { createClient } from '@supabase/supabase-js'
 import { adminApiRequest } from '@/utils/adminAuth.js'
 
 // ===============================================
-// 🔧 КОНФИГУРАЦИЯ SUPABASE
+// 🔧 КОНФИГУРАЦИЯ — Self-hosted VPS (PostgREST)
 // ===============================================
 
-// Проверяем, используется ли Vite или Next.js
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Ошибка: Переменные окружения Supabase не найдены!')
+  console.error('Ошибка: VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY не заданы в .env')
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)

@@ -3,10 +3,14 @@
   <div class="section reference-section" id="reference">
     <h2 class="section-title">Референс фурсоны</h2>
     <div class="reference-container">
-      <!-- Основное изображение референса с переходом в галерею -->
+      <!-- Основное изображение референса -->
       <div class="reference-main">
-        <div class="reference-image" @click="$router.push('/gallery')">
+        <div class="reference-image reference-image--clickable" @click="openLightbox">
           <img :src="ReferenceSFW" alt="Fox Taffy Ref Sheet">
+          <div class="reference-image-overlay">
+            <i class="fas fa-search-plus"></i>
+            <span>Открыть</span>
+          </div>
         </div>
         
         <!-- Цветовая палитра персонажа -->
@@ -74,12 +78,30 @@
                 <i class="fas fa-history"></i>
                 <span>Полная история</span>
               </router-link>
+              <router-link to="/gallery" class="origin-btn gallery">
+                <i class="fas fa-images"></i>
+                <span>Галерея</span>
+              </router-link>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Лайтбокс для референса -->
+  <Teleport to="body">
+    <Transition name="ref-lightbox">
+      <div v-if="showLightbox" class="ref-lightbox-overlay" @click="closeLightbox">
+        <button class="ref-lightbox-close" @click="closeLightbox">
+          <i class="fas fa-times"></i>
+        </button>
+        <div class="ref-lightbox-content" @click.stop>
+          <img :src="ReferenceSFW" alt="Fox Taffy Ref Sheet" class="ref-lightbox-image">
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script>
@@ -90,6 +112,7 @@ export default {
   data() {
     return {
       ReferenceSFW: ReferenceSFW,
+      showLightbox: false,
       activeColor: null,
       colorCopied: false,
       copyTimeout: null,
@@ -103,7 +126,26 @@ export default {
       ]
     }
   },
+  mounted() {
+    window.addEventListener('keydown', this.handleKeyDown);
+  },
+  beforeUnmount() {
+    window.removeEventListener('keydown', this.handleKeyDown);
+  },
   methods: {
+    openLightbox() {
+      this.showLightbox = true;
+      document.body.style.overflow = 'hidden';
+    },
+    closeLightbox() {
+      this.showLightbox = false;
+      document.body.style.overflow = '';
+    },
+    handleKeyDown(e) {
+      if (e.key === 'Escape' && this.showLightbox) {
+        this.closeLightbox();
+      }
+    },
     copyColorCode(colorHex) {
       // Удаляем символ # из начала hex-кода, если он есть
       const colorCodeWithoutHash = colorHex.startsWith('#') ? colorHex.substring(1) : colorHex;
@@ -131,3 +173,115 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+/* Кнопка галереи */
+.origin-btn.gallery {
+  background: linear-gradient(135deg, rgba(78, 205, 196, 0.15), rgba(78, 205, 196, 0.05));
+  border: 1px solid rgba(78, 205, 196, 0.4);
+  color: #4ecdc4;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  margin-left: 0.5rem;
+}
+.origin-btn.gallery:hover {
+  background: linear-gradient(135deg, rgba(78, 205, 196, 0.3), rgba(78, 205, 196, 0.1));
+  border-color: rgba(78, 205, 196, 0.7);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.25);
+}
+
+/* Оверлей на картинке референса */
+.reference-image--clickable {
+  position: relative;
+  cursor: pointer;
+}
+.reference-image-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  pointer-events: none;
+}
+.reference-image-overlay i {
+  font-size: 2rem;
+}
+.reference-image--clickable:hover .reference-image-overlay {
+  opacity: 1;
+}
+
+/* Лайтбокс */
+.ref-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+}
+.ref-lightbox-close {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10001;
+}
+.ref-lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+.ref-lightbox-content {
+  max-width: 90vw;
+  max-height: 90vh;
+  cursor: default;
+}
+.ref-lightbox-image {
+  max-width: 100%;
+  max-height: 90vh;
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  display: block;
+}
+
+/* Анимации */
+.ref-lightbox-enter-active,
+.ref-lightbox-leave-active {
+  transition: opacity 0.25s ease;
+}
+.ref-lightbox-enter-from,
+.ref-lightbox-leave-to {
+  opacity: 0;
+}
+</style>

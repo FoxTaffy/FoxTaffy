@@ -1,6 +1,5 @@
 <template>
   <div id="app">
-    <Analytics />
     <!-- Навигационная панель -->
     <nav class="navbar" :class="{ 'scrolled': isScrolled, 'mobile-open': isMobileMenuOpen }">
       <div class="nav-container">
@@ -151,13 +150,9 @@
 </template>
 
 <script>
-import { Analytics } from '@vercel/analytics/vue';
-
 export default {
   name: 'App',
-  components: {
-    Analytics
-  },
+  components: {},
   data() {
     return {
       isScrolled: false,
