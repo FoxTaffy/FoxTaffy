@@ -24,7 +24,25 @@
         <span class="tag">Гей</span>
       </div>
       <p class="bio-short">Привет! Я фурри-энтузиаст и путешественник. Люблю исследовать новые места, посещать фурри-конвенции и делиться своими приключениями с сообществом.</p>
-      
+
+      <div class="fav-track-widget">
+        <div class="fav-track-label">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="var(--accent-orange)">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+          Любимый трек
+        </div>
+        <iframe
+          frameborder="0"
+          allow="clipboard-write"
+          style="border:none;width:520px;height:100px;"
+          width="520"
+          height="100"
+          src="https://music.yandex.ru/iframe/album/39135564/track/145046235"
+          title="ствол — плм на Яндекс Музыке"
+        ></iframe>
+      </div>
+
       <div class="social-links">
         <a href="https://x.com/Fox_Taffy621" class="social-btn x-twitter" title="X" target="_blank" rel="noopener">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -99,3 +117,34 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.fav-track-widget {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 1rem 0;
+}
+
+.fav-track-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.fav-track-widget iframe {
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  transition: box-shadow 0.3s ease;
+}
+
+.fav-track-widget iframe:hover {
+  box-shadow: 0 6px 28px rgba(255, 123, 37, 0.25);
+}
+</style>
