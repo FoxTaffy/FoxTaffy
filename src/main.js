@@ -95,40 +95,16 @@ app.config.globalProperties.$galleryConfig = {
 app.config.globalProperties.$updateMetaTags = updateMetaTags
 
 // Настройка FontAwesome
-import { library } from '@fortawesome/fontawesome-svg-core'
+import { library, dom } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { fas } from '@fortawesome/free-solid-svg-icons'
+import { fab } from '@fortawesome/free-brands-svg-icons'
 
-// Solid icons
-import { 
-  faSearch, faImage, faHeart, faEye, faTimes, faTrashAlt, faDownload, 
-  faShareAlt, faPencilAlt, faChevronLeft, faChevronRight, faPlus,
-  faCalendarAlt, faMapMarkerAlt, faUsers, faBell, faPaintBrush, 
-  faPalette, faDollarSign, faGift, faUser, faUserCircle, faBaby, 
-  faDesktop, faPen, faSave, faCloudUploadAlt, faTimesCircle, faCheckCircle,
-  faTag, faStar, faChevronUp, faChevronDown, faExclamationTriangle,
-  faSliders, faList, faTh, faSearchPlus, faArrowRight, faSyncAlt,
-  faArrowLeft, faHome
-} from '@fortawesome/free-solid-svg-icons'
+// Загружаем все иконки из обоих пакетов
+library.add(fas, fab)
 
-// Brand icons
-import { 
-  faInstagram, faTelegram, faVk, faDiscord, faGithub, faTwitch,
-  faTiktok, faSteam 
-} from '@fortawesome/free-brands-svg-icons'
-
-// Добавление иконок в библиотеку
-library.add(
-  faSearch, faImage, faHeart, faEye, faTimes, faTrashAlt, faDownload, 
-  faShareAlt, faPencilAlt, faChevronLeft, faChevronRight, faPlus,
-  faCalendarAlt, faMapMarkerAlt, faUsers, faBell, faPaintBrush, 
-  faPalette, faDollarSign, faGift, faUser, faUserCircle, faBaby, 
-  faDesktop, faPen, faSave, faCloudUploadAlt, faTimesCircle, faCheckCircle,
-  faTag, faStar, faChevronUp, faChevronDown, faExclamationTriangle,
-  faSliders, faList, faTh, faSearchPlus, faArrowRight, faSyncAlt,
-  faArrowLeft, faHome,
-  faInstagram, faTelegram, faVk, faDiscord, faGithub, faTwitch,
-  faTiktok, faSteam
-)
+// Авто-замена <i class="fas fa-..."> тегов на SVG (поддержка CSS-стиля)
+dom.watch()
 
 // Глобальная регистрация компонента иконок
 app.component('font-awesome-icon', FontAwesomeIcon)

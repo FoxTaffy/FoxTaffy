@@ -1054,10 +1054,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Импорт внешних ресурсов */
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
 /* Переменные */
 :root {
   --bg-dark: #0C1217;

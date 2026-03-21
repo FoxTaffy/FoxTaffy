@@ -9,6 +9,9 @@ SITE_DIR="/var/www/FoxTaffy"
 CERTBOT_WEBROOT="/var/www/certbot"
 cd "$SITE_DIR"
 
+# Защита .env — только root может читать (исправляем до любых операций)
+chmod 600 "$SITE_DIR/.env" 2>/dev/null || true
+
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "🦊 FoxTaffy Deploy"
 echo "   $(date '+%Y-%m-%d %H:%M:%S')"

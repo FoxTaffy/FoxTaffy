@@ -9,7 +9,7 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
-  // Убираем все настройки AWS SDK
+// Убираем все настройки AWS SDK
   optimizeDeps: {
     include: [
       '@supabase/supabase-js',
@@ -18,15 +18,15 @@ export default defineConfig({
       'lodash-es'
     ]
   },
+  // esbuild встроен в Vite — быстрее terser в 20×, без доп. зависимостей.
+  // drop: ['console', 'debugger'] убирает все console.log из prod-бандла.
+  esbuild: {
+    drop: ['console', 'debugger']
+  },
   build: {
     target: 'esnext',
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
-      }
-    },
+    minify: 'esbuild',
+    reportCompressedSize: false, // не считать gzip при каждом билде (ускоряет ~1-2с)
     rollupOptions: {
       output: {
         manualChunks: {

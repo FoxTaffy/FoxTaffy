@@ -43,6 +43,19 @@ const LOGIN_LOCK_MS = 15 * 60 * 1000
 const LOGIN_MAX_ATTEMPTS = 5
 const loginAttempts = new Map()
 
+// Очистка устаревших записей brute-force каждые 30 минут.
+// Удаляем все записи, у которых блокировка истекла (lockedUntil < now).
+// Важно: без этой проверки entries с attempts > 0 и истёкшим lockedUntil
+// никогда не удалялись бы (старое условие требовало attempts === 0).
+setInterval(() => {
+  const now = Date.now()
+  for (const [ip, state] of loginAttempts) {
+    if (state.lockedUntil < now) {
+      loginAttempts.delete(ip)
+    }
+  }
+}, 30 * 60 * 1000)
+
 const allowedOrigins = ALLOWED_ORIGIN === '*'
   ? ['*']
   : ALLOWED_ORIGIN.split(',').map(origin => origin.trim()).filter(Boolean)
@@ -167,7 +180,9 @@ const requireAdmin = (req, res, next) => {
 }
 
 const requireApiKeyOrAdmin = (req, res, next) => {
-  const key = req.headers['x-api-key'] || req.query.api_key
+  // api_key принимается ТОЛЬКО из заголовка, не из query string.
+  // Ключи в URL попадают в access-логи сервера, историю браузера и Referer-заголовки.
+  const key = req.headers['x-api-key']
   if (API_KEY && key === API_KEY) {
     return next()
   }
@@ -312,6 +327,22 @@ app.post('/upload/:bucket', requireApiKeyOrAdmin, async (req, res) => {
 
   const { bucket } = req.params
 
+  // Белый список разрешённых MIME-типов.
+  // Запрет SVG/HTML/XML предотвращает хранимый XSS через /s3/ прокси.
+  const ALLOWED_MIME_TYPES = new Set([
+    'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
+    'image/webp', 'image/avif'
+  ])
+
+  // Паттерн безопасного пути: только буквы, цифры, /, -, _, .
+  // Запрет .. предотвращает path traversal (перезапись произвольных файлов в бакете)
+  const SAFE_PATH_RE = /^[a-zA-Z0-9/_\-. ]+$/
+  const sanitizePath = (raw) => {
+    if (!raw || typeof raw !== 'string') return null
+    const normalized = raw.replace(/\.\.\/|\.\.\\/g, '').replace(/^\/+/, '')
+    return SAFE_PATH_RE.test(normalized) ? normalized : null
+  }
+
   try {
     await s3.send(new HeadBucketCommand({ Bucket: bucket }))
   } catch {
@@ -330,13 +361,26 @@ app.post('/upload/:bucket', requireApiKeyOrAdmin, async (req, res) => {
       })
 
       bb.on('field', (name, val) => {
-        if (name === 'path') uploadedPath = val
+        if (name === 'path') uploadedPath = sanitizePath(val)
       })
 
       bb.on('file', async (_fieldname, stream, info) => {
         const { filename, mimeType } = info
-        contentType = mimeType || 'image/jpeg'
-        const filePath = uploadedPath || filename
+        const resolvedMime = mimeType || 'image/jpeg'
+
+        // Проверяем MIME-тип до чтения содержимого файла
+        if (!ALLOWED_MIME_TYPES.has(resolvedMime)) {
+          stream.resume() // обязательно дренируем поток busboy
+          return reject(Object.assign(new Error(`Недопустимый тип файла: ${resolvedMime}`), { status: 415 }))
+        }
+
+        contentType = resolvedMime
+        const safeName = sanitizePath(uploadedPath || filename)
+        if (!safeName) {
+          stream.resume()
+          return reject(Object.assign(new Error('Недопустимый путь файла'), { status: 400 }))
+        }
+        const filePath = safeName
 
         const chunks = []
         for await (const chunk of stream) {
@@ -375,7 +419,7 @@ app.post('/upload/:bucket', requireApiKeyOrAdmin, async (req, res) => {
     })
   } catch (err) {
     console.error('Upload error:', err)
-    res.status(500).json({ error: err.message })
+    res.status(err.status || 500).json({ error: err.message })
   }
 })
 
