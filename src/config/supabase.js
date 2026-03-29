@@ -17,7 +17,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Ошибка: VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY не заданы в .env')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: false
+  }
+})
 
 const buildAdminQuery = (params = {}) => {
   const search = new URLSearchParams()
