@@ -12,13 +12,14 @@ async function parseJson(response) {
 }
 
 async function request(path, options = {}) {
+  const { headers: extraHeaders, ...restOptions } = options
   const response = await fetch(`${ADMIN_API_BASE}${path}`, {
     credentials: 'include',
+    ...restOptions,
     headers: {
-      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-      ...(options.headers || {})
-    },
-    ...options
+      ...(restOptions.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(extraHeaders || {})
+    }
   })
 
   const data = await parseJson(response)

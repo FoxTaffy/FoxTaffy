@@ -17,6 +17,7 @@ import {
 } from '@aws-sdk/client-s3'
 
 const app = express()
+app.set('trust proxy', 1)
 const PORT = process.env.PORT || 3002
 
 const s3 = new S3Client({
@@ -32,7 +33,7 @@ const s3 = new S3Client({
 const PUBLIC_URL = process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'
 const API_KEY = process.env.UPLOAD_API_KEY || ''
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*'
-const ADMIN_SECRET_CODE = process.env.ADMIN_SECRET_CODE || ''
+const ADMIN_SECRET_CODE = (process.env.ADMIN_SECRET_CODE || '').trim()
 const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || process.env.PGRST_JWT_SECRET || ADMIN_SECRET_CODE
 const PGRST_URL = process.env.PGRST_URL || 'http://localhost:3001'
 const PGRST_JWT_SECRET = process.env.PGRST_JWT_SECRET || ''
