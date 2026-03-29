@@ -258,10 +258,13 @@ app.post('/upload/admin/login', (req, res) => {
       state.lockedUntil = Date.now() + LOGIN_LOCK_MS
     }
     loginAttempts.set(ip, state)
-    return res.status(state.lockedUntil ? 429 : 401).json({
-      error: state.lockedUntil ? 'Too many attempts' : 'Invalid admin code',
-      retryAfter: state.lockedUntil ? Math.ceil((state.lockedUntil - Date.now()) / 1000) : undefined
-    })
+
+    if (state.lockedUntil) {
+      const retryAfter = Math.ceil((state.lockedUntil - Date.now()) / 1000)
+      return res.status(429).json({ error: 'Too many attempts', retryAfter })
+    }
+
+    return res.json({ ok: false, error: 'Invalid admin code' })
   }
 
   loginAttempts.set(ip, { attempts: 0, lockedUntil: 0 })

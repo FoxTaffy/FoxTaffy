@@ -41,10 +41,16 @@ export async function getAdminSession() {
 }
 
 export async function loginAdmin(code) {
-  return request('/admin/login', {
+  const data = await request('/admin/login', {
     method: 'POST',
     body: JSON.stringify({ code })
   })
+
+  if (!data?.ok) {
+    throw new Error(data?.error || 'Ошибка авторизации')
+  }
+
+  return data
 }
 
 export async function logoutAdmin() {
