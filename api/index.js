@@ -30,10 +30,12 @@ const s3 = new S3Client({
   forcePathStyle: true
 })
 
+const normalizeAdminCode = (value) => String(value ?? '').trim()
+
 const PUBLIC_URL = process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'
 const API_KEY = process.env.UPLOAD_API_KEY || ''
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*'
-const ADMIN_SECRET_CODE = (process.env.ADMIN_SECRET_CODE || '').trim()
+const ADMIN_SECRET_CODE = normalizeAdminCode(process.env.ADMIN_SECRET_CODE)
 const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || process.env.PGRST_JWT_SECRET || ADMIN_SECRET_CODE
 const PGRST_URL = process.env.PGRST_URL || 'http://localhost:3001'
 const PGRST_JWT_SECRET = process.env.PGRST_JWT_SECRET || ''
@@ -247,7 +249,7 @@ app.post('/upload/admin/login', (req, res) => {
     return res.status(429).json({ error: 'Too many attempts', retryAfter })
   }
 
-  const submittedCode = String(req.body?.code || '')
+  const submittedCode = normalizeAdminCode(req.body?.code)
   const expected = Buffer.from(ADMIN_SECRET_CODE)
   const received = Buffer.from(submittedCode)
   const isMatch = expected.length === received.length && crypto.timingSafeEqual(expected, received)
