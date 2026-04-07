@@ -32,10 +32,10 @@ const s3 = new S3Client({
 
 const normalizeAdminCode = (value) => {
   let s = String(value ?? '').normalize('NFC').trim()
-  if (s.length >= 2 && ((s[0] === '"' && s[s.length - 1] === '"') || (s[0] === "'" && s[s.length - 1] === "'"))) {
-    s = s.slice(1, -1).trim()
+  if (s.length >= 2 && s[0] === s[s.length - 1] && (s[0] === '"' || s[0] === "'")) {
+    s = s.slice(1, -1)
   }
-  return s
+  return s.trim()
 }
 
 const PUBLIC_URL = process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'
