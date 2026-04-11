@@ -304,9 +304,11 @@ export const s3Api = {
       if (onProgress) onProgress(10)
 
       // Загружаем через Upload API
+      // ВАЖНО: path должен идти ПЕРЕД file, чтобы busboy прочитал путь
+      // до начала обработки файлового потока
       const formData = new FormData()
-      formData.append('file', file, file.name || 'upload.jpg')
       formData.append('path', fileName)
+      formData.append('file', file, file.name || 'upload.jpg')
 
       const uploadResponse = await fetch(`${UPLOAD_API_URL}/${bucketName}`, {
         method: 'POST',
