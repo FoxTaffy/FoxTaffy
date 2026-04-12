@@ -631,6 +631,31 @@ export const s3Api = {
   },
 
   /**
+   * Получение информации о файле-изображении (размеры, тип, размер)
+   * @param {File} file - Файл изображения
+   * @returns {Promise<Object>} Объект с width, height, size, type, name
+   */
+  getFileInfo(file) {
+    return new Promise((resolve) => {
+      if (!file || !file.type.startsWith('image/')) {
+        resolve({ width: null, height: null, size: file?.size || 0, type: file?.type || '', name: file?.name || '' })
+        return
+      }
+      const img = new Image()
+      const url = URL.createObjectURL(file)
+      img.onload = () => {
+        URL.revokeObjectURL(url)
+        resolve({ width: img.naturalWidth, height: img.naturalHeight, size: file.size, type: file.type, name: file.name })
+      }
+      img.onerror = () => {
+        URL.revokeObjectURL(url)
+        resolve({ width: null, height: null, size: file.size, type: file.type, name: file.name })
+      }
+      img.src = url
+    })
+  },
+
+  /**
    * Валидация файла перед загрузкой
    * @param {File} file - Файл для проверки
    * @returns {Object} Результат валидации

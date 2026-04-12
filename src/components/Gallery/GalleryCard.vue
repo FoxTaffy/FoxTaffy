@@ -79,7 +79,7 @@
       <img
         v-if="isInView"
         ref="imageRef"
-        :src="optimizedImageUrl"
+        :src="currentImageUrl"
         :alt="art.title"
         class="ft-art-thumbnail"
         :class="{
@@ -89,6 +89,7 @@
         }"
         loading="lazy"
         @load="handleImageLoad"
+        @error="handleImageError"
       >
 
       <!-- Placeholder пока изображение не в зоне видимости -->
@@ -187,10 +188,22 @@ const isLiked = ref(false)
 const showTagsTooltip = ref(false)
 
 // Оптимизированный URL превью
+const thumbnailFailed = ref(false)
 const optimizedImageUrl = computed(() => {
   const url = props.art.thumbnail_url || props.art.image_url
   return optimizeImageUrl(url, { width: 400, quality: 75 })
 })
+const currentImageUrl = computed(() => {
+  if (thumbnailFailed.value) {
+    return optimizeImageUrl(props.art.image_url, { width: 400, quality: 75 })
+  }
+  return optimizedImageUrl.value
+})
+const handleImageError = () => {
+  if (!thumbnailFailed.value && props.art.thumbnail_url && props.art.thumbnail_url !== props.art.image_url) {
+    thumbnailFailed.value = true
+  }
+}
 
 // Бейдж качества: "HD" если есть оригинальный image_url, "GIF" для анимации
 const qualityBadge = computed(() => {

@@ -899,12 +899,14 @@ export const furryApi = {
     try {
       console.log('🎨 getFurryArts: Запрашиваем арты с опциями:', options)
       
-      // Используем прямой запрос к основной таблице
+      // Один запрос с embedded resources — устраняет N+1 для тегов и персонажей
       let query = supabase
         .from('arts')
         .select(`
           id, title, image_url, thumbnail_url, is_nsfw, upload_date,
-          art_collaborators!inner(persons!inner(nickname, avatar_url, is_friend))
+          art_collaborators!inner(persons!inner(nickname, avatar_url, is_friend)),
+          art_tags(tags(name)),
+          art_fursonas(fursonas(name, avatar_url))
         `)
         .eq('is_deleted', false)
         .eq('art_collaborators.role', 'main_artist')
@@ -948,24 +950,12 @@ export const furryApi = {
 
       if (error) throw error
 
-      // Обработка результатов с получением тегов и персонажей
-      const artsWithMetadata = await Promise.all((data || []).map(async (art) => {
+      // Обработка результатов — теги и персонажи уже embedded в ответе
+      const artsWithMetadata = (data || []).map((art) => {
         const mainArtist = art.art_collaborators?.[0]?.persons
         
-        // Загружаем теги для арта
-        const { data: artTags } = await supabase
-          .from('art_tags')
-          .select('tags(name)')
-          .eq('art_id', art.id)
-        
-        // Загружаем персонажей для арта
-        const { data: artCharacters } = await supabase
-          .from('art_fursonas')
-          .select('fursonas(name, avatar_url)')
-          .eq('art_id', art.id)
-        
-        const tags = (artTags || []).map(at => at.tags?.name).filter(Boolean)
-        const characters = (artCharacters || []).map(ac => ({
+        const tags = (art.art_tags || []).map(at => at.tags?.name).filter(Boolean)
+        const characters = (art.art_fursonas || []).map(ac => ({
           name: ac.fursonas?.name,
           avatar: ac.fursonas?.avatar_url
         })).filter(c => c.name)
@@ -985,7 +975,7 @@ export const furryApi = {
           tags: tags,
           tagNames: tags // Для совместимости
         }
-      }))
+      })
 
       // ✅ Применяем клиентские фильтры для тегов и персонажей
       let filteredArts = artsWithMetadata
