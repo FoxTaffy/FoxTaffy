@@ -37,15 +37,24 @@ echo "✅ Сборка готова: dist/"
 # ── 3. Nginx ─────────────────────────────────────
 echo ""
 NGINX_CONF="/etc/nginx/sites-available/foxtaffy"
+SSL_CERT="/etc/letsencrypt/live/foxtaffy.gay/fullchain.pem"
 
-if [[ ! -f "$NGINX_CONF" ]]; then
-    echo "🔧 Устанавливаю nginx конфиг..."
+# Всегда обновляем конфиг из репозитория
+echo "🔧 Обновляю nginx конфиг из репозитория..."
+cp "$SITE_DIR/nginx/foxtaffy.conf" "$NGINX_CONF"
+
+# Создаём симлинк если его нет
+if [[ ! -L "/etc/nginx/sites-enabled/foxtaffy" ]]; then
+    echo "🔗 Создаю симлинк nginx..."
+    ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/foxtaffy
+fi
+
+# Первичная установка: получаем SSL сертификат если его нет
+if [[ ! -f "$SSL_CERT" ]]; then
+    echo "🔒 Первичная установка: получаем SSL сертификат..."
 
     # Создаём директорию для certbot webroot (нужна для ACME-challenge)
     mkdir -p "$CERTBOT_WEBROOT"
-
-    cp "$SITE_DIR/nginx/foxtaffy.conf" "$NGINX_CONF"
-    ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/foxtaffy
 
     # Временный HTTP-only конфиг для Certbot
     cat > /etc/nginx/sites-available/foxtaffy-tmp << TMPEOF
@@ -64,7 +73,6 @@ TMPEOF
     rm -f /etc/nginx/sites-enabled/foxtaffy
     nginx -t && systemctl reload nginx
 
-    echo "🔒 Получаем SSL сертификат..."
     certbot certonly --webroot --webroot-path="$CERTBOT_WEBROOT" \
         -d foxtaffy.gay -d www.foxtaffy.gay \
         --non-interactive --agree-tos -m webmaster@foxtaffy.gay || \
