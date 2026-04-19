@@ -588,7 +588,7 @@
           </div>
 
           <!-- Шаг 4: Отзыв (после мероприятия) -->
-          <div v-show="currentStep === 3" class="wizard-step-content">
+          <div v-show="currentStep === 3 && isEventInPast" class="wizard-step-content">
             <div class="step-header compact">
               <div class="step-icon small review-icon">
                 <i class="fas fa-comment-alt"></i>
@@ -663,7 +663,7 @@
           </div>
 
           <!-- Шаг 5: Покупки -->
-          <div v-show="currentStep === 4" class="wizard-step-content">
+          <div v-show="currentStep === (isEventInPast ? 4 : 3)" class="wizard-step-content">
             <div class="step-header compact">
               <div class="step-icon small">
                 <i class="fas fa-shopping-bag"></i>
@@ -713,7 +713,7 @@
           </div>
 
           <!-- Шаг 6: Галерея фотографий -->
-          <div v-show="currentStep === 5" class="wizard-step-content">
+          <div v-show="currentStep === (isEventInPast ? 5 : 4)" class="wizard-step-content">
             <div class="step-header compact">
               <div class="step-icon small gallery-icon">
                 <i class="fas fa-images"></i>
@@ -981,6 +981,7 @@ export default {
         case 2:
         case 3:
         case 4:
+        case 5:
           return true
         default:
           return false
@@ -1116,19 +1117,19 @@ export default {
       ]
     },
 
-    // Шаги визарда - этапы обзора и галереи только для прошедших мероприятий
+    // Шаги визарда - покупки и галерея доступны для всех мероприятий
     wizardSteps() {
       const baseSteps = [
         { title: 'Основное', icon: 'fas fa-info-circle' },
         { title: 'Место', icon: 'fas fa-map-marker-alt' },
-        { title: 'Статистика', icon: 'fas fa-users' }
+        { title: 'Статистика', icon: 'fas fa-users' },
+        { title: 'Покупки', icon: 'fas fa-shopping-bag' },
+        { title: 'Галерея', icon: 'fas fa-images' }
       ]
 
-      // Этапы обзора и галереи только для прошедших мероприятий (редактирование после события)
+      // Этап обзора только для прошедших мероприятий (редактирование после события)
       if (this.eventForm.id && this.isEventInPast) {
-        baseSteps.push({ title: 'Отзыв', icon: 'fas fa-comment-alt' })
-        baseSteps.push({ title: 'Покупки', icon: 'fas fa-shopping-bag' })
-        baseSteps.push({ title: 'Галерея', icon: 'fas fa-images' })
+        baseSteps.splice(3, 0, { title: 'Отзыв', icon: 'fas fa-comment-alt' })
       }
 
       return baseSteps
@@ -1400,15 +1401,20 @@ export default {
       const file = event.target.files[0]
       if (!file) return
 
-      if (!this.eventForm.id) {
-        this.$emit('notification', 'Сначала сохраните мероприятие', 'warning')
+      // Для новых мероприятий генерируем slug если его нет
+      if (!this.eventForm.id && !this.eventForm.slug && this.eventForm.name) {
+        this.eventForm.slug = this.generateSlug(this.eventForm.name)
+      }
+
+      if (!this.eventForm.id && !this.eventForm.slug) {
+        this.$emit('notification', 'Укажите название мероприятия', 'warning')
         return
       }
 
       this.uploadingPurchasePhoto = index
 
       try {
-        console.log(`📸 Загружаем фото покупки для мероприятия ${this.eventForm.id}...`)
+        console.log(`📸 Загружаем фото покупки для мероприятия ${this.eventForm.name || this.eventForm.id}...`)
 
         const { s3Api } = await import('@/config/s3.js')
 
@@ -1678,7 +1684,7 @@ export default {
         this.eventForm.purchase_items = purchases.map(p => ({
           name: p.item_name,
           price: p.price,
-          image: p.image_url ? '/s3/convent/' + p.image_url : ''
+          image: p.image_url ? (p.image_url.startsWith('/s3/') ? p.image_url : '/s3/convent/' + p.image_url) : ''
         }))
 
         // Устанавливаем has_purchases если есть покупки
