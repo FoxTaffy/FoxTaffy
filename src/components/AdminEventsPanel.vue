@@ -1401,14 +1401,39 @@ export default {
       const file = event.target.files[0]
       if (!file) return
 
-      // Для новых мероприятий генерируем slug если его нет
-      if (!this.eventForm.id && !this.eventForm.slug && this.eventForm.name) {
-        this.eventForm.slug = this.generateSlug(this.eventForm.name)
-      }
+      // Для новых мероприятий - сначала нужно сохранить событие
+      if (!this.eventForm.id) {
+        if (!this.eventForm.name || !this.eventForm.name.trim()) {
+          this.$emit('notification', 'Укажите название мероприятия', 'warning')
+          return
+        }
 
-      if (!this.eventForm.id && !this.eventForm.slug) {
-        this.$emit('notification', 'Укажите название мероприятия', 'warning')
-        return
+        // Генерируем slug если его нет
+        if (!this.eventForm.slug) {
+          this.eventForm.slug = this.generateSlug(this.eventForm.name)
+        }
+
+        // Сохраняем событие как черновик перед загрузкой фото
+        try {
+          console.log('💾 Сохраняем мероприятие как черновик перед загрузкой фото...')
+          
+          const dataToSave = { ...this.eventForm }
+          const attendanceData = {
+            status: dataToSave.attendance_status || 'planning',
+            roles: dataToSave.attendance_roles || []
+          }
+          dataToSave.attendance_status = JSON.stringify(attendanceData)
+          delete dataToSave.attendance_roles
+          delete dataToSave.has_purchases
+
+          const savedEvent = await furryApi.createEvent(dataToSave)
+          this.eventForm.id = savedEvent.id
+          console.log('✅ Мероприятие создано:', savedEvent.id)
+        } catch (error) {
+          console.error('❌ Ошибка сохранения мероприятия:', error)
+          this.$emit('notification', 'Ошибка: не удалось сохранить мероприятие', 'error')
+          return
+        }
       }
 
       this.uploadingPurchasePhoto = index
@@ -1687,6 +1712,15 @@ export default {
           image: p.image_url ? (p.image_url.startsWith('/s3/') ? p.image_url : '/s3/convent/' + p.image_url) : ''
         }))
 
+        // Сохраняем photos_folder если его нет
+        if (!this.eventForm.photos_folder && event.photos_folder) {
+          this.eventForm.photos_folder = event.photos_folder
+        }
+        // Если нет photos_folder, генерируем из slug или name
+        if (!this.eventForm.photos_folder) {
+          this.eventForm.photos_folder = this.eventForm.slug || this.generateSlug(this.eventForm.name)
+        }
+
         // Устанавливаем has_purchases если есть покупки
         this.eventForm.has_purchases = purchases.length > 0
 
@@ -1703,7 +1737,8 @@ export default {
       }
 
       this.currentStep = 0
-      this.maxReachedStep = 3 // Allow access to all steps when editing
+      // Устанавливаем maxReachedStep на последний доступный шаг при редактировании
+      this.maxReachedStep = Math.max(this.wizardSteps.length - 1, 0)
 
       // Сохраняем исходное состояние после загрузки всех данных
       this.originalFormData = {
@@ -1723,6 +1758,11 @@ export default {
         // Генерируем slug из названия
         if (!this.eventForm.slug) {
           this.eventForm.slug = this.generateSlug(this.eventForm.name)
+        }
+
+        // Генерируем photos_folder если его нет
+        if (!this.eventForm.photos_folder) {
+          this.eventForm.photos_folder = this.eventForm.slug
         }
 
         // Подготавливаем данные для сохранения
