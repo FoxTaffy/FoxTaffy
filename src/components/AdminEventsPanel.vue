@@ -698,7 +698,7 @@
                     <img v-if="item.image" :src="item.image" alt="" />
                     <i v-else class="fas fa-image"></i>
                     <input type="file" :ref="'purchasePhoto' + index" accept="image/*" style="display: none" @change="uploadPurchasePhoto($event, index)" />
-                    <button type="button" class="thumb-upload" @click="$refs['purchasePhoto' + index][0].click()" :disabled="uploadingPurchasePhoto === index">
+                    <button type="button" class="thumb-upload" @click="triggerPurchasePhotoUpload(index)" :disabled="uploadingPurchasePhoto === index">
                       <i :class="uploadingPurchasePhoto === index ? 'fas fa-spinner fa-spin' : 'fas fa-camera'"></i>
                     </button>
                   </div>
@@ -768,8 +768,9 @@
 
         <div class="modal-footer wizard-footer">
           <button
+            type="button"
             v-if="currentStep > 0"
-            @click="prevStep"
+            @click.prevent="prevStep"
             class="nav-btn prev-btn"
             :disabled="saving"
           >
@@ -779,13 +780,14 @@
 
           <div class="footer-spacer"></div>
 
-          <button @click="handleCloseModal" class="cancel-btn" :disabled="saving">
+          <button type="button" @click.prevent="handleCloseModal" class="cancel-btn" :disabled="saving">
             <span>Отменить</span>
           </button>
 
           <button
+            type="button"
             v-if="currentStep < wizardSteps.length - 1"
-            @click="nextStep"
+            @click.prevent="nextStep"
             class="nav-btn next-btn"
             :disabled="!canProceed"
           >
@@ -794,8 +796,9 @@
           </button>
 
           <button
+            type="button"
             v-else
-            @click="saveEvent"
+            @click.prevent="saveEvent"
             class="save-btn"
             :disabled="saving || !isFormValid"
           >
@@ -975,6 +978,7 @@ export default {
         case 1:
         case 2:
         case 3:
+        case 4:
           return true
         default:
           return false
@@ -1374,6 +1378,15 @@ export default {
 
     removePurchaseItem(index) {
       this.eventForm.purchase_items.splice(index, 1)
+    },
+
+    triggerPurchasePhotoUpload(index) {
+      const refName = 'purchasePhoto' + index
+      const refEl = this.$refs[refName]
+      const input = Array.isArray(refEl) ? refEl[0] : refEl
+      if (input && typeof input.click === 'function') {
+        input.click()
+      }
     },
 
     async uploadPurchasePhoto(event, index) {
@@ -5517,25 +5530,28 @@ export default {
 }
 
 .purchase-item-compact {
-  display: flex;
+  display: grid;
+  grid-template-columns: 70px 1fr 90px 40px;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 6px;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .purchase-thumb {
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
+  width: 70px;
+  height: 70px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .purchase-thumb img {
@@ -5545,14 +5561,14 @@ export default {
 }
 
 .purchase-thumb i {
-  color: var(--text-dim);
-  font-size: 0.9rem;
+  color: rgba(255,255,255,0.6);
+  font-size: 1.1rem;
 }
 
 .thumb-upload {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5561,7 +5577,27 @@ export default {
   border: none;
   cursor: pointer;
   color: white;
-  font-size: 0.8rem;
+  font-size: 1rem;
+}
+
+.purchase-thumb:hover .thumb-upload {
+  opacity: 1;
+}
+
+.purchase-item-compact .form-input.compact {
+  flex: 1;
+  min-width: 100px;
+}
+
+.price-input {
+  max-width: 90px !important;
+  flex: 0 0 90px !important;
+}
+
+.remove-btn-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
 }
 
 .purchase-thumb:hover .thumb-upload {
