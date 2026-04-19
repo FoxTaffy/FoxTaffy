@@ -697,7 +697,6 @@
                   <div class="purchase-thumb">
                     <img v-if="item.image" :src="item.image" alt="" />
                     <i v-else class="fas fa-image"></i>
-                    <input type="file" :ref="'purchasePhoto' + index" accept="image/*" style="display: none" @change="uploadPurchasePhoto($event, index)" />
                     <button type="button" class="thumb-upload" @click="triggerPurchasePhotoUpload(index)" :disabled="uploadingPurchasePhoto === index">
                       <i :class="uploadingPurchasePhoto === index ? 'fas fa-spinner fa-spin' : 'fas fa-camera'"></i>
                     </button>
@@ -708,6 +707,8 @@
                 </div>
                 <button type="button" class="add-btn-small purchase" @click="addPurchaseItem"><i class="fas fa-plus"></i> Добавить покупку</button>
               </div>
+              <!-- Скрытый input для загрузки фото покупок -->
+              <input type="file" ref="purchasePhotoInput" accept="image/*" style="display: none" @change="uploadPurchasePhotoForCurrentIndex" />
             </div>
           </div>
 
@@ -908,6 +909,7 @@ export default {
       uploadTotal: 0,
       uploadedPhotos: [],
       uploadingPurchasePhoto: null,
+      currentPurchaseIndex: null,
       isDraggingPhotos: false,
 
       // Wizard
@@ -1381,12 +1383,17 @@ export default {
     },
 
     triggerPurchasePhotoUpload(index) {
-      const refName = 'purchasePhoto' + index
-      const refEl = this.$refs[refName]
-      const input = Array.isArray(refEl) ? refEl[0] : refEl
-      if (input && typeof input.click === 'function') {
-        input.click()
-      }
+      this.currentPurchaseIndex = index
+      this.$refs.purchasePhotoInput.click()
+    },
+
+    async uploadPurchasePhotoForCurrentIndex(event) {
+      const index = this.currentPurchaseIndex
+      if (index === null || index < 0 || index >= this.eventForm.purchase_items.length) return
+
+      await this.uploadPurchasePhoto(event, index)
+      this.currentPurchaseIndex = null
+      event.target.value = ''
     },
 
     async uploadPurchasePhoto(event, index) {
@@ -1419,7 +1426,6 @@ export default {
         this.$emit('notification', 'Ошибка загрузки: ' + error.message, 'error')
       } finally {
         this.uploadingPurchasePhoto = null
-        event.target.value = ''
       }
     },
 
@@ -1672,8 +1678,11 @@ export default {
         this.eventForm.purchase_items = purchases.map(p => ({
           name: p.item_name,
           price: p.price,
-          image: p.image_url
+          image: p.image_url ? '/s3/convent/' + p.image_url : ''
         }))
+
+        // Устанавливаем has_purchases если есть покупки
+        this.eventForm.has_purchases = purchases.length > 0
 
         // Используем миниатюры для превью вместо оригиналов
         this.uploadedPhotos = photos.map(p => ({

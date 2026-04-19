@@ -638,13 +638,24 @@ export const furryApi = {
       if (purchases && purchases.length > 0) {
         const purchasesToInsert = purchases
           .filter(p => p.name && p.name.trim())
-          .map(p => ({
-            con_id: eventId,
-            item_name: p.name.trim(),
-            title: p.name.trim(),
-            price: String(p.price || 0),
-            image_url: p.image || null
-          }))
+          .map(p => {
+            let imageUrl = null
+            if (p.image) {
+              // Если это полный URL, извлекаем путь относительно bucket
+              if (p.image.startsWith('/s3/convent/')) {
+                imageUrl = p.image.substring('/s3/convent/'.length)
+              } else {
+                imageUrl = p.image
+              }
+            }
+            return {
+              con_id: eventId,
+              item_name: p.name.trim(),
+              title: p.name.trim(),
+              price: String(p.price || 0),
+              image_url: imageUrl
+            }
+          })
 
         if (purchasesToInsert.length > 0) {
           console.log('📦 Данные для вставки в con_purchases:', JSON.stringify(purchasesToInsert, null, 2))
