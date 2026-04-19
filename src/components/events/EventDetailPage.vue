@@ -226,7 +226,7 @@
                   <i class="fas fa-comment-alt"></i>
                   Общее впечатление
                 </h4>
-                <div class="impression-text" v-html="event.my_review"></div>
+                <div class="impression-text">{{ cleanReviewText }}</div>
               </div>
             </div>
           </div>
@@ -243,7 +243,11 @@
                 <div v-for="rating in visibleRatings" :key="rating.key" class="rating-row">
                   <span class="rating-label">{{ rating.label }}</span>
                   <div class="rating-stars">
-                    <i v-for="n in 5" :key="n" class="fas fa-star" :class="{ 'active': n <= rating.value }"></i>
+                    <i
+                      v-for="n in 5"
+                      :key="n"
+                      :class="[{ 'fas': n <= rating.value, 'far': n > rating.value }, 'fa-star', { active: n <= rating.value }]"
+                    ></i>
                   </div>
                   <span class="rating-num">{{ rating.value }}</span>
                 </div>
@@ -478,6 +482,13 @@ export default {
       if (ratings.length === 0) return '0.0'
       const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length
       return avg.toFixed(1)
+    },
+
+    cleanReviewText() {
+      if (!this.event || !this.event.my_review) return ''
+      return this.stripHtml(this.event.my_review)
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
     },
 
     // Проверка, нужно ли показывать рейтинги для данного типа мероприятия
@@ -1368,18 +1379,26 @@ export default {
 
 .general-impression {
   margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  padding: 1.25rem 1.5rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.03);
 }
 
 .general-impression .block-subtitle {
   color: #a78bfa;
+  margin-bottom: 0.85rem;
 }
 
 .impression-text {
-  color: rgba(255,255,255,0.8);
-  line-height: 1.6;
-  font-size: 0.9rem;
+  color: rgba(255,255,255,0.9);
+  line-height: 1.7;
+  font-size: 0.95rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.02);
 }
 
 /* Рейтинги */
