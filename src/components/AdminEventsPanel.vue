@@ -770,7 +770,7 @@
           <button
             type="button"
             v-if="currentStep > 0"
-            @click.prevent="prevStep"
+            @click.stop.prevent="prevStep"
             class="nav-btn prev-btn"
             :disabled="saving"
           >
@@ -1406,7 +1406,7 @@ export default {
         const { s3Api } = await import('@/config/s3.js')
 
         // Загружаем фото покупки
-        const result = await s3Api.uploadPurchasePhoto(file, this.eventForm.id)
+        const result = await s3Api.uploadPurchasePhoto(file, this.eventForm)
 
         // Сохраняем URL в форме
         this.eventForm.purchase_items[index].image = result.url
@@ -1738,8 +1738,15 @@ export default {
 
         // Сохраняем покупки
         if (this.eventForm.purchase_items && this.eventForm.purchase_items.length > 0) {
-          await furryApi.saveEventPurchases(savedEvent.id, this.eventForm.purchase_items)
-          console.log('✅ AdminEvents: Покупки сохранены')
+          // Фильтруем пустые покупки
+          const validPurchases = this.eventForm.purchase_items.filter(item => 
+            item.name && item.name.trim().length > 0 && 
+            item.price !== null && item.price !== undefined && item.price !== ''
+          )
+          if (validPurchases.length > 0) {
+            await furryApi.saveEventPurchases(savedEvent.id, validPurchases)
+            console.log('✅ AdminEvents: Покупки сохранены')
+          }
         }
 
         // Сохраняем фотографии

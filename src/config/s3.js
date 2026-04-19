@@ -495,6 +495,11 @@ export const s3Api = {
         : eventIdentifier
       console.log(`📸 Загружаем фото покупки для мероприятия ${displayName}...`)
 
+      // Проверяем, что у нас есть идентификатор события
+      if (!eventIdentifier) {
+        throw new Error('Не указан идентификатор мероприятия')
+      }
+
       // Генерируем имя файла
       const timestamp = Date.now()
       const randomStr = Math.random().toString(36).substring(2, 8)
