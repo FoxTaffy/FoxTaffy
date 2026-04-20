@@ -1634,78 +1634,694 @@ export default {
 }
 
 /* ===== АДАПТИВНОСТЬ ===== */
-@media (max-width: 768px) {
+
+/* Широкие экраны (1400px+) */
+@media (min-width: 1400px) {
   .events-grid {
-    grid-template-columns: 1fr;
-    gap: 1.2rem;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 2.5rem;
   }
-  
+
+  .event-card {
+    border-radius: 1.5rem;
+  }
+
   .card-image {
-    height: 180px;
+    height: 220px;
   }
-  
+
   .card-content {
-    padding: 0.875rem;
-  }
-  
-  .event-name {
-    font-size: 1.2rem;
-  }
-  
-  .event-meta {
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-  
-  .overlay-stats {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .divider {
-    display: none;
-  }
-  
-  .status-badge {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.65rem;
+    padding: 1.25rem;
   }
 }
 
-@media (max-width: 480px) {
+/* Хорошие экраны (1024px - 1399px) */
+@media (max-width: 1399px) and (min-width: 1024px) {
+  .events-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+  }
+
   .card-image {
-    height: 160px;
+    height: 200px;
   }
-  
+
   .card-content {
-    padding: 0.75rem;
+    padding: 1.1rem;
   }
-  
+
   .event-name {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
   }
-  
+
+  .event-meta {
+    gap: 0.8rem;
+  }
+}
+
+/* Планшеты горизонтальные (769px - 1023px) */
+@media (max-width: 1023px) and (min-width: 769px) {
+  .events-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .event-card {
+    border-radius: 1.25rem;
+  }
+
+  .card-image {
+    height: 190px;
+  }
+
+  .card-content {
+    padding: 1rem;
+  }
+
+  .event-name {
+    font-size: 1.2rem;
+    margin-bottom: 0.6rem;
+  }
+
   .event-description {
     font-size: 0.9rem;
   }
-  
+
+  .meta-item {
+    font-size: 0.85rem;
+  }
+
+  .event-features {
+    gap: 0.4rem;
+  }
+
+  .feature-badge {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .countdown-block {
+    padding: 0.65rem 1rem;
+  }
+
+  .countdown-value {
+    font-size: 1.3rem;
+  }
+
+  .gallery-preview-item {
+    width: 44px;
+    height: 44px;
+  }
+
+  .gallery-previews {
+    gap: 0.3rem;
+  }
+}
+
+/* Планшеты и большие мобильные (481px - 768px) */
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.8rem;
+  }
+
+  .section-description {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .events-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .event-card {
+    border-radius: 1rem;
+    border-radius: 1rem;
+  }
+
+  .event-card:hover {
+    transform: translateY(-6px);
+  }
+
+  .card-image {
+    height: 170px;
+  }
+
+  .date-badge {
+    top: 0.75rem;
+    left: 0.75rem;
+    min-width: 55px;
+    padding: 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .month {
+    font-size: 0.65rem;
+  }
+
+  .day {
+    font-size: 1.4rem;
+  }
+
+  .year {
+    font-size: 0.65rem;
+  }
+
+  .status-badge {
+    top: 0.75rem;
+    right: 0.75rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.65rem;
+  }
+
+  .attendance-badges-container {
+    bottom: 0.75rem;
+    left: 0.75rem;
+    gap: 0.35rem;
+  }
+
+  .attendance-badge {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.65rem;
+    gap: 0.3rem;
+  }
+
+  .card-content {
+    padding: 0.9rem;
+  }
+
+  .event-name {
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .event-meta {
+    gap: 0.7rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .meta-item {
+    font-size: 0.8rem;
+  }
+
+  .meta-item i {
+    font-size: 0.8rem;
+  }
+
+  .event-description {
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .event-features {
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .feature-badge {
+    padding: 0.25rem 0.55rem;
+    font-size: 0.7rem;
+    gap: 0.3rem;
+  }
+
+  .feature-badge i {
+    font-size: 0.65rem;
+  }
+
+  .countdown-block {
+    padding: 0.65rem 0.9rem;
+    border-radius: 0.5rem;
+  }
+
+  .countdown-text {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .countdown-value {
+    font-size: 1.25rem;
+  }
+
+  .progress-bar {
+    height: 5px;
+  }
+
+  .gallery-block {
+    padding: 0.65rem;
+    border-radius: 0.5rem;
+  }
+
+  .gallery-previews {
+    gap: 0.3rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .gallery-preview-item {
+    width: 42px;
+    height: 42px;
+    border-radius: 0.3rem;
+  }
+
+  .gallery-text {
+    font-size: 0.8rem;
+    gap: 0.3rem;
+  }
+
+  .gallery-text i {
+    font-size: 0.85rem;
+  }
+
+  .gallery-hint {
+    font-size: 0.75rem;
+  }
+
+  .show-more-overlay {
+    border-radius: 1rem;
+  }
+
+  .overlay-content {
+    padding: 1.5rem;
+  }
+
   .overlay-icon {
     width: 40px;
     height: 40px;
     font-size: 1.2rem;
   }
-  
+
+  .overlay-title {
+    font-size: 1.1rem;
+  }
+
+  .overlay-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .overlay-stats {
+    font-size: 0.75rem;
+  }
+
+  .error-state {
+    padding: 2rem 1rem;
+  }
+
+  .retry-button {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.85rem;
+  }
+
+  .skeleton-image {
+    height: 160px;
+  }
+
+  .skeleton-date-badge {
+    width: 50px;
+  }
+
+  .skeleton-line.title {
+    width: 60%;
+  }
+
+  .skeleton-footer {
+    height: 35px;
+  }
+}
+
+/* Мобильные (до 480px) */
+@media (max-width: 480px) {
+  .section-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-description {
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .events-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .event-card {
+    border-radius: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .event-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .event-card.upcoming {
+    border-left: 3px solid var(--accent-green);
+  }
+
+  .event-card.completed {
+    border-left: 3px solid var(--accent-orange);
+  }
+
+  .card-image {
+    height: 150px;
+  }
+
+  .date-badge {
+    top: 0.6rem;
+    left: 0.6rem;
+    min-width: 50px;
+    padding: 0.4rem;
+    border-radius: 0.5rem;
+  }
+
+  .month {
+    font-size: 0.6rem;
+    letter-spacing: 0.3px;
+  }
+
+  .day {
+    font-size: 1.2rem;
+    margin: 0.15rem 0;
+  }
+
+  .year {
+    font-size: 0.6rem;
+  }
+
+  .status-badge {
+    top: 0.6rem;
+    right: 0.6rem;
+    padding: 0.25rem 0.55rem;
+    font-size: 0.6rem;
+    border-radius: 1.2rem;
+  }
+
+  .attendance-badges-container {
+    bottom: 0.6rem;
+    left: 0.6rem;
+    gap: 0.3rem;
+  }
+
+  .attendance-badge {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.6rem;
+    gap: 0.25rem;
+    border-radius: 6px;
+  }
+
+  .attendance-badge i {
+    font-size: 0.65rem;
+  }
+
+  .card-content {
+    padding: 0.8rem;
+  }
+
+  .event-name {
+    font-size: 1.05rem;
+    margin-bottom: 0.4rem;
+    line-height: 1.2;
+  }
+
+  .event-meta {
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .meta-item {
+    font-size: 0.75rem;
+  }
+
+  .meta-item i {
+    width: 14px;
+    font-size: 0.75rem;
+  }
+
+  .event-description {
+    font-size: 0.8rem;
+    line-height: 1.35;
+    margin-bottom: 0.75rem;
+  }
+
+  .event-features {
+    gap: 0.3rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .feature-badge {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.65rem;
+    border-radius: 15px;
+    gap: 0.25rem;
+  }
+
+  .feature-badge i {
+    font-size: 0.6rem;
+  }
+
+  .feature-badge.more-features {
+    font-size: 0.65rem;
+    font-weight: 700;
+  }
+
+  .countdown-block {
+    background: rgba(76, 175, 80, 0.08);
+    border: 1px solid rgba(76, 175, 80, 0.15);
+    padding: 0.6rem 0.8rem;
+    border-radius: 0.45rem;
+  }
+
+  .countdown-text {
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .countdown-text i {
+    font-size: 0.8rem;
+  }
+
+  .countdown-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .progress-bar {
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  .completed-info-block {
+    gap: 0.6rem;
+  }
+
+  .rating-block {
+    background: rgba(255, 123, 37, 0.08);
+    border: 1px solid rgba(255, 123, 37, 0.15);
+    padding: 0.6rem 0.8rem;
+    border-radius: 0.45rem;
+  }
+
+  .gallery-block {
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    padding: 0.6rem 0.8rem;
+    border-radius: 0.45rem;
+  }
+
+  .gallery-previews {
+    gap: 0.25rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .gallery-preview-item {
+    width: 36px;
+    height: 36px;
+    border-radius: 0.28rem;
+    border: 1.5px solid rgba(139, 92, 246, 0.25);
+  }
+
+  .gallery-text {
+    font-size: 0.75rem;
+    gap: 0.25rem;
+  }
+
+  .gallery-text i {
+    font-size: 0.8rem;
+  }
+
+  .gallery-hint {
+    font-size: 0.7rem;
+    margin-top: 0.3rem;
+  }
+
+  .gallery-hint i {
+    font-size: 0.65rem;
+  }
+
+  .show-more-card {
+    border-radius: 0.9rem;
+  }
+
+  .show-more-overlay {
+    border-radius: 0.9rem;
+    background: rgba(0, 0, 0, 0.75);
+  }
+
+  .overlay-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
   .overlay-title {
     font-size: 1rem;
+    margin-bottom: 0.4rem;
   }
-  
+
+  .overlay-subtitle {
+    font-size: 0.8rem;
+    margin-bottom: 0.8rem;
+  }
+
   .overlay-content {
-    padding: 1.5rem;
+    padding: 1.25rem 1rem;
   }
-  
-  .status-badge {
-    padding: 0.25rem 0.5rem;
+
+  .overlay-stats {
+    font-size: 0.7rem;
+    gap: 0.6rem;
+  }
+
+  .divider {
+    display: inline;
+  }
+
+  .error-state {
+    padding: 1.5rem 0.75rem;
+    gap: 1rem;
+  }
+
+  .error-state i {
+    font-size: 2.5rem;
+  }
+
+  .error-state p {
+    font-size: 0.85rem;
+  }
+
+  .retry-button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.8rem;
+    margin-top: 0.75rem;
+  }
+
+  .retry-button i {
+    font-size: 0.8rem;
+  }
+
+  /* Скелеты для мобильных */
+  .skeleton-card {
+    animation: skeleton-card-in 0.4s ease both;
+  }
+
+  .skeleton-image {
+    height: 140px;
+  }
+
+  .skeleton-date-badge {
+    width: 45px;
+    gap: 3px;
+  }
+
+  .skeleton-status-badge {
+    width: 70px;
+    height: 24px;
+  }
+
+  .skeleton-line.title {
+    width: 55%;
+    height: 16px;
+  }
+
+  .skeleton-line.meta {
+    width: 80px;
+    height: 10px;
+  }
+
+  .skeleton-line.meta-sm {
+    width: 50px;
+  }
+
+  .skeleton-footer {
+    height: 32px;
+  }
+
+  .skeleton-content {
+    gap: 0.5rem;
+  }
+}
+
+/* Очень маленькие экраны (до 360px) */
+@media (max-width: 360px) {
+  .section-title {
+    font-size: 1.4rem;
+  }
+
+  .section-description {
+    font-size: 0.8rem;
+  }
+
+  .events-grid {
+    gap: 0.75rem;
+  }
+
+  .card-image {
+    height: 130px;
+  }
+
+  .date-badge {
+    min-width: 45px;
+  }
+
+  .card-content {
+    padding: 0.7rem;
+  }
+
+  .event-name {
+    font-size: 1rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .event-description {
+    font-size: 0.75rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .event-meta {
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .meta-item {
+    font-size: 0.7rem;
+  }
+
+  .feature-badge {
+    padding: 0.18rem 0.45rem;
     font-size: 0.6rem;
+  }
+
+  .gallery-preview-item {
+    width: 32px;
+    height: 32px;
+  }
+
+  .countdown-block {
+    padding: 0.5rem 0.7rem;
+  }
+
+  .countdown-value {
+    font-size: 1rem;
   }
 }
 </style>
