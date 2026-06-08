@@ -5,35 +5,19 @@
     <p class="section-description">Присоединяйтесь к моим сообществам в соцсетях, где я делюсь контентом и общаюсь с фурри-фэндомом</p>
     
     <div class="community-links">
-      <a href="https://vk.com/floridaowo" class="community-card" target="_blank" rel="noopener">
-        <div class="card-shine"></div>
-        <div class="community-header">
-          <div class="community-icon vk">
-            <i class="fab fa-vk"></i>
-          </div>
-          <div class="community-name">Florida — и точка</div>
-        </div>
-        <div class="community-description">
-          Дом, в котором обитает Тэффи
-        </div>
-        <div class="community-members">
-          <i class="fas fa-users"></i> 200+ подписчиков
-        </div>
-      </a>
-      
       <a href="https://t.me/FloridaOwO" class="community-card" target="_blank" rel="noopener">
         <div class="card-shine"></div>
         <div class="community-header">
           <div class="community-icon telegram">
             <i class="fab fa-telegram-plane"></i>
           </div>
-          <div class="community-name">Тэффи во Флориде</div>
+          <div class="community-name">Тэффи во Florida</div>
         </div>
         <div class="community-description">
           Мнение полуфабриката
         </div>
         <div class="community-members">
-          <i class="fas fa-users"></i> 100+ подписчиков
+          <i class="fas fa-users"></i> 200+ подписчиков
         </div>
       </a>
       
@@ -43,29 +27,13 @@
           <div class="community-icon telegram">
             <i class="fab fa-telegram-plane"></i>
           </div>
-          <div class="community-name">Memes from Taffy</div>
+          <div class="community-name">🌿щитПосты/memes Taffuck 💚</div>
         </div>
         <div class="community-description">
-          Лучшие фурри-мемы и тик токи
+          Щит посты и всякие высеры плесени
         </div>
         <div class="community-members">
-          <i class="fas fa-users"></i> 20+ подписчиков
-        </div>
-      </a>
-      
-      <a href="https://t.me/s2_inferno" class="community-card" target="_blank" rel="noopener">
-        <div class="card-shine"></div>
-        <div class="community-header">
-          <div class="community-icon telegram">
-            <i class="fab fa-telegram-plane"></i>
-          </div>
-          <div class="community-name">CS2 Inferno</div>
-        </div>
-        <div class="community-description">
-          Публикую свои перфомансы из Matchmaking
-        </div>
-        <div class="community-members">
-          <i class="fas fa-users"></i> 10+ подписчиков
+          <i class="fas fa-users"></i> 25+ подписчиков
         </div>
       </a>
       

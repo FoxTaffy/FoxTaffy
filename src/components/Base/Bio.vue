@@ -145,7 +145,7 @@ export default {
         {
           name: 'Род занятий',
           icon: 'fas fa-laptop',
-          description: 'Разработчик и UX/UI дизайнер. Создатель социальной сети FurCup. Люблю творческие и инновационные проекты.',
+          description: 'Разработчик и UX/UI дизайнер. Создатель социальной сети Bloomly. Люблю творческие и инновационные проекты.',
           profileCard: {
             type: 'github',
             title: 'FoxTaffy',
