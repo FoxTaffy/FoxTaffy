@@ -10,11 +10,11 @@ import { adminApiRequest } from '@/utils/adminAuth.js'
 // 🔧 КОНФИГУРАЦИЯ — Self-hosted VPS (PostgREST)
 // ===============================================
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://foxtaffy.gay'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'anon'
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Ошибка: VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY не заданы в .env')
+if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+  console.warn('Предупреждение: VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY не заданы, используется продакшн fallback')
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {

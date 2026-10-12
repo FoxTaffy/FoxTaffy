@@ -6,7 +6,7 @@
         <!-- Логотип -->
         <router-link to="/" class="nav-logo" @click="closeMobileMenu">
           <div class="logo-avatar">
-            <img :src="'/s3/gallery/Avatar.jpg'"
+            <img :src="avatarImage"
                  alt="Fox Taffy Avatar"
                  class="avatar-img">
             <div class="logo-status"></div>
@@ -150,11 +150,14 @@
 </template>
 
 <script>
+import avatarImage from '@/assets/Image/Avatar.jpg'
+
 export default {
   name: 'App',
   components: {},
   data() {
     return {
+      avatarImage,
       isScrolled: false,
       isMobileMenuOpen: false,
       isDropdownOpen: false,

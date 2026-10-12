@@ -31,12 +31,14 @@ CREATE TABLE persons (
 -- Персонажи
 CREATE TABLE fursonas (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    person_id UUID NOT NULL REFERENCES persons(id) ON DELETE CASCADE,
+    person_id UUID REFERENCES persons(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     avatar_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT fursonas_name_person_unique UNIQUE (person_id, name)
 );
+
+ALTER TABLE fursonas ALTER COLUMN person_id DROP NOT NULL;
 
 -- Теги
 CREATE TABLE tags (
@@ -266,7 +268,29 @@ CREATE TABLE cons (
     og_image TEXT,
     official_website TEXT,
     tickets_url TEXT,
-    extra_data JSONB DEFAULT '{}'::jsonb
+    extra_data JSONB DEFAULT '{}'::jsonb,
+
+    -- Compatibility with legacy Supabase export
+    conclusion TEXT,
+    purchases_summary TEXT,
+    meta_image TEXT,
+    meta_url TEXT,
+    avatar_url TEXT,
+    pros_old JSONB DEFAULT '[]'::jsonb,
+    cons_text_old JSONB DEFAULT '[]'::jsonb,
+    purchase_items JSONB DEFAULT '[]'::jsonb,
+    rating_organization INTEGER CHECK (rating_organization >= 1 AND rating_organization <= 5),
+    rating_program INTEGER CHECK (rating_program >= 1 AND rating_program <= 5),
+    rating_atmosphere INTEGER CHECK (rating_atmosphere >= 1 AND rating_atmosphere <= 5),
+    rating_location INTEGER CHECK (rating_location >= 1 AND rating_location <= 5),
+    rating_participants INTEGER CHECK (rating_participants >= 1 AND rating_participants <= 5),
+    rating_food INTEGER CHECK (rating_food >= 1 AND rating_food <= 5),
+    pros JSONB DEFAULT '[]'::jsonb,
+    cons_text JSONB DEFAULT '[]'::jsonb,
+    photos_folder TEXT,
+    logo_url TEXT,
+    pros_text JSONB DEFAULT '[]'::jsonb,
+    event_end_date TIMESTAMPTZ
 );
 
 CREATE TABLE con_links (

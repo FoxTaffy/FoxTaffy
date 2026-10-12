@@ -5,6 +5,7 @@
       <HeaderSection />
       <ReferenceSection />
       <BioSection />
+      <BloomlySection />
       <FursuitSection />
       <PartnerSection />
       <EventsSection />
@@ -22,6 +23,7 @@
 import HeaderSection from './Base/Header.vue'
 import ReferenceSection from './Base/Reference.vue'
 import BioSection from './Base/Bio.vue'
+import BloomlySection from './Base/Bloomly.vue'
 import FursuitSection from './Base/Fursuit.vue'
 import PartnerSection from './Base/Felix.vue'
 import EventsSection from './Base/Events.vue'
@@ -33,6 +35,7 @@ export default {
     HeaderSection,
     ReferenceSection,
     BioSection,
+    BloomlySection,
     FursuitSection,
     PartnerSection,
     EventsSection,

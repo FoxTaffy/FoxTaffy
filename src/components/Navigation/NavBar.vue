@@ -146,7 +146,6 @@ export default {
   data() {
     return {
       AvatarImage,
-    return {
       isScrolled: false,
       isMobileMenuOpen: false,
       isDropdownOpen: false,

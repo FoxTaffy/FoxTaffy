@@ -5,7 +5,7 @@
 # ================================================
 set -euo pipefail
 
-SITE_DIR="/var/www/FoxTaffy"
+SITE_DIR="/var/www/foxtaffy.gay"
 CERTBOT_WEBROOT="/var/www/certbot"
 cd "$SITE_DIR"
 

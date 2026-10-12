@@ -666,7 +666,7 @@ export default {
         this.error = error.message || 'Проблема с подключением к API'
         
         // Fallback тестовые данные для разработки
-        if (process.env.NODE_ENV === 'development') {
+        if (import.meta.env.DEV) {
           this.loadFallbackData()
         }
         
