@@ -13,26 +13,28 @@ export function useNotifications() {
     timeout: null
   })
 
-  const showNotification = (message, type = 'info', duration = 3000) => {
-    // Очищаем предыдущий таймаут если есть
+  const hideNotification = () => {
     if (notification.timeout) {
       clearTimeout(notification.timeout)
+      notification.timeout = null
     }
+    notification.show = false
+  }
+
+  const showNotification = (message, type = 'info', duration = 3000) => {
+    hideNotification()
 
     notification.message = message
     notification.type = type
     notification.show = true
 
     notification.timeout = setTimeout(() => {
-      notification.show = false
+      hideNotification()
     }, duration)
   }
 
   const closeNotification = () => {
-    if (notification.timeout) {
-      clearTimeout(notification.timeout)
-    }
-    notification.show = false
+    hideNotification()
   }
 
   const getNotificationEmoji = () => {

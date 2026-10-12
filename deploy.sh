@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ================================================
 # FOXTAFFY.GAY — Deploy Script
-# Запуск: bash /var/www/FoxTaffy/deploy.sh
+# Запуск: bash /var/www/foxtaffy.gay/deploy.sh
 # ================================================
 set -euo pipefail
 
@@ -61,7 +61,7 @@ if [[ ! -f "$SSL_CERT" ]]; then
 server {
     listen 80;
     server_name foxtaffy.gay www.foxtaffy.gay;
-    root /var/www/FoxTaffy/dist;
+    root $SITE_DIR/dist;
     location /.well-known/acme-challenge/ {
         root $CERTBOT_WEBROOT;
         try_files \$uri =404;

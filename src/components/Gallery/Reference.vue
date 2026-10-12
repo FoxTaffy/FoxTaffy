@@ -189,6 +189,7 @@ export default {
     const showNotification = (message, type = 'info') => {
       if (notification.timeout) {
         clearTimeout(notification.timeout);
+        notification.timeout = null;
       }
       
       notification.message = message;
@@ -197,6 +198,7 @@ export default {
       
       notification.timeout = setTimeout(() => {
         notification.show = false;
+        notification.timeout = null;
       }, 3000);
     };
     
@@ -596,52 +598,55 @@ export default {
 /* Уведомления */
 .fox-taffy-notification {
   position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  background: rgba(76, 175, 80, 0.2);
-  border-left: 3px solid #4caf50;
-  padding: 1rem 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  color: #f2f2f2;
+  right: 1.5rem;
+  bottom: 1.5rem;
   z-index: 100;
-  max-width: 350px;
-  backdrop-filter: blur(10px);
-  animation: fox-taffy-slide-in 0.3s ease;
+  max-width: 360px;
+  min-width: min(320px, calc(100vw - 2rem));
+  padding: 0.9rem 1rem;
+  border-radius: 1rem;
+  color: #fff;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  animation: fox-taffy-slide-in 0.28s ease-out;
 }
 
 @keyframes fox-taffy-slide-in {
   from {
-    transform: translateX(100%);
     opacity: 0;
+    transform: translateX(20px) scale(0.98);
   }
   to {
-    transform: translateX(0);
     opacity: 1;
+    transform: translateX(0) scale(1);
   }
 }
 
 .fox-taffy-notification.fox-taffy-error {
-  background: rgba(244, 67, 54, 0.2);
-  border-left-color: #f44336;
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.92), rgba(239, 68, 68, 0.82));
 }
 
 .fox-taffy-notification.fox-taffy-warning {
-  background: rgba(255, 152, 0, 0.2);
-  border-left-color: #ff9800;
+  background: linear-gradient(135deg, rgba(202, 138, 4, 0.95), rgba(245, 158, 11, 0.82));
 }
 
 .fox-taffy-notification.fox-taffy-info {
-  background: rgba(33, 150, 243, 0.2);
-  border-left-color: #2196f3;
+  background: linear-gradient(135deg, rgba(14, 116, 144, 0.92), rgba(59, 130, 246, 0.82));
+}
+
+.fox-taffy-notification.fox-taffy-success {
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.9), rgba(34, 197, 94, 0.82));
 }
 
 .fox-taffy-notification-content {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   margin: 0;
   padding: 0;
+  font-weight: 700;
 }
 
 .fox-taffy-notification-content span {
@@ -650,20 +655,31 @@ export default {
 }
 
 .fox-taffy-notification-icon {
-  font-size: 1.2rem;
-  color: #4caf50;
+  font-size: 1.1rem;
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
 }
 
 .fox-taffy-notification.fox-taffy-error .fox-taffy-notification-icon {
-  color: #f44336;
+  color: #fff;
 }
 
 .fox-taffy-notification.fox-taffy-warning .fox-taffy-notification-icon {
-  color: #ff9800;
+  color: #fff;
 }
 
 .fox-taffy-notification.fox-taffy-info .fox-taffy-notification-icon {
-  color: #2196f3;
+  color: #fff;
+}
+
+.fox-taffy-notification.fox-taffy-success .fox-taffy-notification-icon {
+  color: #fff;
 }
 
 /* Адаптивность */

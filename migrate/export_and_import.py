@@ -7,6 +7,7 @@ import json
 import subprocess
 import os
 import sys
+from pathlib import Path
 
 SUPABASE_URL = "https://plugjsubjcfblzkabjia.supabase.co"
 SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsdWdqc3ViamNmYmx6a2FiamlhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MDM0Mzg1NSwiZXhwIjoyMDY1OTE5ODU1fQ.jh-um9xqFiuRydPzRHRGj9hTFJXyGIHCOflk6NbXFBc"
@@ -28,8 +29,9 @@ TABLES = [
     "con_purchases",
 ]
 
-EXPORT_DIR = "/var/www/FoxTaffy/migrate/data"
-os.makedirs(EXPORT_DIR, exist_ok=True)
+BASE_DIR = Path(__file__).resolve().parent
+EXPORT_DIR = BASE_DIR / "data"
+EXPORT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def fetch_table(table):

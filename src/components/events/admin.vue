@@ -173,14 +173,22 @@ export default {
     },
 
     showNotification(message, type = 'info') {
-      if (this.notificationTimeout) clearTimeout(this.notificationTimeout)
+      if (this.notificationTimeout) {
+        clearTimeout(this.notificationTimeout)
+        this.notificationTimeout = null
+      }
       this.notification = { message, type }
-      this.notificationTimeout = setTimeout(() => this.hideNotification(), 5000)
+      this.notificationTimeout = setTimeout(() => {
+        this.hideNotification()
+      }, 5000)
     },
 
     hideNotification() {
       this.notification = null
-      if (this.notificationTimeout) clearTimeout(this.notificationTimeout)
+      if (this.notificationTimeout) {
+        clearTimeout(this.notificationTimeout)
+        this.notificationTimeout = null
+      }
     },
 
     getNotificationIcon(type) {
@@ -538,55 +546,62 @@ export default {
 /* ─── NOTIFICATIONS ─── */
 .notification {
   position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  background: rgba(30,30,36,0.95);
-  border-radius: 0.8rem;
-  padding: 1rem 1.25rem;
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.1);
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 1000;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  z-index: 1000;
-  max-width: 380px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  gap: 0.85rem;
+  max-width: min(380px, calc(100vw - 2rem));
+  padding: 0.9rem 0.95rem 0.9rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.38);
+  color: var(--text-light);
 }
 
-.notification.success { border-color: rgba(76,175,80,0.4); }
-.notification.error   { border-color: rgba(255,69,58,0.4); }
-.notification.warning { border-color: rgba(255,149,0,0.4); }
-.notification.info    { border-color: rgba(0,122,255,0.4); }
+.notification.success { background: linear-gradient(135deg, rgba(22,163,74,0.9), rgba(34,197,94,0.82)); }
+.notification.error   { background: linear-gradient(135deg, rgba(220,38,38,0.92), rgba(239,68,68,0.82)); }
+.notification.warning { background: linear-gradient(135deg, rgba(202,138,4,0.95), rgba(245,158,11,0.82)); }
+.notification.info    { background: linear-gradient(135deg, rgba(14,116,144,0.92), rgba(59,130,246,0.82)); }
 
 .notification-content {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   color: var(--text-light);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.9rem;
+  line-height: 1.4;
 }
 
-.notification.success .notification-content i { color: var(--accent-green); }
-.notification.error   .notification-content i { color: #ff453a; }
-.notification.warning .notification-content i { color: #ff9500; }
-.notification.info    .notification-content i { color: #007aff; }
+.notification.success .notification-content i { color: #fff; }
+.notification.error   .notification-content i { color: #fff; }
+.notification.warning .notification-content i { color: #fff; }
+.notification.info    .notification-content i { color: #fff; }
 
 .notification-close {
-  background: none;
-  border: none;
-  color: var(--text-muted);
+  background: rgba(15,23,42,0.18);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--text-light);
   cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 0.3rem;
+  padding: 0.3rem;
+  border-radius: 999px;
+  width: 1.8rem;
+  height: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s ease;
   margin-left: auto;
   flex-shrink: 0;
 }
 
 .notification-close:hover {
-  color: var(--text-light);
-  background: rgba(255,255,255,0.1);
+  background: rgba(15,23,42,0.28);
+  transform: scale(1.04);
 }
 
 .notify-enter-active,

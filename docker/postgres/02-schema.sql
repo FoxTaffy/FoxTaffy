@@ -235,7 +235,6 @@ CREATE TABLE cons (
     venue_url TEXT,
 
     banner_url TEXT,
-    logo_url TEXT,
     gallery_folder TEXT,
 
     status TEXT DEFAULT 'upcoming' CHECK (status IN ('upcoming', 'ongoing', 'completed', 'cancelled')),
@@ -288,7 +287,6 @@ CREATE TABLE cons (
     pros JSONB DEFAULT '[]'::jsonb,
     cons_text JSONB DEFAULT '[]'::jsonb,
     photos_folder TEXT,
-    logo_url TEXT,
     pros_text JSONB DEFAULT '[]'::jsonb,
     event_end_date TIMESTAMPTZ
 );

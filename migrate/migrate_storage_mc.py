@@ -14,7 +14,8 @@ from pathlib import Path
 SUPABASE_URL = "https://plugjsubjcfblzkabjia.supabase.co"
 SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsdWdqc3ViamNmYmx6a2FiamlhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MDM0Mzg1NSwiZXhwIjoyMDY1OTE5ODU1fQ.jh-um9xqFiuRydPzRHRGj9hTFJXyGIHCOflk6NbXFBc"
 
-DOWNLOAD_DIR = Path("/var/www/FoxTaffy/migrate/files")
+BASE_DIR = Path(__file__).resolve().parent
+DOWNLOAD_DIR = BASE_DIR / "files"
 DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 MINIO_ALIAS = "minio"

@@ -38,7 +38,8 @@ services:
 
   # ── MinIO (S3-compatible storage) ─────────────
   minio:
-    image: minio/minio:latest
+    image: quay.io/minio/minio:latest
+    profiles: ["storage"]
     container_name: foxtaffy-minio
     restart: always
     ports:
@@ -60,7 +61,8 @@ services:
 
   # ── MinIO init: buckets + public policies ──────
   minio-init:
-    image: minio/mc:latest
+    image: quay.io/minio/mc:latest
+    profiles: ["storage"]
     container_name: foxtaffy-minio-init
     depends_on:
       minio:
@@ -123,8 +125,6 @@ services:
       ADMIN_COOKIE_SECURE: "true"
       ALLOWED_ORIGIN: "https://foxtaffy.gay"
     depends_on:
-      minio:
-        condition: service_healthy
       postgrest:
         condition: service_started
 

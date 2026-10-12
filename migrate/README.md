@@ -25,7 +25,7 @@ foxtaffy-upload-api   Upload API        localhost:3002
 ### 1. Запусти собственные контейнеры
 
 ```bash
-cd /var/www/FoxTaffy
+cd /var/www/foxtaffy.gay
 docker compose up -d
 docker compose ps  # убедись что все healthy
 ```
@@ -130,7 +130,7 @@ chmod +x migrate/*.sh
 ### 6. Запусти PostgREST и Upload API
 
 ```bash
-cd /var/www/FoxTaffy
+cd /var/www/foxtaffy.gay
 docker compose up -d
 ```
 
@@ -145,7 +145,7 @@ npm run build
 
 ```bash
 # Копируй nginx конфиг
-sudo cp /var/www/FoxTaffy/nginx/foxtaffy.conf /etc/nginx/sites-available/foxtaffy
+sudo cp /var/www/foxtaffy.gay/nginx/foxtaffy.conf /etc/nginx/sites-available/foxtaffy
 sudo ln -s /etc/nginx/sites-available/foxtaffy /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 

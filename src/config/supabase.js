@@ -45,6 +45,25 @@ const buildAdminQuery = (params = {}) => {
 
 const firstRow = (data) => Array.isArray(data) ? (data[0] || null) : data
 
+const normalizeSearchValue = (value = '') => {
+  return String(value || '')
+    .normalize('NFKD')
+    .replace(/[@#_]/g, '')
+    .replace(/\s+/g, '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toLowerCase()
+}
+
+const matchesNormalizedSearch = (searchTerm = '', candidateValue = '') => {
+  const normalizedSearch = normalizeSearchValue(searchTerm)
+  if (!normalizedSearch) return true
+
+  const normalizedCandidate = normalizeSearchValue(candidateValue)
+  if (!normalizedCandidate) return false
+
+  return normalizedCandidate.includes(normalizedSearch) || normalizedSearch.includes(normalizedCandidate)
+}
+
 const adminDb = async (table, { method = 'GET', query = {}, body, prefer } = {}) => {
   return adminApiRequest(`/admin/db/${table}${buildAdminQuery(query)}`, {
     method,
@@ -988,13 +1007,27 @@ export const furryApi = {
         }
       })
 
-      // ✅ Применяем клиентские фильтры для тегов и персонажей
+      // ✅ Применяем клиентские фильтры для тегов, персонажей и глобального поиска по имени/никнейму/тегам
       let filteredArts = artsWithMetadata
+
+      if (search.trim()) {
+        filteredArts = filteredArts.filter(art => {
+          const searchableValues = [
+            art.title,
+            art.artist_name,
+            art.tags.join(' '),
+            art.characters.map(character => character.name).join(' '),
+            art.tagNames?.join(' ')
+          ]
+
+          return searchableValues.some(value => matchesNormalizedSearch(search, value))
+        })
+      }
 
       // Фильтр по тегам
       if (tags.length > 0) {
         filteredArts = filteredArts.filter(art => 
-          tags.some(tag => art.tags.includes(tag))
+          tags.some(tag => art.tags.some(artTag => matchesNormalizedSearch(tag, artTag)))
         )
       }
 
@@ -1002,7 +1035,7 @@ export const furryApi = {
       if (characters.length > 0) {
         filteredArts = filteredArts.filter(art => 
           characters.some(character => 
-            art.characters.some(artChar => artChar.name === character)
+            art.characters.some(artChar => matchesNormalizedSearch(character, artChar.name))
           )
         )
       }

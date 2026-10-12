@@ -18,8 +18,9 @@ MINIO_ENDPOINT = "http://localhost:9100"
 MINIO_ACCESS = "foxtaffy"
 MINIO_SECRET = "nOEuZXvicgd0nZHNSdczD7wBD7gO6O5D"
 
-DOWNLOAD_DIR = "/var/www/FoxTaffy/migrate/files"
-os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+BASE_DIR = Path(__file__).resolve().parent
+DOWNLOAD_DIR = BASE_DIR / "files"
+DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # Supabase bucket → MinIO bucket mapping
 BUCKET_MAP = {

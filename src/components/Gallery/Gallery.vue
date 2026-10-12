@@ -611,69 +611,88 @@ onBeforeUnmount(() => {
 /* Уведомления */
 .ft-notification {
   position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  padding: 1rem 3rem 1rem 1rem;
-  border-radius: 0.5rem;
-  color: white;
+  bottom: 1.5rem;
+  right: 1.5rem;
   z-index: 10000;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  max-width: 300px;
-  animation: slideInRight 0.3s ease;
-  font-weight: 500;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  gap: 0.75rem;
+  min-width: min(320px, calc(100vw - 2rem));
+  max-width: 360px;
+  padding: 0.9rem 0.95rem 0.9rem 0.9rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.35);
+  animation: slideInRight 0.28s ease-out;
 }
 
 .ft-notification.success {
-  background: rgba(76, 175, 80, 0.9);
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.9), rgba(34, 197, 94, 0.82));
 }
 
 .ft-notification.error {
-  background: rgba(244, 67, 54, 0.9);
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.92), rgba(239, 68, 68, 0.82));
 }
 
 .ft-notification.info {
-  background: rgba(33, 150, 243, 0.9);
+  background: linear-gradient(135deg, rgba(14, 116, 144, 0.92), rgba(59, 130, 246, 0.82));
 }
 
 .ft-notification.warning {
-  background: rgba(255, 152, 0, 0.9);
+  background: linear-gradient(135deg, rgba(202, 138, 4, 0.95), rgba(245, 158, 11, 0.82));
+}
+
+.ft-notification-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .ft-notification button {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: none;
-  border: none;
+  top: 0.45rem;
+  right: 0.45rem;
+  background: rgba(15, 23, 42, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   color: inherit;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  line-height: 1;
   padding: 0;
-  width: 24px;
-  height: 24px;
+  width: 1.75rem;
+  height: 1.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  transition: background 0.2s ease;
+  border-radius: 999px;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .ft-notification button:hover {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(15, 23, 42, 0.28);
+  transform: scale(1.05);
 }
 
 @keyframes slideInRight {
   from {
     opacity: 0;
-    transform: translateX(100%);
+    transform: translateX(20px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
   }
 }
 
