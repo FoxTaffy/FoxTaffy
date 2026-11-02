@@ -16,6 +16,17 @@ import {
   HeadBucketCommand
 } from '@aws-sdk/client-s3'
 
+const isProduction = process.env.NODE_ENV === 'production'
+
+if (isProduction) {
+  const missing = ['MINIO_ACCESS_KEY', 'MINIO_SECRET_KEY', 'ADMIN_SESSION_SECRET', 'ALLOWED_ORIGIN']
+    .filter(name => !process.env[name] || process.env[name] === '*')
+  if (missing.length) {
+    console.error(`Refusing to start: set ${missing.join(', ')} in production`)
+    process.exit(1)
+  }
+}
+
 const app = express()
 app.set('trust proxy', 1)
 const PORT = process.env.PORT || 3002
@@ -30,13 +41,52 @@ const s3 = new S3Client({
   forcePathStyle: true
 })
 
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024
+const ALLOWED_BUCKETS = new Set(['convent', 'gallery'])
+
+const ALLOWED_MIME_TYPES = new Set([
+  'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/avif'
+])
+
+// Сигнатуры (magic bytes): Content-Type приходит от клиента и не доказывает,
+// что внутри действительно картинка.
+const looksLikeImage = (buf) => {
+  if (buf.length < 12) return false
+  const head = buf.subarray(0, 12)
+  const startsWith = (...bytes) => bytes.every((b, i) => head[i] === b)
+  return startsWith(0xff, 0xd8, 0xff) ||                       // JPEG
+    startsWith(0x89, 0x50, 0x4e, 0x47) ||                      // PNG
+    startsWith(0x47, 0x49, 0x46, 0x38) ||                      // GIF
+    (startsWith(0x52, 0x49, 0x46, 0x46) && head.toString('ascii', 8, 12) === 'WEBP') ||
+    head.toString('ascii', 4, 8) === 'ftyp'                    // AVIF
+}
+
+// Ключ объекта: только безопасные символы и ни одного сегмента '.' или '..'.
+// Прежняя версия вырезала '../' один раз, и '....//' снова превращалось в '../'.
+const SAFE_PATH_RE = /^[a-zA-Z0-9/_\-. ]+$/
+const sanitizePath = (raw) => {
+  if (!raw || typeof raw !== 'string') return null
+  const normalized = raw.replace(/^\/+/, '')
+  if (!SAFE_PATH_RE.test(normalized)) return null
+  return normalized.split('/').some(seg => seg === '' || seg === '.' || seg === '..') ? null : normalized
+}
+
+const requireKnownBucket = (req, res, next) => {
+  if (!ALLOWED_BUCKETS.has(req.params.bucket)) {
+    return res.status(404).json({ error: `Bucket "${req.params.bucket}" not found` })
+  }
+  next()
+}
+
 const normalizeAdminCode = (value) => String(value ?? '').trim()
 
 const PUBLIC_URL = process.env.MINIO_PUBLIC_URL || 'http://localhost:9000'
 const API_KEY = process.env.UPLOAD_API_KEY || ''
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*'
 const ADMIN_SECRET_CODE = normalizeAdminCode(process.env.ADMIN_SECRET_CODE)
-const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || process.env.PGRST_JWT_SECRET || ADMIN_SECRET_CODE
+// Секрет сессии обязателен и независим от PGRST_JWT_SECRET / admin-кода:
+// переиспользование ключей позволило бы подделывать токены одного контура через другой.
+const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || ''
 const PGRST_URL = process.env.PGRST_URL || 'http://localhost:3001'
 const PGRST_JWT_SECRET = process.env.PGRST_JWT_SECRET || ''
 
@@ -63,7 +113,6 @@ const allowedOrigins = ALLOWED_ORIGIN === '*'
   ? ['*']
   : ALLOWED_ORIGIN.split(',').map(origin => origin.trim()).filter(Boolean)
 
-const isProduction = process.env.NODE_ENV === 'production'
 const cookieSecure = process.env.ADMIN_COOKIE_SECURE
   ? process.env.ADMIN_COOKIE_SECURE === 'true'
   : isProduction
@@ -328,26 +377,10 @@ app.all('/upload/admin/db/*', requireAdmin, async (req, res) => {
   }
 })
 
-app.post('/upload/:bucket', requireApiKeyOrAdmin, async (req, res) => {
+app.post('/upload/:bucket', requireApiKeyOrAdmin, requireKnownBucket, async (req, res) => {
   if (!ensureAllowedOrigin(req, res)) return
 
   const { bucket } = req.params
-
-  // Белый список разрешённых MIME-типов.
-  // Запрет SVG/HTML/XML предотвращает хранимый XSS через /s3/ прокси.
-  const ALLOWED_MIME_TYPES = new Set([
-    'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
-    'image/webp', 'image/avif'
-  ])
-
-  // Паттерн безопасного пути: только буквы, цифры, /, -, _, .
-  // Запрет .. предотвращает path traversal (перезапись произвольных файлов в бакете)
-  const SAFE_PATH_RE = /^[a-zA-Z0-9/_\-. ]+$/
-  const sanitizePath = (raw) => {
-    if (!raw || typeof raw !== 'string') return null
-    const normalized = raw.replace(/\.\.\/|\.\.\\/g, '').replace(/^\/+/, '')
-    return SAFE_PATH_RE.test(normalized) ? normalized : null
-  }
 
   try {
     await s3.send(new HeadBucketCommand({ Bucket: bucket }))
@@ -355,109 +388,106 @@ app.post('/upload/:bucket', requireApiKeyOrAdmin, async (req, res) => {
     return res.status(404).json({ error: `Bucket "${bucket}" not found` })
   }
 
-  let uploadedPath = null
-  let contentType = 'application/octet-stream'
-  let fileSize = 0
+  let requestedPath = null
+  let fileSeen = false
+  let upload = null
 
   try {
     await new Promise((resolve, reject) => {
+      const fail = (message, status) => reject(Object.assign(new Error(message), { status }))
       const bb = busboy({
         headers: req.headers,
-        limits: { fileSize: 50 * 1024 * 1024 }
+        limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 }
       })
 
       bb.on('field', (name, val) => {
-        if (name === 'path') uploadedPath = sanitizePath(val)
+        if (name === 'path') requestedPath = val
       })
 
       bb.on('file', async (_fieldname, stream, info) => {
+        fileSeen = true
         const { filename, mimeType } = info
-        const resolvedMime = mimeType || 'image/jpeg'
 
-        // Проверяем MIME-тип до чтения содержимого файла
-        if (!ALLOWED_MIME_TYPES.has(resolvedMime)) {
-          stream.resume() // обязательно дренируем поток busboy
-          return reject(Object.assign(new Error(`Недопустимый тип файла: ${resolvedMime}`), { status: 415 }))
+        if (!ALLOWED_MIME_TYPES.has(mimeType)) {
+          stream.resume() // дренируем поток, иначе busboy зависнет
+          return fail(`Недопустимый тип файла: ${mimeType}`, 415)
         }
 
-        contentType = resolvedMime
-        const safeName = sanitizePath(uploadedPath || filename)
-        if (!safeName) {
+        const key = sanitizePath(requestedPath || filename)
+        if (!key) {
           stream.resume()
-          return reject(Object.assign(new Error('Недопустимый путь файла'), { status: 400 }))
+          return fail('Недопустимый путь файла', 400)
         }
-        const filePath = safeName
 
         const chunks = []
-        for await (const chunk of stream) {
-          chunks.push(chunk)
-          fileSize += chunk.length
-        }
+        for await (const chunk of stream) chunks.push(chunk)
+
+        // busboy молча обрезает файл по лимиту — без этой проверки в бакет уходил бы битый файл.
+        if (stream.truncated) return fail('Файл превышает допустимый размер', 413)
 
         const body = Buffer.concat(chunks)
+        if (!looksLikeImage(body)) return fail('Содержимое не является изображением', 415)
 
         try {
           await s3.send(new PutObjectCommand({
             Bucket: bucket,
-            Key: filePath,
+            Key: key,
             Body: body,
-            ContentType: contentType,
+            ContentType: mimeType,
             CacheControl: 'max-age=31536000'
           }))
-          uploadedPath = filePath
+          upload = { path: key, size: body.length }
           resolve()
         } catch (err) {
           reject(err)
         }
       })
 
+      // 'close' может прийти раньше, чем завершится async-обработчик файла,
+      // поэтому ошибкой считаем только запрос вовсе без файла.
+      bb.on('close', () => { if (!fileSeen) fail('Файл не передан', 400) })
       bb.on('error', reject)
       req.pipe(bb)
     })
 
-    const publicUrl = `${PUBLIC_URL}/${bucket}/${uploadedPath}`
-
-    res.json({
-      path: uploadedPath,
-      url: publicUrl,
-      size: fileSize,
-      bucket
-    })
+    res.json({ ...upload, url: `${PUBLIC_URL}/${bucket}/${upload.path}`, bucket })
   } catch (err) {
     console.error('Upload error:', err)
     res.status(err.status || 500).json({ error: err.message })
   }
 })
 
-app.delete('/upload/:bucket', requireApiKeyOrAdmin, async (req, res) => {
+app.delete('/upload/:bucket', requireApiKeyOrAdmin, requireKnownBucket, async (req, res) => {
   if (!ensureAllowedOrigin(req, res)) return
 
   const { bucket } = req.params
-  const { path: filePath, paths } = req.body
+  const { path: filePath, paths } = req.body ?? {}
 
   try {
-    if (paths && Array.isArray(paths)) {
+    const keys = (Array.isArray(paths) ? paths : [filePath]).filter(Boolean).map(sanitizePath)
+    if (keys.length === 0 || keys.includes(null) || keys.length > 1000) {
+      return res.status(400).json({ error: 'Provide valid `path` or `paths`' })
+    }
+
+    if (keys.length === 1) {
+      await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: keys[0] }))
+    } else {
       await s3.send(new DeleteObjectsCommand({
         Bucket: bucket,
-        Delete: { Objects: paths.map(p => ({ Key: p })) }
+        Delete: { Objects: keys.map(Key => ({ Key })) }
       }))
-      res.json({ deleted: paths.length })
-    } else if (filePath) {
-      await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: filePath }))
-      res.json({ deleted: 1 })
-    } else {
-      res.status(400).json({ error: 'Provide `path` or `paths`' })
     }
+    res.json({ deleted: keys.length })
   } catch (err) {
     console.error('Delete error:', err)
     res.status(500).json({ error: err.message })
   }
 })
 
-app.get('/upload/:bucket/list', requireApiKeyOrAdmin, async (req, res) => {
+app.get('/upload/:bucket/list', requireApiKeyOrAdmin, requireKnownBucket, async (req, res) => {
   const { bucket } = req.params
-  const prefix = req.query.prefix || ''
-  const limit = parseInt(req.query.limit || '1000', 10)
+  const prefix = typeof req.query.prefix === 'string' ? req.query.prefix : ''
+  const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 1000, 1), 1000)
 
   try {
     const result = await s3.send(new ListObjectsV2Command({

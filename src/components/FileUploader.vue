@@ -377,13 +377,13 @@
   
   /* Зона загрузки */
   .fox-upload-zone {
-    border: 2px dashed rgba(255, 255, 255, 0.2);
-    border-radius: 1rem;
+    border: 2px dashed rgb(var(--white-rgb) / 0.2);
+    border-radius: var(--radius-md);
     padding: 2rem;
     text-align: center;
     cursor: pointer;
-    transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.02);
+    transition: var(--transition);
+    background: rgb(var(--white-rgb) / 0.02);
     min-height: 200px;
     display: flex;
     align-items: center;
@@ -393,26 +393,26 @@
   }
   
   .fox-upload-zone:hover {
-    border-color: rgba(255, 123, 37, 0.5);
-    background: rgba(255, 123, 37, 0.05);
+    border-color: rgb(var(--accent-orange-rgb) / 0.5);
+    background: rgb(var(--accent-orange-rgb) / 0.05);
   }
   
   .fox-upload-zone.fox-drag-over {
-    border-color: #ff7b25;
-    background: rgba(255, 123, 37, 0.1);
+    border-color: var(--accent-orange);
+    background: rgb(var(--accent-orange-rgb) / 0.1);
     transform: scale(1.02);
   }
   
   .fox-upload-zone.fox-uploading {
-    border-color: #ff7b25;
+    border-color: var(--accent-orange);
     cursor: default;
     pointer-events: none;
   }
   
   .fox-upload-zone.fox-has-file {
     border-style: solid;
-    border-color: rgba(76, 175, 80, 0.5);
-    background: rgba(76, 175, 80, 0.05);
+    border-color: rgb(var(--accent-green-rgb) / 0.5);
+    background: rgb(var(--accent-green-rgb) / 0.05);
   }
   
   /* Пустое состояние */
@@ -427,17 +427,17 @@
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: rgba(255, 123, 37, 0.1);
+    background: rgb(var(--accent-orange-rgb) / 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 2rem;
-    color: #ff7b25;
-    transition: all 0.3s ease;
+    color: var(--accent-orange);
+    transition: var(--transition);
   }
   
   .fox-upload-zone:hover .fox-upload-icon {
-    background: rgba(255, 123, 37, 0.2);
+    background: rgb(var(--accent-orange-rgb) / 0.2);
     transform: scale(1.1);
   }
   
@@ -445,12 +445,12 @@
     margin: 0 0 0.5rem 0;
     font-size: 1.3rem;
     font-weight: 600;
-    color: #f2f2f2;
+    color: var(--text-light);
   }
   
   .fox-upload-text p {
     margin: 0 0 1rem 0;
-    color: #a0a0a0;
+    color: var(--text-muted);
     font-size: 1rem;
   }
   
@@ -496,19 +496,19 @@
   .fox-progress-percent {
     font-size: 1.2rem;
     font-weight: 700;
-    color: #ff7b25;
+    color: var(--accent-orange);
   }
   
   .fox-upload-status h4 {
     margin: 0 0 0.5rem 0;
     font-size: 1.2rem;
     font-weight: 600;
-    color: #f2f2f2;
+    color: var(--text-light);
   }
   
   .fox-upload-status p {
     margin: 0;
-    color: #a0a0a0;
+    color: var(--text-muted);
     font-size: 0.9rem;
   }
   
@@ -527,7 +527,7 @@
     height: 120px;
     border-radius: 0.75rem;
     overflow: hidden;
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    border: 2px solid rgb(var(--white-rgb) / 0.1);
     flex-shrink: 0;
   }
   
@@ -567,7 +567,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: var(--transition);
     font-size: 0.9rem;
   }
   
@@ -576,7 +576,7 @@
   }
   
   .fox-remove-btn:hover {
-    background: #f44336;
+    background: var(--danger);
     transform: scale(1.1);
   }
   
@@ -597,7 +597,7 @@
     margin: 0 0 0.75rem 0;
     font-size: 1.1rem;
     font-weight: 600;
-    color: #f2f2f2;
+    color: var(--text-light);
     word-break: break-all;
   }
   
@@ -610,11 +610,11 @@
   
   .fox-file-meta span {
     font-size: 0.85rem;
-    color: #a0a0a0;
-    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    background: rgb(var(--white-rgb) / 0.05);
     padding: 0.25rem 0.5rem;
-    border-radius: 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgb(var(--white-rgb) / 0.1);
   }
   
   .fox-file-actions {
@@ -628,16 +628,16 @@
     gap: 0.5rem;
     padding: 0.75rem 1rem;
     border: none;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     font-family: inherit;
     font-weight: 500;
-    transition: all 0.3s ease;
+    transition: var(--transition);
     font-size: 0.9rem;
   }
   
   .fox-action-btn.fox-primary {
-    background: linear-gradient(135deg, #4caf50, #66bb6a);
+    background: linear-gradient(135deg, var(--accent-green), #66bb6a);
     color: white;
   }
   
@@ -647,14 +647,14 @@
   }
   
   .fox-action-btn.fox-secondary {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #a0a0a0;
+    background: rgb(var(--white-rgb) / 0.05);
+    border: 1px solid rgb(var(--white-rgb) / 0.1);
+    color: var(--text-muted);
   }
   
   .fox-action-btn.fox-secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #f2f2f2;
+    background: rgb(var(--white-rgb) / 0.1);
+    color: var(--text-light);
   }
   
   /* Ошибки */
@@ -672,8 +672,8 @@
     padding: 0.75rem 1rem;
     background: rgba(244, 67, 54, 0.1);
     border: 1px solid rgba(244, 67, 54, 0.2);
-    border-radius: 0.5rem;
-    color: #f44336;
+    border-radius: var(--radius-sm);
+    color: var(--danger);
     font-size: 0.9rem;
   }
   

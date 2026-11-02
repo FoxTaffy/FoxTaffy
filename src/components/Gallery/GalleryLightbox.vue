@@ -107,19 +107,19 @@ const formatDate = (dateString) => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.2);
   color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .ft-lightbox-close:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.2);
   transform: scale(1.1);
 }
 
@@ -130,8 +130,8 @@ const formatDate = (dateString) => {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.2);
   color: white;
   cursor: pointer;
   display: flex;
@@ -139,11 +139,11 @@ const formatDate = (dateString) => {
   justify-content: center;
   font-size: 1.2rem;
   z-index: 10;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .ft-lightbox-nav:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.2);
   transform: translateY(-50%) scale(1.1);
 }
 
@@ -159,7 +159,7 @@ const formatDate = (dateString) => {
   max-width: 100%;
   max-height: 80vh;
   object-fit: contain;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
@@ -196,17 +196,17 @@ const formatDate = (dateString) => {
   height: 32px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgb(var(--white-rgb) / 0.3);
 }
 
 .ft-friend-star {
-  color: #ffd700;
+  color: var(--accent-gold);
 }
 
 /* Анимации */
 .ft-lightbox-enter-active,
 .ft-lightbox-leave-active {
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .ft-lightbox-enter-from,

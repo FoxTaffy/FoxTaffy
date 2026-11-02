@@ -180,6 +180,7 @@
       
       <!-- Карточка "Показать ещё" -->
       <div
+        v-if="thirdEvent"
         class="event-card show-more-card card-lazy"
         :class="{ 'card-visible': visibleCards.has('more') }"
         data-card-id="more"
@@ -275,10 +276,6 @@ export default {
   computed: {
     // Первые 2 события для основных карточек
     mainEvents() {
-      if (this.events.length === 0) {
-        return this.getDefaultEvents().slice(0, 2)
-      }
-      
       const now = new Date()
       
       // Ближайшие предстоящие
@@ -312,14 +309,8 @@ export default {
     
     // Третье событие для заблюренной карточки
     thirdEvent() {
-      if (this.events.length === 0) {
-        return this.getDefaultEvents()[2]
-      }
-      
       const usedIds = this.mainEvents.map(e => e.id)
-      const remaining = this.events.filter(e => !usedIds.includes(e.id))
-      
-      return remaining.length > 0 ? remaining[0] : this.getDefaultEvents()[2]
+      return this.events.find(e => !usedIds.includes(e.id)) || null
     }
   },
   
@@ -358,12 +349,6 @@ export default {
           this.events = eventsData.value || []
           console.log(`✅ Загружено ${this.events.length} событий`)
 
-          // Отладка: проверяем attendance_status
-          console.log('🔍 Проверка attendance_status у событий на главной:')
-          this.events.forEach(event => {
-            console.log(`  - ${event.name}: attendance_status="${event.attendance_status}", предстоящее=${new Date(event.event_date) > new Date()}`)
-          })
-
           // Загружаем превью фотографий для событий
           await this.loadEventPhotoPreviews()
         } else {
@@ -382,16 +367,15 @@ export default {
           this.calculateStats()
         }
         
-        // Fallback данные
         if (this.events.length === 0) {
-          console.log('📝 Используем fallback данные')
-          this.loadDefaultData()
+          this.error = eventsData.status === 'rejected'
+            ? 'Не удалось загрузить мероприятия'
+            : 'Мероприятия пока не добавлены'
         }
         
       } catch (error) {
         console.error('❌ Ошибка загрузки:', error)
         this.error = 'Не удалось загрузить мероприятия'
-        this.loadDefaultData()
         
       } finally {
         this.loading = false
@@ -442,62 +426,6 @@ export default {
         console.log('✅ Превью фотографий загружены')
       } catch (error) {
         console.warn('⚠️ Не удалось загрузить превью фотографий:', error)
-      }
-    },
-
-    // =================== FALLBACK ДАННЫЕ ===================
-    getDefaultEvents() {
-      return [
-        {
-          id: '1',
-          slug: 'summer-meetup-2025',
-          name: 'Summer Furry Meetup',
-          event_date: '2025-07-15T12:00:00Z',
-          city: 'Санкт-Петербург',
-          location: 'Парк 300-летия',
-          attendees_count: 50,
-          short_description: 'Летняя встреча фурри-сообщества с активностями на свежем воздухе.',
-          banner_url: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/events/summer_meetup.jpg',
-          event_type: 'meetup',
-          attendance_status: 'planning'
-        },
-        {
-          id: '2',
-          slug: 'any-furry-fest-5',
-          name: 'Any Furry Fest V',
-          event_date: '2024-08-17T09:00:00Z',
-          city: 'Москва',
-          location: 'Парк-отель "Воздвиженское"',
-          attendees_count: 400,
-          my_rating: 5,
-          short_description: 'Крупнейший фурри-фестиваль России с множеством активностей.',
-          banner_url: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/events/aff5_banner.jpg',
-          event_type: 'convention',
-          attendance_status: 'attended'
-        },
-        {
-          id: '3',
-          slug: 'foxwood-2000s',
-          name: 'FoxWood: Back to 2000s',
-          event_date: '2024-09-08T10:00:00Z',
-          city: 'Ленинградская область',
-          location: 'Загородный клуб "Бор"',
-          attendees_count: 160,
-          my_rating: 5,
-          short_description: 'Ретро-мероприятие в лесной тематике с ностальгией по нулевым.',
-          banner_url: 'https://5e9762b1-f4cb-456c-a5a1-ee0773e66d88.selstorage.ru/events/foxwood_banner.jpg',
-          event_type: 'convention',
-          attendance_status: 'attended'
-        }
-      ]
-    },
-    
-    loadDefaultData() {
-      this.events = this.getDefaultEvents()
-      this.stats = {
-        total: 3,
-        upcoming: 1,
-        completed: 2
       }
     },
 
@@ -892,9 +820,9 @@ export default {
 .skeleton-pulse {
   background: linear-gradient(
     90deg,
-    rgba(255,255,255,0.04) 25%,
-    rgba(255,255,255,0.10) 50%,
-    rgba(255,255,255,0.04) 75%
+    rgb(var(--white-rgb) / 0.04) 25%,
+    rgb(var(--white-rgb) / 0.10) 50%,
+    rgb(var(--white-rgb) / 0.04) 75%
   );
   background-size: 800px 100%;
   animation: skeleton-shimmer 1.6s infinite linear;
@@ -922,7 +850,7 @@ export default {
   height: 200px;
   overflow: hidden;
   border-radius: 1rem 1rem 0 0;
-  background: rgba(255,255,255,0.06);
+  background: rgb(var(--white-rgb) / 0.06);
 }
 
 .skeleton-image .skeleton-pulse {
@@ -1002,7 +930,7 @@ export default {
 .retry-button:hover {
   background: #e6691f;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 123, 37, 0.3);
+  box-shadow: 0 6px 20px rgb(var(--accent-orange-rgb) / 0.3);
 }
 
 /* ===== СЕТКА КАРТОЧЕК ===== */
@@ -1038,12 +966,12 @@ export default {
 
 /* ===== КАРТОЧКИ СОБЫТИЙ ===== */
 .event-card {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 1rem;
+  background: rgb(var(--white-rgb) / 0.05);
+  border-radius: var(--radius-md);
   overflow: hidden;
   cursor: pointer;
   transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   position: relative;
   backdrop-filter: blur(10px);
   transform: translateY(0) scale(1);
@@ -1053,7 +981,7 @@ export default {
 .event-card:hover {
   transform: translateY(-4px) scale(1.01);
   box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgb(var(--white-rgb) / 0.2);
 }
 
 .event-card.upcoming {
@@ -1065,11 +993,11 @@ export default {
 }
 
 .event-card.upcoming:hover {
-  box-shadow: 0 12px 25px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 12px 25px rgb(var(--accent-green-rgb) / 0.2);
 }
 
 .event-card.completed:hover {
-  box-shadow: 0 12px 25px rgba(255, 123, 37, 0.2);
+  box-shadow: 0 12px 25px rgb(var(--accent-orange-rgb) / 0.2);
 }
 
 /* ===== КАРТОЧКИ БЕЗ ОБЗОРА (СЕРЫЕ) ===== */
@@ -1126,7 +1054,7 @@ export default {
   text-align: center;
   backdrop-filter: blur(15px);
   min-width: 65px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgb(var(--white-rgb) / 0.2);
   z-index: 3;
   transition: all 0.4s ease;
   will-change: transform;
@@ -1155,7 +1083,7 @@ export default {
 
 .year {
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgb(var(--white-rgb) / 0.8);
   line-height: 1;
 }
 
@@ -1169,7 +1097,7 @@ export default {
   font-size: 0.7rem;
   font-weight: 600;
   backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgb(var(--white-rgb) / 0.2);
   z-index: 3;
   transition: all 0.4s ease;
   white-space: nowrap;
@@ -1180,12 +1108,12 @@ export default {
 }
 
 .status-badge.upcoming {
-  background: rgba(76, 175, 80, 0.9);
+  background: rgb(var(--accent-green-rgb) / 0.9);
   color: white;
 }
 
 .status-badge.completed {
-  background: rgba(255, 123, 37, 0.9);
+  background: rgb(var(--accent-orange-rgb) / 0.9);
   color: white;
 }
 
@@ -1220,7 +1148,7 @@ export default {
 }
 
 .attendance-badge.status-registered {
-  background: linear-gradient(135deg, #4caf50, #45a049);
+  background: linear-gradient(135deg, var(--accent-green), #45a049);
 }
 
 .attendance-badge.status-ticket_purchased {
@@ -1228,7 +1156,7 @@ export default {
 }
 
 .attendance-badge.status-vip {
-  background: linear-gradient(135deg, #ffd700, #ffb300);
+  background: linear-gradient(135deg, var(--accent-gold), #ffb300);
   color: #333;
 }
 
@@ -1288,7 +1216,7 @@ export default {
 }
 
 .event-description {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgb(var(--white-rgb) / 0.9);
   font-size: 0.95rem;
   line-height: 1.6;
   margin-bottom: 1rem;
@@ -1307,39 +1235,39 @@ export default {
   align-items: center;
   gap: 0.4rem;
   padding: 0.35rem 0.75rem;
-  background: rgba(139, 92, 246, 0.15);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: rgb(var(--accent-orange-rgb) / 0.15);
+  border: 1px solid rgb(var(--accent-orange-rgb) / 0.3);
   border-radius: 20px;
   font-size: 0.8rem;
-  color: #a78bfa;
+  color: var(--accent-orange);
   white-space: nowrap;
   transition: all 0.3s;
 }
 
 .feature-badge:hover {
-  background: rgba(139, 92, 246, 0.25);
-  border-color: rgba(139, 92, 246, 0.5);
+  background: rgb(var(--accent-orange-rgb) / 0.25);
+  border-color: rgb(var(--accent-orange-rgb) / 0.5);
   transform: translateY(-1px);
 }
 
 .feature-badge i {
   font-size: 0.75rem;
-  color: #8b5cf6;
+  color: var(--accent-orange);
 }
 
 .feature-badge.more-features {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.7);
+  background: rgb(var(--white-rgb) / 0.1);
+  border-color: rgb(var(--white-rgb) / 0.2);
+  color: rgb(var(--white-rgb) / 0.7);
   font-weight: 600;
 }
 
 /* ===== ОБРАТНЫЙ ОТСЧЁТ ===== */
 .countdown-block {
-  background: rgba(76, 175, 80, 0.1);
+  background: rgb(var(--accent-green-rgb) / 0.1);
   padding: 0.75rem;
   border-radius: 0.6rem;
-  border: 1px solid rgba(76, 175, 80, 0.2);
+  border: 1px solid rgb(var(--accent-green-rgb) / 0.2);
 }
 
 .countdown-text {
@@ -1358,7 +1286,7 @@ export default {
 
 .progress-bar {
   height: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--white-rgb) / 0.1);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -1372,10 +1300,10 @@ export default {
 
 /* ===== РЕЙТИНГ ===== */
 .rating-block {
-  background: rgba(255, 123, 37, 0.1);
+  background: rgb(var(--accent-orange-rgb) / 0.1);
   padding: 0.75rem;
   border-radius: 0.6rem;
-  border: 1px solid rgba(255, 123, 37, 0.2);
+  border: 1px solid rgb(var(--accent-orange-rgb) / 0.2);
 }
 
 .rating-text {
@@ -1389,7 +1317,7 @@ export default {
 }
 
 .rating-text i {
-  color: #ffc107;
+  color: var(--accent-gold);
 }
 
 .stars {
@@ -1398,13 +1326,13 @@ export default {
 }
 
 .stars i {
-  color: rgba(255, 255, 255, 0.2);
+  color: rgb(var(--white-rgb) / 0.2);
   font-size: 1rem;
   transition: color 0.3s ease;
 }
 
 .stars i.filled {
-  color: #ffc107;
+  color: var(--accent-gold);
 }
 
 /* ===== БЛОК ИНФОРМАЦИИ ДЛЯ ПРОШЕДШИХ СОБЫТИЙ ===== */
@@ -1416,24 +1344,24 @@ export default {
 
 /* Рейтинг в блоке прошедших событий */
 .completed-info-block .rating-block {
-  background: rgba(255, 123, 37, 0.1);
+  background: rgb(var(--accent-orange-rgb) / 0.1);
   padding: 0.75rem;
   border-radius: 0.6rem;
-  border: 1px solid rgba(255, 123, 37, 0.2);
+  border: 1px solid rgb(var(--accent-orange-rgb) / 0.2);
 }
 
 /* ===== ФОТОГАЛЛЕРЕЯ ===== */
 .gallery-block {
-  background: rgba(139, 92, 246, 0.1);
+  background: rgb(var(--accent-orange-rgb) / 0.1);
   padding: 0.75rem;
   border-radius: 0.6rem;
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  transition: all 0.3s ease;
+  border: 1px solid rgb(var(--accent-orange-rgb) / 0.2);
+  transition: var(--transition);
 }
 
 .event-card:hover .gallery-block {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.3);
+  background: rgb(var(--accent-orange-rgb) / 0.15);
+  border-color: rgb(var(--accent-orange-rgb) / 0.3);
 }
 
 /* Превью фотографий */
@@ -1450,8 +1378,8 @@ export default {
   height: 48px;
   border-radius: 0.4rem;
   overflow: hidden;
-  border: 2px solid rgba(139, 92, 246, 0.3);
-  transition: all 0.3s ease;
+  border: 2px solid rgb(var(--accent-orange-rgb) / 0.3);
+  transition: var(--transition);
 }
 
 .gallery-preview-item img {
@@ -1466,7 +1394,7 @@ export default {
 }
 
 .event-card:hover .gallery-preview-item {
-  border-color: rgba(139, 92, 246, 0.5);
+  border-color: rgb(var(--accent-orange-rgb) / 0.5);
   transform: translateY(-2px);
 }
 
@@ -1475,20 +1403,20 @@ export default {
   width: 48px;
   height: 48px;
   border-radius: 0.4rem;
-  background: rgba(139, 92, 246, 0.2);
-  border: 2px solid rgba(139, 92, 246, 0.3);
+  background: rgb(var(--accent-orange-rgb) / 0.2);
+  border: 2px solid rgb(var(--accent-orange-rgb) / 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #8b5cf6;
-  transition: all 0.3s ease;
+  color: var(--accent-orange);
+  transition: var(--transition);
 }
 
 .event-card:hover .gallery-more {
-  background: rgba(139, 92, 246, 0.3);
-  border-color: rgba(139, 92, 246, 0.5);
+  background: rgb(var(--accent-orange-rgb) / 0.3);
+  border-color: rgb(var(--accent-orange-rgb) / 0.5);
   transform: translateY(-2px);
 }
 
@@ -1518,7 +1446,7 @@ export default {
 }
 
 .event-card:hover .gallery-more-overlay {
-  border-color: rgba(139, 92, 246, 0.5);
+  border-color: rgb(var(--accent-orange-rgb) / 0.5);
   transform: translateY(-2px);
 }
 
@@ -1533,14 +1461,14 @@ export default {
 }
 
 .gallery-text i {
-  color: #8b5cf6;
+  color: var(--accent-orange);
 }
 
 .gallery-hint {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  color: rgba(139, 92, 246, 0.8);
+  color: rgb(var(--accent-orange-rgb) / 0.8);
   font-size: 0.8rem;
   font-weight: 400;
 }
@@ -1570,7 +1498,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 1rem;
+  border-radius: var(--radius-md);
   z-index: 10;
   transition: all 0.4s ease;
 }
@@ -1588,7 +1516,7 @@ export default {
 .overlay-icon {
   width: 50px;
   height: 50px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.2);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1597,13 +1525,13 @@ export default {
   color: white;
   margin: 0 auto 1rem;
   backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgb(var(--white-rgb) / 0.3);
   transition: all 0.4s ease;
 }
 
 .show-more-card:hover .overlay-icon {
   transform: scale(1.05);
-  background: rgba(255, 255, 255, 0.25);
+  background: rgb(var(--white-rgb) / 0.25);
 }
 
 .overlay-title {
@@ -1616,7 +1544,7 @@ export default {
 
 .overlay-subtitle {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgb(var(--white-rgb) / 0.9);
   margin-bottom: 1rem;
 }
 
@@ -1626,7 +1554,7 @@ export default {
   justify-content: center;
   gap: 0.8rem;
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgb(var(--white-rgb) / 0.8);
 }
 
 .divider {
@@ -1755,8 +1683,8 @@ export default {
   }
 
   .event-card {
-    border-radius: 1rem;
-    border-radius: 1rem;
+    border-radius: var(--radius-md);
+    border-radius: var(--radius-md);
   }
 
   .event-card:hover {
@@ -1850,7 +1778,7 @@ export default {
 
   .countdown-block {
     padding: 0.65rem 0.9rem;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-sm);
   }
 
   .countdown-text {
@@ -1868,7 +1796,7 @@ export default {
 
   .gallery-block {
     padding: 0.65rem;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-sm);
   }
 
   .gallery-previews {
@@ -1896,7 +1824,7 @@ export default {
   }
 
   .show-more-overlay {
-    border-radius: 1rem;
+    border-radius: var(--radius-md);
   }
 
   .overlay-content {
@@ -1966,7 +1894,7 @@ export default {
 
   .event-card {
     border-radius: 0.9rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgb(var(--white-rgb) / 0.08);
   }
 
   .event-card:hover {
@@ -1990,7 +1918,7 @@ export default {
     left: 0.6rem;
     min-width: 50px;
     padding: 0.4rem;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-sm);
   }
 
   .month {
@@ -2084,8 +2012,8 @@ export default {
   }
 
   .countdown-block {
-    background: rgba(76, 175, 80, 0.08);
-    border: 1px solid rgba(76, 175, 80, 0.15);
+    background: rgb(var(--accent-green-rgb) / 0.08);
+    border: 1px solid rgb(var(--accent-green-rgb) / 0.15);
     padding: 0.6rem 0.8rem;
     border-radius: 0.45rem;
   }
@@ -2114,15 +2042,15 @@ export default {
   }
 
   .rating-block {
-    background: rgba(255, 123, 37, 0.08);
-    border: 1px solid rgba(255, 123, 37, 0.15);
+    background: rgb(var(--accent-orange-rgb) / 0.08);
+    border: 1px solid rgb(var(--accent-orange-rgb) / 0.15);
     padding: 0.6rem 0.8rem;
     border-radius: 0.45rem;
   }
 
   .gallery-block {
-    background: rgba(139, 92, 246, 0.08);
-    border: 1px solid rgba(139, 92, 246, 0.15);
+    background: rgb(var(--accent-orange-rgb) / 0.08);
+    border: 1px solid rgb(var(--accent-orange-rgb) / 0.15);
     padding: 0.6rem 0.8rem;
     border-radius: 0.45rem;
   }
@@ -2136,7 +2064,7 @@ export default {
     width: 36px;
     height: 36px;
     border-radius: 0.28rem;
-    border: 1.5px solid rgba(139, 92, 246, 0.25);
+    border: 1.5px solid rgb(var(--accent-orange-rgb) / 0.25);
   }
 
   .gallery-text {

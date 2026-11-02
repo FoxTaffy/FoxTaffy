@@ -1,127 +1,22 @@
 import { createApp } from 'vue'
+import { createHead } from '@vueuse/head'
+import { library, dom } from '@fortawesome/fontawesome-svg-core'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import App from './App.vue'
 import router from './router'
-import { createHead } from '@vueuse/head'
+import { updateMetaTags } from './utils/meta'
+import { icons } from './config/icons'
 import './style.css'
 import './Base.css'
 
-// Функции для управления метатегами
-export function updateMetaTags(metaData) {
-  // Обновляем title
-  if (metaData.title) {
-    document.title = metaData.title;
-    updateMetaTag('og:title', metaData.title);
-    updateMetaTag('twitter:title', metaData.title);
-  }
-  
-  // Обновляем description
-  if (metaData.description) {
-    updateMetaTag('description', metaData.description);
-    updateMetaTag('og:description', metaData.description);
-    updateMetaTag('twitter:description', metaData.description);
-  }
-  
-  // Обновляем изображение
-  if (metaData.image) {
-    updateMetaTag('og:image', metaData.image);
-    updateMetaTag('twitter:image', metaData.image);
-    updateMetaTag('vk:image', metaData.image);
-  }
-  
-  // Обновляем URL
-  if (metaData.url) {
-    updateMetaTag('og:url', metaData.url);
-    updateCanonicalLink(metaData.url);
-  }
-}
-
-function updateMetaTag(property, content) {
-  // Ищем метатег по name или property
-  let meta = document.querySelector(`meta[name="${property}"]`) || 
-             document.querySelector(`meta[property="${property}"]`);
-  
-  if (meta) {
-    meta.setAttribute('content', content);
-  } else {
-    // Создаем новый метатег если не найден
-    meta = document.createElement('meta');
-    const isProperty = property.includes(':');
-    meta.setAttribute(isProperty ? 'property' : 'name', property);
-    meta.setAttribute('content', content);
-    document.head.appendChild(meta);
-  }
-}
-
-function updateCanonicalLink(url) {
-  let canonical = document.querySelector('link[rel="canonical"]');
-  if (canonical) {
-    canonical.setAttribute('href', url);
-  } else {
-    // Создаем canonical link если не найден
-    canonical = document.createElement('link');
-    canonical.setAttribute('rel', 'canonical');
-    canonical.setAttribute('href', url);
-    document.head.appendChild(canonical);
-  }
-}
-
-// Инициализация приложения
-const app = createApp(App)
-const head = createHead()
-
-// Глобальная директива для анимации при скролле
-app.directive('scroll-animation', {
-  mounted: function (el) {
-    el.style.opacity = '1'
-    el.style.transform = 'translateY(0)'
-    el.style.transition = 'none'
-  }
-})
-
-// Глобальные настройки галереи и функции метатегов
-app.config.globalProperties.$galleryConfig = {
-  characterColors: {
-    'Основной оранжевый': '#FF7B25',
-    'Основной зеленый': '#4CAF50',
-    'Белый мех': '#FFFFFF',
-    'Кремовый мех': '#FFF8E7',
-    'Темно-оранжевый': '#D35400',
-    'Черный': '#1A1A1A',
-    'Темно-зеленый': '#2E7D32'
-  }
-}
-
-// Добавляем функции метатегов в глобальные свойства
-app.config.globalProperties.$updateMetaTags = updateMetaTags
-
-// Настройка FontAwesome
-import { library, dom } from '@fortawesome/fontawesome-svg-core'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { fas } from '@fortawesome/free-solid-svg-icons'
-import { fab } from '@fortawesome/free-brands-svg-icons'
-
-// Загружаем все иконки из обоих пакетов
-library.add(fas, fab)
-
-// Авто-замена <i class="fas fa-..."> тегов на SVG (поддержка CSS-стиля)
+library.add(...icons)
+// Авто-замена <i class="fas fa-..."> на SVG
 dom.watch()
 
-// Глобальная регистрация компонента иконок
+const app = createApp(App)
+
+app.config.globalProperties.$updateMetaTags = updateMetaTags
 app.component('font-awesome-icon', FontAwesomeIcon)
-
-// Инициализация локального хранилища
-const initializeLocalStorage = () => {
-  if (!localStorage.getItem('foxTaffy_liked_artworks')) {
-    localStorage.setItem('foxTaffy_liked_artworks', JSON.stringify([]))
-  }
-  if (!localStorage.getItem('foxTaffy_gallery_view')) {
-    localStorage.setItem('foxTaffy_gallery_view', 'grid')
-  }
-}
-
-initializeLocalStorage()
-
-// Подключение роутера и монтирование приложения
 app.use(router)
-app.use(head)
+app.use(createHead())
 app.mount('#app')

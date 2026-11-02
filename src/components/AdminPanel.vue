@@ -25,7 +25,7 @@
               <i class="fas fa-key input-icon"></i>
             </div>
             
-            <div v-if="authError" class="error-message">
+            <div v-if="authError" class="alert-error">
               {{ authError }}
             </div>
             
@@ -186,7 +186,7 @@
                       <h3><i class="fas fa-shield-alt"></i> Контент</h3>
                       <div class="content-mini">
                         <div class="content-row">
-                          <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+                          <i class="fas fa-check-circle text-success"></i>
                           <span>SFW: <strong>{{ sfwArtsCount }}</strong></span>
                           <div class="content-progress-wrap">
                             <div
@@ -197,7 +197,7 @@
                           <span class="percent-mini">{{ Math.round((sfwArtsCount / Math.max(stats.arts, 1)) * 100) }}%</span>
                         </div>
                         <div class="content-row">
-                          <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+                          <i class="fas fa-exclamation-triangle text-danger"></i>
                           <span>NSFW: <strong>{{ nsfwArtsCount }}</strong></span>
                           <div class="content-progress-wrap">
                             <div
@@ -938,7 +938,7 @@
                 <i :class="modal.icon"></i>
                 {{ modal.title }}
               </h3>
-              <button @click="closeModal" class="modal-close">
+              <button @click="closeModal" class="icon-btn">
                 <i class="fas fa-times"></i>
               </button>
             </div>
@@ -1243,7 +1243,7 @@
                 <i class="fas fa-exclamation-triangle"></i>
                 Подтверждение удаления
               </h3>
-              <button @click="cancelDelete" class="modal-close">
+              <button @click="cancelDelete" class="icon-btn">
                 <i class="fas fa-times"></i>
               </button>
             </div>
@@ -1308,7 +1308,7 @@
                 <i class="fas fa-exclamation-circle"></i>
                 Несохраненные изменения
               </h3>
-              <button @click="cancelExit" class="modal-close">
+              <button @click="cancelExit" class="icon-btn">
                 <i class="fas fa-times"></i>
               </button>
             </div>
@@ -2521,9 +2521,9 @@ watch(activeTab, () => {
 }
 
 .auth-card {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--white-rgb) / 0.03);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   border-radius: 24px;
   padding: 3rem;
   max-width: 400px;
@@ -2539,7 +2539,7 @@ watch(activeTab, () => {
 .auth-logo {
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  background: var(--gradient-brand-diag);
   border-radius: 20px;
   display: flex;
   align-items: center;
@@ -2554,7 +2554,7 @@ watch(activeTab, () => {
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
-  background: linear-gradient(90deg, #ff6b35, #f7931e);
+  background: var(--gradient-brand);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -2578,24 +2578,24 @@ watch(activeTab, () => {
 .auth-input {
   width: 100%;
   padding: 1rem 1rem 1rem 3rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgb(var(--white-rgb) / 0.05);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   border-radius: 12px;
   color: white;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   box-sizing: border-box;
 }
 
 .auth-input:focus {
   outline: none;
-  border-color: #ff6b35;
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent-orange);
+  background: rgb(var(--white-rgb) / 0.08);
   box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
 
 .auth-input.error {
-  border-color: #ef4444;
+  border-color: var(--danger);
 }
 
 .input-icon {
@@ -2603,18 +2603,11 @@ watch(activeTab, () => {
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #ff6b35;
-}
-
-.error-message {
-  color: #ef4444;
-  font-size: 0.9rem;
-  text-align: left;
-  margin: 0;
+  color: var(--accent-orange);
 }
 
 .auth-button {
-  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  background: var(--gradient-brand-diag);
   border: none;
   border-radius: 12px;
   padding: 1rem 2rem;
@@ -2622,7 +2615,7 @@ watch(activeTab, () => {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2648,9 +2641,9 @@ watch(activeTab, () => {
 /* Боковая панель */
 .sidebar {
   width: 220px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--white-rgb) / 0.02);
   backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid rgb(var(--white-rgb) / 0.05);
   display: flex;
   flex-direction: column;
   position: sticky;
@@ -2661,7 +2654,7 @@ watch(activeTab, () => {
 
 .sidebar-header {
   padding: 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--white-rgb) / 0.05);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -2670,7 +2663,7 @@ watch(activeTab, () => {
 .logo {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  background: var(--gradient-brand-diag);
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -2723,19 +2716,19 @@ watch(activeTab, () => {
   font-family: inherit;
   font-weight: 500;
   font-size: 0.8rem;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   width: 100%;
   text-align: left;
   position: relative;
 }
 
 .nav-item:hover {
-  color: #ff6b35;
+  color: var(--accent-orange);
   background: rgba(255, 107, 53, 0.05);
 }
 
 .nav-item.active {
-  color: #ff6b35;
+  color: var(--accent-orange);
   background: rgba(255, 107, 53, 0.1);
 }
 
@@ -2746,7 +2739,7 @@ watch(activeTab, () => {
   top: 0;
   bottom: 0;
   width: 3px;
-  background: #ff6b35;
+  background: var(--accent-orange);
 }
 
 .nav-item i {
@@ -2756,7 +2749,7 @@ watch(activeTab, () => {
 }
 
 .count-badge {
-  background: #ff6b35;
+  background: var(--accent-orange);
   color: white;
   font-size: 0.65rem;
   padding: 0.15rem 0.4rem;
@@ -2766,7 +2759,7 @@ watch(activeTab, () => {
 
 .sidebar-footer {
   padding: 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgb(var(--white-rgb) / 0.05);
   display: flex;
   gap: 0.5rem;
 }
@@ -2775,11 +2768,11 @@ watch(activeTab, () => {
   flex: 1;
   height: 32px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
+  background: rgb(var(--white-rgb) / 0.05);
   color: #888;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2787,7 +2780,7 @@ watch(activeTab, () => {
 
 .footer-btn:hover:not(:disabled) {
   background: rgba(255, 107, 53, 0.1);
-  color: #ff6b35;
+  color: var(--accent-orange);
 }
 
 .footer-btn:disabled {
@@ -2803,8 +2796,8 @@ watch(activeTab, () => {
 
 .content-header {
   padding: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgb(var(--white-rgb) / 0.05);
+  background: rgb(var(--white-rgb) / 0.02);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2833,9 +2826,9 @@ watch(activeTab, () => {
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   min-width: 120px;
 }
 
@@ -2847,7 +2840,7 @@ watch(activeTab, () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ff6b35;
+  color: var(--accent-orange);
   font-size: 1.2rem;
 }
 
@@ -2892,24 +2885,24 @@ watch(activeTab, () => {
   right: 0;
   height: 2px;
   border-radius: 16px 16px 0 0;
-  background: linear-gradient(90deg, #ff6b35, #f7931e);
+  background: var(--gradient-brand);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 .stat-compact:hover::after { opacity: 1; }
 
-.stat-arts    i { color: #ff6b35; }
-.stat-artists i { color: #4caf50; background: linear-gradient(135deg, rgba(76,175,80,0.2), rgba(76,175,80,0.1)) !important; }
-.stat-tags    i { color: #ff7b25; }
-.stat-chars   i { color: #ff7b25; background: linear-gradient(135deg, rgba(255,123,37,0.2), rgba(255,123,37,0.1)) !important; }
+.stat-arts    i { color: var(--accent-orange); }
+.stat-artists i { color: var(--accent-green); background: linear-gradient(135deg, rgb(var(--accent-green-rgb) / 0.2), rgb(var(--accent-green-rgb) / 0.1)) !important; }
+.stat-tags    i { color: var(--accent-orange); }
+.stat-chars   i { color: var(--accent-orange); background: linear-gradient(135deg, rgb(var(--accent-orange-rgb) / 0.2), rgb(var(--accent-orange-rgb) / 0.1)) !important; }
 .stat-monthly i { color: #2196f3; background: linear-gradient(135deg, rgba(33,150,243,0.2), rgba(33,150,243,0.1)) !important; }
 .stat-s3      i { color: #9c27b0; background: linear-gradient(135deg, rgba(156,39,176,0.2), rgba(156,39,176,0.1)) !important; }
 
 .stat-compact {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  background: linear-gradient(135deg, rgb(var(--white-rgb) / 0.08) 0%, rgb(var(--white-rgb) / 0.03) 100%);
   border-radius: 16px;
   padding: 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -2931,7 +2924,7 @@ watch(activeTab, () => {
 }
 
 .stat-compact:hover {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%);
+  background: linear-gradient(135deg, rgb(var(--white-rgb) / 0.12) 0%, rgb(var(--white-rgb) / 0.06) 100%);
   transform: translateY(-4px);
   box-shadow: 0 12px 40px rgba(255, 107, 53, 0.15);
   border-color: rgba(255, 107, 53, 0.3);
@@ -2943,7 +2936,7 @@ watch(activeTab, () => {
 
 .stat-compact i {
   font-size: 2rem;
-  color: #ff6b35;
+  color: var(--accent-orange);
   width: 56px;
   height: 56px;
   display: flex;
@@ -2958,7 +2951,7 @@ watch(activeTab, () => {
 .stat-num {
   font-size: 2rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
+  background: linear-gradient(135deg, #ffffff 0%, rgb(var(--white-rgb) / 0.8) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -2968,7 +2961,7 @@ watch(activeTab, () => {
 
 .stat-lbl {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgb(var(--white-rgb) / 0.6);
   margin-top: 0.35rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -2994,10 +2987,10 @@ watch(activeTab, () => {
 }
 
 .dashboard-card-mini {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  background: linear-gradient(135deg, rgb(var(--white-rgb) / 0.08) 0%, rgb(var(--white-rgb) / 0.03) 100%);
   border-radius: 16px;
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   overflow: hidden;
@@ -3033,7 +3026,7 @@ watch(activeTab, () => {
 }
 
 .dashboard-card-mini h3 i {
-  color: #ff6b35;
+  color: var(--accent-orange);
   font-size: 0.9rem;
 }
 
@@ -3053,9 +3046,9 @@ watch(activeTab, () => {
   border: none;
   border-radius: 6px;
   padding: 0.35rem 0.65rem;
-  color: #ff6b35;
+  color: var(--accent-orange);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .view-btn-mini:hover {
@@ -3129,11 +3122,11 @@ watch(activeTab, () => {
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  background: linear-gradient(90deg, rgb(var(--white-rgb) / 0.05) 0%, rgb(var(--white-rgb) / 0.02) 100%);
   border-radius: 10px;
   font-size: 0.85rem;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: var(--transition);
+  border: 1px solid rgb(var(--white-rgb) / 0.05);
 }
 
 .content-row:hover {
@@ -3167,7 +3160,7 @@ watch(activeTab, () => {
 .content-progress-wrap {
   flex: 1;
   height: 5px;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgb(var(--white-rgb) / 0.07);
   border-radius: 3px;
   overflow: hidden;
   margin: 0 0.5rem;
@@ -3181,12 +3174,12 @@ watch(activeTab, () => {
 }
 
 .sfw-bar {
-  background: linear-gradient(90deg, #22c55e, #4ade80);
+  background: linear-gradient(90deg, var(--accent-green), var(--accent-green));
   box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
 }
 
 .nsfw-bar {
-  background: linear-gradient(90deg, #ef4444, #f87171);
+  background: linear-gradient(90deg, var(--danger), #f87171);
   box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
 }
 
@@ -3231,7 +3224,7 @@ watch(activeTab, () => {
 
 .chart-month-lbl {
   font-size: 0.58rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgb(var(--white-rgb) / 0.35);
   text-align: center;
   line-height: 1;
   text-transform: lowercase;
@@ -3248,10 +3241,10 @@ watch(activeTab, () => {
   align-items: center;
   gap: 0.65rem;
   padding: 0.6rem;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  background: linear-gradient(90deg, rgb(var(--white-rgb) / 0.05) 0%, rgb(var(--white-rgb) / 0.02) 100%);
   border-radius: 10px;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--white-rgb) / 0.05);
 }
 
 .list-item-mini:hover {
@@ -3264,7 +3257,7 @@ watch(activeTab, () => {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  background: var(--gradient-brand-diag);
   color: white;
   font-size: 0.75rem;
   font-weight: 700;
@@ -3284,7 +3277,7 @@ watch(activeTab, () => {
   box-shadow:
     0 0 0 2px rgba(255, 107, 53, 0.4),
     0 4px 12px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    inset 0 1px 0 rgb(var(--white-rgb) / 0.1);
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -3293,7 +3286,7 @@ watch(activeTab, () => {
   box-shadow:
     0 0 0 2px rgba(255, 107, 53, 0.8),
     0 8px 24px rgba(255, 107, 53, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 rgb(var(--white-rgb) / 0.2);
 }
 
 .info-mini {
@@ -3304,7 +3297,7 @@ watch(activeTab, () => {
 .name-mini {
   font-size: 0.85rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
+  color: rgb(var(--white-rgb) / 0.95);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3317,12 +3310,12 @@ watch(activeTab, () => {
 }
 
 .star-mini {
-  color: #ffd700;
+  color: var(--accent-gold);
   font-size: 0.75rem;
 }
 
 /* Artist rank medal colors */
-.rank-1 { background: linear-gradient(135deg, #ffd700, #ffaa00); box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4); }
+.rank-1 { background: linear-gradient(135deg, var(--accent-gold), #ffaa00); box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4); }
 .rank-2 { background: linear-gradient(135deg, #c0c0c0, #a8a8a8); box-shadow: 0 4px 12px rgba(192, 192, 192, 0.3); }
 .rank-3 { background: linear-gradient(135deg, #cd7f32, #a0522d); box-shadow: 0 4px 12px rgba(205, 127, 50, 0.3); }
 .rank-4, .rank-5 { background: linear-gradient(135deg, rgba(255,107,53,0.4), rgba(247,147,30,0.4)); box-shadow: none; }
@@ -3330,7 +3323,7 @@ watch(activeTab, () => {
 /* Mini progress bar relative to top artist */
 .artist-bar-wrap {
   height: 3px;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgb(var(--white-rgb) / 0.07);
   border-radius: 2px;
   overflow: hidden;
   margin-top: 3px;
@@ -3339,7 +3332,7 @@ watch(activeTab, () => {
 .artist-bar {
   height: 100%;
   border-radius: 2px;
-  background: linear-gradient(90deg, #ff6b35, #f7931e);
+  background: var(--gradient-brand);
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -3395,10 +3388,10 @@ watch(activeTab, () => {
   border-radius: 6px;
 }
 .quick-actions-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   border-radius: 20px;
   padding: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   backdrop-filter: blur(20px);
 }
 
@@ -3413,7 +3406,7 @@ watch(activeTab, () => {
 }
 
 .quick-actions-card h3 i {
-  color: #ff6b35;
+  color: var(--accent-orange);
   font-size: 1.1rem;
 }
 
@@ -3435,8 +3428,8 @@ watch(activeTab, () => {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgb(var(--white-rgb) / 0.05);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   text-align: left;
   width: 100%;
   min-height: 70px;
@@ -3449,7 +3442,7 @@ watch(activeTab, () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+  background: linear-gradient(135deg, transparent 0%, rgb(var(--white-rgb) / 0.1) 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
@@ -3470,7 +3463,7 @@ watch(activeTab, () => {
 
 /* Варианты кнопок */
 .quick-action-btn.primary {
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  background: var(--gradient-brand-diag);
   border: 1px solid rgba(255, 107, 53, 0.3);
   color: white;
 }
@@ -3483,7 +3476,7 @@ watch(activeTab, () => {
 .quick-action-btn.secondary {
   background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(22, 163, 74, 0.2) 100%);
   border: 1px solid rgba(34, 197, 94, 0.3);
-  color: #22c55e;
+  color: var(--accent-green);
 }
 
 .quick-action-btn.secondary:hover {
@@ -3523,18 +3516,18 @@ watch(activeTab, () => {
   align-items: center;
   justify-content: center;
   font-size: 1.3rem;
-  background: rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  background: rgb(var(--white-rgb) / 0.1);
+  transition: var(--transition);
 }
 
 .quick-action-btn.primary .btn-icon {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.2);
   color: white;
 }
 
 .quick-action-btn.secondary .btn-icon {
   background: rgba(34, 197, 94, 0.2);
-  color: #22c55e;
+  color: var(--accent-green);
 }
 
 .quick-action-btn.tertiary .btn-icon {
@@ -3570,14 +3563,14 @@ watch(activeTab, () => {
 }
 
 .quick-action-btn.primary .btn-subtitle {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgb(var(--white-rgb) / 0.9);
 }
 
 .btn-arrow {
   flex-shrink: 0;
   font-size: 1rem;
   opacity: 0.6;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .quick-action-btn:hover .btn-arrow {
@@ -3587,7 +3580,7 @@ watch(activeTab, () => {
 
 .quick-action-btn:hover .btn-icon {
   transform: scale(1.05);
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.2);
 }
 
 .quick-action-btn.secondary:hover .btn-icon {
@@ -3641,7 +3634,7 @@ watch(activeTab, () => {
   }
 }
 .action-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--white-rgb) / 0.1);
   color: white;
 }
 
@@ -3661,7 +3654,7 @@ watch(activeTab, () => {
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--white-rgb) / 0.03);
   border-radius: 12px;
 }
 
@@ -3673,7 +3666,7 @@ watch(activeTab, () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #22c55e;
+  color: var(--accent-green);
 }
 
 .storage-item span {
@@ -3692,16 +3685,16 @@ watch(activeTab, () => {
 }
 
 .recent-art {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--white-rgb) / 0.03);
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all 0.3s ease;
+  border: 1px solid rgb(var(--white-rgb) / 0.05);
+  transition: var(--transition);
 }
 
 .recent-art:hover {
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgb(var(--white-rgb) / 0.08);
 }
 
 .recent-art img {
@@ -3728,7 +3721,7 @@ watch(activeTab, () => {
 
 .nsfw-badge {
   background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+  color: var(--danger);
   padding: 0.2rem 0.5rem;
   border-radius: 6px;
   font-size: 0.7rem;
@@ -3746,10 +3739,10 @@ watch(activeTab, () => {
 }
 
 .form-section {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   border-radius: 16px;
   padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
 }
 
 .form-section:first-child {
@@ -3764,11 +3757,11 @@ watch(activeTab, () => {
   font-size: 1.3rem;
   font-weight: 600;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgb(var(--white-rgb) / 0.1);
 }
 
 .form-section h3 i {
-  color: #ff6b35;
+  color: var(--accent-orange);
 }
 
 .form-row {
@@ -3786,7 +3779,7 @@ watch(activeTab, () => {
 
 .form-group label {
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgb(var(--white-rgb) / 0.9);
   font-size: 0.9rem;
   display: flex;
   align-items: center;
@@ -3794,7 +3787,7 @@ watch(activeTab, () => {
 }
 
 .selected-count {
-  color: #ff6b35;
+  color: var(--accent-orange);
   font-weight: 600;
   font-size: 0.8rem;
 }
@@ -3804,7 +3797,7 @@ watch(activeTab, () => {
   padding: 0.85rem 1.1rem;
   border: 1px solid rgba(255, 107, 53, 0.15);
   border-radius: 10px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  background: linear-gradient(135deg, rgb(var(--white-rgb) / 0.05) 0%, rgb(var(--white-rgb) / 0.02) 100%);
   color: white;
   font-size: 0.95rem;
   font-family: inherit;
@@ -3820,7 +3813,7 @@ watch(activeTab, () => {
 }
 
 .form-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgb(var(--white-rgb) / 0.3);
 }
 
 .tags-selector {
@@ -3828,9 +3821,9 @@ watch(activeTab, () => {
   flex-wrap: wrap;
   gap: 0.5rem;
   padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--white-rgb) / 0.03);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   max-height: 200px;
   overflow-y: auto;
 }
@@ -3839,8 +3832,8 @@ watch(activeTab, () => {
   display: inline-flex;
   align-items: center;
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgb(var(--white-rgb) / 0.05);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -3851,30 +3844,30 @@ watch(activeTab, () => {
 }
 
 .tag-checkbox .tag-label {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgb(var(--white-rgb) / 0.8);
   font-size: 0.9rem;
 }
 
 .tag-checkbox:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 123, 37, 0.3);
+  background: rgb(var(--white-rgb) / 0.08);
+  border-color: rgb(var(--accent-orange-rgb) / 0.3);
 }
 
 .tag-checkbox.selected {
-  background: rgba(255, 123, 37, 0.2);
-  border-color: rgba(255, 123, 37, 0.5);
+  background: rgb(var(--accent-orange-rgb) / 0.2);
+  border-color: rgb(var(--accent-orange-rgb) / 0.5);
 }
 
 .tag-checkbox.selected .tag-label {
-  color: #ff7b25;
+  color: var(--accent-orange);
   font-weight: 600;
 }
 
 .form-input:focus,
 .form-select:focus {
   outline: none;
-  border-color: #ff6b35;
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent-orange);
+  background: rgb(var(--white-rgb) / 0.08);
   box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
 
@@ -3891,14 +3884,14 @@ watch(activeTab, () => {
   width: 50px;
   height: 50px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   background: rgba(255, 107, 53, 0.1);
-  color: #ff6b35;
+  color: var(--accent-orange);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .add-btn:hover {
@@ -3910,7 +3903,7 @@ watch(activeTab, () => {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   border-radius: 12px;
   padding: 0.5rem;
 }
@@ -3929,16 +3922,16 @@ watch(activeTab, () => {
   cursor: pointer;
   font-family: inherit;
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .upload-tab:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   color: white;
 }
 
 .upload-tab.active {
-  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  background: var(--gradient-brand-diag);
   color: white;
 }
 
@@ -3951,9 +3944,9 @@ watch(activeTab, () => {
   margin-top: 1rem;
   text-align: center;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--white-rgb) / 0.02);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--white-rgb) / 0.05);
 }
 
 .image-preview img {
@@ -4034,8 +4027,8 @@ watch(activeTab, () => {
 }
 
 .checkbox:checked + .checkmark {
-  background: linear-gradient(135deg, #ff6b35, #f7931e);
-  border-color: #ff6b35;
+  background: var(--gradient-brand-diag);
+  border-color: var(--accent-orange);
   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
 
@@ -4048,7 +4041,7 @@ watch(activeTab, () => {
   align-items: center;
   gap: 0.5rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.95);
+  color: rgb(var(--white-rgb) / 0.95);
   font-size: 0.9rem;
 }
 
@@ -4088,26 +4081,26 @@ watch(activeTab, () => {
   justify-content: space-between;
   width: 100%;
   padding: 1rem 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   color: white;
   cursor: pointer;
   font-family: inherit;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   gap: 0.75rem;
 }
 
 .selector-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.08);
+  border-color: rgb(var(--white-rgb) / 0.2);
 }
 
 .selector-btn.active {
   background: rgba(255, 107, 53, 0.1);
   border-color: rgba(255, 107, 53, 0.3);
-  color: #ff6b35;
+  color: var(--accent-orange);
 }
 
 .selector-btn i.fa-chevron-down {
@@ -4128,7 +4121,7 @@ watch(activeTab, () => {
 
 .artist-item {
   padding: 1rem !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--white-rgb) / 0.05);
 }
 
 .artist-item:last-child {
@@ -4159,7 +4152,7 @@ watch(activeTab, () => {
   align-items: center;
   gap: 0.25rem;
   background: rgba(255, 215, 0, 0.15);
-  color: #ffd700;
+  color: var(--accent-gold);
   padding: 0.2rem 0.5rem;
   border-radius: 8px;
   font-size: 0.7rem;
@@ -4177,7 +4170,7 @@ watch(activeTab, () => {
   background: rgba(255, 107, 53, 0.1);
   border: 1px solid rgba(255, 107, 53, 0.2);
   border-radius: 12px;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .selected-artist-card:hover {
@@ -4194,7 +4187,7 @@ watch(activeTab, () => {
   box-shadow:
     0 0 0 3px rgba(255, 107, 53, 0.5),
     0 6px 20px rgba(255, 107, 53, 0.3),
-    inset 0 2px 0 rgba(255, 255, 255, 0.15);
+    inset 0 2px 0 rgb(var(--white-rgb) / 0.15);
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -4203,7 +4196,7 @@ watch(activeTab, () => {
   box-shadow:
     0 0 0 3px rgba(255, 107, 53, 0.9),
     0 10px 32px rgba(255, 107, 53, 0.5),
-    inset 0 2px 0 rgba(255, 255, 255, 0.25);
+    inset 0 2px 0 rgb(var(--white-rgb) / 0.25);
 }
 
 .selected-artist-info {
@@ -4215,7 +4208,7 @@ watch(activeTab, () => {
 
 .selected-name {
   font-weight: 600;
-  color: #ff6b35;
+  color: var(--accent-orange);
 }
 
 .selected-meta {
@@ -4231,7 +4224,7 @@ watch(activeTab, () => {
   align-items: center;
   gap: 0.25rem;
   background: rgba(255, 215, 0, 0.15);
-  color: #ffd700;
+  color: var(--accent-gold);
   padding: 0.15rem 0.4rem;
   border-radius: 6px;
   font-size: 0.7rem;
@@ -4244,12 +4237,12 @@ watch(activeTab, () => {
   border-radius: 50%;
   border: 1px solid rgba(255, 107, 53, 0.3);
   background: rgba(255, 107, 53, 0.1);
-  color: #ff6b35;
+  color: var(--accent-orange);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   font-size: 0.8rem;
 }
 
@@ -4281,11 +4274,11 @@ watch(activeTab, () => {
   background: rgba(255, 107, 53, 0.1);
   border: 1px solid rgba(255, 107, 53, 0.2);
   border-radius: 8px;
-  color: #ff6b35;
+  color: var(--accent-orange);
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .view-all-btn:hover {
@@ -4314,14 +4307,14 @@ watch(activeTab, () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ff6b35;
+  color: var(--accent-orange);
   font-size: 1.3rem;
   flex-shrink: 0;
 }
 
 .stat-icon.artists {
   background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
+  color: var(--accent-green);
 }
 
 .stat-icon.tags {
@@ -4352,20 +4345,20 @@ watch(activeTab, () => {
 .stat-progress {
   width: 100%;
   height: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--white-rgb) / 0.1);
   border-radius: 3px;
   overflow: hidden;
 }
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #ff6b35, #f7931e);
+  background: var(--gradient-brand);
   border-radius: 3px;
   transition: width 0.3s ease;
 }
 
 .progress-bar.artists {
-  background: linear-gradient(90deg, #22c55e, #16a34a);
+  background: linear-gradient(90deg, var(--accent-green), #16a34a);
 }
 
 .progress-bar.tags {
@@ -4393,7 +4386,7 @@ watch(activeTab, () => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: #22c55e;
+  color: var(--accent-green);
   font-weight: 600;
 }
 
@@ -4401,7 +4394,7 @@ watch(activeTab, () => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #22c55e;
+  background: var(--accent-green);
   animation: pulse 2s ease-in-out infinite;
 }
 
@@ -4471,12 +4464,12 @@ watch(activeTab, () => {
 
 .content-item.sfw .content-icon {
   background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
+  color: var(--accent-green);
 }
 
 .content-item.nsfw .content-icon {
   background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .content-info {
@@ -4509,12 +4502,12 @@ watch(activeTab, () => {
 
 .content-item.sfw .content-percentage {
   background: rgba(34, 197, 94, 0.2);
-  color: #22c55e;
+  color: var(--accent-green);
 }
 
 .content-item.nsfw .content-percentage {
   background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+  color: var(--danger);
 }
 
 /* Последние арты */
@@ -4525,17 +4518,17 @@ watch(activeTab, () => {
 }
 
 .recent-art {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--white-rgb) / 0.03);
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all 0.3s ease;
+  border: 1px solid rgb(var(--white-rgb) / 0.05);
+  transition: var(--transition);
   cursor: pointer;
 }
 
 .recent-art:hover {
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgb(var(--white-rgb) / 0.08);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
@@ -4578,14 +4571,14 @@ watch(activeTab, () => {
   align-items: center;
   gap: 0.65rem;
   padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--white-rgb) / 0.03);
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all 0.3s ease;
+  border: 1px solid rgb(var(--white-rgb) / 0.05);
+  transition: var(--transition);
 }
 
 .top-artist-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgb(var(--white-rgb) / 0.08);
   transform: translateX(2px);
 }
 
@@ -4593,7 +4586,7 @@ watch(activeTab, () => {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  background: var(--gradient-brand-diag);
   color: white;
   font-size: 0.75rem;
   font-weight: 700;
@@ -4608,7 +4601,7 @@ watch(activeTab, () => {
   height: 34px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgb(var(--white-rgb) / 0.1);
   flex-shrink: 0;
 }
 
@@ -4632,7 +4625,7 @@ watch(activeTab, () => {
 
 .friend-mini-badge {
   background: rgba(255, 215, 0, 0.15);
-  color: #ffd700;
+  color: var(--accent-gold);
   padding: 0.3rem;
   border-radius: 6px;
   font-size: 0.8rem;
@@ -4656,7 +4649,7 @@ watch(activeTab, () => {
   color: #3b82f6;
   font-size: 0.75rem;
   min-width: 70px;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .popular-tag:hover {
@@ -4679,14 +4672,14 @@ watch(activeTab, () => {
 }
 
 .selector-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.08);
+  border-color: rgb(var(--white-rgb) / 0.2);
 }
 
 .selector-btn.active {
   background: rgba(255, 107, 53, 0.1);
   border-color: rgba(255, 107, 53, 0.3);
-  color: #ff6b35;
+  color: var(--accent-orange);
 }
 
 .selector-btn i.fa-chevron-down {
@@ -4704,10 +4697,10 @@ watch(activeTab, () => {
   right: 0;
   margin-top: 0.5rem;
   background: rgba(15, 15, 15, 0.98);
-  border: 1px solid rgba(255, 123, 37, 0.3);
+  border: 1px solid rgb(var(--accent-orange-rgb) / 0.3);
   border-radius: 12px;
   backdrop-filter: blur(20px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 123, 37, 0.1);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 0 1px rgb(var(--accent-orange-rgb) / 0.1);
   max-height: min(400px, calc(100vh - 300px));
   overflow: hidden;
   display: flex;
@@ -4739,27 +4732,27 @@ watch(activeTab, () => {
 
 .selector-header {
   padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(255, 255, 255, 0.01);
+  border-bottom: 1px solid rgb(var(--white-rgb) / 0.05);
+  background: rgb(var(--white-rgb) / 0.01);
 }
 
 .search-input {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgb(var(--white-rgb) / 0.08);
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--white-rgb) / 0.03);
   color: white;
   font-size: 0.85rem;
   font-family: inherit;
   margin-bottom: 0.5rem;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #ff6b35;
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent-orange);
+  background: rgb(var(--white-rgb) / 0.08);
 }
 
 .selector-actions {
@@ -4769,19 +4762,19 @@ watch(activeTab, () => {
 
 .selector-actions button {
   padding: 0.35rem 0.6rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgb(var(--white-rgb) / 0.08);
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--white-rgb) / 0.03);
   color: #888;
   cursor: pointer;
   font-size: 0.75rem;
   font-family: inherit;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .selector-actions button:hover {
   background: rgba(255, 107, 53, 0.1);
-  color: #ff6b35;
+  color: var(--accent-orange);
   border-color: rgba(255, 107, 53, 0.3);
 }
 
@@ -4798,18 +4791,18 @@ watch(activeTab, () => {
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   color: white;
 }
 
 .selector-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
 }
 
 .selector-item input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: #ff6b35;
+  accent-color: var(--accent-orange);
 }
 
 .item-avatar {
@@ -4823,7 +4816,7 @@ watch(activeTab, () => {
   box-shadow:
     0 0 0 2px rgba(255, 107, 53, 0.35),
     0 4px 12px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    inset 0 1px 0 rgb(var(--white-rgb) / 0.1);
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -4832,7 +4825,7 @@ watch(activeTab, () => {
   box-shadow:
     0 0 0 2px rgba(255, 107, 53, 0.7),
     0 8px 24px rgba(255, 107, 53, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 rgb(var(--white-rgb) / 0.2);
 }
 
 .item-name {
@@ -4849,8 +4842,8 @@ watch(activeTab, () => {
 
 .new-item {
   padding: 0.5rem 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid rgb(var(--white-rgb) / 0.1);
+  background: rgb(var(--white-rgb) / 0.02);
 }
 
 .new-btn {
@@ -4862,11 +4855,11 @@ watch(activeTab, () => {
   border: 1px dashed rgba(255, 107, 53, 0.3);
   border-radius: 8px;
   background: rgba(255, 107, 53, 0.05);
-  color: #ff6b35;
+  color: var(--accent-orange);
   cursor: pointer;
   font-family: inherit;
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .new-btn:hover {
@@ -4887,13 +4880,13 @@ watch(activeTab, () => {
   gap: 0.5rem;
   padding: 0.4rem 0.75rem;
   background: rgba(255, 107, 53, 0.15);
-  color: #ff6b35;
+  color: var(--accent-orange);
   border: 1px solid rgba(255, 107, 53, 0.3);
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .selected-tag:hover {
@@ -4922,7 +4915,7 @@ watch(activeTab, () => {
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .selected-character:hover {
@@ -4939,8 +4932,8 @@ watch(activeTab, () => {
   box-shadow:
     0 0 0 2px rgba(147, 51, 234, 0.5),
     0 2px 8px rgba(147, 51, 234, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+    inset 0 1px 0 rgb(var(--white-rgb) / 0.1);
+  transition: var(--transition);
 }
 
 .character-avatar:hover {
@@ -4948,7 +4941,7 @@ watch(activeTab, () => {
   box-shadow:
     0 0 0 2px rgba(147, 51, 234, 0.8),
     0 4px 16px rgba(147, 51, 234, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 rgb(var(--white-rgb) / 0.2);
 }
 
 .selected-character i {
@@ -4980,12 +4973,12 @@ watch(activeTab, () => {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   font-family: inherit;
 }
 
 .btn.primary {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: linear-gradient(135deg, var(--accent-green), #16a34a);
   color: white;
 }
 
@@ -4996,18 +4989,18 @@ watch(activeTab, () => {
 
 .btn.secondary {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgb(var(--white-rgb) / 0.15);
+  color: rgb(var(--white-rgb) / 0.6);
 }
 
 .btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.25);
-  color: rgba(255, 255, 255, 0.9);
+  background: rgb(var(--white-rgb) / 0.05);
+  border-color: rgb(var(--white-rgb) / 0.25);
+  color: rgb(var(--white-rgb) / 0.9);
 }
 
 .btn.danger {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: linear-gradient(135deg, var(--danger), #dc2626);
   color: white;
 }
 
@@ -5024,11 +5017,6 @@ watch(activeTab, () => {
 
 .spinning {
   animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 
 /* Страницы управления */
@@ -5063,20 +5051,20 @@ watch(activeTab, () => {
 .search-bar input {
   width: 100%;
   padding: 1rem 1rem 1rem 3rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   color: white;
   font-size: 1rem;
   font-family: inherit;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   box-sizing: border-box;
 }
 
 .search-bar input:focus {
   outline: none;
-  border-color: #ff6b35;
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent-orange);
+  background: rgb(var(--white-rgb) / 0.08);
   box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
 
@@ -5087,16 +5075,16 @@ watch(activeTab, () => {
 }
 
 .item-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   border-radius: 16px;
   padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
+  transition: var(--transition);
   position: relative;
 }
 
 .item-card:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgb(var(--white-rgb) / 0.08);
   transform: translateY(-2px);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
 }
@@ -5117,7 +5105,7 @@ watch(activeTab, () => {
   box-shadow:
     0 0 0 3px rgba(255, 107, 53, 0.4),
     0 8px 24px rgba(0, 0, 0, 0.3),
-    inset 0 2px 0 rgba(255, 255, 255, 0.12);
+    inset 0 2px 0 rgb(var(--white-rgb) / 0.12);
   transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -5126,7 +5114,7 @@ watch(activeTab, () => {
   box-shadow:
     0 0 0 3px rgba(255, 107, 53, 0.8),
     0 12px 36px rgba(255, 107, 53, 0.4),
-    inset 0 2px 0 rgba(255, 255, 255, 0.2);
+    inset 0 2px 0 rgb(var(--white-rgb) / 0.2);
 }
 
 .tag-icon {
@@ -5138,7 +5126,7 @@ watch(activeTab, () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ff6b35;
+  color: var(--accent-orange);
   font-size: 1.2rem;
 }
 
@@ -5160,7 +5148,7 @@ watch(activeTab, () => {
   align-items: center;
   gap: 0.5rem;
   background: rgba(255, 215, 0, 0.15);
-  color: #ffd700;
+  color: var(--accent-gold);
   padding: 0.3rem 0.6rem;
   border-radius: 12px;
   font-size: 0.7rem;
@@ -5180,25 +5168,25 @@ watch(activeTab, () => {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
+  background: rgb(var(--white-rgb) / 0.05);
   color: #888;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   font-size: 0.9rem;
 }
 
 .action-btn:hover {
   background: rgba(255, 107, 53, 0.1);
-  color: #ff6b35;
+  color: var(--accent-orange);
 }
 
 .action-btn.danger:hover {
   background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  color: var(--danger);
 }
 
 /* Галерея */
@@ -5240,10 +5228,10 @@ watch(activeTab, () => {
   position: relative;
   width: 50px;
   height: 24px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--white-rgb) / 0.1);
   border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
+  border: 1px solid rgb(var(--white-rgb) / 0.2);
+  transition: var(--transition);
 }
 
 .toggle-slider::before {
@@ -5253,9 +5241,9 @@ watch(activeTab, () => {
   left: 2px;
   width: 18px;
   height: 18px;
-  background: #22c55e;
+  background: var(--accent-green);
   border-radius: 50%;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .nsfw-toggle input:checked + .toggle-slider {
@@ -5265,7 +5253,7 @@ watch(activeTab, () => {
 
 .nsfw-toggle input:checked + .toggle-slider::before {
   transform: translateX(26px);
-  background: #ef4444;
+  background: var(--danger);
 }
 
 .nsfw-toggle span {
@@ -5276,9 +5264,9 @@ watch(activeTab, () => {
 
 .sort-select {
   padding: 0.75rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   color: white;
   font-family: inherit;
   cursor: pointer;
@@ -5291,15 +5279,15 @@ watch(activeTab, () => {
 }
 
 .art-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   border-radius: 16px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
+  transition: var(--transition);
 }
 
 .art-card:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgb(var(--white-rgb) / 0.08);
   box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
   border-color: rgba(255, 107, 53, 0.3);
 }
@@ -5378,13 +5366,13 @@ watch(activeTab, () => {
   height: 45px;
   border-radius: 50%;
   border: none;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgb(var(--white-rgb) / 0.9);
   color: #333;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   font-size: 1.1rem;
   backdrop-filter: blur(10px);
 }
@@ -5400,7 +5388,7 @@ watch(activeTab, () => {
 }
 
 .overlay-btn.danger:hover {
-  background: #ef4444;
+  background: var(--danger);
 }
 
 .overlay-btn.edit {
@@ -5489,7 +5477,7 @@ watch(activeTab, () => {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  color: #ff6b35;
+  color: var(--accent-orange);
   font-size: 1.2rem;
   letter-spacing: -0.01em;
 }
@@ -5504,28 +5492,6 @@ watch(activeTab, () => {
   background: linear-gradient(135deg, rgba(255, 107, 53, 0.2) 0%, rgba(247, 147, 30, 0.2) 100%);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.15);
-}
-
-.modal-close {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  font-size: 1rem;
-}
-
-.modal-close:hover {
-  background: rgba(255, 107, 53, 0.1);
-  border-color: rgba(255, 107, 53, 0.3);
-  color: #ff6b35;
-  transform: rotate(90deg);
 }
 
 .modal-body {
@@ -5559,7 +5525,7 @@ watch(activeTab, () => {
 }
 
 .modal-actions .btn.primary {
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  background: var(--gradient-brand-diag);
   border: none;
   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25);
 }
@@ -5570,19 +5536,19 @@ watch(activeTab, () => {
 }
 
 .modal-actions .btn.secondary {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.8);
+  background: rgb(var(--white-rgb) / 0.05);
+  border: 1px solid rgb(var(--white-rgb) / 0.15);
+  color: rgb(var(--white-rgb) / 0.8);
 }
 
 .modal-actions .btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.25);
+  background: rgb(var(--white-rgb) / 0.08);
+  border-color: rgb(var(--white-rgb) / 0.25);
   color: white;
 }
 
 .modal-actions .btn.danger {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
   border: none;
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
 }
@@ -5615,7 +5581,7 @@ watch(activeTab, () => {
   align-items: center;
   justify-content: center;
   font-size: 1.6rem;
-  color: #ef4444;
+  color: var(--danger);
   flex-shrink: 0;
   border: 1px solid rgba(239, 68, 68, 0.3);
   box-shadow: 0 4px 16px rgba(239, 68, 68, 0.2);
@@ -5644,7 +5610,7 @@ watch(activeTab, () => {
 
 .delete-text p {
   margin: 0 0 1.25rem 0;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgb(var(--white-rgb) / 0.6);
   line-height: 1.6;
   font-size: 0.9rem;
 }
@@ -5668,7 +5634,7 @@ watch(activeTab, () => {
   top: 0;
   bottom: 0;
   width: 3px;
-  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(180deg, var(--danger) 0%, #dc2626 100%);
 }
 
 .delete-avatar {
@@ -5681,7 +5647,7 @@ watch(activeTab, () => {
   box-shadow:
     0 0 0 3px rgba(239, 68, 68, 0.5),
     0 6px 20px rgba(239, 68, 68, 0.3),
-    inset 0 2px 0 rgba(255, 255, 255, 0.1);
+    inset 0 2px 0 rgb(var(--white-rgb) / 0.1);
 }
 
 .delete-placeholder {
@@ -5692,7 +5658,7 @@ watch(activeTab, () => {
   align-items: center;
   justify-content: center;
   background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+  color: var(--danger);
   font-size: 1.3rem;
   box-shadow:
     0 0 0 3px rgba(239, 68, 68, 0.4),
@@ -5766,7 +5732,7 @@ watch(activeTab, () => {
   gap: 1rem;
   padding: 1rem 1.5rem;
   background: rgba(15, 15, 15, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   border-radius: 12px;
   backdrop-filter: blur(20px);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
@@ -5777,11 +5743,11 @@ watch(activeTab, () => {
 }
 
 .notification.success {
-  border-left-color: #22c55e;
+  border-left-color: var(--accent-green);
 }
 
 .notification.error {
-  border-left-color: #ef4444;
+  border-left-color: var(--danger);
 }
 
 .notification.warning {
@@ -5805,12 +5771,12 @@ watch(activeTab, () => {
 
 .notification.success .notification-icon {
   background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
+  color: var(--accent-green);
 }
 
 .notification.error .notification-icon {
   background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .notification.warning .notification-icon {
@@ -5827,7 +5793,7 @@ watch(activeTab, () => {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--white-rgb) / 0.1);
   border: none;
   color: #888;
   cursor: pointer;
@@ -5835,12 +5801,12 @@ watch(activeTab, () => {
   align-items: center;
   justify-content: center;
   font-size: 0.8rem;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   flex-shrink: 0;
 }
 
 .notification-close:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.2);
   color: white;
 }
 
@@ -5849,7 +5815,7 @@ watch(activeTab, () => {
 .fade-leave-active,
 .slide-enter-active,
 .slide-leave-active {
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .fade-enter-from,
@@ -5866,7 +5832,7 @@ watch(activeTab, () => {
 
 .modal-enter-active,
 .modal-leave-active {
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .modal-enter-from,
@@ -5877,7 +5843,7 @@ watch(activeTab, () => {
 
 .notification-enter-active,
 .notification-leave-active {
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .notification-enter-from {

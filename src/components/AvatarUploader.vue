@@ -22,7 +22,7 @@
         :class="{ 'drag-over': isDragOver }"
       >
         <template v-if="isUploading">
-          <div class="upload-spinner"></div>
+          <div class="spinner spinner-sm"></div>
           <span>{{ uploadProgress }}%</span>
         </template>
         <template v-else>
@@ -60,7 +60,7 @@
       <span>Сжато: {{ compressionInfo.original }} → {{ compressionInfo.compressed }} ({{ compressionInfo.ratio }})</span>
     </div>
 
-    <div v-if="errorMessage" class="error-message">
+    <div v-if="errorMessage" class="alert-error">
       <i class="fas fa-exclamation-circle"></i>
       <span>{{ errorMessage }}</span>
     </div>
@@ -238,7 +238,7 @@ const removeAvatar = () => {
 .avatar-label {
   font-size: 0.9rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgb(var(--white-rgb) / 0.9);
 }
 
 .avatar-preview {
@@ -247,28 +247,28 @@ const removeAvatar = () => {
   height: 160px;
   border-radius: 20px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.03);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  background: rgb(var(--white-rgb) / 0.03);
+  border: 2px solid rgb(var(--white-rgb) / 0.1);
+  transition: var(--transition);
   cursor: pointer;
 }
 
 .avatar-preview:hover {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: rgb(var(--white-rgb) / 0.2);
+  background: rgb(var(--white-rgb) / 0.05);
 }
 
 .avatar-preview.is-uploading {
-  border-color: rgba(255, 123, 37, 0.6);
+  border-color: rgb(var(--accent-orange-rgb) / 0.6);
   animation: pulse 2s ease-in-out infinite;
 }
 
 @keyframes pulse {
   0%, 100% {
-    border-color: rgba(255, 123, 37, 0.6);
+    border-color: rgb(var(--accent-orange-rgb) / 0.6);
   }
   50% {
-    border-color: rgba(255, 123, 37, 1);
+    border-color: rgb(var(--accent-orange-rgb) / 1);
   }
 }
 
@@ -285,7 +285,7 @@ const removeAvatar = () => {
   width: 100%;
   height: 100%;
   font-size: 2rem;
-  color: rgba(255, 123, 37, 0.4);
+  color: rgb(var(--accent-orange-rgb) / 0.4);
 }
 
 .upload-overlay {
@@ -314,26 +314,11 @@ const removeAvatar = () => {
 }
 
 .upload-overlay.drag-over {
-  background: rgba(255, 123, 37, 0.8);
+  background: rgb(var(--accent-orange-rgb) / 0.8);
 }
 
 .upload-overlay i {
   font-size: 1.5rem;
-}
-
-.upload-spinner {
-  width: 24px;
-  height: 24px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #FF7B25;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .remove-btn {
@@ -344,8 +329,8 @@ const removeAvatar = () => {
   height: 28px;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgb(var(--white-rgb) / 0.2);
+  color: rgb(var(--white-rgb) / 0.9);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -387,30 +372,15 @@ const removeAvatar = () => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background: rgba(76, 175, 80, 0.1);
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  background: rgb(var(--accent-green-rgb) / 0.1);
+  border: 1px solid rgb(var(--accent-green-rgb) / 0.3);
   border-radius: 8px;
   font-size: 0.8rem;
-  color: #4caf50;
+  color: var(--accent-green);
 }
 
 .compression-info i {
   font-size: 0.9rem;
 }
 
-.error-message {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: rgba(244, 67, 54, 0.1);
-  border: 1px solid rgba(244, 67, 54, 0.3);
-  border-radius: 8px;
-  font-size: 0.8rem;
-  color: #f44336;
-}
-
-.error-message i {
-  font-size: 0.9rem;
-}
 </style>

@@ -323,7 +323,7 @@ watch(() => props.autoplay, (enabled) => {
 .carousel-title {
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-brand-diag);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -332,7 +332,7 @@ watch(() => props.autoplay, (enabled) => {
 
 .carousel-description {
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgb(var(--white-rgb) / 0.7);
   max-width: 600px;
   margin: 0 auto;
 }
@@ -351,12 +351,12 @@ watch(() => props.autoplay, (enabled) => {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: rgba(102, 126, 234, 0.2);
-  border: 1px solid rgba(102, 126, 234, 0.5);
+  background: rgb(var(--accent-orange-rgb) / 0.2);
+  border: 1px solid rgb(var(--accent-orange-rgb) / 0.5);
   color: white;
   font-size: 1.2rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -364,9 +364,9 @@ watch(() => props.autoplay, (enabled) => {
 }
 
 .carousel-btn:hover:not(:disabled) {
-  background: rgba(102, 126, 234, 0.4);
+  background: rgb(var(--accent-orange-rgb) / 0.4);
   transform: scale(1.1);
-  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 5px 20px rgb(var(--accent-orange-rgb) / 0.4);
 }
 
 .carousel-btn:disabled {
@@ -384,22 +384,22 @@ watch(() => props.autoplay, (enabled) => {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgb(var(--white-rgb) / 0.3);
   border: none;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   padding: 0;
 }
 
 .indicator-dot.active {
   width: 14px;
   height: 14px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  box-shadow: 0 0 15px rgba(102, 126, 234, 0.6);
+  background: var(--gradient-brand-diag);
+  box-shadow: 0 0 15px rgb(var(--accent-orange-rgb) / 0.6);
 }
 
 .indicator-dot:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgb(var(--white-rgb) / 0.5);
   transform: scale(1.2);
 }
 
@@ -444,16 +444,16 @@ watch(() => props.autoplay, (enabled) => {
   height: 100%;
   border-radius: 1.5rem;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgb(var(--accent-orange-rgb) / 0.1) 0%, rgb(var(--accent-orange-rgb) / 0.1) 100%);
+  border: 2px solid rgb(var(--white-rgb) / 0.1);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .slide-image-wrapper:hover {
   transform: scale(1.02);
-  border-color: rgba(102, 126, 234, 0.5);
-  box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+  border-color: rgb(var(--accent-orange-rgb) / 0.5);
+  box-shadow: 0 20px 60px rgb(var(--accent-orange-rgb) / 0.3);
 }
 
 .slide-image {
@@ -474,7 +474,7 @@ watch(() => props.autoplay, (enabled) => {
   right: 0;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.5) 50%, transparent 100%);
   padding: 2rem;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .overlay-content {
@@ -491,7 +491,7 @@ watch(() => props.autoplay, (enabled) => {
 
 .slide-desc {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgb(var(--white-rgb) / 0.9);
   line-height: 1.6;
 }
 
@@ -501,7 +501,7 @@ watch(() => props.autoplay, (enabled) => {
   right: 1rem;
   width: 45px;
   height: 45px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.2);
   backdrop-filter: blur(10px);
   border-radius: 50%;
   display: flex;
@@ -510,7 +510,7 @@ watch(() => props.autoplay, (enabled) => {
   color: white;
   font-size: 1.1rem;
   opacity: 0;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   z-index: 3;
 }
 
@@ -538,14 +538,14 @@ watch(() => props.autoplay, (enabled) => {
   overflow: hidden;
   cursor: pointer;
   border: 2px solid transparent;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   opacity: 0.5;
 }
 
 .thumbnail-item.active {
-  border-color: rgba(102, 126, 234, 0.8);
+  border-color: rgb(var(--accent-orange-rgb) / 0.8);
   opacity: 1;
-  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 5px 20px rgb(var(--accent-orange-rgb) / 0.4);
 }
 
 .thumbnail-item:hover {
@@ -589,7 +589,7 @@ watch(() => props.autoplay, (enabled) => {
   position: absolute;
   top: -60px;
   right: 0;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.2);
   border: none;
   width: 45px;
   height: 45px;
@@ -597,7 +597,7 @@ watch(() => props.autoplay, (enabled) => {
   color: white;
   font-size: 1.5rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -605,7 +605,7 @@ watch(() => props.autoplay, (enabled) => {
 }
 
 .lightbox-close:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgb(var(--white-rgb) / 0.3);
   transform: rotate(90deg);
 }
 
@@ -622,7 +622,7 @@ watch(() => props.autoplay, (enabled) => {
   max-width: 100%;
   max-height: 75vh;
   object-fit: contain;
-  border-radius: 1rem;
+  border-radius: var(--radius-md);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
@@ -630,7 +630,7 @@ watch(() => props.autoplay, (enabled) => {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.2);
   border: none;
   width: 50px;
   height: 50px;
@@ -638,7 +638,7 @@ watch(() => props.autoplay, (enabled) => {
   color: white;
   font-size: 1.5rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -647,7 +647,7 @@ watch(() => props.autoplay, (enabled) => {
 }
 
 .lightbox-nav:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgb(var(--white-rgb) / 0.3);
   transform: translateY(-50%) scale(1.1);
 }
 
@@ -670,7 +670,7 @@ watch(() => props.autoplay, (enabled) => {
   font-size: 1.8rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-brand-diag);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -678,7 +678,7 @@ watch(() => props.autoplay, (enabled) => {
 
 .lightbox-info p {
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgb(var(--white-rgb) / 0.9);
   line-height: 1.6;
 }
 
@@ -700,7 +700,7 @@ watch(() => props.autoplay, (enabled) => {
 
 .lightbox-enter-active,
 .lightbox-leave-active {
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .lightbox-enter-from,

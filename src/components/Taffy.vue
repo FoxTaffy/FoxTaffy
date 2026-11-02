@@ -142,7 +142,7 @@
 
         <!-- Загрузка -->
         <div v-if="loadingArts" class="gallery-loading">
-          <div class="loading-spinner"></div>
+          <div class="spinner"></div>
           <p>Загрузка артов...</p>
         </div>
 
@@ -222,7 +222,7 @@
             <h3 class="lightbox-title">{{ lightboxImage.version || lightboxImage.title }}</h3>
             <p v-if="lightboxImage.year" class="lightbox-year">{{ lightboxImage.year }}</p>
             <p v-if="lightboxImage.artist_name" class="lightbox-artist">
-              <i class="fas fa-user-artist artist-icon"></i> {{ lightboxImage.artist_name }}
+              <i class="fas fa-palette artist-icon"></i> {{ lightboxImage.artist_name }}
             </p>
           </div>
 
@@ -704,7 +704,7 @@ const handleKeyDown = (e) => {
   width: 280px;
   height: 280px;
   border-radius: 50%;
-  background: linear-gradient(45deg, #ff7b25, #66ff66, #66ccff, #ff7b25);
+  background: linear-gradient(45deg, var(--accent-orange), #66ff66, #66ccff, var(--accent-orange));
   background-size: 300% 300%;
   animation: gradientRotate 8s ease infinite;
   filter: blur(12px);
@@ -723,11 +723,11 @@ const handleKeyDown = (e) => {
   height: 250px;
   border-radius: 50%;
   overflow: hidden;
-  border: 6px solid rgba(255, 255, 255, 0.4);
+  border: 6px solid rgb(var(--white-rgb) / 0.4);
   box-shadow:
     0 25px 50px rgba(0, 0, 0, 0.5),
-    0 0 60px rgba(255, 123, 37, 0.3),
-    inset 0 0 20px rgba(255, 255, 255, 0.1);
+    0 0 60px rgb(var(--accent-orange-rgb) / 0.3),
+    inset 0 0 20px rgb(var(--white-rgb) / 0.1);
   animation: avatarFloat 6s ease-in-out infinite;
   display: flex;
   align-items: center;
@@ -771,30 +771,30 @@ const handleKeyDown = (e) => {
 }
 
 .stat-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--white-rgb) / 0.1);
   backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 2rem 3rem;
   min-width: 160px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
+  border: 1px solid rgb(var(--white-rgb) / 0.2);
+  transition: var(--transition);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .stat-card:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgb(var(--white-rgb) / 0.15);
   transform: translateY(-8px);
   box-shadow:
     0 20px 40px rgba(0, 0, 0, 0.4),
-    0 0 30px rgba(255, 123, 37, 0.3);
-  border-color: rgba(255, 255, 255, 0.3);
+    0 0 30px rgb(var(--accent-orange-rgb) / 0.3);
+  border-color: rgb(var(--white-rgb) / 0.3);
 }
 
 .stat-icon {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
-  color: #ff7b25;
-  filter: drop-shadow(0 2px 8px rgba(255, 123, 37, 0.5));
+  color: var(--accent-orange);
+  filter: drop-shadow(0 2px 8px rgb(var(--accent-orange-rgb) / 0.5));
   background: none !important;
   border-radius: 0 !important;
   padding: 0 !important;
@@ -812,7 +812,7 @@ const handleKeyDown = (e) => {
 
 .stat-label {
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgb(var(--white-rgb) / 0.9);
   font-weight: 500;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
@@ -831,7 +831,7 @@ const handleKeyDown = (e) => {
   font-size: 1.25rem;
   line-height: 1.8;
   text-align: center;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgb(var(--white-rgb) / 0.9);
 }
 
 /* ============================================
@@ -851,7 +851,7 @@ const handleKeyDown = (e) => {
   align-items: center;
   justify-content: center;
   gap: 1.5rem;
-  background: linear-gradient(135deg, #ff7b25 0%, #66ff66 50%, #66ccff 100%);
+  background: linear-gradient(135deg, var(--accent-orange) 0%, #66ff66 50%, #66ccff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -863,19 +863,19 @@ const handleKeyDown = (e) => {
   font-size: 1.25rem;
   opacity: 0.8;
   margin-bottom: 4rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgb(var(--white-rgb) / 0.85);
 }
 
 .title-icon {
   font-size: 2.5rem;
-  color: #ff7b25;
-  filter: drop-shadow(0 4px 8px rgba(255, 123, 37, 0.6));
+  color: var(--accent-orange);
+  filter: drop-shadow(0 4px 8px rgb(var(--accent-orange-rgb) / 0.6));
   background: none !important;
   border-radius: 0 !important;
   padding: 0 !important;
   width: auto !important;
   height: auto !important;
-  -webkit-text-fill-color: #ff7b25;
+  -webkit-text-fill-color: var(--accent-orange);
 }
 
 .timeline-wrapper {
@@ -890,13 +890,13 @@ const handleKeyDown = (e) => {
   bottom: 0;
   width: 4px;
   background: linear-gradient(180deg,
-    #667eea 0%,
-    #764ba2 33%,
-    #f093fb 66%,
-    #667eea 100%
+    var(--accent-orange) 0%,
+    var(--accent-green) 33%,
+    var(--accent-green) 66%,
+    var(--accent-orange) 100%
   );
   transform: translateX(-50%);
-  box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 0 20px rgb(var(--accent-orange-rgb) / 0.5);
 }
 
 .timeline-item {
@@ -932,22 +932,22 @@ const handleKeyDown = (e) => {
 .marker-circle {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-brand-diag);
   border-radius: 50%;
   margin: 0 auto 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 0 8px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 0 0 8px rgb(var(--accent-orange-rgb) / 0.2);
   animation: pulse 2s ease-in-out infinite;
 }
 
 @keyframes pulse {
   0%, 100% {
-    box-shadow: 0 0 0 8px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 0 0 8px rgb(var(--accent-orange-rgb) / 0.2);
   }
   50% {
-    box-shadow: 0 0 0 15px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 15px rgb(var(--accent-orange-rgb) / 0.1);
   }
 }
 
@@ -959,7 +959,7 @@ const handleKeyDown = (e) => {
 }
 
 .marker-year {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-brand-diag);
   color: white;
   padding: 0.75rem 1.5rem;
   border-radius: 25px;
@@ -974,11 +974,11 @@ const handleKeyDown = (e) => {
 }
 
 .timeline-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   backdrop-filter: blur(20px);
   border-radius: 25px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
   transition: all 0.4s ease;
 }
@@ -986,7 +986,7 @@ const handleKeyDown = (e) => {
 .timeline-card:hover {
   transform: translateY(-10px);
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgb(var(--white-rgb) / 0.2);
 }
 
 .card-image-wrapper {
@@ -1035,19 +1035,19 @@ const handleKeyDown = (e) => {
 .card-image-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+  background: linear-gradient(135deg, rgb(var(--accent-orange-rgb) / 0.2), rgb(var(--accent-orange-rgb) / 0.2));
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgb(var(--white-rgb) / 0.1);
 }
 
 .placeholder-icon {
   font-size: 5rem;
   margin-bottom: 1rem;
   opacity: 0.5;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgb(var(--white-rgb) / 0.3);
 }
 
 .placeholder-text {
@@ -1079,7 +1079,7 @@ const handleKeyDown = (e) => {
 }
 
 .version-badge {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-brand-diag);
   color: white;
   padding: 0.5rem 1.25rem;
   border-radius: 20px;
@@ -1103,7 +1103,7 @@ const handleKeyDown = (e) => {
 
 .heading-icon {
   font-size: 1.5rem;
-  color: #ff7b25;
+  color: var(--accent-orange);
 }
 
 .changes-list {
@@ -1123,11 +1123,11 @@ const handleKeyDown = (e) => {
 .change-bullet {
   width: 8px;
   height: 8px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--gradient-brand-diag);
   border-radius: 50%;
   margin-top: 0.5rem;
   flex-shrink: 0;
-  box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 0 10px rgb(var(--accent-orange-rgb) / 0.5);
 }
 
 .change-text {
@@ -1137,8 +1137,8 @@ const handleKeyDown = (e) => {
 }
 
 .card-notes {
-  background: rgba(102, 126, 234, 0.1);
-  border-left: 4px solid #667eea;
+  background: rgb(var(--accent-orange-rgb) / 0.1);
+  border-left: 4px solid var(--accent-orange);
   padding: 1.5rem;
   border-radius: 10px;
   display: flex;
@@ -1174,20 +1174,6 @@ const handleKeyDown = (e) => {
   padding: 4rem 2rem;
 }
 
-.loading-spinner {
-  width: 60px;
-  height: 60px;
-  margin: 0 auto 2rem;
-  border: 4px solid rgba(255, 255, 255, 0.1);
-  border-top-color: #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
 .error-icon,
 .empty-icon {
   font-size: 5rem;
@@ -1207,14 +1193,14 @@ const handleKeyDown = (e) => {
   transform: translateY(-50%);
   width: 60px;
   height: 60px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--white-rgb) / 0.1);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgb(var(--white-rgb) / 0.2);
   border-radius: 50%;
   color: white;
   font-size: 1.5rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   z-index: 10;
   display: flex;
   align-items: center;
@@ -1222,7 +1208,7 @@ const handleKeyDown = (e) => {
 }
 
 .carousel-nav:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.2);
   transform: translateY(-50%) scale(1.1);
 }
 
@@ -1246,7 +1232,7 @@ const handleKeyDown = (e) => {
   scroll-behavior: smooth;
   padding: 2rem 0;
   scrollbar-width: thin;
-  scrollbar-color: rgba(102, 126, 234, 0.5) rgba(255, 255, 255, 0.1);
+  scrollbar-color: rgb(var(--accent-orange-rgb) / 0.5) rgb(var(--white-rgb) / 0.1);
 }
 
 .gallery-carousel::-webkit-scrollbar {
@@ -1254,12 +1240,12 @@ const handleKeyDown = (e) => {
 }
 
 .gallery-carousel::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--white-rgb) / 0.1);
   border-radius: 10px;
 }
 
 .gallery-carousel::-webkit-scrollbar-thumb {
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: var(--gradient-brand-diag);
   border-radius: 10px;
 }
 
@@ -1275,14 +1261,14 @@ const handleKeyDown = (e) => {
   border-radius: 20px;
   overflow: hidden;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   transition: all 0.4s ease;
 }
 
 .carousel-card:hover {
   transform: translateY(-10px);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgb(var(--white-rgb) / 0.3);
 }
 
 .carousel-image {
@@ -1350,21 +1336,21 @@ const handleKeyDown = (e) => {
   right: 0;
   width: 50px;
   height: 50px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--white-rgb) / 0.1);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgb(var(--white-rgb) / 0.2);
   border-radius: 50%;
   color: white;
   font-size: 1.5rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .lightbox-close:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.2);
   transform: rotate(90deg);
 }
 
@@ -1407,14 +1393,14 @@ const handleKeyDown = (e) => {
   gap: 0.5rem;
   margin-top: 1rem;
   padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--white-rgb) / 0.1);
   border-radius: 25px;
   font-size: 1.1rem;
 }
 
 .artist-icon {
   font-size: 1.25rem;
-  color: #ff7b25;
+  color: var(--accent-orange);
 }
 
 .lightbox-nav {
@@ -1431,14 +1417,14 @@ const handleKeyDown = (e) => {
 .lightbox-nav-btn {
   width: 60px;
   height: 60px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--white-rgb) / 0.1);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgb(var(--white-rgb) / 0.2);
   border-radius: 50%;
   color: white;
   font-size: 1.5rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   pointer-events: all;
   display: flex;
   align-items: center;
@@ -1446,7 +1432,7 @@ const handleKeyDown = (e) => {
 }
 
 .lightbox-nav-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.2);
   transform: scale(1.1);
 }
 

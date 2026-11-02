@@ -189,25 +189,25 @@ const removeImage = () => {
   cursor: pointer;
   border-radius: 8px;
   overflow: hidden;
-  transition: all 0.3s ease;
-  border: 2px dashed rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.03);
+  transition: var(--transition);
+  border: 2px dashed rgb(var(--white-rgb) / 0.2);
+  background: rgb(var(--white-rgb) / 0.03);
 }
 
 .compact-uploader:hover {
-  border-color: rgba(255, 123, 37, 0.5);
-  background: rgba(255, 123, 37, 0.05);
+  border-color: rgb(var(--accent-orange-rgb) / 0.5);
+  background: rgb(var(--accent-orange-rgb) / 0.05);
 }
 
 .compact-uploader.is-dragging {
-  border-color: #ff7b25;
-  background: rgba(255, 123, 37, 0.15);
+  border-color: var(--accent-orange);
+  background: rgb(var(--accent-orange-rgb) / 0.15);
   transform: scale(1.02);
 }
 
 .compact-uploader.has-image {
   border-style: solid;
-  border-color: rgba(76, 175, 80, 0.5);
+  border-color: rgb(var(--accent-green-rgb) / 0.5);
 }
 
 .compact-uploader.is-uploading {
@@ -272,12 +272,12 @@ const removeImage = () => {
 }
 
 .overlay-btn.change {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgb(var(--white-rgb) / 0.9);
   color: #333;
 }
 
 .overlay-btn.change:hover {
-  background: #ff7b25;
+  background: var(--accent-orange);
   color: white;
 }
 
@@ -303,7 +303,7 @@ const removeImage = () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgb(var(--white-rgb) / 0.5);
 }
 
 .is-banner .upload-content {
@@ -317,7 +317,7 @@ const removeImage = () => {
 
 .upload-content i {
   font-size: 1.2rem;
-  color: rgba(255, 123, 37, 0.6);
+  color: rgb(var(--accent-orange-rgb) / 0.6);
 }
 
 .is-avatar .upload-content i {

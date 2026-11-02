@@ -252,10 +252,10 @@ const formatDate = (dateString) => {
    =================================================== */
 
 .ft-simple-art-card {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 1rem;
+  background: rgb(var(--white-rgb) / 0.04);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgb(var(--white-rgb) / 0.08);
   cursor: pointer;
   position: relative;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
@@ -285,11 +285,11 @@ const formatDate = (dateString) => {
 /* Hover: scale + neon glow */
 .ft-simple-art-card:hover {
   transform: translateY(-6px) scale(1.02);
-  border-color: rgba(255, 123, 37, 0.5);
+  border-color: rgb(var(--accent-orange-rgb) / 0.5);
   box-shadow:
     0 20px 48px rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(255, 123, 37, 0.25),
-    0 0 30px rgba(255, 123, 37, 0.12);
+    0 0 0 1px rgb(var(--accent-orange-rgb) / 0.25),
+    0 0 30px rgb(var(--accent-orange-rgb) / 0.12);
 }
 
 /* NSFW граница */
@@ -298,7 +298,7 @@ const formatDate = (dateString) => {
   position: absolute;
   inset: 0;
   border: 2px solid rgba(255, 107, 107, 0.25);
-  border-radius: 1rem;
+  border-radius: var(--radius-md);
   pointer-events: none;
   z-index: 1;
 }
@@ -350,8 +350,8 @@ const formatDate = (dateString) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.03);
+  color: rgb(var(--white-rgb) / 0.2);
   font-size: 3rem;
 }
 
@@ -407,7 +407,7 @@ const formatDate = (dateString) => {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgb(var(--white-rgb) / 0.2);
   background: rgba(20, 20, 20, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -444,9 +444,9 @@ const formatDate = (dateString) => {
 
 /* Теги */
 .ft-action-tags:hover {
-  background: rgba(255, 123, 37, 0.85);
-  border-color: rgba(255, 123, 37, 0.7);
-  box-shadow: 0 0 16px rgba(255, 123, 37, 0.6);
+  background: rgb(var(--accent-orange-rgb) / 0.85);
+  border-color: rgb(var(--accent-orange-rgb) / 0.7);
+  box-shadow: 0 0 16px rgb(var(--accent-orange-rgb) / 0.6);
   transform: scale(1.15);
 }
 
@@ -461,11 +461,11 @@ const formatDate = (dateString) => {
 
 .ft-overlay-tag {
   padding: 0.2rem 0.55rem;
-  border-radius: 1rem;
+  border-radius: var(--radius-md);
   font-size: 0.7rem;
   font-weight: 600;
-  background: rgba(255, 123, 37, 0.25);
-  border: 1px solid rgba(255, 123, 37, 0.5);
+  background: rgb(var(--accent-orange-rgb) / 0.25);
+  border: 1px solid rgb(var(--accent-orange-rgb) / 0.5);
   color: #ffb07a;
   cursor: pointer;
   transition: background 0.2s ease, box-shadow 0.2s ease;
@@ -473,14 +473,14 @@ const formatDate = (dateString) => {
 }
 
 .ft-overlay-tag:hover {
-  background: rgba(255, 123, 37, 0.45);
-  box-shadow: 0 0 10px rgba(255, 123, 37, 0.4);
+  background: rgb(var(--accent-orange-rgb) / 0.45);
+  box-shadow: 0 0 10px rgb(var(--accent-orange-rgb) / 0.4);
 }
 
 .ft-overlay-tag-more {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.7);
+  background: rgb(var(--white-rgb) / 0.1);
+  border-color: rgb(var(--white-rgb) / 0.2);
+  color: rgb(var(--white-rgb) / 0.7);
   cursor: default;
 }
 
@@ -504,8 +504,8 @@ const formatDate = (dateString) => {
   font-weight: 800;
   letter-spacing: 0.05em;
   background: rgba(10, 10, 10, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgb(var(--white-rgb) / 0.15);
+  color: rgb(var(--white-rgb) / 0.85);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   text-transform: uppercase;
@@ -529,7 +529,7 @@ const formatDate = (dateString) => {
   padding: 0.35rem 0.65rem;
   background: rgba(200, 50, 50, 0.85);
   color: white;
-  border-radius: 1rem;
+  border-radius: var(--radius-md);
   font-size: 0.7rem;
   font-weight: 700;
   backdrop-filter: blur(10px);
@@ -571,7 +571,7 @@ const formatDate = (dateString) => {
 .ft-nsfw-overlay-content i {
   font-size: 2.8rem;
   margin-bottom: 0.75rem;
-  color: #ff6b6b;
+  color: var(--danger);
   display: block;
   transition: transform 0.3s ease, color 0.3s ease;
 }
@@ -609,15 +609,15 @@ const formatDate = (dateString) => {
   gap: 0.65rem;
   background: linear-gradient(
     to bottom,
-    rgba(255, 255, 255, 0.04) 0%,
-    rgba(255, 255, 255, 0.02) 100%
+    rgb(var(--white-rgb) / 0.04) 0%,
+    rgb(var(--white-rgb) / 0.02) 100%
   );
 }
 
 .ft-art-title {
   font-size: 1rem;
   font-weight: 700;
-  color: #f2f2f2;
+  color: var(--text-light);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -638,8 +638,8 @@ const formatDate = (dateString) => {
   align-items: center;
   gap: 0.6rem;
   padding: 0.45rem 0.7rem;
-  background: rgba(76, 175, 80, 0.08);
-  border: 1px solid rgba(76, 175, 80, 0.18);
+  background: rgb(var(--accent-green-rgb) / 0.08);
+  border: 1px solid rgb(var(--accent-green-rgb) / 0.18);
   border-radius: 2rem;
   cursor: pointer;
   transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
@@ -648,8 +648,8 @@ const formatDate = (dateString) => {
 }
 
 .ft-artist-pill:hover {
-  background: rgba(76, 175, 80, 0.18);
-  border-color: rgba(76, 175, 80, 0.35);
+  background: rgb(var(--accent-green-rgb) / 0.18);
+  border-color: rgb(var(--accent-green-rgb) / 0.35);
   transform: translateY(-2px);
 }
 
@@ -657,7 +657,7 @@ const formatDate = (dateString) => {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.25);
+  border: 2px solid rgb(var(--white-rgb) / 0.25);
   object-fit: cover;
   flex-shrink: 0;
 }
@@ -672,7 +672,7 @@ const formatDate = (dateString) => {
 }
 
 .ft-friend-star {
-  color: #ffd700;
+  color: var(--accent-gold);
   font-size: 0.75rem;
   flex-shrink: 0;
 }
@@ -686,7 +686,7 @@ const formatDate = (dateString) => {
 
 .ft-characters-label {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgb(var(--white-rgb) / 0.6);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -700,7 +700,7 @@ const formatDate = (dateString) => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 123, 37, 0.5);
+  border: 2px solid rgb(var(--accent-orange-rgb) / 0.5);
   object-fit: cover;
   cursor: pointer;
   transition: transform 0.25s ease, border-color 0.25s ease, z-index 0s;
@@ -714,15 +714,15 @@ const formatDate = (dateString) => {
 .ft-character-avatar:hover {
   transform: scale(1.12) translateY(-2px);
   z-index: 10;
-  border-color: #ff7b25;
+  border-color: var(--accent-orange);
 }
 
 .ft-more-characters {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 123, 37, 0.75), rgba(255, 152, 0, 0.75));
-  border: 2px solid rgba(255, 123, 37, 0.5);
+  background: linear-gradient(135deg, rgb(var(--accent-orange-rgb) / 0.75), rgba(255, 152, 0, 0.75));
+  border: 2px solid rgb(var(--accent-orange-rgb) / 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -742,30 +742,30 @@ const formatDate = (dateString) => {
 
 .ft-tag-pill {
   padding: 0.25rem 0.6rem;
-  border-radius: 1rem;
+  border-radius: var(--radius-md);
   font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-  background: rgba(255, 123, 37, 0.12);
+  background: rgb(var(--accent-orange-rgb) / 0.12);
   color: #ff9344;
-  border: 1px solid rgba(255, 123, 37, 0.25);
+  border: 1px solid rgb(var(--accent-orange-rgb) / 0.25);
 }
 
 .ft-tag-pill:hover {
   transform: translateY(-2px);
-  background: rgba(255, 123, 37, 0.22);
-  border-color: rgba(255, 123, 37, 0.45);
-  box-shadow: 0 0 8px rgba(255, 123, 37, 0.25);
+  background: rgb(var(--accent-orange-rgb) / 0.22);
+  border-color: rgb(var(--accent-orange-rgb) / 0.45);
+  box-shadow: 0 0 8px rgb(var(--accent-orange-rgb) / 0.25);
 }
 
 .ft-more-tags-pill {
-  background: rgba(255, 255, 255, 0.07);
-  color: rgba(255, 255, 255, 0.55);
+  background: rgb(var(--white-rgb) / 0.07);
+  color: rgb(var(--white-rgb) / 0.55);
   padding: 0.25rem 0.6rem;
-  border-radius: 1rem;
+  border-radius: var(--radius-md);
   font-size: 0.7rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
 }
 
 /* Дата */
@@ -774,11 +774,11 @@ const formatDate = (dateString) => {
   align-items: center;
   gap: 0.35rem;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgb(var(--white-rgb) / 0.45);
 }
 
 .ft-art-date i {
-  color: rgba(255, 123, 37, 0.5);
+  color: rgb(var(--accent-orange-rgb) / 0.5);
 }
 
 /* ===================================================

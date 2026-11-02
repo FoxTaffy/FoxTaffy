@@ -13,4 +13,7 @@ assert.equal(matchesFuzzySearch('foxtaffy', 'Fox Taffy'), true)
 assert.equal(matchesFuzzySearch('taffy', 'FoxTaffy'), true)
 assert.equal(matchesFuzzySearch('unknown', 'Fox Taffy'), false)
 
+assert.equal(matchesFuzzySearch('галерея', 'Галерея артов'), true)
+assert.equal(matchesFuzzySearch('кон', 'Фурсьют'), false)
+
 console.log('fuzzy search test ok')

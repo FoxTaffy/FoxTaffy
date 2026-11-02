@@ -66,10 +66,10 @@ const paws = ['🦊', '🦝', '🐱', '🐺', '🐲']
   width: 100%;
   margin-bottom: 1.5rem;
 
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 1rem;
+  background: rgb(var(--white-rgb) / 0.03);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgb(var(--white-rgb) / 0.05);
 
   /* Staggered fade-in */
   animation: skFadeIn 0.4s ease-out both;
@@ -89,9 +89,9 @@ const paws = ['🦊', '🦝', '🐱', '🐺', '🐲']
   position: relative;
   background: linear-gradient(
     110deg,
-    rgba(255, 255, 255, 0.04) 30%,
-    rgba(255, 255, 255, 0.09) 50%,
-    rgba(255, 255, 255, 0.04) 70%
+    rgb(var(--white-rgb) / 0.04) 30%,
+    rgb(var(--white-rgb) / 0.09) 50%,
+    rgb(var(--white-rgb) / 0.04) 70%
   );
   background-size: 300% 100%;
   animation: shimmer 1.8s linear infinite;
@@ -140,9 +140,9 @@ const paws = ['🦊', '🦝', '🐱', '🐺', '🐲']
   border-radius: 0.4rem;
   background: linear-gradient(
     110deg,
-    rgba(255, 255, 255, 0.04) 30%,
-    rgba(255, 255, 255, 0.09) 50%,
-    rgba(255, 255, 255, 0.04) 70%
+    rgb(var(--white-rgb) / 0.04) 30%,
+    rgb(var(--white-rgb) / 0.09) 50%,
+    rgb(var(--white-rgb) / 0.04) 70%
   );
   background-size: 300% 100%;
   animation: shimmer 1.8s linear infinite;
@@ -166,8 +166,8 @@ const paws = ['🦊', '🦝', '🐱', '🐺', '🐲']
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 0.65rem;
-  background: rgba(76, 175, 80, 0.05);
-  border: 1px solid rgba(76, 175, 80, 0.1);
+  background: rgb(var(--accent-green-rgb) / 0.05);
+  border: 1px solid rgb(var(--accent-green-rgb) / 0.1);
   border-radius: 2rem;
   width: fit-content;
 }
@@ -178,9 +178,9 @@ const paws = ['🦊', '🦝', '🐱', '🐺', '🐲']
   border-radius: 50%;
   background: linear-gradient(
     110deg,
-    rgba(255, 255, 255, 0.06) 30%,
-    rgba(255, 255, 255, 0.12) 50%,
-    rgba(255, 255, 255, 0.06) 70%
+    rgb(var(--white-rgb) / 0.06) 30%,
+    rgb(var(--white-rgb) / 0.12) 50%,
+    rgb(var(--white-rgb) / 0.06) 70%
   );
   background-size: 300% 100%;
   animation: shimmer 1.8s linear infinite;
@@ -203,12 +203,12 @@ const paws = ['🦊', '🦝', '🐱', '🐺', '🐲']
 .ft-skeleton-tag {
   height: 1.3rem;
   width: 52px;
-  border-radius: 1rem;
+  border-radius: var(--radius-md);
   background: linear-gradient(
     110deg,
-    rgba(255, 123, 37, 0.06) 30%,
-    rgba(255, 123, 37, 0.12) 50%,
-    rgba(255, 123, 37, 0.06) 70%
+    rgb(var(--accent-orange-rgb) / 0.06) 30%,
+    rgb(var(--accent-orange-rgb) / 0.12) 50%,
+    rgb(var(--accent-orange-rgb) / 0.06) 70%
   );
   background-size: 300% 100%;
   animation: shimmer 1.8s linear infinite;

@@ -1,7 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-
-// Объект для хранения позиций скролла для каждого маршрута
-const scrollPositions = {}
+import { updateMetaTags, SITE_ORIGIN } from './utils/meta'
 
 const routes = [
   // ===============================================
@@ -52,9 +50,9 @@ const routes = [
     name: 'Admin',
     component: () => import('./components/AdminPanel.vue'),
     meta: {
+      noindex: true,
       title: 'Админ-панель | Fox Taffy',
-      description: 'Панель управления галереей',
-      requiresAuth: false // Авторизация происходит внутри компонента
+      description: 'Панель управления галереей'
     }
   },
 
@@ -79,9 +77,9 @@ const routes = [
     name: 'EventsAdmin',
     component: () => import('./components/events/admin.vue'),
     meta: {
+      noindex: true,
       title: 'Админ мероприятий | FoxTaffy.gay',
-      description: 'Панель управления мероприятиями',
-      requiresAuth: false // Авторизация внутри компонента
+      description: 'Панель управления мероприятиями'
     }
   },
 
@@ -105,31 +103,12 @@ const routes = [
   // ===============================================
 
   {
-    path: '/events/:slug',
+    path: '/events/:slug([a-zA-Z0-9-]+)',
     name: 'EventDetail',
     component: () => import('./components/events/EventDetailPage.vue'),
     meta: {
       title: 'Мероприятие | FoxTaffy.gay',
       description: 'Подробная информация о мероприятии'
-    },
-    beforeEnter: (to, from, next) => {
-      const slug = to.params.slug
-
-      // Блокируем только admin
-      if (slug === 'admin') {
-        next({ name: 'EventsAdmin' })
-        return
-      }
-
-      // Проверяем, что slug содержит только разрешённые символы
-      if (!/^[a-z0-9-]+$/i.test(slug)) {
-        console.warn(`Недопустимый slug: ${slug}`)
-        next({ name: 'Events' })
-        return
-      }
-
-      console.log(`✅ Загружаем мероприятие: ${slug}`)
-      next()
     }
   },
 
@@ -143,6 +122,7 @@ const routes = [
     name: 'NotFound',
     component: () => import('./components/Error404.vue'),
     meta: {
+      noindex: true,
       title: 'Страница не найдена | FoxTaffy.gay',
       description: 'Запрашиваемая страница не существует'
     }
@@ -155,188 +135,36 @@ const routes = [
   }
 ]
 
-// ===============================================
-// 🛠️ СОЗДАНИЕ РОУТЕРА С КОНФИГУРАЦИЕЙ
-// ===============================================
-
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  
-  // ===============================================
-  // 📜 УПРАВЛЕНИЕ СКРОЛЛОМ
-  // ===============================================
-  scrollBehavior(to, from, savedPosition) {
-    // Если есть сохранённая позиция (браузер назад/вперёд)
-    if (savedPosition) {
-      return savedPosition
-    }
-    
-    // Если есть якорь в URL (#section)
-    if (to.hash) {
-      return {
-        el: to.hash,
-        behavior: 'smooth',
-        top: 80 // Отступ для фиксированной шапки
-      }
-    }
-    
-    // Для новых страниц прокручиваем вверх
+  scrollBehavior(to, _from, savedPosition) {
+    if (savedPosition) return savedPosition
+    if (to.hash) return { el: to.hash, behavior: 'smooth', top: 80 } // отступ под фиксированную шапку
     return { top: 0, behavior: 'smooth' }
   }
 })
 
-// ===============================================
-// 🔒 НАВИГАЦИОННЫЕ ГВАРДИИ
-// ===============================================
-
-// Глобальный guard перед навигацией
-router.beforeEach((to, from, next) => {
-  // Сохраняем позицию скролла текущей страницы
-  if (from.name) {
-    scrollPositions[from.name] = window.pageYOffset
-  }
-  
-  // Логирование навигации в режиме разработки
-  if (import.meta.env.DEV) {
-    console.log(`🧭 Навигация: ${from.path || '/'} → ${to.path}`)
-  }
-  
-  // Проверка доступа к админ-страницам (если требуется)
-  if (to.meta.requiresAuth) {
-    // Здесь можно добавить логику проверки авторизации
-    // Пока пропускаем все запросы
-  }
-  
-  next()
+router.afterEach((to) => {
+  updateMetaTags({
+    title: to.meta.title,
+    description: to.meta.description,
+    url: `${SITE_ORIGIN}${to.path}`,
+    noindex: to.meta.noindex
+  })
 })
-
-// Guard после навигации для обновления мета-тегов
-router.afterEach((to, from) => {
-  // Обновляем заголовок страницы
-  if (to.meta.title) {
-    document.title = to.meta.title
-  }
-  
-  // Обновляем description
-  if (to.meta.description) {
-    const metaDescription = document.querySelector('meta[name="description"]')
-    if (metaDescription) {
-      metaDescription.setAttribute('content', to.meta.description)
-    }
-  }
-  
-  // Обновляем Open Graph теги
-  if (to.meta.title) {
-    const ogTitle = document.querySelector('meta[property="og:title"]')
-    if (ogTitle) {
-      ogTitle.setAttribute('content', to.meta.title)
-    }
-    
-    const twitterTitle = document.querySelector('meta[name="twitter:title"]')
-    if (twitterTitle) {
-      twitterTitle.setAttribute('content', to.meta.title)
-    }
-  }
-  
-  if (to.meta.description) {
-    const ogDescription = document.querySelector('meta[property="og:description"]')
-    if (ogDescription) {
-      ogDescription.setAttribute('content', to.meta.description)
-    }
-    
-    const twitterDescription = document.querySelector('meta[name="twitter:description"]')
-    if (twitterDescription) {
-      twitterDescription.setAttribute('content', to.meta.description)
-    }
-  }
-  
-  // Обновляем канонический URL
-  const canonical = document.querySelector('link[rel="canonical"]')
-  if (canonical) {
-    canonical.setAttribute('href', `https://foxtaffy.gay${to.path}`)
-  }
-  
-  // Логирование в режиме разработки
-  if (import.meta.env.DEV) {
-    console.log(`✅ Навигация завершена: ${to.path}`)
-    if (to.meta.title) console.log(`📄 Заголовок: ${to.meta.title}`)
-  }
-})
-
-// ===============================================
-// 🚨 ОБРАБОТКА ОШИБОК РОУТЕРА
-// ===============================================
 
 router.onError((error) => {
-  console.error('❌ Ошибка роутера:', error)
-  
-  // В режиме разработки показываем подробную ошибку
-  if (import.meta.env.DEV) {
-    console.error('Стек ошибки:', error.stack)
-  }
-  
-  // В продакшене перенаправляем на главную
-  if (import.meta.env.PROD) {
-    router.push('/')
+  console.error('Ошибка роутера:', error)
+  // Устаревший чанк после деплоя — самое частое: перезагрузка подтянет свежие хэши.
+  if (/Failed to fetch dynamically imported module|Importing a module script failed/.test(error?.message)) {
+    // Одна попытка на вкладку: если чанк недоступен постоянно, не уходим в цикл перезагрузок.
+    try {
+      if (sessionStorage.getItem('chunk-reload')) return
+      sessionStorage.setItem('chunk-reload', '1')
+    } catch { /* sessionStorage недоступен — просто перезагружаем */ }
+    window.location.reload()
   }
 })
 
-// ===============================================
-// 📤 ЭКСПОРТ РОУТЕРА
-// ===============================================
-
 export default router
-
-// ===============================================
-// 🔧 ДОПОЛНИТЕЛЬНЫЕ УТИЛИТЫ
-// ===============================================
-
-/**
- * Программная навигация с обработкой ошибок
- * @param {string} path - Путь для навигации
- * @param {Object} options - Дополнительные опции
- */
-export const navigateTo = (path, options = {}) => {
-  return router.push({ path, ...options }).catch(error => {
-    // Игнорируем ошибки дублированной навигации
-    if (error.name !== 'NavigationDuplicated') {
-      console.error('Ошибка навигации:', error)
-    }
-  })
-}
-
-/**
- * Проверка текущего маршрута
- * @param {string} routeName - Название маршрута
- * @returns {boolean}
- */
-export const isCurrentRoute = (routeName) => {
-  return router.currentRoute.value.name === routeName
-}
-
-/**
- * Получение параметров текущего маршрута
- * @returns {Object}
- */
-export const getCurrentParams = () => {
-  return router.currentRoute.value.params
-}
-
-/**
- * Создание безопасной ссылки на мероприятие
- * @param {string} slug - Идентификатор мероприятия
- * @returns {string}
- */
-export const createEventLink = (slug) => {
-  if (!slug) return '/events'
-  
-  // Очищаем slug от недопустимых символов
-  const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').trim()
-  
-  return `/events/${cleanSlug}`
-}
-
-console.log('✅ Роутер FoxTaffy.gay инициализирован!')
-console.log(`📍 Всего маршрутов: ${routes.length}`)
-console.log('🎪 Система мероприятий: ИСПРАВЛЕНА и готова к работе!')

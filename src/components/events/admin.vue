@@ -5,7 +5,7 @@
       <div class="auth-card">
         <div class="auth-header">
           <div class="logo-icon">
-            <i class="fas fa-calendar-star"></i>
+            <i class="fas fa-calendar-check"></i>
           </div>
           <h2>Админ мероприятий</h2>
           <p>Управление событиями FoxTaffy.gay</p>
@@ -26,7 +26,7 @@
             </div>
           </div>
 
-          <div v-if="authError" class="error-message">
+          <div v-if="authError" class="alert-error">
             <i class="fas fa-exclamation-triangle"></i>
             {{ authError }}
           </div>
@@ -57,7 +57,7 @@
       <aside class="sidebar">
         <div class="sidebar-header">
           <div class="sidebar-logo">
-            <i class="fas fa-calendar-star"></i>
+            <i class="fas fa-calendar-check"></i>
           </div>
           <div class="sidebar-brand">
             <h2>Events Admin</h2>
@@ -207,20 +207,12 @@ export default {
 <style scoped>
 /* ── CSS переменные ── */
 :root {
-  --bg-primary: #111114;
-  --bg-secondary: #1a1a1f;
-  --bg-card: rgba(255,255,255,0.04);
-  --text-light: #f2f2f7;
-  --text-muted: #8e8e9a;
-  --accent-orange: #ff7b25;
-  --accent-green: #4caf50;
-  --border-light: rgba(255,255,255,0.08);
   --sidebar-width: 240px;
 }
 
 .events-admin {
   min-height: 100vh;
-  background: var(--bg-primary);
+  background: var(--bg-darker);
   font-family: 'Nunito', sans-serif;
 }
 
@@ -232,14 +224,14 @@ export default {
   min-height: 100vh;
   padding: 2rem;
   background:
-    radial-gradient(circle at 20% 80%, rgba(255, 123, 37, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(76, 175, 80, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgb(var(--accent-orange-rgb) / 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgb(var(--accent-green-rgb) / 0.1) 0%, transparent 50%),
     #111114;
 }
 
 .auth-card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgb(var(--white-rgb) / 0.04);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   border-radius: 1.5rem;
   padding: 3rem;
   max-width: 420px;
@@ -256,8 +248,8 @@ export default {
 .logo-icon {
   width: 72px;
   height: 72px;
-  background: linear-gradient(135deg, rgba(255,123,37,0.2), rgba(76,175,80,0.2));
-  border: 1px solid rgba(255,123,37,0.3);
+  background: linear-gradient(135deg, rgb(var(--accent-orange-rgb) / 0.2), rgb(var(--accent-green-rgb) / 0.2));
+  border: 1px solid rgb(var(--accent-orange-rgb) / 0.3);
   border-radius: 1.2rem;
   display: flex;
   align-items: center;
@@ -304,8 +296,8 @@ export default {
 .input-wrapper input {
   width: 100%;
   padding: 0.9rem 1rem 0.9rem 2.8rem;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgb(var(--white-rgb) / 0.05);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   border-radius: 0.75rem;
   color: var(--text-light);
   font-size: 1rem;
@@ -317,8 +309,8 @@ export default {
 .input-wrapper input:focus {
   outline: none;
   border-color: var(--accent-orange);
-  background: rgba(255,255,255,0.08);
-  box-shadow: 0 0 0 3px rgba(255,123,37,0.15);
+  background: rgb(var(--white-rgb) / 0.08);
+  box-shadow: 0 0 0 3px rgb(var(--accent-orange-rgb) / 0.15);
 }
 
 .input-wrapper input.error {
@@ -330,19 +322,6 @@ export default {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-5px); }
   75% { transform: translateX(5px); }
-}
-
-.error-message {
-  color: #ff6b6b;
-  background: rgba(255,69,58,0.1);
-  border: 1px solid rgba(255,69,58,0.2);
-  border-radius: 0.6rem;
-  padding: 0.7rem 1rem;
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
 }
 
 .auth-button {
@@ -361,12 +340,12 @@ export default {
   justify-content: center;
   gap: 0.6rem;
   transition: all 0.25s ease;
-  box-shadow: 0 4px 20px rgba(255,123,37,0.35);
+  box-shadow: 0 4px 20px rgb(var(--accent-orange-rgb) / 0.35);
 }
 
 .auth-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(255,123,37,0.45);
+  box-shadow: 0 8px 30px rgb(var(--accent-orange-rgb) / 0.45);
 }
 
 .auth-button:disabled {
@@ -380,7 +359,7 @@ export default {
   justify-content: space-between;
   gap: 1rem;
   padding-top: 1.25rem;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid rgb(var(--white-rgb) / 0.06);
 }
 
 .back-link,
@@ -407,8 +386,8 @@ export default {
 .sidebar {
   width: var(--sidebar-width);
   min-width: var(--sidebar-width);
-  background: rgba(255,255,255,0.03);
-  border-right: 1px solid var(--border-light);
+  background: rgb(var(--white-rgb) / 0.03);
+  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   position: sticky;
@@ -423,14 +402,14 @@ export default {
   align-items: center;
   gap: 0.9rem;
   padding: 1.5rem 1.25rem;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .sidebar-logo {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, rgba(255,123,37,0.25), rgba(76,175,80,0.2));
-  border: 1px solid rgba(255,123,37,0.35);
+  background: linear-gradient(135deg, rgb(var(--accent-orange-rgb) / 0.25), rgb(var(--accent-green-rgb) / 0.2));
+  border: 1px solid rgb(var(--accent-orange-rgb) / 0.35);
   border-radius: 0.6rem;
   display: flex;
   align-items: center;
@@ -491,14 +470,14 @@ export default {
 }
 
 .nav-item:hover {
-  background: rgba(255,255,255,0.06);
+  background: rgb(var(--white-rgb) / 0.06);
   color: var(--text-light);
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, rgba(255,123,37,0.2), rgba(255,123,37,0.1));
+  background: linear-gradient(135deg, rgb(var(--accent-orange-rgb) / 0.2), rgb(var(--accent-orange-rgb) / 0.1));
   color: var(--accent-orange);
-  border: 1px solid rgba(255,123,37,0.25);
+  border: 1px solid rgb(var(--accent-orange-rgb) / 0.25);
 }
 
 .nav-item i {
@@ -510,7 +489,7 @@ export default {
 
 .sidebar-footer {
   padding: 1rem 0.75rem;
-  border-top: 1px solid var(--border-light);
+  border-top: 1px solid var(--border-color);
 }
 
 .footer-logout-btn {
@@ -522,7 +501,7 @@ export default {
   background: rgba(255, 69, 58, 0.08);
   border: 1px solid rgba(255, 69, 58, 0.15);
   border-radius: 0.6rem;
-  color: #ff6b6b;
+  color: var(--danger);
   font-size: 0.9rem;
   font-weight: 600;
   font-family: inherit;
@@ -554,8 +533,8 @@ export default {
   gap: 0.85rem;
   max-width: min(380px, calc(100vw - 2rem));
   padding: 0.9rem 0.95rem 0.9rem 1rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-md);
+  border: 1px solid rgb(var(--white-rgb) / 0.12);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   box-shadow: 0 16px 40px rgba(0,0,0,0.38);
@@ -584,7 +563,7 @@ export default {
 
 .notification-close {
   background: rgba(15,23,42,0.18);
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid rgb(var(--white-rgb) / 0.12);
   color: var(--text-light);
   cursor: pointer;
   padding: 0.3rem;
@@ -606,7 +585,7 @@ export default {
 
 .notify-enter-active,
 .notify-leave-active {
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .notify-enter-from,

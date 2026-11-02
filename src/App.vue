@@ -25,7 +25,7 @@
             :key="section.anchor"
             :href="section.anchor" 
             class="nav-link"
-            :class="{ 'active': activeSection === section.anchor }"
+            :class="{ 'active': isHomePage && activeSection === section.anchor }"
             @click="scrollToSection(section.anchor, $event)"
           >
             <i :class="section.icon"></i>
@@ -64,6 +64,9 @@
 
         <!-- Социальные сети -->
         <div class="nav-social">
+          <button type="button" class="social-link" title="Быстрый поиск (Ctrl+K)" aria-label="Быстрый поиск" @click="openPalette">
+            <i class="fas fa-search"></i>
+          </button>
           <a 
             v-for="social in socialLinks" 
             :key="social.name"
@@ -146,15 +149,18 @@
     <main class="main-content">
       <router-view />
     </main>
+    <CommandPalette />
   </div>
 </template>
 
 <script>
 import avatarImage from '@/assets/Image/Avatar.jpg'
+import { mainSections, otherPages, navSocials } from '@/config/navigation'
+import CommandPalette from '@/components/ui/CommandPalette.vue'
 
 export default {
   name: 'App',
-  components: {},
+  components: { CommandPalette },
   data() {
     return {
       avatarImage,
@@ -163,124 +169,51 @@ export default {
       isDropdownOpen: false,
       activeSection: '#header',
       closeTimer: null,
-      
-      // Секции главной страницы (якорные ссылки)
-      mainSections: [
-        {
-          name: 'Главная',
-          anchor: '#header',
-          icon: 'fas fa-home'
-        },
-        {
-          name: 'Референс',
-          anchor: '#reference',
-          icon: 'fas fa-id-card'
-        },
-        {
-          name: 'О себе',
-          anchor: '#bio',
-          icon: 'fas fa-user'
-        },
-        {
-          name: 'Фурсьют',
-          anchor: '#fursuit',
-          icon: 'fas fa-mask'
-        },
-        {
-          name: 'Felix',
-          anchor: '#felix',
-          icon: 'fas fa-heart'
-        },
-        {
-          name: 'Коны',
-          anchor: '#events',
-          icon: 'fas fa-calendar-alt'
-        },
-        {
-          name: 'Каналы',
-          anchor: '#communities',
-          icon: 'fas fa-users'
-        }
-      ],
-
-      // Отдельные страницы (для выпадающего меню)
-      otherPages: [
-        {
-          name: 'История персонажа',
-          description: 'Эволюция дизайна с 2019 по 2025',
-          path: '/taffy',
-          icon: 'fas fa-paw'
-        },
-        {
-          name: 'Галерея артов',
-          description: 'Коллекция заказанных артов',
-          path: '/gallery',
-          icon: 'fas fa-images'
-        },
-        {
-          name: 'Все мероприятия',
-          description: 'Подробные отчёты с конов',
-          path: '/events',
-          icon: 'fas fa-calendar-check'
-        },
-        {
-          name: 'О Felix',
-          description: 'История нашей любви',
-          path: '/felix',
-          icon: 'fas fa-heart-circle'
-        }
-      ],
-
-      socialLinks: [
-        {
-          name: 'Telegram',
-          url: 'https://t.me/foxtaffy',
-          icon: 'fab fa-telegram'
-        },
-        {
-          name: 'VKontakte',
-          url: 'https://vk.com/foxtaffy',
-          icon: 'fab fa-vk'
-        },
-        {
-          name: 'Twitter',
-          url: 'https://x.com/Fox_Taffy621',
-          icon: 'fab fa-twitter'
-        },
-        {
-          name: 'Discord',
-          url: 'https://discord.gg/foxtaffy',
-          icon: 'fab fa-discord'
-        }
-      ]
+      mainSections,
+      otherPages,
+      socialLinks: navSocials
     }
   },
   computed: {
+    isHomePage() {
+      return this.$route.path === '/'
+    },
+    // startsWith: вложенные страницы (/events/:slug) тоже подсвечивают «Другое»
     isOtherPageActive() {
-      return this.otherPages.some(page => this.$route.path === page.path)
+      const path = this.$route.path
+      return this.otherPages.some(page => path === page.path || path.startsWith(page.path + '/'))
     }
   },
   mounted() {
-    window.addEventListener('scroll', this.handleScroll)
+    window.addEventListener('scroll', this.handleScroll, { passive: true })
     window.addEventListener('resize', this.handleResize)
     this.updateActiveSection()
   },
   beforeUnmount() {
     window.removeEventListener('scroll', this.handleScroll)
     window.removeEventListener('resize', this.handleResize)
+    cancelAnimationFrame(this.scrollFrame)
     if (this.closeTimer) {
       clearTimeout(this.closeTimer)
     }
   },
   methods: {
+    // Скролл обрабатываем не чаще одного раза за кадр
     handleScroll() {
-      this.isScrolled = window.scrollY > 50
-      this.updateActiveSection()
+      if (this.scrollFrame) return
+      this.scrollFrame = requestAnimationFrame(() => {
+        this.scrollFrame = null
+        this.isScrolled = window.scrollY > 50
+        this.updateActiveSection()
+      })
     },
     handleResize() {
       if (window.innerWidth > 768 && this.isMobileMenuOpen) {
         this.closeMobileMenu()
       }
+    },
+    openPalette() {
+      window.dispatchEvent(new Event('open-command-palette'))
     },
     toggleMobileMenu() {
       this.isMobileMenuOpen = !this.isMobileMenuOpen
@@ -359,22 +292,6 @@ export default {
 
 <style>
 /* ===============================================
-   🎨 ОСНОВНЫЕ ПЕРЕМЕННЫЕ
-   =============================================== */
-.navbar {
-  --bg-dark: #1a1a1a;
-  --bg-darker: #121212;
-  --text-light: #f2f2f2;
-  --text-muted: #a0a0a0;
-  --accent-orange: #ff7b25;
-  --accent-green: #4caf50;
-  --shadow: rgba(0, 0, 0, 0.2);
-  --card-bg: #222222;
-  --card-hover: #2d2d2d;
-  --transition: all 0.3s ease;
-}
-
-/* ===============================================
    🧭 ОСНОВНАЯ НАВИГАЦИЯ
    =============================================== */
 .navbar {
@@ -385,7 +302,7 @@ export default {
   z-index: 1000;
   background: rgba(26, 26, 26, 0.95);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgb(var(--white-rgb) / 0.1);
   transition: var(--transition);
   font-family: 'Nunito', sans-serif;
 }
@@ -439,7 +356,7 @@ export default {
 
 .nav-logo:hover .avatar-img {
   transform: scale(1.05);
-  box-shadow: 0 5px 15px rgba(255, 123, 37, 0.3);
+  box-shadow: 0 5px 15px rgb(var(--accent-orange-rgb) / 0.3);
 }
 
 .logo-status {
@@ -461,6 +378,7 @@ export default {
 
 .logo-text h3 {
   margin: 0;
+  white-space: nowrap;
   font-size: 1.1rem;
   font-weight: 700;
   background: linear-gradient(45deg, var(--accent-orange), var(--accent-green));
@@ -481,7 +399,7 @@ export default {
 .nav-menu {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 0.25rem;
 }
 
 .nav-link {
@@ -493,8 +411,9 @@ export default {
   color: var(--text-muted);
   font-weight: 600;
   font-size: 0.9rem;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  white-space: nowrap;
+  border-radius: var(--radius-sm);
   transition: var(--transition);
   overflow: hidden;
   border: none;
@@ -509,7 +428,7 @@ export default {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgb(var(--white-rgb) / 0.1), transparent);
   transition: left 0.5s ease;
 }
 
@@ -519,14 +438,14 @@ export default {
 
 .nav-link:hover {
   color: var(--text-light);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   transform: translateY(-2px);
 }
 
 .nav-link.active {
   color: var(--text-light);
   background: linear-gradient(45deg, var(--accent-orange), var(--accent-green));
-  box-shadow: 0 5px 15px rgba(255, 123, 37, 0.2);
+  box-shadow: 0 5px 15px rgb(var(--accent-orange-rgb) / 0.2);
 }
 
 .nav-link i {
@@ -544,7 +463,7 @@ export default {
   left: 50%;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--accent-orange), var(--accent-green));
+  background: var(--gradient-brand);
   transform: translateX(-50%);
   transition: width 0.3s ease;
 }
@@ -581,7 +500,7 @@ export default {
   transform: translateX(-50%);
   background: rgba(26, 26, 26, 0.98);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
   border-radius: 0.75rem;
   padding: 1rem 0;
   min-width: 280px;
@@ -589,7 +508,7 @@ export default {
   opacity: 0;
   visibility: hidden;
   transform: translateX(-50%) translateY(-10px);
-  transition: all 0.3s ease;
+  transition: var(--transition);
   z-index: 1001;
   margin-top: 0.5rem;
 }
@@ -608,7 +527,7 @@ export default {
   text-decoration: none;
   color: var(--text-muted);
   transition: var(--transition);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--white-rgb) / 0.05);
 }
 
 .dropdown-item:last-child {
@@ -616,7 +535,7 @@ export default {
 }
 
 .dropdown-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   color: var(--text-light);
   padding-left: 2rem;
 }
@@ -665,7 +584,7 @@ export default {
   border-radius: 50%;
   text-decoration: none;
   color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   transition: var(--transition);
   position: relative;
   overflow: hidden;
@@ -681,7 +600,7 @@ export default {
   background: linear-gradient(45deg, var(--accent-orange), var(--accent-green));
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  transition: all 0.3s ease;
+  transition: var(--transition);
   z-index: -1;
 }
 
@@ -693,7 +612,7 @@ export default {
 .social-link:hover {
   color: white;
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 5px 15px rgba(255, 123, 37, 0.3);
+  box-shadow: 0 5px 15px rgb(var(--accent-orange-rgb) / 0.3);
 }
 
 .social-link i {
@@ -748,7 +667,7 @@ export default {
   height: calc(100vh - 70px);
   background: rgba(26, 26, 26, 0.98);
   backdrop-filter: blur(20px);
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid rgb(var(--white-rgb) / 0.1);
   transition: right 0.3s ease;
   z-index: 999;
   overflow-y: auto;
@@ -772,7 +691,7 @@ export default {
   font-weight: 700;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgb(var(--white-rgb) / 0.1);
   background: linear-gradient(45deg, var(--accent-orange), var(--accent-green));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -788,7 +707,7 @@ export default {
   font-weight: 600;
   font-size: 1rem;
   padding: 1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgb(var(--white-rgb) / 0.05);
   transition: var(--transition);
 }
 
@@ -810,7 +729,7 @@ export default {
 .mobile-social {
   margin-top: 2rem;
   padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgb(var(--white-rgb) / 0.1);
 }
 
 .mobile-social h4 {
@@ -834,13 +753,13 @@ export default {
   color: var(--text-muted);
   font-size: 0.9rem;
   padding: 0.5rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   transition: var(--transition);
 }
 
 .mobile-social-link:hover {
   color: var(--accent-orange);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
 }
 
 .mobile-overlay {
@@ -852,7 +771,7 @@ export default {
   background: rgba(0, 0, 0, 0.5);
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   z-index: 998;
 }
 
@@ -872,20 +791,38 @@ export default {
 /* ===============================================
    📱 АДАПТИВНОСТЬ
    =============================================== */
+@media (max-width: 1440px) {
+  .nav-social .social-link:not(button) {
+    display: none;
+  }
+}
+
+@media (max-width: 1280px) {
+  /* FontAwesome подменяет <i> на <svg>, поэтому берём первого потомка, а не тег */
+  .nav-menu .nav-link > :first-child {
+    display: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .nav-menu {
+    display: none;
+  }
+
+  .mobile-toggle {
+    display: flex;
+  }
+}
+
 @media (max-width: 768px) {
   .nav-container {
     padding: 1rem;
   }
-  
-  .nav-menu,
+
   .nav-social {
     display: none;
   }
-  
-  .mobile-toggle {
-    display: flex;
-  }
-  
+
   .logo-text span {
     display: none;
   }

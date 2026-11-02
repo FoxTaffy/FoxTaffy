@@ -191,7 +191,7 @@
 
     <!-- Модальное окно для фото -->
     <div v-if="selectedPhoto !== null" class="photo-modal" @click="closePhoto">
-      <button class="modal-close" @click="closePhoto">
+      <button class="icon-btn icon-btn-corner" @click="closePhoto">
         <i class="fas fa-times"></i>
       </button>
       <img :src="photos[selectedPhoto]" alt="Фото" @click.stop />
@@ -301,7 +301,7 @@ export default {
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(0, 0, 0, 0.8) 100%);
+  background: linear-gradient(135deg, rgb(var(--accent-orange-rgb) / 0.3) 0%, rgba(0, 0, 0, 0.8) 100%);
   z-index: 1;
 }
 
@@ -336,7 +336,7 @@ export default {
   color: white;
   text-decoration: none;
   padding: 0.5rem 1rem;
-  background: rgba(255,255,255,0.15);
+  background: rgb(var(--white-rgb) / 0.15);
   border-radius: 8px;
   backdrop-filter: blur(10px);
   font-size: 0.875rem;
@@ -344,7 +344,7 @@ export default {
 }
 
 .back-button:hover {
-  background: rgba(255,255,255,0.25);
+  background: rgb(var(--white-rgb) / 0.25);
   transform: translateX(-4px);
 }
 
@@ -371,12 +371,12 @@ export default {
 
 .event-status.completed {
   background: rgba(34, 197, 94, 0.3);
-  color: #4ade80;
+  color: var(--accent-green);
 }
 
 .event-type-badge {
-  background: rgba(139, 92, 246, 0.3);
-  color: #a78bfa;
+  background: rgb(var(--accent-orange-rgb) / 0.3);
+  color: var(--accent-orange);
 }
 
 .event-title {
@@ -389,7 +389,7 @@ export default {
 
 .event-subtitle {
   font-size: 1.125rem;
-  color: rgba(255,255,255,0.8);
+  color: rgb(var(--white-rgb) / 0.8);
   margin: 0 0 1.5rem 0;
 }
 
@@ -404,12 +404,12 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: rgba(255,255,255,0.9);
+  color: rgb(var(--white-rgb) / 0.9);
   font-size: 0.9rem;
 }
 
 .meta-item i {
-  color: #a78bfa;
+  color: var(--accent-orange);
 }
 
 .hero-rating {
@@ -420,17 +420,17 @@ export default {
 
 .rating-stars-large i {
   font-size: 1.5rem;
-  color: rgba(255,255,255,0.3);
+  color: rgb(var(--white-rgb) / 0.3);
 }
 
 .rating-stars-large i.active {
-  color: #fbbf24;
+  color: var(--accent-gold);
 }
 
 .rating-value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #fbbf24;
+  color: var(--accent-gold);
 }
 
 /* Контейнер */
@@ -461,8 +461,8 @@ export default {
 
 /* Карточки */
 .event-card {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: rgb(var(--white-rgb) / 0.03);
+  border: 1px solid rgb(var(--white-rgb) / 0.05);
   border-radius: 16px;
   padding: 1.5rem;
 }
@@ -482,11 +482,11 @@ export default {
 }
 
 .card-title i {
-  color: #8b5cf6;
+  color: var(--accent-orange);
 }
 
 .card-text {
-  color: rgba(255,255,255,0.7);
+  color: rgb(var(--white-rgb) / 0.7);
   line-height: 1.7;
   margin: 0 0 0.75rem 0;
 }
@@ -498,8 +498,8 @@ export default {
 /* Фотографии */
 .photos-count {
   margin-left: auto;
-  background: rgba(139, 92, 246, 0.2);
-  color: #a78bfa;
+  background: rgb(var(--accent-orange-rgb) / 0.2);
+  color: var(--accent-orange);
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
   font-size: 0.75rem;
@@ -567,7 +567,7 @@ export default {
 }
 
 .block-subtitle.pros {
-  color: #4ade80;
+  color: var(--accent-green);
 }
 
 .block-subtitle.cons {
@@ -586,11 +586,11 @@ export default {
   gap: 0.5rem;
   padding: 0.4rem 0;
   font-size: 0.875rem;
-  color: rgba(255,255,255,0.8);
+  color: rgb(var(--white-rgb) / 0.8);
 }
 
 .pros-block .opinion-list i {
-  color: #4ade80;
+  color: var(--accent-green);
   font-size: 0.75rem;
   margin-top: 0.2rem;
 }
@@ -617,20 +617,20 @@ export default {
 .rating-label {
   flex: 0 0 90px;
   font-size: 0.75rem;
-  color: rgba(255,255,255,0.6);
+  color: rgb(var(--white-rgb) / 0.6);
 }
 
 .rating-bar {
   flex: 1;
   height: 6px;
-  background: rgba(255,255,255,0.1);
+  background: rgb(var(--white-rgb) / 0.1);
   border-radius: 3px;
   overflow: hidden;
 }
 
 .rating-fill {
   height: 100%;
-  background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+  background: var(--gradient-brand-diag);
   border-radius: 3px;
 }
 
@@ -648,13 +648,13 @@ export default {
   align-items: center;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid rgb(var(--white-rgb) / 0.1);
   font-size: 0.875rem;
-  color: rgba(255,255,255,0.7);
+  color: rgb(var(--white-rgb) / 0.7);
 }
 
 .overall-score strong {
-  color: #fbbf24;
+  color: var(--accent-gold);
   font-size: 1rem;
 }
 
@@ -670,14 +670,14 @@ export default {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem;
-  background: rgba(255,255,255,0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   border-radius: 8px;
   font-size: 0.8rem;
-  color: rgba(255,255,255,0.8);
+  color: rgb(var(--white-rgb) / 0.8);
 }
 
 .feature-item i {
-  color: #8b5cf6;
+  color: var(--accent-orange);
   font-size: 0.75rem;
 }
 
@@ -693,22 +693,22 @@ export default {
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
-  background: rgba(255,255,255,0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   border-radius: 8px;
-  color: rgba(255,255,255,0.8);
+  color: rgb(var(--white-rgb) / 0.8);
   text-decoration: none;
   font-size: 0.875rem;
   transition: all 0.3s;
 }
 
 .link-item:hover {
-  background: rgba(139, 92, 246, 0.2);
+  background: rgb(var(--accent-orange-rgb) / 0.2);
   color: white;
 }
 
 .link-item i {
   font-size: 1rem;
-  color: #8b5cf6;
+  color: var(--accent-orange);
 }
 
 /* Модальное окно */
@@ -729,25 +729,11 @@ export default {
   border-radius: 8px;
 }
 
-.modal-close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: rgba(255,255,255,0.1);
-  border: none;
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 1.25rem;
-}
-
 .modal-nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255,255,255,0.1);
+  background: rgb(var(--white-rgb) / 0.1);
   border: none;
   color: white;
   width: 50px;

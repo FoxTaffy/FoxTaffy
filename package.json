@@ -12,14 +12,12 @@
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
+    "@fortawesome/free-regular-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/vue-fontawesome": "^3.0.8",
     "@supabase/supabase-js": "^2.50.0",
-    "@unhead/vue": "^2.0.12",
     "@vueuse/head": "^2.0.0",
-    "lodash-es": "^4.17.21",
-    "tslib": "^2.8.1",
-    "uuid": "^11.1.0",
+    "dompurify": "^3.4.17",
     "vue": "^3.5.13",
     "vue-router": "^4.5.1"
   },

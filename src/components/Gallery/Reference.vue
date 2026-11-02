@@ -264,10 +264,10 @@ export default {
   font-size: 2.2rem;
   margin: 0 0 2rem 0;
   padding: 0;
-  color: #f2f2f2;
+  color: var(--text-light);
   text-align: center;
   font-weight: 700;
-  background: linear-gradient(90deg, #ff7b25, #4caf50);
+  background: var(--gradient-brand);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -283,7 +283,7 @@ export default {
   transform: translateX(-50%);
   width: 80px;
   height: 4px;
-  background: linear-gradient(90deg, #ff7b25, #4caf50);
+  background: var(--gradient-brand);
   border-radius: 2px;
 }
 
@@ -308,28 +308,28 @@ export default {
   justify-content: center;
   gap: 1rem;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   border-radius: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
+  transition: var(--transition);
 }
 
 .fox-taffy-reference-switch:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgb(var(--white-rgb) / 0.08);
   transform: scale(1.02);
 }
 
 .fox-taffy-switch-label {
   font-size: 1rem;
-  color: #a0a0a0;
+  color: var(--text-muted);
   font-weight: 600;
   margin: 0;
   padding: 0;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .fox-taffy-switch-label.fox-taffy-active {
-  color: #f2f2f2;
+  color: var(--text-light);
   transform: scale(1.1);
 }
 
@@ -355,15 +355,15 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(76, 175, 80, 0.2);
+  background: rgb(var(--accent-green-rgb) / 0.2);
   border-radius: 32px;
-  border: 1px solid rgba(76, 175, 80, 0.4);
+  border: 1px solid rgb(var(--accent-green-rgb) / 0.4);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fox-taffy-slider:hover {
-  background: rgba(76, 175, 80, 0.3);
-  border-color: rgba(76, 175, 80, 0.6);
+  background: rgb(var(--accent-green-rgb) / 0.3);
+  border-color: rgb(var(--accent-green-rgb) / 0.6);
 }
 
 .fox-taffy-slider:before {
@@ -373,9 +373,9 @@ export default {
   width: 24px;
   left: 4px;
   bottom: 3px;
-  background: #4caf50;
+  background: var(--accent-green);
   border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.5);
+  box-shadow: 0 2px 8px rgb(var(--accent-green-rgb) / 0.5);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -391,15 +391,15 @@ export default {
 
 .fox-taffy-switch-input:checked + .fox-taffy-slider:before {
   transform: translateX(28px);
-  background: #ff6b6b;
+  background: var(--danger);
   box-shadow: 0 2px 12px rgba(255, 107, 107, 0.6);
 }
 
 .fox-taffy-image-wrapper {
-  border-radius: 1rem;
+  border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
 }
 
 .fox-taffy-reference-image {
@@ -432,10 +432,10 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   padding: 1rem;
   border-radius: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
 }
 
 .fox-taffy-info-item {
@@ -443,7 +443,7 @@ export default {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
-  color: #a0a0a0;
+  color: var(--text-muted);
   margin: 0;
   padding: 0;
 }
@@ -454,17 +454,17 @@ export default {
 }
 
 .fox-taffy-icon {
-  color: #ff7b25;
+  color: var(--accent-orange);
   width: 16px;
   text-align: center;
 }
 
 /* Цветовая палитра */
 .fox-taffy-color-palette {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   padding: 1.5rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
 }
 
 .fox-taffy-palette-title {
@@ -474,17 +474,17 @@ export default {
   font-size: 1.3rem;
   margin: 0 0 0.5rem 0;
   padding: 0;
-  color: #f2f2f2;
+  color: var(--text-light);
   font-weight: 700;
   line-height: 1.2;
 }
 
 .fox-taffy-palette-icon {
-  color: #ff7b25;
+  color: var(--accent-orange);
 }
 
 .fox-taffy-palette-description {
-  color: #a0a0a0;
+  color: var(--text-muted);
   font-size: 0.9rem;
   line-height: 1.5;
   margin: 0 0 1.5rem 0;
@@ -501,7 +501,7 @@ export default {
 .fox-taffy-color-item {
   position: relative;
   aspect-ratio: 1.5;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   border: 2px solid transparent;
   overflow: hidden;
@@ -510,7 +510,7 @@ export default {
 }
 
 .fox-taffy-color-item:hover {
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgb(var(--white-rgb) / 0.3);
 }
 
 .fox-taffy-color-info {
@@ -549,13 +549,13 @@ export default {
 .fox-taffy-artist-links {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgb(var(--white-rgb) / 0.1);
 }
 
 .fox-taffy-artist-title {
   margin: 0 0 1rem 0;
   padding: 0;
-  color: #f2f2f2;
+  color: var(--text-light);
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.2;
@@ -572,21 +572,21 @@ export default {
   align-items: center;
   gap: 0.75rem;
   padding: 0.7rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 600;
   border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.05);
-  color: #f2f2f2;
-  transition: all 0.3s ease;
+  background: rgb(var(--white-rgb) / 0.05);
+  color: var(--text-light);
+  transition: var(--transition);
 }
 
 .fox-taffy-social-link:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.1);
+  border-color: rgb(var(--white-rgb) / 0.2);
   text-decoration: none;
-  color: #f2f2f2;
+  color: var(--text-light);
 }
 
 .fox-taffy-social-icon {
@@ -604,12 +604,12 @@ export default {
   max-width: 360px;
   min-width: min(320px, calc(100vw - 2rem));
   padding: 0.9rem 1rem;
-  border-radius: 1rem;
+  border-radius: var(--radius-md);
   color: #fff;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgb(var(--white-rgb) / 0.14);
   animation: fox-taffy-slide-in 0.28s ease-out;
 }
 
@@ -662,7 +662,7 @@ export default {
   align-items: center;
   justify-content: center;
   border-radius: 0.75rem;
-  background: rgba(255, 255, 255, 0.14);
+  background: rgb(var(--white-rgb) / 0.14);
   color: #fff;
 }
 

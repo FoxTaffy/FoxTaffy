@@ -477,7 +477,7 @@ onBeforeUnmount(() => {
   margin: 0 auto;
   padding: 2rem 1rem;
   font-family: 'Nunito', sans-serif;
-  color: #f2f2f2;
+  color: var(--text-light);
 }
 
 .ft-furry-arts-gallery {
@@ -491,7 +491,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   padding: 1rem 0;
   margin-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgb(var(--white-rgb) / 0.1);
 }
 
 .ft-results-count {
@@ -500,11 +500,11 @@ onBeforeUnmount(() => {
   gap: 0.5rem;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #f2f2f2;
+  color: var(--text-light);
 }
 
 .ft-results-count i {
-  color: #ff7b25;
+  color: var(--accent-orange);
   font-size: 1.2rem;
 }
 
@@ -520,11 +520,11 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.4rem;
   padding: 0.4rem 0.8rem;
-  background: rgba(255, 123, 37, 0.15);
-  border: 1px solid rgba(255, 123, 37, 0.3);
-  border-radius: 1rem;
+  background: rgb(var(--accent-orange-rgb) / 0.15);
+  border: 1px solid rgb(var(--accent-orange-rgb) / 0.3);
+  border-radius: var(--radius-md);
   font-size: 0.85rem;
-  color: #ff7b25;
+  color: var(--accent-orange);
   font-weight: 500;
 }
 
@@ -540,7 +540,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   padding: 4rem 0;
-  color: #a0a0a0;
+  color: var(--text-muted);
   text-align: center;
 }
 
@@ -557,7 +557,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.5rem;
   margin-top: 1rem;
-  background: #ff7b25;
+  background: var(--accent-orange);
   color: white;
   border: none;
   border-radius: 2rem;
@@ -565,7 +565,7 @@ onBeforeUnmount(() => {
   cursor: pointer;
   font-family: inherit;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .ft-retry-btn:hover,
@@ -585,7 +585,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #ff7b25, #ff8f4f);
+  background: linear-gradient(135deg, var(--accent-orange), #ff8f4f);
   border: none;
   color: white;
   padding: 1rem 2rem;
@@ -593,14 +593,14 @@ onBeforeUnmount(() => {
   cursor: pointer;
   font-size: 1rem;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   font-family: inherit;
 }
 
 .ft-load-more-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #ff8f4f, #ffa366);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 123, 37, 0.3);
+  box-shadow: 0 4px 12px rgb(var(--accent-orange-rgb) / 0.3);
 }
 
 .ft-load-more-btn:disabled {
@@ -620,8 +620,8 @@ onBeforeUnmount(() => {
   min-width: min(320px, calc(100vw - 2rem));
   max-width: 360px;
   padding: 0.9rem 0.95rem 0.9rem 0.9rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-md);
+  border: 1px solid rgb(var(--white-rgb) / 0.14);
   color: #fff;
   font-weight: 700;
   line-height: 1.45;
@@ -656,8 +656,8 @@ onBeforeUnmount(() => {
   height: 2rem;
   flex-shrink: 0;
   border-radius: 0.75rem;
-  background: rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  background: rgb(var(--white-rgb) / 0.16);
+  box-shadow: inset 0 0 0 1px rgb(var(--white-rgb) / 0.1);
 }
 
 .ft-notification button {
@@ -665,7 +665,7 @@ onBeforeUnmount(() => {
   top: 0.45rem;
   right: 0.45rem;
   background: rgba(15, 23, 42, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgb(var(--white-rgb) / 0.14);
   color: inherit;
   cursor: pointer;
   font-size: 1.1rem;

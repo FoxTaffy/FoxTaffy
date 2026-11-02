@@ -2,7 +2,7 @@
   <div class="event-details-page">
     <!-- Загрузка -->
     <div v-if="loading" class="loading-container">
-      <div class="loading-spinner"></div>
+      <div class="spinner"></div>
       <p>Загружаем мероприятие...</p>
     </div>
 
@@ -101,7 +101,7 @@
                 <i class="fas fa-info-circle"></i>
                 О мероприятии
               </h3>
-              <div v-if="event.description" class="card-text" v-html="event.description"></div>
+              <div v-if="event.description" class="card-text" v-html="sanitizedDescription"></div>
               <p v-else class="card-text muted">Описание мероприятия пока не добавлено</p>
             </div>
 
@@ -261,7 +261,7 @@
             <!-- Особенности мероприятия -->
             <div v-if="eventFeatures.length > 0" class="event-card compact">
               <h3 class="card-title">
-                <i class="fas fa-sparkles"></i>
+                <i class="fas fa-wand-magic-sparkles"></i>
                 Особенности
               </h3>
               <ul class="features-list">
@@ -360,7 +360,7 @@
 
     <!-- Модальное окно просмотра одного фото с навигацией -->
     <div v-if="selectedPhotoIndex !== null" class="photo-modal" @click="closePhotoModal">
-      <button class="modal-close" @click="closePhotoModal">
+      <button class="icon-btn icon-btn-corner" @click="closePhotoModal">
         <i class="fas fa-times"></i>
       </button>
       <img :src="photos[selectedPhotoIndex].image_url" :alt="photos[selectedPhotoIndex].caption" @click.stop />
@@ -379,6 +379,7 @@
 import { furryApi } from '@/config/supabase.js'
 import { imageHelpers } from '@/utils/imageUtils'
 import StarRating from '@/components/ui/StarRating.vue'
+import { sanitizeHtml, stripHtml } from '@/utils/html'
 
 export default {
   name: 'EventDetailPage',
@@ -404,6 +405,10 @@ export default {
   },
   
   computed: {
+    sanitizedDescription() {
+      return sanitizeHtml(this.event?.description)
+    },
+
     // Проверка событий без обзора (показываем предупреждение, но не блокируем доступ)
     isEventWithoutReview() {
       if (!this.event) return false
@@ -636,12 +641,7 @@ export default {
       return roleMap[role] || role
     },
 
-    stripHtml(html) {
-      if (!html) return ''
-      const div = document.createElement('div')
-      div.innerHTML = html
-      return div.textContent || div.innerText || ''
-    },
+    stripHtml,
 
     getEventTypeName(eventType) {
       const typeMap = {
@@ -812,21 +812,7 @@ export default {
   min-height: 50vh;
   gap: 1rem;
   text-align: center;
-  color: rgba(255,255,255,0.6);
-}
-
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 3px solid rgba(139, 92, 246, 0.2);
-  border-top: 3px solid #8b5cf6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  color: rgb(var(--white-rgb) / 0.6);
 }
 
 .back-btn {
@@ -834,7 +820,7 @@ export default {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #8b5cf6;
+  background: var(--accent-orange);
   color: white;
   text-decoration: none;
   border-radius: 8px;
@@ -858,7 +844,7 @@ export default {
 .blocked-content {
   max-width: 500px;
   text-align: center;
-  background: rgba(255,255,255,0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   border-radius: 16px;
   padding: 3rem;
 }
@@ -876,7 +862,7 @@ export default {
 
 .blocked-icon i {
   font-size: 2.5rem;
-  color: rgba(255,255,255,0.5);
+  color: rgb(var(--white-rgb) / 0.5);
 }
 
 .blocked-content h2 {
@@ -885,13 +871,13 @@ export default {
 }
 
 .blocked-content p {
-  color: rgba(255,255,255,0.7);
+  color: rgb(var(--white-rgb) / 0.7);
   margin-bottom: 0.5rem;
 }
 
 .blocked-hint {
   font-size: 0.875rem;
-  color: rgba(255,255,255,0.5);
+  color: rgb(var(--white-rgb) / 0.5);
   margin-bottom: 1.5rem;
 }
 
@@ -904,7 +890,7 @@ export default {
   margin-bottom: 2rem;
   background: rgba(255, 193, 7, 0.1);
   border: 1px solid rgba(255, 193, 7, 0.3);
-  border-left: 4px solid #ffc107;
+  border-left: 4px solid var(--accent-gold);
   border-radius: 0.75rem;
   backdrop-filter: blur(10px);
 }
@@ -922,20 +908,20 @@ export default {
 
 .no-review-alert .alert-icon i {
   font-size: 1.5rem;
-  color: #ffc107;
+  color: var(--accent-gold);
 }
 
 .no-review-alert .alert-content h4 {
   margin: 0 0 0.5rem;
   font-size: 1rem;
   font-weight: 600;
-  color: #ffc107;
+  color: var(--accent-gold);
 }
 
 .no-review-alert .alert-content p {
   margin: 0;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgb(var(--white-rgb) / 0.8);
   line-height: 1.5;
 }
 
@@ -982,7 +968,7 @@ export default {
   color: white;
   text-decoration: none;
   padding: 0.5rem 1rem;
-  background: rgba(255,255,255,0.15);
+  background: rgb(var(--white-rgb) / 0.15);
   border-radius: 8px;
   backdrop-filter: blur(10px);
   font-size: 0.875rem;
@@ -990,7 +976,7 @@ export default {
 }
 
 .back-button:hover {
-  background: rgba(255,255,255,0.25);
+  background: rgb(var(--white-rgb) / 0.25);
   transform: translateX(-4px);
 }
 
@@ -1017,7 +1003,7 @@ export default {
 
 .event-status.completed {
   background: rgba(34, 197, 94, 0.3);
-  color: #4ade80;
+  color: var(--accent-green);
 }
 
 .event-status.upcoming {
@@ -1026,8 +1012,8 @@ export default {
 }
 
 .event-type-badge {
-  background: rgba(139, 92, 246, 0.3);
-  color: #a78bfa;
+  background: rgb(var(--accent-orange-rgb) / 0.3);
+  color: var(--accent-orange);
 }
 
 .event-title {
@@ -1040,7 +1026,7 @@ export default {
 
 .event-subtitle {
   font-size: 1.125rem;
-  color: rgba(255,255,255,0.8);
+  color: rgb(var(--white-rgb) / 0.8);
   margin: 0 0 1.5rem 0;
 }
 
@@ -1055,12 +1041,12 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  color: rgba(255,255,255,0.85);
+  color: rgb(var(--white-rgb) / 0.85);
   font-size: 0.8rem;
 }
 
 .meta-item i {
-  color: #a78bfa;
+  color: var(--accent-orange);
 }
 
 .hero-rating {
@@ -1071,17 +1057,17 @@ export default {
 
 .rating-stars-large i {
   font-size: 1.5rem;
-  color: rgba(255,255,255,0.3);
+  color: rgb(var(--white-rgb) / 0.3);
 }
 
 .rating-stars-large i.active {
-  color: #fbbf24;
+  color: var(--accent-gold);
 }
 
 .rating-value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #fbbf24;
+  color: var(--accent-gold);
 }
 
 /* Контейнер */
@@ -1112,8 +1098,8 @@ export default {
 
 /* Карточки */
 .event-card {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: rgb(var(--white-rgb) / 0.03);
+  border: 1px solid rgb(var(--white-rgb) / 0.05);
   border-radius: 16px;
   padding: 1.5rem;
 }
@@ -1133,24 +1119,24 @@ export default {
 }
 
 .card-title i {
-  color: #8b5cf6;
+  color: var(--accent-orange);
 }
 
 .card-text {
-  color: rgba(255,255,255,0.7);
+  color: rgb(var(--white-rgb) / 0.7);
   line-height: 1.7;
 }
 
 .card-text.muted {
-  color: rgba(255,255,255,0.4);
+  color: rgb(var(--white-rgb) / 0.4);
   font-style: italic;
 }
 
 /* Фотографии */
 .photos-count {
   margin-left: auto;
-  background: rgba(139, 92, 246, 0.2);
-  color: #a78bfa;
+  background: rgb(var(--accent-orange-rgb) / 0.2);
+  color: var(--accent-orange);
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
   font-size: 0.75rem;
@@ -1212,12 +1198,12 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: rgba(255,255,255,0.7);
+  color: rgb(var(--white-rgb) / 0.7);
   font-size: 0.875rem;
 }
 
 .purchase-stat i {
-  color: #8b5cf6;
+  color: var(--accent-orange);
 }
 
 .purchases-list {
@@ -1231,15 +1217,15 @@ export default {
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: rgb(var(--white-rgb) / 0.03);
+  border: 1px solid rgb(var(--white-rgb) / 0.05);
   border-radius: 12px;
   transition: all 0.3s;
 }
 
 .purchase-item:hover {
-  background: rgba(255,255,255,0.05);
-  border-color: rgba(139, 92, 246, 0.3);
+  background: rgb(var(--white-rgb) / 0.05);
+  border-color: rgb(var(--accent-orange-rgb) / 0.3);
 }
 
 .purchase-image {
@@ -1279,7 +1265,7 @@ export default {
 }
 
 .purchase-price {
-  color: #fbbf24;
+  color: var(--accent-gold);
   font-weight: 600;
   font-size: 0.9375rem;
   white-space: nowrap;
@@ -1298,20 +1284,20 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  color: rgba(255,255,255,0.6);
+  color: rgb(var(--white-rgb) / 0.6);
 }
 
 .meta-vendor i,
 .meta-category i,
 .meta-date i {
-  color: #8b5cf6;
+  color: var(--accent-orange);
   font-size: 0.7rem;
 }
 
 .purchase-description {
   margin: 0;
   font-size: 0.8125rem;
-  color: rgba(255,255,255,0.7);
+  color: rgb(var(--white-rgb) / 0.7);
   line-height: 1.5;
 }
 
@@ -1340,7 +1326,7 @@ export default {
 }
 
 .block-subtitle.pros {
-  color: #4ade80;
+  color: var(--accent-green);
 }
 
 .block-subtitle.cons {
@@ -1359,12 +1345,12 @@ export default {
   gap: 0.5rem;
   padding: 0.4rem 0;
   font-size: 0.875rem;
-  color: rgba(255,255,255,0.8);
+  color: rgb(var(--white-rgb) / 0.8);
   line-height: 1.4;
 }
 
 .pros-block .opinion-list i {
-  color: #4ade80;
+  color: var(--accent-green);
   font-size: 0.75rem;
   margin-top: 0.2rem;
   flex-shrink: 0;
@@ -1380,25 +1366,25 @@ export default {
 .general-impression {
   margin-top: 1.5rem;
   padding: 1.25rem 1.5rem;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgb(var(--white-rgb) / 0.08);
   border-radius: 18px;
-  background: rgba(255,255,255,0.03);
+  background: rgb(var(--white-rgb) / 0.03);
 }
 
 .general-impression .block-subtitle {
-  color: #a78bfa;
+  color: var(--accent-orange);
   margin-bottom: 0.85rem;
 }
 
 .impression-text {
-  color: rgba(255,255,255,0.9);
+  color: rgb(var(--white-rgb) / 0.9);
   line-height: 1.7;
   font-size: 0.95rem;
   white-space: pre-wrap;
   word-break: break-word;
   padding: 0.85rem 1rem;
   border-radius: 14px;
-  background: rgba(255,255,255,0.02);
+  background: rgb(var(--white-rgb) / 0.02);
 }
 
 /* Рейтинги */
@@ -1417,7 +1403,7 @@ export default {
 .rating-label {
   flex: 0 0 90px;
   font-size: 0.75rem;
-  color: rgba(255,255,255,0.6);
+  color: rgb(var(--white-rgb) / 0.6);
 }
 
 .rating-stars {
@@ -1428,11 +1414,11 @@ export default {
 
 .rating-stars i {
   font-size: 0.75rem;
-  color: rgba(255,255,255,0.2);
+  color: rgb(var(--white-rgb) / 0.2);
 }
 
 .rating-stars i.active {
-  color: #fbbf24;
+  color: var(--accent-gold);
 }
 
 .rating-num {
@@ -1449,16 +1435,15 @@ export default {
   align-items: center;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid rgb(var(--white-rgb) / 0.1);
   font-size: 0.875rem;
-  color: rgba(255,255,255,0.7);
+  color: rgb(var(--white-rgb) / 0.7);
 }
 
 .overall-score strong {
-  color: #fbbf24;
+  color: var(--accent-gold);
   font-size: 1rem;
 }
-
 
 /* Ссылки */
 .links-list {
@@ -1472,22 +1457,22 @@ export default {
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
-  background: rgba(255,255,255,0.05);
+  background: rgb(var(--white-rgb) / 0.05);
   border-radius: 8px;
-  color: rgba(255,255,255,0.8);
+  color: rgb(var(--white-rgb) / 0.8);
   text-decoration: none;
   font-size: 0.875rem;
   transition: all 0.3s;
 }
 
 .link-item:hover {
-  background: rgba(139, 92, 246, 0.2);
+  background: rgb(var(--accent-orange-rgb) / 0.2);
   color: white;
 }
 
 .link-item i {
   font-size: 1rem;
-  color: #8b5cf6;
+  color: var(--accent-orange);
 }
 
 /* Особенности мероприятия */
@@ -1506,8 +1491,8 @@ export default {
   gap: 0.75rem;
   padding: 0.5rem 0;
   font-size: 0.875rem;
-  color: rgba(255,255,255,0.8);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  color: rgb(var(--white-rgb) / 0.8);
+  border-bottom: 1px solid rgb(var(--white-rgb) / 0.05);
 }
 
 .feature-item:last-child {
@@ -1515,7 +1500,7 @@ export default {
 }
 
 .feature-item i {
-  color: #8b5cf6;
+  color: var(--accent-orange);
   font-size: 0.875rem;
   flex-shrink: 0;
 }
@@ -1531,7 +1516,7 @@ export default {
   display: flex;
   justify-content: space-between;
   padding: 0.5rem 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgb(var(--white-rgb) / 0.05);
 }
 
 .info-row:last-child {
@@ -1555,12 +1540,12 @@ export default {
 
 .role-badge.vip {
   background: rgba(251, 191, 36, 0.2);
-  color: #fbbf24;
+  color: var(--accent-gold);
 }
 
 .role-badge.sponsor {
   background: rgba(34, 197, 94, 0.2);
-  color: #4ade80;
+  color: var(--accent-green);
 }
 
 .role-badge.volunteer {
@@ -1570,12 +1555,12 @@ export default {
 
 .info-row .info-label {
   font-size: 0.75rem;
-  color: rgba(255,255,255,0.5);
+  color: rgb(var(--white-rgb) / 0.5);
 }
 
 .info-row .info-value {
   font-size: 0.875rem;
-  color: rgba(255,255,255,0.8);
+  color: rgb(var(--white-rgb) / 0.8);
 }
 
 /* Кнопка просмотра альбома */
@@ -1583,7 +1568,7 @@ export default {
   width: 100%;
   margin-top: 1rem;
   padding: 0.875rem 1.5rem;
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  background: linear-gradient(135deg, var(--accent-orange), #7c3aed);
   color: white;
   border: none;
   border-radius: 10px;
@@ -1600,7 +1585,7 @@ export default {
 .view-album-btn:hover {
   background: linear-gradient(135deg, #7c3aed, #6d28d9);
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 8px 16px rgb(var(--accent-orange-rgb) / 0.3);
 }
 
 .view-album-btn i {
@@ -1647,8 +1632,8 @@ export default {
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem 2rem;
-  background: rgba(139, 92, 246, 0.1);
-  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+  background: rgb(var(--accent-orange-rgb) / 0.1);
+  border-bottom: 1px solid rgb(var(--accent-orange-rgb) / 0.3);
 }
 
 .gallery-modal-header h2 {
@@ -1662,19 +1647,19 @@ export default {
 }
 
 .gallery-modal-header h2 i {
-  color: #8b5cf6;
+  color: var(--accent-orange);
   font-size: 1.75rem;
 }
 
 .gallery-count {
   font-size: 0.875rem;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgb(var(--white-rgb) / 0.6);
   margin-left: 0.5rem;
 }
 
 .gallery-close-btn {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--white-rgb) / 0.1);
   border: none;
   color: white;
   width: 40px;
@@ -1689,7 +1674,7 @@ export default {
 }
 
 .gallery-close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--white-rgb) / 0.2);
   transform: rotate(90deg);
 }
 
@@ -1761,25 +1746,11 @@ export default {
   border-radius: 8px;
 }
 
-.modal-close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: rgba(255,255,255,0.1);
-  border: none;
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 1.25rem;
-}
-
 .modal-nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255,255,255,0.1);
+  background: rgb(var(--white-rgb) / 0.1);
   border: none;
   color: white;
   width: 50px;
@@ -1791,7 +1762,7 @@ export default {
 }
 
 .modal-nav:hover {
-  background: rgba(255,255,255,0.2);
+  background: rgb(var(--white-rgb) / 0.2);
 }
 
 .modal-nav.prev {
@@ -1816,7 +1787,7 @@ export default {
 
 /* Кнопка "ещё" для фото */
 .more-photos {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgb(var(--accent-orange-rgb) / 0.3);
 }
 
 .more-overlay {
@@ -1826,7 +1797,7 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(139, 92, 246, 0.8);
+  background: rgb(var(--accent-orange-rgb) / 0.8);
   color: white;
 }
 

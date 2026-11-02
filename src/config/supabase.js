@@ -132,7 +132,12 @@ export const furryApi = {
 
       // Поиск по тексту
       if (search) {
-        query = query.or(`name.ilike.%${search}%,subtitle.ilike.%${search}%,description.ilike.%${search}%,location.ilike.%${search}%`)
+        // Запятые и скобки — синтаксис PostgREST-фильтра: без вырезания пользователь мог
+        // дописать собственные условия в .or(...) (filter injection).
+        const term = String(search).replace(/[,()*%\\]/g, ' ').trim()
+        if (term) {
+          query = query.or(['name', 'subtitle', 'description', 'location'].map(col => `${col}.ilike.*${term}*`).join(','))
+        }
       }
 
       // Сортировка

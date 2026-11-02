@@ -9,13 +9,11 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
-// Убираем все настройки AWS SDK
   optimizeDeps: {
     include: [
       '@supabase/supabase-js',
       'vue',
-      'vue-router',
-      'lodash-es'
+      'vue-router'
     ]
   },
   // esbuild встроен в Vite — быстрее terser в 20×, без доп. зависимостей.
@@ -36,9 +34,9 @@ export default defineConfig({
             '@fortawesome/fontawesome-svg-core',
             '@fortawesome/vue-fontawesome',
             '@fortawesome/free-solid-svg-icons',
+            '@fortawesome/free-regular-svg-icons',
             '@fortawesome/free-brands-svg-icons'
-          ],
-          utils: ['lodash-es', 'uuid']
+          ]
         }
       }
     }

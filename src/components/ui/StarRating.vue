@@ -110,12 +110,12 @@ const getStarClass = (n) => {
 
 /* Цвета звезд */
 .star-icon.filled {
-  color: #ffc107;
+  color: var(--accent-gold);
   filter: drop-shadow(0 0 2px rgba(255, 193, 7, 0.5));
 }
 
 .star-icon.half {
-  color: #ffc107;
+  color: var(--accent-gold);
   filter: drop-shadow(0 0 2px rgba(255, 193, 7, 0.5));
 }
 

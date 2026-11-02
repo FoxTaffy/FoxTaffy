@@ -365,7 +365,7 @@
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     padding: 1.5rem 2rem;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-sm);
     background: rgba(40, 50, 65, 0.4);
     border-left: 3px solid rgba(148, 175, 220, 0.5);
     position: relative;
@@ -438,7 +438,7 @@
   .quote {
     font-size: 3.2rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.08);
+    color: rgb(var(--white-rgb) / 0.08);
     letter-spacing: 3px;
     font-family: 'Source Sans Pro', 'Nunito', sans-serif;
     text-transform: lowercase;
@@ -508,7 +508,7 @@
     -webkit-backdrop-filter: blur(5px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(188, 212, 230, 0.2);
-    transition: all 0.3s ease;
+    transition: var(--transition);
     letter-spacing: 0.5px;
   }
   

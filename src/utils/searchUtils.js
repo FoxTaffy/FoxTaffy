@@ -3,7 +3,7 @@ export const normalizeSearchValue = (value = '') => {
     .normalize('NFKD')
     .replace(/[@#_]/g, '')
     .replace(/\s+/g, '')
-    .replace(/[^a-zA-Z0-9]/g, '')
+    .replace(/[^\p{L}\p{N}]/gu, '') // кириллица тоже буква: прежний [^a-zA-Z0-9] стирал русский запрос целиком
     .toLowerCase()
 }
 
