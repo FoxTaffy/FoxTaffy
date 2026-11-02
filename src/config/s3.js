@@ -324,7 +324,8 @@ export const s3Api = {
       if (onProgress) onProgress(90)
 
       const uploadData = await uploadResponse.json()
-      const publicUrl = `${MINIO_PUBLIC_URL}/${bucketName}/${fileName}`
+      // API возвращает готовый публичный URL (MinIO или Supabase — зависит от режима сервера)
+      const publicUrl = uploadData.url || `${MINIO_PUBLIC_URL}/${bucketName}/${fileName}`
 
       if (onProgress) onProgress(100)
 

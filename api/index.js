@@ -18,8 +18,13 @@ import {
 
 const isProduction = process.env.NODE_ENV === 'production'
 
+// Облачный режим: БД и файлы живут в Supabase, MinIO/PostgREST не используются.
+const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/$/, '')
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || ''
+const cloudMode = Boolean(SUPABASE_URL && SUPABASE_SERVICE_KEY)
+
 if (isProduction) {
-  const missing = ['MINIO_ACCESS_KEY', 'MINIO_SECRET_KEY', 'ADMIN_SESSION_SECRET', 'ALLOWED_ORIGIN']
+  const missing = [...(cloudMode ? [] : ['MINIO_ACCESS_KEY', 'MINIO_SECRET_KEY']), 'ADMIN_SESSION_SECRET', 'ALLOWED_ORIGIN']
     .filter(name => !process.env[name] || process.env[name] === '*')
   if (missing.length) {
     console.error(`Refusing to start: set ${missing.join(', ')} in production`)
@@ -71,6 +76,92 @@ const sanitizePath = (raw) => {
   return normalized.split('/').some(seg => seg === '' || seg === '.' || seg === '..') ? null : normalized
 }
 
+// Имена бакетов в Supabase чувствительны к регистру.
+const CLOUD_BUCKETS = { convent: 'Convent', gallery: 'gallery' }
+
+const cloudHeaders = (extra = {}) => ({
+  apikey: SUPABASE_SERVICE_KEY,
+  Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+  ...extra
+})
+
+const cloudFetch = async (path, init) => {
+  const response = await fetch(`${SUPABASE_URL}/storage/v1/${path}`, init)
+  if (!response.ok) {
+    const detail = await response.text().catch(() => '')
+    throw new Error(`Supabase Storage ${response.status}: ${detail.slice(0, 200)}`)
+  }
+  return response
+}
+
+const storage = {
+  publicUrl: (bucket, key) => cloudMode
+    ? `${SUPABASE_URL}/storage/v1/object/public/${CLOUD_BUCKETS[bucket]}/${key}`
+    : `${PUBLIC_URL}/${bucket}/${key}`,
+
+  async bucketExists(bucket) {
+    if (cloudMode) return Boolean(CLOUD_BUCKETS[bucket])
+    await s3.send(new HeadBucketCommand({ Bucket: bucket }))
+    return true
+  },
+
+  async put(bucket, key, body, contentType) {
+    if (cloudMode) {
+      await cloudFetch(`object/${CLOUD_BUCKETS[bucket]}/${key}`, {
+        method: 'POST',
+        headers: cloudHeaders({ 'Content-Type': contentType, 'x-upsert': 'true', 'cache-control': 'max-age=31536000' }),
+        body
+      })
+      return
+    }
+    await s3.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: body, ContentType: contentType, CacheControl: 'max-age=31536000' }))
+  },
+
+  async remove(bucket, keys) {
+    if (cloudMode) {
+      await cloudFetch(`object/${CLOUD_BUCKETS[bucket]}`, {
+        method: 'DELETE',
+        headers: cloudHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ prefixes: keys })
+      })
+      return
+    }
+    if (keys.length === 1) {
+      await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: keys[0] }))
+    } else {
+      await s3.send(new DeleteObjectsCommand({ Bucket: bucket, Delete: { Objects: keys.map(Key => ({ Key })) } }))
+    }
+  },
+
+  async list(bucket, prefix, limit) {
+    if (cloudMode) {
+      const dir = prefix.includes('/') ? prefix.slice(0, prefix.lastIndexOf('/')) : ''
+      const response = await cloudFetch(`object/list/${CLOUD_BUCKETS[bucket]}`, {
+        method: 'POST',
+        headers: cloudHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ prefix: dir, limit, offset: 0 })
+      })
+      return (await response.json())
+        .filter(obj => obj.id)
+        .map(obj => ({
+          name: obj.name,
+          id: obj.id,
+          size: obj.metadata?.size,
+          updated_at: obj.updated_at,
+          metadata: { size: obj.metadata?.size, mimetype: obj.metadata?.mimetype || 'image/jpeg' }
+        }))
+    }
+    const result = await s3.send(new ListObjectsV2Command({ Bucket: bucket, Prefix: prefix, MaxKeys: limit }))
+    return (result.Contents || []).map(obj => ({
+      name: obj.Key.replace(prefix, '').replace(/^\//, ''),
+      id: obj.ETag,
+      size: obj.Size,
+      updated_at: obj.LastModified?.toISOString(),
+      metadata: { size: obj.Size, mimetype: 'image/jpeg' }
+    }))
+  }
+}
+
 const requireKnownBucket = (req, res, next) => {
   if (!ALLOWED_BUCKETS.has(req.params.bucket)) {
     return res.status(404).json({ error: `Bucket "${req.params.bucket}" not found` })
@@ -87,7 +178,7 @@ const ADMIN_SECRET_CODE = normalizeAdminCode(process.env.ADMIN_SECRET_CODE)
 // Секрет сессии обязателен и независим от PGRST_JWT_SECRET / admin-кода:
 // переиспользование ключей позволило бы подделывать токены одного контура через другой.
 const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || ''
-const PGRST_URL = process.env.PGRST_URL || 'http://localhost:3001'
+const PGRST_URL = cloudMode ? `${SUPABASE_URL}/rest/v1` : (process.env.PGRST_URL || 'http://localhost:3001')
 const PGRST_JWT_SECRET = process.env.PGRST_JWT_SECRET || ''
 
 const ADMIN_COOKIE_NAME = 'foxtaffy_admin_session'
@@ -255,6 +346,7 @@ const adminCookieOptions = {
 }
 
 const createPostgrestServiceToken = () => {
+  if (cloudMode) return SUPABASE_SERVICE_KEY
   if (!PGRST_JWT_SECRET) {
     throw new Error('PGRST_JWT_SECRET is not configured')
   }
@@ -345,7 +437,8 @@ app.all('/upload/admin/db/*', requireAdmin, async (req, res) => {
 
     const headers = {
       Authorization: `Bearer ${token}`,
-      Accept: req.headers.accept || 'application/json'
+      Accept: req.headers.accept || 'application/json',
+      ...(cloudMode ? { apikey: token } : {})
     }
 
     if (req.headers.prefer) {
@@ -383,7 +476,7 @@ app.post('/upload/:bucket', requireApiKeyOrAdmin, requireKnownBucket, async (req
   const { bucket } = req.params
 
   try {
-    await s3.send(new HeadBucketCommand({ Bucket: bucket }))
+    await storage.bucketExists(bucket)
   } catch {
     return res.status(404).json({ error: `Bucket "${bucket}" not found` })
   }
@@ -429,13 +522,7 @@ app.post('/upload/:bucket', requireApiKeyOrAdmin, requireKnownBucket, async (req
         if (!looksLikeImage(body)) return fail('Содержимое не является изображением', 415)
 
         try {
-          await s3.send(new PutObjectCommand({
-            Bucket: bucket,
-            Key: key,
-            Body: body,
-            ContentType: mimeType,
-            CacheControl: 'max-age=31536000'
-          }))
+          await storage.put(bucket, key, body, mimeType)
           upload = { path: key, size: body.length }
           resolve()
         } catch (err) {
@@ -450,7 +537,7 @@ app.post('/upload/:bucket', requireApiKeyOrAdmin, requireKnownBucket, async (req
       req.pipe(bb)
     })
 
-    res.json({ ...upload, url: `${PUBLIC_URL}/${bucket}/${upload.path}`, bucket })
+    res.json({ ...upload, url: storage.publicUrl(bucket, upload.path), bucket })
   } catch (err) {
     console.error('Upload error:', err)
     res.status(err.status || 500).json({ error: err.message })
@@ -469,14 +556,7 @@ app.delete('/upload/:bucket', requireApiKeyOrAdmin, requireKnownBucket, async (r
       return res.status(400).json({ error: 'Provide valid `path` or `paths`' })
     }
 
-    if (keys.length === 1) {
-      await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: keys[0] }))
-    } else {
-      await s3.send(new DeleteObjectsCommand({
-        Bucket: bucket,
-        Delete: { Objects: keys.map(Key => ({ Key })) }
-      }))
-    }
+    await storage.remove(bucket, keys)
     res.json({ deleted: keys.length })
   } catch (err) {
     console.error('Delete error:', err)
@@ -490,20 +570,7 @@ app.get('/upload/:bucket/list', requireApiKeyOrAdmin, requireKnownBucket, async 
   const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 1000, 1), 1000)
 
   try {
-    const result = await s3.send(new ListObjectsV2Command({
-      Bucket: bucket,
-      Prefix: prefix,
-      MaxKeys: limit
-    }))
-
-    const files = (result.Contents || []).map(obj => ({
-      name: obj.Key.replace(prefix, '').replace(/^\//, ''),
-      id: obj.ETag,
-      size: obj.Size,
-      updated_at: obj.LastModified?.toISOString(),
-      metadata: { size: obj.Size, mimetype: 'image/jpeg' }
-    }))
-
+    const files = await storage.list(bucket, prefix, limit)
     res.json(files)
   } catch (err) {
     console.error('List error:', err)
