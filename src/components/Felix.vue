@@ -37,7 +37,7 @@
     <section class="hero-universe">
       <div class="hero-background">
         <img 
-          :src="'/s3/gallery/arts/1755535026253_tqx7wooiy3.png'" 
+          :src="heroImage"
           alt="Felix & Fox Taffy" 
           class="hero-bg-image"
           loading="lazy"
@@ -472,6 +472,9 @@
 </template>
 
 <script setup lang="ts">
+import { storageUrl } from '@/utils/storage'
+
+const heroImage = storageUrl('gallery', 'arts/1755535026253_tqx7wooiy3.png')
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useHead } from '@vueuse/head'
 import FelixImage from '@/assets/Felix/Felix.jpg'
@@ -686,19 +689,19 @@ const journeys = ref<Journey[]>([
 
 const fellyArtworks = ref<FellyArtwork[]>([
   { 
-    src: "/s3/gallery/avatars/Felly.jpg",
+    src: storageUrl('gallery', 'avatars/Felly.jpg'),
     title: "Основной дизайн",
     author: "Fox Taffy & Felix",
     caption: "Первый официальный арт нашего персонажа Фелли"
   },
   { 
-    src: "/s3/gallery/avatars/Felly1.jpg",
+    src: storageUrl('gallery', 'avatars/Felly1.jpg'),
     title: "Игрив��я версия",
     author: "Fox Taffy",
     caption: "Фелли в игривом настроении, показывает свой характер"
   },
   { 
-    src: "/s3/gallery/avatars/Felly3.jpg",
+    src: storageUrl('gallery', 'avatars/Felly3.jpg'),
     title: "Милый стиль",
     author: "Felix",
     caption: "Более мягкая и милая интерпретация персонажа"

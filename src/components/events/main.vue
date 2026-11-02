@@ -1167,7 +1167,7 @@ export default {
         this.$updateMetaTags({
           title: 'Все мероприятия | FoxTaffy.gay',
           description: `Полная коллекция из ${this.stats.total} конвентов и мероприятий, которые посетил Fox Taffy. Отчеты, фотографии и впечатления от каждого события.`,
-          image: 'https://foxtaffy.gay/s3/gallery/events/aff5.jpg',
+          image: 'https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/aff5.jpg',
           url: 'https://foxtaffy.gay/events'
         })
       }
@@ -1267,7 +1267,7 @@ export default {
 .header-background {
   position: absolute;
   inset: 0;
-  background-image: url('/s3/gallery/events/SFB/2025-08-05%2009-21-25.JPG');
+  background-image: url('https://plugjsubjcfblzkabjia.supabase.co/storage/v1/object/public/gallery/events/SFB/2025-08-05%2009-21-25.JPG');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

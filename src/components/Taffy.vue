@@ -250,6 +250,7 @@
 </template>
 
 <script setup>
+import { storageUrl } from '@/utils/storage'
 import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue'
 import { furryApi } from '@/config/supabase.js'
 import avatarImage from '@/assets/Image/Avatar.jpg'
@@ -265,7 +266,7 @@ const character = reactive({
 })
 
 // Base URL для изображений в Main бакете S3
-const MAIN_BUCKET_URL = '/s3/main/Taffy/'
+const MAIN_BUCKET_URL = storageUrl('Main', 'Taffy/')
 
 const evolutionSteps = reactive([
   {
