@@ -5575,3 +5575,103 @@ button.issue:hover { background: var(--surface-glass-hover); border-color: rgb(v
   .side-foot { margin-top: 0; }
   .toast-stack { right: 1rem; bottom: 1rem; }
 }
+
+/* ======== СЕКЦИЯ BLOOMLY ======== */
+
+.bloomly-tagline {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 800;
+  line-height: 1.2;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bloomly-tagline.is-small { font-size: 1.15rem; }
+
+.bloomly-hero .tag-row { margin-bottom: 0.5rem; }
+.bloomly-hero .tag-row .tag { padding: 0.3rem 0.9rem; font-size: 0.85rem; }
+.tag i { margin-right: 0.45rem; color: var(--accent-orange); }
+
+.bloomly-hero .stat-tile-label { margin: 0.25rem 0 0; }
+.bloomly-hero .stat-tile-value {
+  font-size: 1.8rem;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bloomly-roles {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bloomly-roles li { display: flex; align-items: center; gap: 0.75rem; color: var(--text-muted); font-size: 0.92rem; }
+.bloomly-roles strong { color: var(--text-light); }
+
+.bloomly-subtitle { margin: 2.5rem 0 1rem; font-size: 1.3rem; }
+
+.bloomly-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: 1rem;
+}
+
+.bloomly-feature { display: flex; flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+.bloomly-feature:hover { transform: translateY(-4px); }
+.bloomly-feature h4,
+.bloomly-step h4 { margin: 0; font-size: 1.05rem; }
+.bloomly-feature p,
+.bloomly-step p { margin: 0; color: var(--text-muted); font-size: 0.92rem; }
+
+.bloomly-den {
+  margin-top: 2.5rem;
+  padding: 2rem;
+  border-color: rgb(var(--accent-orange-rgb) / 0.3);
+  background:
+    linear-gradient(135deg, rgb(var(--accent-orange-rgb) / 0.12), rgb(var(--accent-green-rgb) / 0.06)),
+    var(--surface-glass);
+}
+
+.bloomly-den .bloomly-subtitle { margin-top: 1rem; }
+.bloomly-den .feature-list { margin: 0; }
+.bloomly-den .feature-list-item strong,
+.bloomly-den .feature-list-item small { display: block; }
+.bloomly-den .feature-list-item small { margin-top: 0.15rem; color: var(--text-muted); font-size: 0.85rem; }
+
+.bloomly-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.bloomly-step { display: flex; align-items: flex-start; gap: 1rem; }
+.bloomly-step h4 { margin-bottom: 0.25rem; }
+
+.bloomly-step-num {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--gradient-brand-diag);
+  color: #fff;
+  font-weight: 800;
+}
+
+.bloomly-hero .stat-grid { grid-template-columns: repeat(3, 1fr); }
+
+@media (max-width: 768px) {
+  .bloomly-den { padding: 1.25rem; }
+  .bloomly-hero .stat-grid { gap: 0.5rem; }
+  .bloomly-hero .stat-tile { padding: 0.75rem 0.4rem; }
+  .bloomly-hero .stat-tile-label { font-size: 0.62rem; letter-spacing: 0.03em; }
+}
