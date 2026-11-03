@@ -830,13 +830,13 @@ export const furryApi = {
 
           // Удаляем оригинал
           if (photo.file_path) {
-            await s3Api.deleteFile(photo.file_path, 'Convent')
+            await s3Api.deleteFile(photo.file_path, 'convent')
             console.log('✅ Удален оригинал:', photo.file_path)
           }
 
           // Удаляем миниатюру
           if (photo.thumbnail_path) {
-            await s3Api.deleteFile(photo.thumbnail_path, 'Convent')
+            await s3Api.deleteFile(photo.thumbnail_path, 'convent')
             console.log('✅ Удалена миниатюра:', photo.thumbnail_path)
           }
         } catch (storageError) {
@@ -1737,20 +1737,21 @@ export const furryApi = {
         if (artistError) throw artistError
 
         if (artist) {
-          // Обновляем связь с художником
-          await adminDb('art_collaborators', {
-            method: 'DELETE',
-            query: { art_id: `eq.${artId}`, role: 'eq.main_artist' }
+          // Один PATCH вместо DELETE+POST: при сбое между ними арт оставался без художника
+          // и пропадал из галереи (выборка идёт через art_collaborators!inner).
+          const updated = await adminDb('art_collaborators', {
+            method: 'PATCH',
+            query: { art_id: `eq.${artId}`, role: 'eq.main_artist', select: 'art_id' },
+            prefer: 'return=representation',
+            body: { person_id: artist.id }
           })
 
-          await adminDb('art_collaborators', {
-            method: 'POST',
-            body: {
-              art_id: artId,
-              person_id: artist.id,
-              role: 'main_artist'
-            }
-          })
+          if (!updated?.length) {
+            await adminDb('art_collaborators', {
+              method: 'POST',
+              body: { art_id: artId, person_id: artist.id, role: 'main_artist' }
+            })
+          }
         }
       }
 
@@ -1770,6 +1771,47 @@ export const furryApi = {
       console.error('❌ updateArt: Ошибка обновления арта:', error)
       throw error
     }
+  },
+
+  // ============================================
+  // 📦 МАССОВЫЕ ОПЕРАЦИИ С АРТАМИ
+  // ============================================
+
+  /** Список id для фильтра PostgREST `in.(...)`: только UUID, чтобы нельзя было дописать свои условия. */
+  _idList(ids) {
+    const list = [...new Set(ids)]
+    if (!list.length || !list.every(id => /^[0-9a-f-]{36}$/i.test(String(id)))) {
+      throw new Error('Некорректный список идентификаторов')
+    }
+    return `in.(${list.join(',')})`
+  },
+
+  async setArtsNsfw(artIds, isNsfw) {
+    await adminDb('arts', {
+      method: 'PATCH',
+      query: { id: this._idList(artIds) },
+      body: { is_nsfw: !!isNsfw }
+    })
+  },
+
+  async addTagToArts(artIds, tagName) {
+    const tag = firstRow(await adminDb('tags', { query: { select: 'id', name: `eq.${tagName}`, limit: 1 } }))
+    if (!tag) throw new Error(`Тег «${tagName}» не найден`)
+
+    await adminDb('art_tags', {
+      method: 'POST',
+      query: { on_conflict: 'art_id,tag_id' },
+      prefer: 'resolution=ignore-duplicates',
+      body: [...new Set(artIds)].map(art_id => ({ art_id, tag_id: tag.id }))
+    })
+  },
+
+  async deleteArts(artIds) {
+    const filter = this._idList(artIds)
+    await Promise.all(['art_collaborators', 'art_tags', 'art_fursonas'].map(table =>
+      adminDb(table, { method: 'DELETE', query: { art_id: filter } })
+    ))
+    await adminDb('arts', { method: 'DELETE', query: { id: filter } })
   },
 
   // ============================================
