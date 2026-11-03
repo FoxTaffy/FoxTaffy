@@ -92,39 +92,18 @@ ALTER TABLE art_fursonas       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE art_tags           ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "persons_select"           ON persons           FOR SELECT USING (true);
-CREATE POLICY "persons_insert"           ON persons           FOR INSERT WITH CHECK (true);
-CREATE POLICY "persons_update"           ON persons           FOR UPDATE USING (true);
-CREATE POLICY "persons_delete"           ON persons           FOR DELETE USING (true);
 
 CREATE POLICY "fursonas_select"          ON fursonas          FOR SELECT USING (true);
-CREATE POLICY "fursonas_insert"          ON fursonas          FOR INSERT WITH CHECK (true);
-CREATE POLICY "fursonas_update"          ON fursonas          FOR UPDATE USING (true);
-CREATE POLICY "fursonas_delete"          ON fursonas          FOR DELETE USING (true);
 
 CREATE POLICY "tags_select"              ON tags              FOR SELECT USING (true);
-CREATE POLICY "tags_insert"              ON tags              FOR INSERT WITH CHECK (true);
-CREATE POLICY "tags_update"              ON tags              FOR UPDATE USING (true);
-CREATE POLICY "tags_delete"              ON tags              FOR DELETE USING (true);
 
 CREATE POLICY "arts_select"              ON arts              FOR SELECT USING (is_deleted = false);
-CREATE POLICY "arts_insert"              ON arts              FOR INSERT WITH CHECK (true);
-CREATE POLICY "arts_update"              ON arts              FOR UPDATE USING (true);
-CREATE POLICY "arts_delete"              ON arts              FOR DELETE USING (true);
 
 CREATE POLICY "art_collaborators_select" ON art_collaborators FOR SELECT USING (true);
-CREATE POLICY "art_collaborators_insert" ON art_collaborators FOR INSERT WITH CHECK (true);
-CREATE POLICY "art_collaborators_update" ON art_collaborators FOR UPDATE USING (true);
-CREATE POLICY "art_collaborators_delete" ON art_collaborators FOR DELETE USING (true);
 
 CREATE POLICY "art_fursonas_select"      ON art_fursonas      FOR SELECT USING (true);
-CREATE POLICY "art_fursonas_insert"      ON art_fursonas      FOR INSERT WITH CHECK (true);
-CREATE POLICY "art_fursonas_update"      ON art_fursonas      FOR UPDATE USING (true);
-CREATE POLICY "art_fursonas_delete"      ON art_fursonas      FOR DELETE USING (true);
 
 CREATE POLICY "art_tags_select"          ON art_tags          FOR SELECT USING (true);
-CREATE POLICY "art_tags_insert"          ON art_tags          FOR INSERT WITH CHECK (true);
-CREATE POLICY "art_tags_update"          ON art_tags          FOR UPDATE USING (true);
-CREATE POLICY "art_tags_delete"          ON art_tags          FOR DELETE USING (true);
 
 -- Индексы галереи
 CREATE INDEX idx_fursonas_person_id        ON fursonas(person_id);
@@ -427,29 +406,14 @@ ALTER TABLE con_photos    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE con_purchases ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "cons_select"          ON cons          FOR SELECT USING (true);
-CREATE POLICY "cons_insert"          ON cons          FOR INSERT WITH CHECK (true);
-CREATE POLICY "cons_update"          ON cons          FOR UPDATE USING (true);
-CREATE POLICY "cons_delete"          ON cons          FOR DELETE USING (true);
 
 CREATE POLICY "con_links_select"     ON con_links     FOR SELECT USING (true);
-CREATE POLICY "con_links_insert"     ON con_links     FOR INSERT WITH CHECK (true);
-CREATE POLICY "con_links_update"     ON con_links     FOR UPDATE USING (true);
-CREATE POLICY "con_links_delete"     ON con_links     FOR DELETE USING (true);
 
 CREATE POLICY "con_features_select"  ON con_features  FOR SELECT USING (true);
-CREATE POLICY "con_features_insert"  ON con_features  FOR INSERT WITH CHECK (true);
-CREATE POLICY "con_features_update"  ON con_features  FOR UPDATE USING (true);
-CREATE POLICY "con_features_delete"  ON con_features  FOR DELETE USING (true);
 
 CREATE POLICY "con_photos_select"    ON con_photos    FOR SELECT USING (true);
-CREATE POLICY "con_photos_insert"    ON con_photos    FOR INSERT WITH CHECK (true);
-CREATE POLICY "con_photos_update"    ON con_photos    FOR UPDATE USING (true);
-CREATE POLICY "con_photos_delete"    ON con_photos    FOR DELETE USING (true);
 
 CREATE POLICY "con_purchases_select" ON con_purchases FOR SELECT USING (true);
-CREATE POLICY "con_purchases_insert" ON con_purchases FOR INSERT WITH CHECK (true);
-CREATE POLICY "con_purchases_update" ON con_purchases FOR UPDATE USING (true);
-CREATE POLICY "con_purchases_delete" ON con_purchases FOR DELETE USING (true);
 
 -- Индексы для мероприятий
 CREATE INDEX idx_cons_event_date       ON cons(event_date DESC);

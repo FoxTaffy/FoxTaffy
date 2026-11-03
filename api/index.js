@@ -322,11 +322,17 @@ const requireAdmin = (req, res, next) => {
   next()
 }
 
+const safeEqual = (a, b) => {
+  const left = Buffer.from(String(a ?? ''))
+  const right = Buffer.from(String(b ?? ''))
+  return left.length === right.length && crypto.timingSafeEqual(left, right)
+}
+
 const requireApiKeyOrAdmin = (req, res, next) => {
   // api_key принимается ТОЛЬКО из заголовка, не из query string.
   // Ключи в URL попадают в access-логи сервера, историю браузера и Referer-заголовки.
   const key = req.headers['x-api-key']
-  if (API_KEY && key === API_KEY) {
+  if (API_KEY && safeEqual(key, API_KEY)) {
     return next()
   }
 
@@ -427,8 +433,19 @@ app.post('/upload/admin/logout', (req, res) => {
   res.json({ ok: true })
 })
 
-app.all('/upload/admin/db/*', requireAdmin, async (req, res) => {
+// Прокси работает с service-ключом, поэтому пускаем его только к таблицам каталога и мероприятий.
+// Иначе '..' или '%2e%2e' в пути выводили запрос из /rest/v1 на любой другой эндпоинт проекта (auth/storage).
+const ADMIN_DB_TABLES = new Set([
+  'persons', 'fursonas', 'tags', 'arts', 'art_collaborators', 'art_fursonas', 'art_tags',
+  'cons', 'con_links', 'con_features', 'con_photos', 'con_purchases'
+])
+
+app.all('/upload/admin/db/:table', requireAdmin, async (req, res) => {
   if (!ensureAllowedOrigin(req, res)) return
+
+  if (!ADMIN_DB_TABLES.has(req.params.table)) {
+    return res.status(404).json({ error: 'Unknown table' })
+  }
 
   try {
     const proxyPath = req.originalUrl.replace(/^\/upload\/admin\/db\//, '')
