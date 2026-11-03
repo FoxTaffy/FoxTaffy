@@ -1491,6 +1491,11 @@ onBeforeUnmount(() => {
   .lb-figure {
     margin-bottom: 3.5rem;
   }
+  .year-pill {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   *,

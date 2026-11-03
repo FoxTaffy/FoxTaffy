@@ -1903,8 +1903,34 @@ onBeforeUnmount(() => {
   .lb-figure {
     margin-bottom: 3.5rem;
   }
+  .hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    width: 100%;
+  }
+  .hero-stats li {
+    min-width: 0;
+    padding: 0.7rem 0.4rem;
+  }
+  .hero-stats strong {
+    font-size: 1.5rem;
+  }
+  .hero-cta .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .trip-dots {
+    gap: 0.35rem;
+  }
+  .trip-dot {
+    width: 24px;
+    height: 24px;
+    padding: 0.45rem;
+    background-clip: content-box;
+  }
   .trip-dot.active {
-    width: 22px;
+    width: 44px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
