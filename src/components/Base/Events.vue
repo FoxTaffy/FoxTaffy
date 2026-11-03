@@ -3,32 +3,25 @@
   <div class="section events-section" id="events">
     <h2 class="section-title">Мероприятия</h2>
     <p class="section-description">События, которые я посетил и планирую посетить.</p>
-    
-    <!-- Скелетон-заглушки при загрузке -->
-    <div v-if="loading" class="events-grid">
-      <div v-for="i in 3" :key="'skeleton-' + i" class="event-card skeleton-card">
-        <div class="skeleton-image">
-          <div class="skeleton-pulse"></div>
-          <div class="skeleton-date-badge">
-            <div class="skeleton-line short"></div>
-            <div class="skeleton-line bold"></div>
-            <div class="skeleton-line short"></div>
-          </div>
-          <div class="skeleton-status-badge skeleton-pulse"></div>
+
+    <!-- Скелетон: повторяет структуру карточки, чтобы ничего не прыгало после загрузки -->
+    <div v-if="loading" class="events-grid" aria-busy="true" aria-live="polite">
+      <div v-for="i in 3" :key="'skeleton-' + i" class="ev-card ev-skel" :style="{ '--i': i - 1 }">
+        <div class="ev-media">
+          <div class="ev-shimmer"></div>
+          <div class="ev-skel-chip ev-shimmer"></div>
+          <div class="ev-skel-pill ev-shimmer"></div>
         </div>
-        <div class="card-content skeleton-content">
-          <div class="skeleton-line title skeleton-pulse"></div>
-          <div class="skeleton-meta">
-            <div class="skeleton-line meta skeleton-pulse"></div>
-            <div class="skeleton-line meta-sm skeleton-pulse"></div>
-          </div>
-          <div class="skeleton-line desc skeleton-pulse"></div>
-          <div class="skeleton-line desc-short skeleton-pulse"></div>
-          <div class="skeleton-footer skeleton-pulse"></div>
+        <div class="ev-body">
+          <div class="ev-skel-line title ev-shimmer"></div>
+          <div class="ev-skel-line meta ev-shimmer"></div>
+          <div class="ev-skel-line ev-shimmer"></div>
+          <div class="ev-skel-line short ev-shimmer"></div>
+          <div class="ev-skel-foot ev-shimmer"></div>
         </div>
       </div>
     </div>
-    
+
     <div v-else-if="error" class="error-state">
       <i class="fas fa-exclamation-triangle"></i>
       <p>{{ error }}</p>
@@ -37,211 +30,162 @@
         Попробовать снова
       </button>
     </div>
-    
+
     <!-- Карточки мероприятий -->
     <div v-else class="events-grid" ref="eventsGrid">
-      <!-- Две основные карточки -->
-      <div
+      <article
         v-for="(event, index) in mainEvents"
         :key="event.id"
-        class="event-card card-lazy"
-        :class="[getCardClass(event), { 'no-review': !hasReview(event) && !isUpcoming(event) }, { 'card-visible': visibleCards.has('main-' + index) }]"
+        class="ev-card card-lazy"
+        :class="[getCardClass(event), { 'is-locked': !hasReview(event) && !isUpcoming(event), 'card-visible': visibleCards.has('main-' + index) }]"
+        :style="{ '--i': index }"
         :data-card-id="'main-' + index"
+        :tabindex="!hasReview(event) && !isUpcoming(event) && !isAdminMode ? -1 : 0"
         @click="openEvent(event)"
+        @keydown.enter.self="openEvent(event)"
       >
-        <!-- Изображение -->
-        <div class="card-image">
+        <!-- Обложка -->
+        <div class="ev-media">
+          <div class="ev-shimmer"></div>
           <img
             :src="getImageUrl(event)"
             :alt="event.name"
+            :class="{ loaded: imgLoaded[event.id] }"
+            :data-eid="event.id"
             loading="lazy"
-            @error="onImageError"
+            decoding="async"
+            @load="onImageLoad(event.id)"
+            @error="onImageError($event, event.id)"
           >
-          
-          <!-- Дата -->
-          <div class="date-badge">
-            <div class="month">{{ getMonth(event.event_date) }}</div>
-            <div class="day">{{ getDay(event.event_date) }}</div>
-            <div class="year">{{ getYear(event.event_date) }}</div>
-          </div>
-          
-          <!-- Статус -->
-          <div class="status-badge" :class="getStatusClass(event)">
-            {{ getStatusText(event) }}
+          <div class="ev-shade"></div>
+
+          <div class="ev-date">
+            <b>{{ getDay(event.event_date) }}</b>
+            <span>{{ getMonth(event.event_date) }}</span>
+            <small>{{ getYear(event.event_date) }}</small>
           </div>
 
-          <!-- Бейджи статусов участия (для всех событий, поддержка мультивыбора) -->
-          <div v-if="event.attendance_status" class="attendance-badges-container">
-            <div
-              v-for="status in parseAttendanceStatuses(event.attendance_status)"
+          <div class="ev-status" :class="getStatusClass(event)">
+            <span class="ev-dot"></span>{{ getStatusText(event) }}
+          </div>
+
+          <div v-if="event.attendance_status" class="ev-badges">
+            <span
+              v-for="status in parseAttendanceStatuses(event.attendance_status).slice(0, 2)"
               :key="status"
-              class="attendance-badge"
+              class="ev-badge"
               :class="'status-' + status"
             >
-              <i :class="getAttendanceIcon(status)"></i>
-              <span>{{ getAttendanceLabel(status) }}</span>
-            </div>
+              <i :class="getAttendanceIcon(status)"></i>{{ getAttendanceLabel(status) }}
+            </span>
           </div>
         </div>
-        
+
         <!-- Контент -->
-        <div class="card-content">
-          <h3 class="event-name">{{ event.name }}</h3>
-          
-          <!-- Мета информация -->
-          <div class="event-meta">
-            <div class="meta-item">
-              <i class="fas fa-map-marker-alt"></i>
-              <span>{{ getLocation(event) }}</span>
-            </div>
-            <div v-if="event.attendees_count" class="meta-item">
-              <i class="fas fa-users"></i>
-              <span>{{ event.attendees_count }}+</span>
-            </div>
-          </div>
-          
-          <!-- Описание -->
-          <p class="event-description">{{ getDescription(event) }}</p>
+        <div class="ev-body">
+          <h3 class="ev-title">{{ event.name }}</h3>
 
-          <!-- Особенности мероприятия -->
-          <div v-if="event.con_features && event.con_features.length > 0" class="event-features">
-            <div
-              v-for="feature in event.con_features.slice(0, 3)"
+          <div class="ev-meta">
+            <span class="ev-chip"><i class="fas fa-map-marker-alt"></i>{{ getLocation(event) }}</span>
+            <span v-if="event.attendees_count" class="ev-chip"><i class="fas fa-users"></i>{{ event.attendees_count }}+</span>
+          </div>
+
+          <p class="ev-desc">{{ getDescription(event) }}</p>
+
+          <div v-if="event.con_features && event.con_features.length > 0" class="ev-tags">
+            <span
+              v-for="feature in event.con_features.slice(0, 2)"
               :key="feature.id"
-              class="feature-badge"
+              class="ev-tag"
               :title="feature.title"
-            >
-              <i :class="feature.icon_class || 'fas fa-star'"></i>
-              <span>{{ feature.title }}</span>
-            </div>
-            <div v-if="event.con_features.length > 3" class="feature-badge more-features">
-              +{{ event.con_features.length - 3 }}
-            </div>
+            >{{ feature.title }}</span>
+            <span v-if="event.con_features.length > 2" class="ev-tag is-more">+{{ event.con_features.length - 2 }}</span>
           </div>
 
-          <!-- Прогресс для предстоящих или блок для прошедших -->
-          <div v-if="isUpcoming(event)" class="countdown-block">
-            <div class="countdown-text">
-              <i class="fas fa-clock"></i>
-              <span>До начала: {{ getTimeLeft(event.event_date) }}</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" :style="{ width: getProgress(event.event_date) + '%' }"></div>
-            </div>
-          </div>
-
-          <!-- Для прошедших событий - показываем рейтинг и/или фотогаллерею -->
-          <div v-else class="completed-info-block">
-            <!-- Рейтинг (если есть) -->
-            <div v-if="getOverallRating(event) > 0" class="rating-block">
-              <StarRating :rating="getOverallRating(event)" size="medium" :show-value="false" />
-            </div>
-
-            <!-- Фотогаллерея (показываем всегда для прошедших, даже без обзора) -->
-            <div class="gallery-block">
-              <!-- Миниатюры фотографий -->
-              <div v-if="event.photoPreviews && event.photoPreviews.length > 0" class="gallery-previews">
-                <!-- Показываем первые 4 фотографии -->
-                <div
-                  v-for="(photo, index) in event.photoPreviews.slice(0, 4)"
-                  :key="photo.id"
-                  class="gallery-preview-item"
-                >
-                  <img :src="photo.thumbnail_url || photo.image_url" :alt="photo.caption || 'Фото'">
-                </div>
-                <!-- Пятая фотография заблюрена с количеством оставшихся -->
-                <div v-if="event.photos_count > 4" class="gallery-preview-item gallery-more-overlay">
-                  <img
-                    v-if="event.photoPreviews[4]"
-                    :src="event.photoPreviews[4].thumbnail_url || event.photoPreviews[4].image_url"
-                    :alt="'Фото'"
-                    class="blurred-image"
-                  >
-                  <div class="gallery-more-count">
-                    +{{ event.photos_count - 4 }}
-                  </div>
-                </div>
+          <!-- Низ карточки -->
+          <div class="ev-foot">
+            <template v-if="isUpcoming(event)">
+              <div class="ev-count">
+                <span class="ev-count-text">
+                  <i class="fas fa-clock"></i>через <b>{{ getTimeLeft(event.event_date) }}</b>
+                </span>
+                <span class="ev-bar"><span class="ev-bar-fill" :style="{ width: getProgress(event.event_date) + '%' }"></span></span>
               </div>
+            </template>
 
-              <!-- Fallback если нет превью -->
-              <div v-else class="gallery-text">
-                <i class="fas fa-images"></i>
-                <span>{{ event.photos_count || 0 }} {{ pluralizePhotos(event.photos_count || 0) }}</span>
-              </div>
+            <template v-else>
+              <div class="ev-done">
+                <span v-if="getOverallRating(event) > 0" class="ev-rating">
+                  <StarRating :rating="getOverallRating(event)" size="small" :show-value="false" />
+                </span>
 
-              <div class="gallery-hint">
-                <i :class="hasReview(event) ? 'fas fa-arrow-right' : 'fas fa-lock'"></i>
-                <span>{{ hasReview(event) ? 'Смотреть обзор' : 'Обзор ещё не написан' }}</span>
+                <span v-if="event.photoPreviews && event.photoPreviews.length > 0" class="ev-stack">
+                  <span
+                    v-for="photo in event.photoPreviews.slice(0, 3)"
+                    :key="photo.id"
+                    class="ev-thumb"
+                  ><img :src="photo.thumbnail_url || photo.image_url" :alt="photo.caption || 'Фото'" loading="lazy" decoding="async"></span>
+                  <span v-if="event.photos_count > 3" class="ev-thumb is-more">+{{ event.photos_count - 3 }}</span>
+                </span>
+                <span v-else-if="event.photos_count" class="ev-photos">
+                  <i class="fas fa-images"></i>{{ event.photos_count }} {{ pluralizePhotos(event.photos_count) }}
+                </span>
+
+                <span v-if="!hasReview(event)" class="ev-note">Обзор ещё не написан</span>
               </div>
-            </div>
+            </template>
+
+            <span v-if="!hasReview(event) && !isUpcoming(event)" class="ev-go is-locked"><i class="fas fa-lock"></i></span>
+            <span v-else class="ev-go"><i class="fas fa-arrow-right"></i></span>
           </div>
         </div>
-      </div>
-      
-      <!-- Карточка "Показать ещё" -->
-      <div
+      </article>
+
+      <!-- Карточка «Показать ещё» -->
+      <article
         v-if="thirdEvent"
-        class="event-card show-more-card card-lazy"
+        class="ev-card ev-more card-lazy"
         :class="{ 'card-visible': visibleCards.has('more') }"
+        :style="{ '--i': mainEvents.length }"
         data-card-id="more"
+        tabindex="0"
         @click="showAllEvents"
+        @keydown.enter.self="showAllEvents"
       >
-        <!-- Заблюренное изображение -->
-        <div class="card-image blurred">
+        <div class="ev-media">
+          <div class="ev-shimmer"></div>
           <img
             :src="getImageUrl(thirdEvent)"
-            :alt="thirdEvent.name"
+            alt=""
+            :class="{ loaded: imgLoaded[thirdEvent.id] }"
+            :data-eid="thirdEvent.id"
             loading="lazy"
-            @error="onImageError"
+            decoding="async"
+            @load="onImageLoad(thirdEvent.id)"
+            @error="onImageError($event, thirdEvent.id)"
           >
-          
-          <!-- Дата -->
-          <div class="date-badge">
-            <div class="month">{{ getMonth(thirdEvent.event_date) }}</div>
-            <div class="day">{{ getDay(thirdEvent.event_date) }}</div>
-            <div class="year">{{ getYear(thirdEvent.event_date) }}</div>
+          <div class="ev-shade"></div>
+        </div>
+
+        <div class="ev-body ev-body-ghost" aria-hidden="true">
+          <h3 class="ev-title">{{ thirdEvent.name }}</h3>
+          <div class="ev-meta">
+            <span class="ev-chip"><i class="fas fa-map-marker-alt"></i>{{ getLocation(thirdEvent) }}</span>
           </div>
-          
-          <!-- Статус -->
-          <div class="status-badge" :class="getStatusClass(thirdEvent)">
-            {{ getStatusText(thirdEvent) }}
+          <p class="ev-desc">{{ getDescription(thirdEvent) }}</p>
+        </div>
+
+        <div class="ev-more-cta">
+          <span class="ev-more-icon"><i class="fas fa-calendar-week"></i></span>
+          <h4>Показать ещё</h4>
+          <p>{{ stats.total }}+ мероприятий</p>
+          <div class="ev-more-stats">
+            <span>{{ stats.completed }} посещено</span>
+            <span class="ev-sep"></span>
+            <span>{{ stats.upcoming }} планируется</span>
           </div>
         </div>
-        
-        <!-- Контент с блюром -->
-        <div class="card-content blurred-content">
-          <h3 class="event-name">{{ thirdEvent.name }}</h3>
-          
-          <div class="event-meta">
-            <div class="meta-item">
-              <i class="fas fa-map-marker-alt"></i>
-              <span>{{ getLocation(thirdEvent) }}</span>
-            </div>
-            <div v-if="thirdEvent.attendees_count" class="meta-item">
-              <i class="fas fa-users"></i>
-              <span>{{ thirdEvent.attendees_count }}+</span>
-            </div>
-          </div>
-          
-          <p class="event-description">{{ getDescription(thirdEvent) }}</p>
-        </div>
-        
-        <!-- Overlay поверх всей карточки -->
-        <div class="show-more-overlay">
-          <div class="overlay-content">
-            <div class="overlay-icon">
-              <i class="fas fa-calendar-week"></i>
-            </div>
-            <h4 class="overlay-title">Показать ещё</h4>
-            <p class="overlay-subtitle">{{ stats.total }}+ мероприятий</p>
-            <div class="overlay-stats">
-              <span>{{ stats.completed }} посещено</span>
-              <span class="divider">•</span>
-              <span>{{ stats.upcoming }} планируется</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      </article>
     </div>
   </div>
 </template>
@@ -269,6 +213,7 @@ export default {
       },
       isAdminMode: false,
       visibleCards: new Set(),
+      imgLoaded: {},
       _cardsObserver: null
     }
   },
@@ -653,9 +598,20 @@ export default {
       )
     },
     
-    onImageError(event) {
-      // Используем SVG placeholder вместо via.placeholder.com
-      event.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='250'%3E%3Crect width='400' height='250' fill='%232a2a2a'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-size='24' fill='%23ff7b25'%3EEvent%3C/text%3E%3C/svg%3E"
+    onImageLoad(id) {
+      if (!this.imgLoaded[id]) {
+        this.imgLoaded = { ...this.imgLoaded, [id]: true }
+      }
+    },
+
+    onImageError(event, id) {
+      // Один раз подменяем битую картинку заглушкой; её load снимет шиммер
+      if (event.target.dataset.failed) {
+        this.onImageLoad(id)
+        return
+      }
+      event.target.dataset.failed = '1'
+      event.target.src ="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='250'%3E%3Crect width='400' height='250' fill='%232a2a2a'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-size='24' fill='%23ff7b25'%3EEvent%3C/text%3E%3C/svg%3E"
     },
     
     // =================== НАВИГАЦИЯ ===================
@@ -755,6 +711,11 @@ export default {
       const grid = this.$refs.eventsGrid
       if (!grid) return
 
+      // Картинки из кэша могут догрузиться до подписки на load
+      grid.querySelectorAll('img[data-eid]').forEach((img) => {
+        if (img.complete && img.naturalWidth > 0) this.onImageLoad(img.dataset.eid)
+      })
+
       const cards = grid.querySelectorAll('.card-lazy')
       cards.forEach((card) => this._cardsObserver.observe(card))
     },
@@ -804,111 +765,10 @@ export default {
   line-height: 1.6;
 }
 
-/* ===== СОСТОЯНИЯ ЗАГРУЗКИ (СКЕЛЕТОН) ===== */
 .error-state {
   text-align: center;
   padding: 3rem 1rem;
   color: var(--text-muted);
-}
-
-/* Скелетон-пульсация */
-@keyframes skeleton-shimmer {
-  0%   { background-position: -400px 0; }
-  100% { background-position: 400px 0; }
-}
-
-.skeleton-pulse {
-  background: linear-gradient(
-    90deg,
-    rgb(var(--white-rgb) / 0.04) 25%,
-    rgb(var(--white-rgb) / 0.10) 50%,
-    rgb(var(--white-rgb) / 0.04) 75%
-  );
-  background-size: 800px 100%;
-  animation: skeleton-shimmer 1.6s infinite linear;
-  border-radius: 6px;
-}
-
-/* Скелетон-карточка */
-.skeleton-card {
-  pointer-events: none;
-  cursor: default;
-  animation: skeleton-card-in 0.5s ease both;
-}
-
-.skeleton-card:nth-child(1) { animation-delay: 0s; }
-.skeleton-card:nth-child(2) { animation-delay: 0.1s; }
-.skeleton-card:nth-child(3) { animation-delay: 0.2s; }
-
-@keyframes skeleton-card-in {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.skeleton-image {
-  position: relative;
-  height: 200px;
-  overflow: hidden;
-  border-radius: 1rem 1rem 0 0;
-  background: rgb(var(--white-rgb) / 0.06);
-}
-
-.skeleton-image .skeleton-pulse {
-  width: 100%;
-  height: 100%;
-  border-radius: 0;
-}
-
-.skeleton-date-badge {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  background: rgba(0,0,0,0.5);
-  padding: 0.6rem;
-  border-radius: 0.6rem;
-  min-width: 65px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.skeleton-status-badge {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 80px;
-  height: 26px;
-  border-radius: 1.5rem;
-}
-
-.skeleton-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.skeleton-meta {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.skeleton-line {
-  height: 12px;
-  border-radius: 6px;
-}
-.skeleton-line.short  { width: 40px; height: 10px; }
-.skeleton-line.bold   { width: 30px; height: 20px; }
-.skeleton-line.title  { width: 70%; height: 18px; }
-.skeleton-line.meta   { width: 90px; }
-.skeleton-line.meta-sm { width: 60px; }
-.skeleton-line.desc   { width: 100%; height: 12px; }
-.skeleton-line.desc-short { width: 65%; height: 12px; }
-
-.skeleton-footer {
-  margin-top: 0.4rem;
-  height: 38px;
-  border-radius: 8px;
-  width: 100%;
 }
 
 .retry-button {
@@ -923,7 +783,7 @@ export default {
   cursor: pointer;
   font-weight: 600;
   font-size: 0.9rem;
-  transition: all 0.4s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
   margin-top: 1rem;
 }
 
@@ -933,1323 +793,631 @@ export default {
   box-shadow: 0 6px 20px rgb(var(--accent-orange-rgb) / 0.3);
 }
 
-/* ===== СЕТКА КАРТОЧЕК ===== */
+/* ===== СЕТКА: 3 В РЯД ===== */
 .events-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.1rem;
 }
 
-/* ===== ЛЕНИВАЯ ЗАГРУЗКА КАРТОЧЕК ===== */
-@keyframes card-enter {
-  0%   { opacity: 0; transform: translateY(40px) scale(0.97); }
-  60%  { opacity: 1; transform: translateY(-6px) scale(1.005); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.card-lazy {
-  opacity: 0;
-  transform: translateY(40px) scale(0.97);
-  transition: opacity 0s, transform 0s;
-}
-
-.card-lazy.card-visible {
-  animation: card-enter 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-/* Stagger по data-card-id */
-.card-lazy[data-card-id="main-0"].card-visible { animation-delay: 0s; }
-.card-lazy[data-card-id="main-1"].card-visible { animation-delay: 0.12s; }
-.card-lazy[data-card-id="more"].card-visible   { animation-delay: 0.24s; }
-
-/* ===== КАРТОЧКИ СОБЫТИЙ ===== */
-.event-card {
-  background: rgb(var(--white-rgb) / 0.05);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  border: 1px solid rgb(var(--white-rgb) / 0.1);
+/* ===== КАРТОЧКА ===== */
+.ev-card {
+  --ev-accent: var(--accent-orange);
+  --ev-accent-rgb: var(--accent-orange-rgb);
   position: relative;
-  backdrop-filter: blur(10px);
-  transform: translateY(0) scale(1);
-  will-change: transform, box-shadow;
-}
-
-.event-card:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
-  border-color: rgb(var(--white-rgb) / 0.2);
-}
-
-.event-card.upcoming {
-  border-left: 4px solid var(--accent-green);
-}
-
-.event-card.completed {
-  border-left: 4px solid var(--accent-orange);
-}
-
-.event-card.upcoming:hover {
-  box-shadow: 0 12px 25px rgb(var(--accent-green-rgb) / 0.2);
-}
-
-.event-card.completed:hover {
-  box-shadow: 0 12px 25px rgb(var(--accent-orange-rgb) / 0.2);
-}
-
-/* ===== КАРТОЧКИ БЕЗ ОБЗОРА (СЕРЫЕ) ===== */
-.event-card.no-review {
-  border: 2px solid rgba(128, 128, 128, 0.6);
-  cursor: not-allowed;
-  position: relative;
-}
-
-.event-card.no-review:hover {
-  transform: none;
-  box-shadow: 0 4px 12px rgba(128, 128, 128, 0.3);
-  border-color: rgba(128, 128, 128, 0.8);
-}
-
-.event-card.no-review .status-badge {
-  background: rgba(150, 150, 150, 0.7);
-}
-
-/* ===== ИЗОБРАЖЕНИЯ ===== */
-.card-image {
-  position: relative;
-  height: 200px;
-  overflow: hidden;
-  border-radius: 1rem 1rem 0 0;
-}
-
-.card-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.6s ease;
-  transform-origin: center;
-  will-change: transform;
-}
-
-.event-card:hover .card-image img {
-  transform: scale(1.02);
-}
-
-.card-image.blurred img {
-  filter: blur(4px);
-}
-
-/* ===== ДАТА В УГЛУ ===== */
-.date-badge {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  background: rgba(0, 0, 0, 0.85);
-  color: white;
-  padding: 0.6rem;
-  border-radius: 0.6rem;
-  text-align: center;
-  backdrop-filter: blur(15px);
-  min-width: 65px;
-  border: 1px solid rgb(var(--white-rgb) / 0.2);
-  z-index: 3;
-  transition: all 0.4s ease;
-  will-change: transform;
-}
-
-.event-card:hover .date-badge {
-  transform: scale(1.05);
-  background: rgba(0, 0, 0, 0.9);
-}
-
-.month {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--accent-orange);
-  line-height: 1;
-}
-
-.day {
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1;
-  margin: 0.1rem 0;
-}
-
-.year {
-  font-size: 0.7rem;
-  color: rgb(var(--white-rgb) / 0.8);
-  line-height: 1;
-}
-
-/* ===== СТАТУС В УГЛУ (УМЕНЬШЕННЫЙ) ===== */
-.status-badge {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  padding: 0.4rem 0.7rem;
-  border-radius: 1.5rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  backdrop-filter: blur(15px);
-  border: 1px solid rgb(var(--white-rgb) / 0.2);
-  z-index: 3;
-  transition: all 0.4s ease;
-  white-space: nowrap;
-}
-
-.event-card:hover .status-badge {
-  transform: scale(1.05);
-}
-
-.status-badge.upcoming {
-  background: rgb(var(--accent-green-rgb) / 0.9);
-  color: white;
-}
-
-.status-badge.completed {
-  background: rgb(var(--accent-orange-rgb) / 0.9);
-  color: white;
-}
-
-/* ===== БЕЙДЖИ СТАТУСОВ УЧАСТИЯ ===== */
-.attendance-badges-container {
-  position: absolute;
-  bottom: 1rem;
-  left: 1rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  max-width: calc(100% - 2rem);
-  z-index: 3;
-}
-
-.attendance-badge {
-  padding: 0.4rem 0.8rem;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(4px);
-  white-space: nowrap;
-}
-
-.attendance-badge.status-planning {
-  background: linear-gradient(135deg, #607d8b, #546e7a);
-}
-
-.attendance-badge.status-registered {
-  background: linear-gradient(135deg, var(--accent-green), #45a049);
-}
-
-.attendance-badge.status-ticket_purchased {
-  background: linear-gradient(135deg, #2196f3, #1976d2);
-}
-
-.attendance-badge.status-vip {
-  background: linear-gradient(135deg, var(--accent-gold), #ffb300);
-  color: #333;
-}
-
-.attendance-badge.status-sponsor {
-  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
-}
-
-.attendance-badge.status-volunteer {
-  background: linear-gradient(135deg, #ff9800, #f57c00);
-}
-
-/* ===== КОНТЕНТ КАРТОЧКИ ===== */
-.card-content {
-  padding: 1rem;
-  position: relative;
-}
-
-.blurred-content {
-  filter: blur(2px);
-}
-
-.event-name {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--text-light);
-  margin-bottom: 0.75rem;
-  line-height: 1.3;
-}
-
-.event-meta {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
-
-.meta-item i {
-  width: 16px;
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-.meta-item:first-child i {
-  color: #e74c3c;
-}
-
-.meta-item:last-child i {
-  color: #3498db;
-}
-
-.event-description {
-  color: rgb(var(--white-rgb) / 0.9);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-}
-
-/* Особенности мероприятия */
-.event-features {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.feature-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.75rem;
-  background: rgb(var(--accent-orange-rgb) / 0.15);
-  border: 1px solid rgb(var(--accent-orange-rgb) / 0.3);
-  border-radius: 20px;
-  font-size: 0.8rem;
-  color: var(--accent-orange);
-  white-space: nowrap;
-  transition: all 0.3s;
-}
-
-.feature-badge:hover {
-  background: rgb(var(--accent-orange-rgb) / 0.25);
-  border-color: rgb(var(--accent-orange-rgb) / 0.5);
-  transform: translateY(-1px);
-}
-
-.feature-badge i {
-  font-size: 0.75rem;
-  color: var(--accent-orange);
-}
-
-.feature-badge.more-features {
-  background: rgb(var(--white-rgb) / 0.1);
-  border-color: rgb(var(--white-rgb) / 0.2);
-  color: rgb(var(--white-rgb) / 0.7);
-  font-weight: 600;
-}
-
-/* ===== ОБРАТНЫЙ ОТСЧЁТ ===== */
-.countdown-block {
-  background: rgb(var(--accent-green-rgb) / 0.1);
-  padding: 0.75rem;
-  border-radius: 0.6rem;
-  border: 1px solid rgb(var(--accent-green-rgb) / 0.2);
-}
-
-.countdown-text {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.6rem;
-  color: var(--text-light);
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.countdown-text i {
-  color: var(--accent-green);
-}
-
-.progress-bar {
-  height: 6px;
-  background: rgb(var(--white-rgb) / 0.1);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent-green), var(--accent-orange));
-  border-radius: 3px;
-  transition: width 0.4s ease;
-}
-
-/* ===== РЕЙТИНГ ===== */
-.rating-block {
-  background: rgb(var(--accent-orange-rgb) / 0.1);
-  padding: 0.75rem;
-  border-radius: 0.6rem;
-  border: 1px solid rgb(var(--accent-orange-rgb) / 0.2);
-}
-
-.rating-text {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.6rem;
-  color: var(--text-light);
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.rating-text i {
-  color: var(--accent-gold);
-}
-
-.stars {
-  display: flex;
-  gap: 0.2rem;
-}
-
-.stars i {
-  color: rgb(var(--white-rgb) / 0.2);
-  font-size: 1rem;
-  transition: color 0.3s ease;
-}
-
-.stars i.filled {
-  color: var(--accent-gold);
-}
-
-/* ===== БЛОК ИНФОРМАЦИИ ДЛЯ ПРОШЕДШИХ СОБЫТИЙ ===== */
-.completed-info-block {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-
-/* Рейтинг в блоке прошедших событий */
-.completed-info-block .rating-block {
-  background: rgb(var(--accent-orange-rgb) / 0.1);
-  padding: 0.75rem;
-  border-radius: 0.6rem;
-  border: 1px solid rgb(var(--accent-orange-rgb) / 0.2);
-}
-
-/* ===== ФОТОГАЛЛЕРЕЯ ===== */
-.gallery-block {
-  background: rgb(var(--accent-orange-rgb) / 0.1);
-  padding: 0.75rem;
-  border-radius: 0.6rem;
-  border: 1px solid rgb(var(--accent-orange-rgb) / 0.2);
-  transition: var(--transition);
-}
-
-.event-card:hover .gallery-block {
-  background: rgb(var(--accent-orange-rgb) / 0.15);
-  border-color: rgb(var(--accent-orange-rgb) / 0.3);
-}
-
-/* Превью фотографий */
-.gallery-previews {
-  display: flex;
-  gap: 0.4rem;
-  margin-bottom: 0.6rem;
+  min-width: 0;
   overflow: hidden;
+  cursor: pointer;
+  border-radius: 1.1rem;
+  border: 1px solid rgb(var(--white-rgb) / 0.1);
+  background:
+    radial-gradient(120% 60% at 0% 0%, rgb(var(--ev-accent-rgb) / 0.12), transparent 60%),
+    linear-gradient(180deg, rgb(var(--white-rgb) / 0.07), rgb(var(--white-rgb) / 0.03));
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.18);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, border-color 0.35s ease;
 }
 
-.gallery-preview-item {
+.ev-card.upcoming {
+  --ev-accent: var(--accent-green);
+  --ev-accent-rgb: var(--accent-green-rgb);
+}
+
+.ev-card:hover,
+.ev-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: rgb(var(--ev-accent-rgb) / 0.45);
+  box-shadow: 0 16px 34px rgb(0 0 0 / 0.28), 0 0 0 1px rgb(var(--ev-accent-rgb) / 0.15), 0 10px 40px -12px rgb(var(--ev-accent-rgb) / 0.45);
+  outline: none;
+}
+
+.ev-card.is-locked {
+  --ev-accent: #8d8d93;
+  --ev-accent-rgb: 141 141 147;
+  cursor: not-allowed;
+}
+
+.ev-card.is-locked:hover {
+  transform: none;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.18);
+  border-color: rgb(var(--white-rgb) / 0.1);
+}
+
+.ev-card.is-locked .ev-media img {
+  filter: grayscale(0.85) brightness(0.85);
+}
+
+/* ===== ОБЛОЖКА ===== */
+.ev-media {
+  position: relative;
+  height: 140px;
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  border-radius: 0.4rem;
   overflow: hidden;
-  border: 2px solid rgb(var(--accent-orange-rgb) / 0.3);
-  transition: var(--transition);
+  background: rgb(var(--white-rgb) / 0.05);
 }
 
-.gallery-preview-item img {
+/* Цветная линия-акцент по нижней кромке обложки */
+.ev-media::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ev-accent), transparent 85%);
+  z-index: 3;
+}
+
+.ev-media img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  opacity: 0;
+  transform: scale(1.08);
+  filter: blur(10px);
+  transition: opacity 0.6s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1), filter 0.6s ease;
 }
 
-.event-card:hover .gallery-preview-item img {
-  transform: scale(1.1);
+/* Плавная прогрузка: из размытия в чёткую картинку */
+.ev-media img.loaded {
+  opacity: 1;
+  transform: scale(1);
+  filter: none;
 }
 
-.event-card:hover .gallery-preview-item {
-  border-color: rgb(var(--accent-orange-rgb) / 0.5);
-  transform: translateY(-2px);
+.ev-card:hover .ev-media img.loaded {
+  transform: scale(1.06);
 }
 
-.gallery-more {
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  border-radius: 0.4rem;
-  background: rgb(var(--accent-orange-rgb) / 0.2);
-  border: 2px solid rgb(var(--accent-orange-rgb) / 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--accent-orange);
-  transition: var(--transition);
+.ev-card.is-locked .ev-media img.loaded {
+  filter: grayscale(0.85) brightness(0.85);
 }
 
-.event-card:hover .gallery-more {
-  background: rgb(var(--accent-orange-rgb) / 0.3);
-  border-color: rgb(var(--accent-orange-rgb) / 0.5);
-  transform: translateY(-2px);
-}
-
-.gallery-more-overlay {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.gallery-more-overlay .blurred-image {
-  filter: blur(4px);
-  opacity: 0.5;
-}
-
-.gallery-more-count {
+.ev-shade {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 1rem;
-  font-weight: 700;
-  color: #ffffff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgb(0 0 0 / 0.35) 0%, transparent 38%, rgb(10 10 14 / 0.78) 100%);
   z-index: 1;
   pointer-events: none;
 }
 
-.event-card:hover .gallery-more-overlay {
-  border-color: rgb(var(--accent-orange-rgb) / 0.5);
-  transform: translateY(-2px);
-}
-
-.gallery-text {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  color: var(--text-light);
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.gallery-text i {
-  color: var(--accent-orange);
-}
-
-.gallery-hint {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: rgb(var(--accent-orange-rgb) / 0.8);
-  font-size: 0.8rem;
-  font-weight: 400;
-}
-
-.gallery-hint i {
-  font-size: 0.7rem;
-  transition: transform 0.3s ease;
-}
-
-.event-card:hover .gallery-hint i {
-  transform: translateX(3px);
-}
-
-/* ===== КАРТОЧКА "ПОКАЗАТЬ ЕЩЁ" (ПОЛНОСТЬЮ ЗАБЛЮРЕННАЯ) ===== */
-.show-more-card {
-  position: relative;
-}
-
-.show-more-overlay {
+/* Дата */
+.ev-date {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-md);
-  z-index: 10;
-  transition: all 0.4s ease;
-}
-
-.show-more-card:hover .show-more-overlay {
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
-}
-
-.overlay-content {
-  text-align: center;
-  padding: 2rem;
-}
-
-.overlay-icon {
-  width: 50px;
-  height: 50px;
-  background: rgb(var(--white-rgb) / 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
+  top: 0.6rem;
+  left: 0.6rem;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  min-width: 2.6rem;
+  padding: 0.3rem 0.45rem;
+  border-radius: 0.65rem;
   color: white;
-  margin: 0 auto 1rem;
+  line-height: 1;
+  background: rgb(14 14 18 / 0.6);
+  border: 1px solid rgb(var(--white-rgb) / 0.18);
+  backdrop-filter: blur(12px);
+}
+
+.ev-date b {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.ev-date span {
+  margin-top: 0.12rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--ev-accent);
+}
+
+.ev-date small {
+  margin-top: 0.1rem;
+  font-size: 0.65rem;
+  color: rgb(var(--white-rgb) / 0.7);
+}
+
+/* Статус */
+.ev-status {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: white;
+  background: rgb(14 14 18 / 0.6);
+  border: 1px solid rgb(var(--ev-accent-rgb) / 0.55);
+  backdrop-filter: blur(12px);
+}
+
+.ev-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ev-accent);
+  box-shadow: 0 0 8px var(--ev-accent);
+}
+
+.ev-status.upcoming .ev-dot {
+  animation: ev-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes ev-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.7); opacity: 0.45; }
+}
+
+/* Статусы участия */
+.ev-badges {
+  position: absolute;
+  left: 0.6rem;
+  right: 0.6rem;
+  bottom: 0.55rem;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.ev-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  background: rgb(14 14 18 / 0.62);
+  border: 1px solid rgb(var(--white-rgb) / 0.16);
   backdrop-filter: blur(10px);
-  border: 2px solid rgb(var(--white-rgb) / 0.3);
-  transition: all 0.4s ease;
 }
 
-.show-more-card:hover .overlay-icon {
-  transform: scale(1.05);
-  background: rgb(var(--white-rgb) / 0.25);
+.ev-badge i { font-size: 0.68rem; color: var(--accent-gold, #ffc107); }
+.ev-badge.status-vip i,
+.ev-badge.status-sponsor i { color: var(--accent-orange); }
+.ev-badge.status-registered i,
+.ev-badge.status-attended i,
+.ev-badge.status-ticket_purchased i { color: var(--accent-green); }
+
+/* ===== ТЕЛО ===== */
+.ev-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0.85rem 0.95rem 0.9rem;
 }
 
-.overlay-title {
-  font-size: 1.2rem;
+.ev-title {
+  margin: 0 0 0.45rem;
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-light);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ev-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.55rem;
+}
+
+.ev-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  padding: 0.14rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  background: rgb(var(--white-rgb) / 0.06);
+  border: 1px solid rgb(var(--white-rgb) / 0.08);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ev-chip i {
+  font-size: 0.66rem;
+  color: var(--ev-accent);
+}
+
+.ev-desc {
+  margin: 0 0 0.65rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: rgb(var(--white-rgb) / 0.78);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ev-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.7rem;
+}
+
+.ev-tag {
+  max-width: 8rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.66rem;
+  color: var(--ev-accent);
+  background: rgb(var(--ev-accent-rgb) / 0.12);
+  border: 1px solid rgb(var(--ev-accent-rgb) / 0.25);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ev-tag.is-more {
+  color: rgb(var(--white-rgb) / 0.7);
+  background: rgb(var(--white-rgb) / 0.07);
+  border-color: rgb(var(--white-rgb) / 0.14);
+}
+
+/* ===== НИЗ КАРТОЧКИ ===== */
+.ev-foot {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: auto;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgb(var(--white-rgb) / 0.08);
+}
+
+.ev-count {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.ev-count-text {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.ev-count-text i { color: var(--accent-green); font-size: 0.7rem; }
+.ev-count-text b { color: var(--text-light); font-weight: 700; }
+
+.ev-bar {
+  display: block;
+  height: 4px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgb(var(--white-rgb) / 0.1);
+}
+
+.ev-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent-green), var(--accent-orange));
+  transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ev-done {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.7rem;
+}
+
+.ev-rating {
+  display: inline-flex;
+}
+
+.ev-stack {
+  display: inline-flex;
+  align-items: center;
+}
+
+.ev-thumb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-left: -8px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #2a2a30;
+  border: 2px solid #1d1d22;
+  transition: transform 0.3s ease, margin 0.3s ease;
+}
+
+.ev-thumb:first-child { margin-left: 0; }
+
+.ev-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ev-thumb.is-more {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ev-accent);
+  background: rgb(var(--ev-accent-rgb) / 0.18);
+}
+
+.ev-card:hover .ev-thumb { margin-left: -4px; }
+.ev-card:hover .ev-thumb:first-child { margin-left: 0; }
+
+.ev-photos,
+.ev-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.ev-photos i { color: var(--ev-accent); }
+.ev-note { font-style: italic; }
+
+/* Круглая кнопка-стрелка */
+.ev-go {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  color: var(--ev-accent);
+  background: rgb(var(--ev-accent-rgb) / 0.14);
+  border: 1px solid rgb(var(--ev-accent-rgb) / 0.35);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, color 0.3s ease;
+}
+
+.ev-card:hover .ev-go:not(.is-locked) {
+  transform: translateX(3px);
+  color: #fff;
+  background: var(--ev-accent);
+}
+
+/* ===== «ПОКАЗАТЬ ЕЩЁ» ===== */
+.ev-more .ev-media img.loaded { filter: blur(3px) brightness(0.7); }
+.ev-more:hover .ev-media img.loaded { transform: scale(1.1); }
+.ev-body-ghost { filter: blur(2.5px); opacity: 0.55; }
+
+.ev-more-cta {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 1rem;
+  text-align: center;
+  background: radial-gradient(80% 70% at 50% 50%, rgb(10 10 14 / 0.55), rgb(10 10 14 / 0.8));
+  backdrop-filter: blur(6px);
+  transition: background 0.35s ease;
+}
+
+.ev-more:hover .ev-more-cta {
+  background: radial-gradient(80% 70% at 50% 50%, rgb(var(--ev-accent-rgb) / 0.2), rgb(10 10 14 / 0.75));
+}
+
+.ev-more-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 0.45rem;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  color: white;
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-green));
+  box-shadow: 0 6px 20px rgb(var(--accent-orange-rgb) / 0.35);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ev-more:hover .ev-more-icon { transform: scale(1.1) rotate(-6deg); }
+
+.ev-more-cta h4 {
+  margin: 0;
+  font-size: 1.05rem;
   font-weight: 700;
   color: white;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-.overlay-subtitle {
-  font-size: 0.9rem;
-  color: rgb(var(--white-rgb) / 0.9);
-  margin-bottom: 1rem;
+.ev-more-cta p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgb(var(--white-rgb) / 0.85);
 }
 
-.overlay-stats {
+.ev-more-stats {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 0.8rem;
-  font-size: 0.8rem;
-  color: rgb(var(--white-rgb) / 0.8);
+  gap: 0.3rem 0.5rem;
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  color: rgb(var(--white-rgb) / 0.75);
 }
 
-.divider {
+.ev-sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
   opacity: 0.6;
 }
 
+/* ===== ПРОГРУЗКА: ПОЯВЛЕНИЕ КАРТОЧЕК ===== */
+.card-lazy {
+  opacity: 0;
+  transform: translateY(28px) scale(0.97);
+}
+
+.card-lazy.card-visible {
+  animation: ev-enter 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 110ms);
+}
+
+@keyframes ev-enter {
+  from { opacity: 0; transform: translateY(28px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ===== ПРОГРУЗКА: СКЕЛЕТОН ===== */
+.ev-skel {
+  cursor: default;
+  pointer-events: none;
+  animation: ev-skel-in 0.5s ease both;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+
+@keyframes ev-skel-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Шиммер: блик бежит по заглушке (и по обложке, пока грузится картинка) */
+.ev-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    rgb(var(--white-rgb) / 0.04) 20%,
+    rgb(var(--white-rgb) / 0.13) 50%,
+    rgb(var(--white-rgb) / 0.04) 80%
+  );
+  background-size: 220% 100%;
+  animation: ev-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes ev-shimmer {
+  from { background-position: 120% 0; }
+  to   { background-position: -120% 0; }
+}
+
+.ev-skel-chip,
+.ev-skel-pill {
+  position: absolute;
+  inset: auto;
+  top: 0.6rem;
+  border-radius: 0.65rem;
+}
+
+.ev-skel-chip { left: 0.6rem; width: 2.6rem; height: 3rem; }
+.ev-skel-pill { right: 0.6rem; width: 5rem; height: 1.3rem; border-radius: 999px; }
+
+.ev-skel-line,
+.ev-skel-foot {
+  position: relative;
+  inset: auto;
+  height: 0.8rem;
+  margin-bottom: 0.55rem;
+  border-radius: 6px;
+}
+
+.ev-skel-line.title { width: 70%; height: 1.1rem; margin-bottom: 0.7rem; }
+.ev-skel-line.meta  { width: 45%; height: 0.9rem; border-radius: 999px; }
+.ev-skel-line.short { width: 60%; }
+
+.ev-skel-foot {
+  height: 1.9rem;
+  margin: auto 0 0;
+  border-radius: 999px;
+}
+
 /* ===== АДАПТИВНОСТЬ ===== */
-
-/* Широкие экраны (1400px+) */
-@media (min-width: 1400px) {
-  .events-grid {
-    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-    gap: 2.5rem;
-  }
-
-  .event-card {
-    border-radius: 1.5rem;
-  }
-
-  .card-image {
-    height: 220px;
-  }
-
-  .card-content {
-    padding: 1.25rem;
-  }
+@media (max-width: 900px) {
+  .events-grid { gap: 0.7rem; }
+  .ev-card { border-radius: 0.95rem; }
+  .ev-media { height: 110px; }
+  .ev-body { padding: 0.7rem 0.75rem 0.8rem; }
+  .ev-title { font-size: 0.92rem; }
+  .ev-desc { -webkit-line-clamp: 1; line-clamp: 1; }
+  .ev-tags,
+  .ev-note,
+  .ev-chip:nth-child(n + 2) { display: none; }
+  .ev-badge { font-size: 0.66rem; padding: 0.1rem 0.4rem; }
+  .ev-status { font-size: 0.66rem; padding: 0.18rem 0.45rem; }
+  .ev-thumb { width: 22px; height: 22px; }
 }
 
-/* Хорошие экраны (1024px - 1399px) */
-@media (max-width: 1399px) and (min-width: 1024px) {
-  .events-grid {
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 2rem;
-  }
-
-  .card-image {
-    height: 200px;
-  }
-
-  .card-content {
-    padding: 1.1rem;
-  }
-
-  .event-name {
-    font-size: 1.25rem;
-  }
-
-  .event-meta {
-    gap: 0.8rem;
-  }
+/* Телефоны: одна карточка в строку */
+@media (max-width: 640px) {
+  .events-grid { grid-template-columns: minmax(0, 1fr); gap: 0.9rem; }
+  .ev-media { height: 160px; }
+  .ev-body { padding: 0.85rem 0.95rem 0.9rem; }
+  .ev-title { font-size: 1.05rem; }
+  .ev-desc { -webkit-line-clamp: 2; line-clamp: 2; }
+  .ev-tags { display: flex; }
+  .ev-note { display: inline-flex; }
+  .ev-chip:nth-child(n + 2) { display: inline-flex; }
+  .ev-badge { font-size: 0.7rem; padding: 0.15rem 0.5rem; }
+  .ev-status { font-size: 0.7rem; padding: 0.22rem 0.6rem; }
+  .ev-thumb { width: 26px; height: 26px; }
 }
 
-/* Планшеты горизонтальные (769px - 1023px) */
-@media (max-width: 1023px) and (min-width: 769px) {
-  .events-grid {
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .event-card {
-    border-radius: 1.25rem;
-  }
-
-  .card-image {
-    height: 190px;
-  }
-
-  .card-content {
-    padding: 1rem;
-  }
-
-  .event-name {
-    font-size: 1.2rem;
-    margin-bottom: 0.6rem;
-  }
-
-  .event-description {
-    font-size: 0.9rem;
-  }
-
-  .meta-item {
-    font-size: 0.85rem;
-  }
-
-  .event-features {
-    gap: 0.4rem;
-  }
-
-  .feature-badge {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.75rem;
-  }
-
-  .countdown-block {
-    padding: 0.65rem 1rem;
-  }
-
-  .countdown-value {
-    font-size: 1.3rem;
-  }
-
-  .gallery-preview-item {
-    width: 44px;
-    height: 44px;
-  }
-
-  .gallery-previews {
-    gap: 0.3rem;
-  }
-}
-
-/* Планшеты и большие мобильные (481px - 768px) */
-@media (max-width: 768px) {
-  .section-title {
-    font-size: 1.8rem;
-  }
-
-  .section-description {
-    font-size: 0.95rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .events-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.2rem;
-  }
-
-  .event-card {
-    border-radius: var(--radius-md);
-    border-radius: var(--radius-md);
-  }
-
-  .event-card:hover {
-    transform: translateY(-6px);
-  }
-
-  .card-image {
-    height: 170px;
-  }
-
-  .date-badge {
-    top: 0.75rem;
-    left: 0.75rem;
-    min-width: 55px;
-    padding: 0.5rem;
-    font-size: 0.85rem;
-  }
-
-  .month {
-    font-size: 0.65rem;
-  }
-
-  .day {
-    font-size: 1.4rem;
-  }
-
-  .year {
-    font-size: 0.65rem;
-  }
-
-  .status-badge {
-    top: 0.75rem;
-    right: 0.75rem;
-    padding: 0.3rem 0.6rem;
-    font-size: 0.65rem;
-  }
-
-  .attendance-badges-container {
-    bottom: 0.75rem;
-    left: 0.75rem;
-    gap: 0.35rem;
-  }
-
-  .attendance-badge {
-    padding: 0.35rem 0.7rem;
-    font-size: 0.65rem;
-    gap: 0.3rem;
-  }
-
-  .card-content {
-    padding: 0.9rem;
-  }
-
-  .event-name {
-    font-size: 1.15rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .event-meta {
-    gap: 0.7rem;
-    margin-bottom: 0.6rem;
-  }
-
-  .meta-item {
-    font-size: 0.8rem;
-  }
-
-  .meta-item i {
-    font-size: 0.8rem;
-  }
-
-  .event-description {
-    font-size: 0.85rem;
-    line-height: 1.4;
-  }
-
-  .event-features {
-    gap: 0.35rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .feature-badge {
-    padding: 0.25rem 0.55rem;
-    font-size: 0.7rem;
-    gap: 0.3rem;
-  }
-
-  .feature-badge i {
-    font-size: 0.65rem;
-  }
-
-  .countdown-block {
-    padding: 0.65rem 0.9rem;
-    border-radius: var(--radius-sm);
-  }
-
-  .countdown-text {
-    font-size: 0.85rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .countdown-value {
-    font-size: 1.25rem;
-  }
-
-  .progress-bar {
-    height: 5px;
-  }
-
-  .gallery-block {
-    padding: 0.65rem;
-    border-radius: var(--radius-sm);
-  }
-
-  .gallery-previews {
-    gap: 0.3rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .gallery-preview-item {
-    width: 42px;
-    height: 42px;
-    border-radius: 0.3rem;
-  }
-
-  .gallery-text {
-    font-size: 0.8rem;
-    gap: 0.3rem;
-  }
-
-  .gallery-text i {
-    font-size: 0.85rem;
-  }
-
-  .gallery-hint {
-    font-size: 0.75rem;
-  }
-
-  .show-more-overlay {
-    border-radius: var(--radius-md);
-  }
-
-  .overlay-content {
-    padding: 1.5rem;
-  }
-
-  .overlay-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 1.2rem;
-  }
-
-  .overlay-title {
-    font-size: 1.1rem;
-  }
-
-  .overlay-subtitle {
-    font-size: 0.85rem;
-  }
-
-  .overlay-stats {
-    font-size: 0.75rem;
-  }
-
-  .error-state {
-    padding: 2rem 1rem;
-  }
-
-  .retry-button {
-    padding: 0.65rem 1.25rem;
-    font-size: 0.85rem;
-  }
-
-  .skeleton-image {
-    height: 160px;
-  }
-
-  .skeleton-date-badge {
-    width: 50px;
-  }
-
-  .skeleton-line.title {
-    width: 60%;
-  }
-
-  .skeleton-footer {
-    height: 35px;
-  }
-}
-
-/* Мобильные (до 480px) */
-@media (max-width: 480px) {
-  .section-title {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .section-description {
-    font-size: 0.85rem;
-    margin-bottom: 1.25rem;
-  }
-
-  .events-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .event-card {
-    border-radius: 0.9rem;
-    border: 1px solid rgb(var(--white-rgb) / 0.08);
-  }
-
-  .event-card:hover {
-    transform: translateY(-4px);
-  }
-
-  .event-card.upcoming {
-    border-left: 3px solid var(--accent-green);
-  }
-
-  .event-card.completed {
-    border-left: 3px solid var(--accent-orange);
-  }
-
-  .card-image {
-    height: 150px;
-  }
-
-  .date-badge {
-    top: 0.6rem;
-    left: 0.6rem;
-    min-width: 50px;
-    padding: 0.4rem;
-    border-radius: var(--radius-sm);
-  }
-
-  .month {
-    font-size: 0.6rem;
-    letter-spacing: 0.3px;
-  }
-
-  .day {
-    font-size: 1.2rem;
-    margin: 0.15rem 0;
-  }
-
-  .year {
-    font-size: 0.6rem;
-  }
-
-  .status-badge {
-    top: 0.6rem;
-    right: 0.6rem;
-    padding: 0.25rem 0.55rem;
-    font-size: 0.6rem;
-    border-radius: 1.2rem;
-  }
-
-  .attendance-badges-container {
-    bottom: 0.6rem;
-    left: 0.6rem;
-    gap: 0.3rem;
-  }
-
-  .attendance-badge {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.6rem;
-    gap: 0.25rem;
-    border-radius: 6px;
-  }
-
-  .attendance-badge i {
-    font-size: 0.65rem;
-  }
-
-  .card-content {
-    padding: 0.8rem;
-  }
-
-  .event-name {
-    font-size: 1.05rem;
-    margin-bottom: 0.4rem;
-    line-height: 1.2;
-  }
-
-  .event-meta {
-    gap: 0.6rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .meta-item {
-    font-size: 0.75rem;
-  }
-
-  .meta-item i {
-    width: 14px;
-    font-size: 0.75rem;
-  }
-
-  .event-description {
-    font-size: 0.8rem;
-    line-height: 1.35;
-    margin-bottom: 0.75rem;
-  }
-
-  .event-features {
-    gap: 0.3rem;
-    margin-bottom: 0.65rem;
-  }
-
-  .feature-badge {
-    padding: 0.2rem 0.5rem;
-    font-size: 0.65rem;
-    border-radius: 15px;
-    gap: 0.25rem;
-  }
-
-  .feature-badge i {
-    font-size: 0.6rem;
-  }
-
-  .feature-badge.more-features {
-    font-size: 0.65rem;
-    font-weight: 700;
-  }
-
-  .countdown-block {
-    background: rgb(var(--accent-green-rgb) / 0.08);
-    border: 1px solid rgb(var(--accent-green-rgb) / 0.15);
-    padding: 0.6rem 0.8rem;
-    border-radius: 0.45rem;
-  }
-
-  .countdown-text {
-    font-size: 0.8rem;
-    margin-bottom: 0.4rem;
-  }
-
-  .countdown-text i {
-    font-size: 0.8rem;
-  }
-
-  .countdown-value {
-    font-size: 1.1rem;
-    font-weight: 700;
-  }
-
-  .progress-bar {
-    height: 4px;
-    border-radius: 2px;
-  }
-
-  .completed-info-block {
-    gap: 0.6rem;
-  }
-
-  .rating-block {
-    background: rgb(var(--accent-orange-rgb) / 0.08);
-    border: 1px solid rgb(var(--accent-orange-rgb) / 0.15);
-    padding: 0.6rem 0.8rem;
-    border-radius: 0.45rem;
-  }
-
-  .gallery-block {
-    background: rgb(var(--accent-orange-rgb) / 0.08);
-    border: 1px solid rgb(var(--accent-orange-rgb) / 0.15);
-    padding: 0.6rem 0.8rem;
-    border-radius: 0.45rem;
-  }
-
-  .gallery-previews {
-    gap: 0.25rem;
-    margin-bottom: 0.4rem;
-  }
-
-  .gallery-preview-item {
-    width: 36px;
-    height: 36px;
-    border-radius: 0.28rem;
-    border: 1.5px solid rgb(var(--accent-orange-rgb) / 0.25);
-  }
-
-  .gallery-text {
-    font-size: 0.75rem;
-    gap: 0.25rem;
-  }
-
-  .gallery-text i {
-    font-size: 0.8rem;
-  }
-
-  .gallery-hint {
-    font-size: 0.7rem;
-    margin-top: 0.3rem;
-  }
-
-  .gallery-hint i {
-    font-size: 0.65rem;
-  }
-
-  .show-more-card {
-    border-radius: 0.9rem;
-  }
-
-  .show-more-overlay {
-    border-radius: 0.9rem;
-    background: rgba(0, 0, 0, 0.75);
-  }
-
-  .overlay-icon {
-    width: 35px;
-    height: 35px;
-    font-size: 1rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .overlay-title {
-    font-size: 1rem;
-    margin-bottom: 0.4rem;
-  }
-
-  .overlay-subtitle {
-    font-size: 0.8rem;
-    margin-bottom: 0.8rem;
-  }
-
-  .overlay-content {
-    padding: 1.25rem 1rem;
-  }
-
-  .overlay-stats {
-    font-size: 0.7rem;
-    gap: 0.6rem;
-  }
-
-  .divider {
-    display: inline;
-  }
-
-  .error-state {
-    padding: 1.5rem 0.75rem;
-    gap: 1rem;
-  }
-
-  .error-state i {
-    font-size: 2.5rem;
-  }
-
-  .error-state p {
-    font-size: 0.85rem;
-  }
-
-  .retry-button {
-    padding: 0.6rem 1.2rem;
-    font-size: 0.8rem;
-    margin-top: 0.75rem;
-  }
-
-  .retry-button i {
-    font-size: 0.8rem;
-  }
-
-  /* Скелеты для мобильных */
-  .skeleton-card {
-    animation: skeleton-card-in 0.4s ease both;
-  }
-
-  .skeleton-image {
-    height: 140px;
-  }
-
-  .skeleton-date-badge {
-    width: 45px;
-    gap: 3px;
-  }
-
-  .skeleton-status-badge {
-    width: 70px;
-    height: 24px;
-  }
-
-  .skeleton-line.title {
-    width: 55%;
-    height: 16px;
-  }
-
-  .skeleton-line.meta {
-    width: 80px;
-    height: 10px;
-  }
-
-  .skeleton-line.meta-sm {
-    width: 50px;
-  }
-
-  .skeleton-footer {
-    height: 32px;
-  }
-
-  .skeleton-content {
-    gap: 0.5rem;
-  }
-}
-
-/* Очень маленькие экраны (до 360px) */
-@media (max-width: 360px) {
-  .section-title {
-    font-size: 1.4rem;
-  }
-
-  .section-description {
-    font-size: 0.8rem;
-  }
-
-  .events-grid {
-    gap: 0.75rem;
-  }
-
-  .card-image {
-    height: 130px;
-  }
-
-  .date-badge {
-    min-width: 45px;
-  }
-
-  .card-content {
-    padding: 0.7rem;
-  }
-
-  .event-name {
-    font-size: 1rem;
-    margin-bottom: 0.35rem;
-  }
-
-  .event-description {
-    font-size: 0.75rem;
-    margin-bottom: 0.65rem;
-  }
-
-  .event-meta {
-    gap: 0.5rem;
-    margin-bottom: 0.4rem;
-  }
-
-  .meta-item {
-    font-size: 0.7rem;
-  }
-
-  .feature-badge {
-    padding: 0.18rem 0.45rem;
-    font-size: 0.6rem;
-  }
-
-  .gallery-preview-item {
-    width: 32px;
-    height: 32px;
-  }
-
-  .countdown-block {
-    padding: 0.5rem 0.7rem;
-  }
-
-  .countdown-value {
-    font-size: 1rem;
-  }
+/* Уважаем «уменьшить анимацию» */
+@media (prefers-reduced-motion: reduce) {
+  .card-lazy,
+  .card-lazy.card-visible { animation: none; opacity: 1; transform: none; }
+  .ev-skel,
+  .ev-shimmer,
+  .ev-status.upcoming .ev-dot { animation: none; }
+  .ev-media img { transition: opacity 0.2s ease; transform: none; filter: none; }
+  .ev-card,
+  .ev-card:hover { transition: none; transform: none; }
 }
 </style>

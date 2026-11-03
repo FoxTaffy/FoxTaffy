@@ -627,12 +627,14 @@ export default {
   display: none;
   flex-direction: column;
   justify-content: space-around;
-  width: 30px;
-  height: 25px;
+  box-sizing: border-box;
+  width: 44px; /* зона нажатия ≥ 44px, полосы остаются 30×25 */
+  height: 44px;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 9px 7px;
+  margin-right: -7px;
   z-index: 1001;
 }
 
@@ -665,6 +667,8 @@ export default {
   right: -100%;
   width: 320px;
   height: calc(100vh - 70px);
+  height: calc(100dvh - 70px); /* без обрезки под адресной строкой мобильного браузера */
+  overscroll-behavior: contain;
   background: rgba(26, 26, 26, 0.98);
   backdrop-filter: blur(20px);
   border-left: 1px solid rgb(var(--white-rgb) / 0.1);
@@ -679,6 +683,7 @@ export default {
 
 .mobile-menu-content {
   padding: 2rem;
+  padding-bottom: calc(2rem + env(safe-area-inset-bottom));
 }
 
 .mobile-section {
@@ -845,6 +850,7 @@ export default {
   .mobile-menu {
     top: 60px;
     height: calc(100vh - 60px);
+    height: calc(100dvh - 60px);
   }
   
   .main-content {

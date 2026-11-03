@@ -16,6 +16,7 @@
         <p>Сделано с <span class="heart">❤</span> для фурри-сообщества</p>
       </div>
     </div>
+    <ScrollTop />
   </div>
 </template>
 
@@ -28,6 +29,7 @@ import FursuitSection from './Base/Fursuit.vue'
 import PartnerSection from './Base/Felix.vue'
 import EventsSection from './Base/Events.vue'
 import CommunitiesSection from './Base/Communities.vue'
+import ScrollTop from './ui/ScrollTop.vue'
 
 export default {
   name: 'HomeView',
@@ -39,7 +41,8 @@ export default {
     FursuitSection,
     PartnerSection,
     EventsSection,
-    CommunitiesSection
+    CommunitiesSection,
+    ScrollTop
   }
 }
 </script>
